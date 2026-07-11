@@ -334,7 +334,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","usage"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -437,6 +437,11 @@ function syncBadge(state){
   el.style.color=state==="off"?"var(--dang-t)":"var(--ok-t)";
   el.title=state==="off"?"Offline — changes will sync when you're back":"Synced with the team";
 }
+/* ---- team pulse: minutes-in-app + last-seen per member, synced like any record ---- */
+function ensureUsage(){if(!DB.usage)DB.usage=[];}
+function usageRow(){ensureUsage();const day=todayStr(),id=USER+"_"+day;let u=DB.usage.find(r=>r.id===id);if(!u){u={id:id,user:USER,day:day,mins:0,ts:""};DB.usage.push(u);}return u;}
+function usageStamp(){if(!USER||!DB)return;usageRow().ts=new Date().toISOString();save();}
+function usageBeat(){if(!USER||!authed()||document.hidden)return;const u=usageRow();u.mins=(u.mins||0)+1;u.ts=new Date().toISOString();save();}
 async function bootSync(){
   loadSyncMeta();
   await pullChanges(true);      // full pull — server is the source of truth
@@ -445,12 +450,16 @@ async function bootSync(){
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});
+  usageStamp();
+  clearInterval(bootSync._beat);bootSync._beat=setInterval(usageBeat,60000);
 }
 function di(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString();}
 function df(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString();}
 function since(iso){return iso?Math.floor((Date.now()-new Date(iso))/86400000):null;}
 function until(iso){return Math.ceil((new Date(iso)-Date.now())/86400000);}
 function ago(iso){if(!iso)return"never";const d=since(iso);if(d<=0)return"today";if(d===1)return"yesterday";return d+" days ago";}
+function agoShort(iso){if(!iso)return"—";const s=(Date.now()-new Date(iso))/1000;if(s<90)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";}
+function fmtMins(m){if(!m)return"0m";const h=Math.floor(m/60),r=m%60;return h?h+"h"+(r?" "+r+"m":""):r+"m";}
 function money(n){return"$"+Math.round(n).toLocaleString();}
 function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();}
 function uid(){return Math.random().toString(36).slice(2,9);}
@@ -645,7 +654,11 @@ async function setPw(){
     if(res.ok&&j.user&&!j.access_token){
       loginMsg("Almost — the server wants email confirmation. In Supabase turn OFF “Confirm email” (Auth → Providers → Email), then set your password again.",true);return;
     }
-    loginMsg(j.msg||j.error_description||"Couldn't set the password — try again",true);
+    if(res.status===429||em.indexOf("rate limit")>=0){
+      loginMsg("The server tried to send a confirmation email and hit its email limit. In Supabase turn OFF “Confirm email” (Authentication → Sign In / Providers → Email) — then this works instantly with no email at all.",true);return;
+    }
+    const detail=j.msg||j.message||j.error_description||(j.error&&j.error.message)||"";
+    loginMsg((detail||"Couldn't set the password")+" (error "+res.status+(j.error_code?" · "+j.error_code:"")+") — try again",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 async function signInPw(){
@@ -966,6 +979,7 @@ function viewToday(){
    '<div class="kpi"><b>Set-up distributors</b><span>'+setup.length+'</span><small>'+potN+' potential</small></div>'+
    '<div class="kpi"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span></div>'+
   '</div>';
+  h+=teamPulse();
   h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add an action for today…" autocomplete="off">'+
    '<div class="qa-types" id="taskTypes">'+[["call","Call"],["email","Email"],["demo","Demo"],["train","Train"],["followup","Follow-up"],["todo","To-do"]].map((t,i)=>'<span class="qchip'+((logState.taskType||"call")===t[0]?" on":"")+'" data-act="settask" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
@@ -1012,6 +1026,33 @@ function taskRow(t){
    tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
 }
 function rtag(region){return admin()&&region?" · "+region:"";}
+function teamPulse(){
+  ensureUsage();
+  const cut=Date.now()-7*86400000;
+  const rows=TEAM.map(t=>{
+    const acts=(DB.activities||[]).filter(a=>a.by===t.id&&a.date&&new Date(a.date)>=cut).length;
+    const tks=(DB.tasks||[]).filter(k=>k.owner===t.id&&k.done&&k.completedAt&&new Date(k.completedAt)>=cut).length;
+    const mins=DB.usage.filter(u=>u.user===t.id&&u.day&&new Date(u.day)>=cut).reduce((s,u)=>s+(u.mins||0),0);
+    const last=[
+      DB.usage.filter(u=>u.user===t.id).map(u=>u.ts||"").sort().pop()||"",
+      (DB.activities||[]).filter(a=>a.by===t.id).map(a=>a.date||"").sort().pop()||"",
+      (DB.tasks||[]).filter(k=>k.owner===t.id&&k.completedAt).map(k=>k.completedAt).sort().pop()||""
+    ].sort().pop()||"";
+    return {t:t,n:acts+tks,mins:mins,last:last};
+  }).sort((a,b)=>b.n-a.n||b.mins-a.mins);
+  const max=Math.max(1,...rows.map(r=>r.n));
+  let h='<div class="sectlabel">Team pulse — last 7 days</div><div class="card" style="padding:12px 14px">';
+  h+=rows.map(r=>{
+    const pct=r.n?Math.max(6,Math.round(r.n/max*100)):0;
+    return '<div class="row" style="margin:7px 0;gap:10px;align-items:center">'+
+     '<span class="uav" style="background:'+r.t.c+';width:26px;height:26px;font-size:11px;flex:none">'+initials(r.t.name)+'</span>'+
+     '<div class="grow"><div class="row" style="justify-content:space-between;gap:8px">'+
+      '<p class="t1" style="font-size:13px">'+r.t.name.split(" ")[0]+(r.t.id===USER?' <span style="color:var(--hint);font-weight:400">(you)</span>':'')+'</p>'+
+      '<p class="t2" style="font-size:12px;white-space:nowrap">'+r.n+' entr'+(r.n===1?"y":"ies")+' · '+fmtMins(r.mins)+' in app · '+agoShort(r.last)+'</p></div>'+
+      '<div class="bar" style="margin-top:4px;height:6px"><i style="width:'+pct+'%;background:'+r.t.c+'"></i></div></div></div>';
+  }).join("");
+  return h+'</div>';
+}
 function teamFeed(){
   const feed=DB.activities.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
   if(!feed.length)return"";
