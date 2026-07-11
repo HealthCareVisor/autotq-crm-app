@@ -456,7 +456,7 @@ function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUp
 function uid(){return Math.random().toString(36).slice(2,9);}
 function titlecase(s){return s.replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());}
 function isTop(p){return p.units>=60;}
-function admin(){return USER==="max";}
+function admin(){return USER==="max"||USER==="hannah";}
 function mine(o){return admin()||o===USER;}
 function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";}
 
@@ -575,12 +575,21 @@ function renderLogin(){
      TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
       return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("")+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
+  }else if(step==="pw"&&logState.pwMode==="set"){
+    h+='<div class="who">Set your password<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
+     '<input class="f" id="pwInput" type="password" name="new-password" placeholder="Choose a password (6+ characters)" autocomplete="new-password" style="text-align:center;font-size:18px">'+
+     '<input class="f" id="pwInput2" type="password" name="confirm-password" placeholder="Type it again" autocomplete="new-password" style="text-align:center;font-size:18px;margin-top:8px">'+
+     '<button class="btn coral block" data-act="pwset" style="margin-top:14px">Set password &amp; enter</button>'+
+     '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">This becomes your CRM password — from now on you\'ll just type it once to get in.</p>'+
+     '<button class="btn block ghost" data-act="pwmode" data-mode="enter" style="margin-top:8px">I already have a password</button>'+
+     '<button class="btn block ghost" data-act="otpback" style="margin-top:4px">Use a different account</button>'+
+     '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }else if(step==="pw"){
     h+='<div class="who">Enter your password<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
      '<input class="f" id="pwInput" type="password" name="password" placeholder="Password" autocomplete="current-password" style="text-align:center;font-size:18px">'+
      '<button class="btn coral block" data-act="pwsignin" style="margin-top:14px">Sign in</button>'+
-     '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">First time here? Type the password you want (6+ characters) — it becomes your password and you\'re signed straight in.</p>'+
-     '<button class="btn block ghost" data-act="otpback" style="margin-top:8px">Use a different account</button>'+
+     '<button class="btn block ghost" data-act="pwmode" data-mode="set" style="margin-top:8px">First time? Set your password</button>'+
+     '<button class="btn block ghost" data-act="otpback" style="margin-top:4px">Use a different account</button>'+
      '<button class="btn block ghost" data-act="sendotp" data-email="'+esc(logState.pwEmail)+'" style="margin-top:4px">Email me a one-time code instead</button>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }else{
@@ -592,8 +601,11 @@ function renderLogin(){
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }
   document.getElementById("screen").innerHTML=h+"</div>";
-  const f=document.getElementById("pwInput")||document.getElementById("otpCode");
-  if(f){setTimeout(()=>f.focus(),60);f.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();f.id==="pwInput"?signInPw():verifyOtp();}});}
+  const p1=document.getElementById("pwInput"),p2=document.getElementById("pwInput2"),oc=document.getElementById("otpCode");
+  const f=p1||oc;if(f)setTimeout(()=>f.focus(),60);
+  if(p1)p1.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();p2?p2.focus():signInPw();}});
+  if(p2)p2.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();setPw();}});
+  if(oc)oc.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();verifyOtp();}});
 }
 function loginMsg(m,bad){const el=document.getElementById("loginMsg");if(el){el.textContent=m;el.style.color=bad?"var(--dang-t)":"var(--muted)";}}
 function finishLogin(j,email){
@@ -603,32 +615,50 @@ function finishLogin(j,email){
   logState={};view="today";render();
   bootSync();
 }
-async function signInPw(){
-  const email=logState.pwEmail, pw=(document.getElementById("pwInput").value||"");
-  if(pw.length<6){loginMsg("Password needs at least 6 characters",true);return;}
-  loginMsg("Signing in…");
+const PWKEY="autotq_pw_known"; // emails that have a password set, per this device — picks the right login screen
+function pwKnown(email){try{return !!(JSON.parse(localStorage.getItem(PWKEY)||"{}")[email]);}catch(e){return false;}}
+function markPwKnown(email){try{const m=JSON.parse(localStorage.getItem(PWKEY)||"{}");m[email]=1;localStorage.setItem(PWKEY,JSON.stringify(m));}catch(e){}}
+async function setPw(){
+  const email=logState.pwEmail;
+  const pw=(document.getElementById("pwInput").value||""), pw2=(document.getElementById("pwInput2").value||"");
+  if(pw.length<6){loginMsg("Choose a password with at least 6 characters",true);return;}
+  if(pw!==pw2){loginMsg("Those don't match — type the same password in both boxes",true);return;}
+  loginMsg("Setting your password…");
   try{
-    let res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+    let res=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
       body:JSON.stringify({email:email,password:pw})});
     let j=await res.json().catch(()=>({}));
-    if(res.ok&&j.access_token){finishLogin(j,email);return;}
-    // no password on file yet → first entry creates it (signup returns a live session)
-    res=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({email:email,password:pw})});
-    j=await res.json().catch(()=>({}));
-    if(res.ok&&j.access_token){toast("Password set — you're in");finishLogin(j,email);return;}
+    if(res.ok&&j.access_token){markPwKnown(email);toast("Password set — welcome in");finishLogin(j,email);return;}
     const em=(j.msg||j.message||j.error_description||"").toLowerCase();
     if(j.error_code==="user_already_exists"||em.indexOf("already registered")>=0||em.indexOf("already exists")>=0){
-      logState.pendingPw=pw;
-      loginMsg("Wrong password for this account. Try again — or tap “Email me a one-time code instead” and the password you just typed will be saved once you're in.",true);return;
+      // account exists — maybe they set this password on another device; try it as a sign-in
+      res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+        body:JSON.stringify({email:email,password:pw})});
+      j=await res.json().catch(()=>({}));
+      if(res.ok&&j.access_token){markPwKnown(email);finishLogin(j,email);return;}
+      logState.pwMode="enter";logState.pendingPw=pw;renderLogin();
+      loginMsg("This account already has a password — enter it here. Forgotten? Tap “Email me a one-time code instead.”",true);return;
     }
     if(em.indexOf("signup")>=0&&(em.indexOf("disabled")>=0||em.indexOf("not allowed")>=0)){
-      loginMsg("Password sign-in is switched off on the server — in Supabase turn on the Email provider with sign-ups allowed, or use the emailed code.",true);return;
+      loginMsg("Password sign-in is switched off on the server — in Supabase turn on the Email provider with sign-ups allowed.",true);return;
     }
     if(res.ok&&j.user&&!j.access_token){
-      loginMsg("Almost — the server wants email confirmation. In Supabase turn OFF “Confirm email” (Auth → Providers → Email), then sign in again.",true);return;
+      loginMsg("Almost — the server wants email confirmation. In Supabase turn OFF “Confirm email” (Auth → Providers → Email), then set your password again.",true);return;
     }
-    loginMsg(j.msg||j.error_description||"Couldn't sign in — try again",true);
+    loginMsg(j.msg||j.error_description||"Couldn't set the password — try again",true);
+  }catch(e){loginMsg("Network problem — try again",true);}
+}
+async function signInPw(){
+  const email=logState.pwEmail, pw=(document.getElementById("pwInput").value||"");
+  if(!pw){loginMsg("Type your password",true);return;}
+  loginMsg("Signing in…");
+  try{
+    const res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email,password:pw})});
+    const j=await res.json().catch(()=>({}));
+    if(res.ok&&j.access_token){markPwKnown(email);finishLogin(j,email);return;}
+    logState.pendingPw=pw;
+    loginMsg("That password didn't work. Try again — or tap “Email me a one-time code instead” and the password you just typed will be saved once you're in.",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 async function sendOtp(email){
@@ -654,7 +684,7 @@ async function verifyOtp(){
     const email=logState.otpEmail, pending=logState.pendingPw;
     saveSession(j);
     if(pending){ // migrate this account to the password they typed on the previous screen
-      try{const r=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pending})});if(r.ok)toast("Password saved — next time just type it");}catch(e){}
+      try{const r=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pending})});if(r.ok){markPwKnown(email);toast("Password saved — next time just type it");}}catch(e){}
     }
     finishLogin(j,email);
   }catch(e){loginMsg("Network problem — try again",true);}
@@ -2232,7 +2262,9 @@ function exportCSV(){
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
-  if(a==="pickuser"){logState={pwEmail:t.dataset.email};renderLogin();return;}
+  if(a==="pickuser"){const em=t.dataset.email;logState={pwEmail:em,pwMode:pwKnown(em)?"enter":"set"};renderLogin();return;}
+  if(a==="pwmode"){logState.pwMode=t.dataset.mode;renderLogin();return;}
+  if(a==="pwset"){setPw();return;}
   if(a==="pwsignin"){signInPw();return;}
   if(a==="sendotp"){sendOtp(t.dataset.email);return;}
   if(a==="verifyotp"){verifyOtp();return;}
