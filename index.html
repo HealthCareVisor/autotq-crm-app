@@ -568,25 +568,72 @@ function closeSheet(){document.getElementById("scrim").classList.remove("open");
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 
 function renderLogin(){
-  const step=logState.otpEmail?"code":"email";
+  const step=logState.otpEmail?"code":(logState.pwEmail?"pw":"who");
   let h='<div class="login"><div class="logo">Auto<span>TQ</span></div><div class="tag">Channel CRM</div>';
-  if(step==="email"){
-    h+='<div class="who">Tap your name — we\'ll email you a sign-in code</div>'+
+  if(step==="who"){
+    h+='<div class="who">Tap your name to sign in</div>'+
      TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
-      return '<button class="ubtn" data-act="sendotp" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("")+
+      return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("")+
+     '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
+  }else if(step==="pw"){
+    h+='<div class="who">Enter your password<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
+     '<input class="f" id="pwInput" type="password" name="password" placeholder="Password" autocomplete="current-password" style="text-align:center;font-size:18px">'+
+     '<button class="btn coral block" data-act="pwsignin" style="margin-top:14px">Sign in</button>'+
+     '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">First time here? Type the password you want (6+ characters) — it becomes your password and you\'re signed straight in.</p>'+
+     '<button class="btn block ghost" data-act="otpback" style="margin-top:8px">Use a different account</button>'+
+     '<button class="btn block ghost" data-act="sendotp" data-email="'+esc(logState.pwEmail)+'" style="margin-top:4px">Email me a one-time code instead</button>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }else{
     h+='<div class="who">Enter the 6-digit code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div>'+
      '<input class="f" id="otpCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:8px;font-weight:700">'+
      '<button class="btn coral block" data-act="verifyotp" style="margin-top:14px">Sign in</button>'+
      '<button class="btn block ghost" data-act="otpback" style="margin-top:8px">Use a different account</button>'+
+     (logState.pendingPw?'<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">Once you\'re in, the password you typed will be saved — next time you can skip the code.</p>':'')+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }
   document.getElementById("screen").innerHTML=h+"</div>";
-  const c=document.getElementById("otpCode");if(c)setTimeout(()=>c.focus(),60);
+  const f=document.getElementById("pwInput")||document.getElementById("otpCode");
+  if(f){setTimeout(()=>f.focus(),60);f.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();f.id==="pwInput"?signInPw():verifyOtp();}});}
 }
 function loginMsg(m,bad){const el=document.getElementById("loginMsg");if(el){el.textContent=m;el.style.color=bad?"var(--dang-t)":"var(--muted)";}}
+function finishLogin(j,email){
+  saveSession(j);
+  USER=TEAM_EMAILS[((j.user&&j.user.email)||email||"").toLowerCase()]||"";
+  localStorage.setItem(UKEY,USER);
+  logState={};view="today";render();
+  bootSync();
+}
+async function signInPw(){
+  const email=logState.pwEmail, pw=(document.getElementById("pwInput").value||"");
+  if(pw.length<6){loginMsg("Password needs at least 6 characters",true);return;}
+  loginMsg("Signing in…");
+  try{
+    let res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email,password:pw})});
+    let j=await res.json().catch(()=>({}));
+    if(res.ok&&j.access_token){finishLogin(j,email);return;}
+    // no password on file yet → first entry creates it (signup returns a live session)
+    res=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email,password:pw})});
+    j=await res.json().catch(()=>({}));
+    if(res.ok&&j.access_token){toast("Password set — you're in");finishLogin(j,email);return;}
+    const em=(j.msg||j.message||j.error_description||"").toLowerCase();
+    if(j.error_code==="user_already_exists"||em.indexOf("already registered")>=0||em.indexOf("already exists")>=0){
+      logState.pendingPw=pw;
+      loginMsg("Wrong password for this account. Try again — or tap “Email me a one-time code instead” and the password you just typed will be saved once you're in.",true);return;
+    }
+    if(em.indexOf("signup")>=0&&(em.indexOf("disabled")>=0||em.indexOf("not allowed")>=0)){
+      loginMsg("Password sign-in is switched off on the server — in Supabase turn on the Email provider with sign-ups allowed, or use the emailed code.",true);return;
+    }
+    if(res.ok&&j.user&&!j.access_token){
+      loginMsg("Almost — the server wants email confirmation. In Supabase turn OFF “Confirm email” (Auth → Providers → Email), then sign in again.",true);return;
+    }
+    loginMsg(j.msg||j.error_description||"Couldn't sign in — try again",true);
+  }catch(e){loginMsg("Network problem — try again",true);}
+}
 async function sendOtp(email){
+  const pwEl=document.getElementById("pwInput");
+  if(pwEl&&pwEl.value.length>=6)logState.pendingPw=pwEl.value;
   loginMsg("Sending code…");
   try{
     const res=await fetch(SUPA_URL+"/auth/v1/otp",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
@@ -604,11 +651,12 @@ async function verifyOtp(){
       body:JSON.stringify({type:"email",email:logState.otpEmail,token:code})});
     const j=await res.json();
     if(!res.ok||!j.access_token){loginMsg(j.msg||j.error_description||"That code didn't work — check it or send a fresh one",true);return;}
+    const email=logState.otpEmail, pending=logState.pendingPw;
     saveSession(j);
-    USER=TEAM_EMAILS[((j.user&&j.user.email)||logState.otpEmail).toLowerCase()]||"";
-    localStorage.setItem(UKEY,USER);
-    logState.otpEmail=null;view="today";render();
-    bootSync();
+    if(pending){ // migrate this account to the password they typed on the previous screen
+      try{const r=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pending})});if(r.ok)toast("Password saved — next time just type it");}catch(e){}
+    }
+    finishLogin(j,email);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return g+", "+teamById(USER).name.split(" ")[0];}
@@ -2184,9 +2232,11 @@ function exportCSV(){
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
+  if(a==="pickuser"){logState={pwEmail:t.dataset.email};renderLogin();return;}
+  if(a==="pwsignin"){signInPw();return;}
   if(a==="sendotp"){sendOtp(t.dataset.email);return;}
   if(a==="verifyotp"){verifyOtp();return;}
-  if(a==="otpback"){logState.otpEmail=null;renderLogin();return;}
+  if(a==="otpback"){logState={};renderLogin();return;}
   if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
   if(a==="sort"){const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
@@ -2290,7 +2340,7 @@ document.addEventListener("click",e=>{
   if(a==="menu"){menu();return;}
   if(a==="switch"){if(!confirm("Sign out of the CRM on this device?"))return;
     if(authed())fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token}}).catch(()=>{});
-    saveSession(null);localStorage.removeItem(UKEY);USER=null;logState.otpEmail=null;closeSheet();render();return;}
+    saveSession(null);localStorage.removeItem(UKEY);USER=null;logState={};closeSheet();render();return;}
   if(a==="reset"){if(!confirm("Reset local data? Deals, tasks, logged calls and lead statuses entered in this browser will be lost. Back up first if unsure."))return;DB=seed();save();closeSheet();view="today";render();toast("Data reset to the seed");return;}
   if(a==="backup"){backupDB();return;}
   if(a==="restorepick"){formRestore();return;}
