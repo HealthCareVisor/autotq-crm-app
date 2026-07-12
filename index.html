@@ -650,8 +650,9 @@ async function setPw(){
     if(em.indexOf("signup")>=0&&(em.indexOf("disabled")>=0||em.indexOf("not allowed")>=0)){
       loginMsg("Password sign-in is switched off on the server — in Supabase turn on the Email provider with sign-ups allowed.",true);return;
     }
-    if(res.ok&&j.user&&!j.access_token){
-      loginMsg("Almost — the server wants email confirmation. In Supabase turn OFF “Confirm email” (Auth → Providers → Email), then set your password again.",true);return;
+    if(res.ok&&!j.access_token&&(j.user||j.id||j.email||j.confirmation_sent_at)){
+      // GoTrue answers 200 with a bare user object when it wants email confirmation
+      loginMsg("Your password was accepted but the server is holding it for email confirmation. One-time fix in Supabase: Authentication → Sign In / Providers → Email → turn OFF “Confirm email” → Save. Then tap Set password again.",true);return;
     }
     if(res.status===429||em.indexOf("rate limit")>=0){
       loginMsg("The server tried to send a confirmation email and hit its email limit. In Supabase turn OFF “Confirm email” (Authentication → Sign In / Providers → Email) — then this works instantly with no email at all.",true);return;
