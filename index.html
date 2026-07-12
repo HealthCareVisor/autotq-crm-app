@@ -577,12 +577,19 @@ function closeSheet(){document.getElementById("scrim").classList.remove("open");
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 
 function renderLogin(){
-  const step=logState.otpEmail?"code":(logState.pwEmail?"pw":"who");
+  const step=(logState.recover&&authed())?"recover":(logState.pwEmail?"pw":"who");
   let h='<div class="login"><div class="logo">Auto<span>TQ</span></div><div class="tag">Channel CRM</div>';
   if(step==="who"){
     h+='<div class="who">Tap your name to sign in</div>'+
      TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
       return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("")+
+     '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
+  }else if(step==="recover"){
+    h+='<div class="who">Choose a new password</div>'+
+     '<input class="f" id="pwInput" type="password" placeholder="New password (6+ characters)" autocomplete="new-password" style="text-align:center;font-size:18px">'+
+     '<input class="f" id="pwInput2" type="password" placeholder="Type it again" autocomplete="new-password" style="text-align:center;font-size:18px;margin-top:8px">'+
+     '<button class="btn coral block" data-act="pwreset" style="margin-top:14px">Save password &amp; enter</button>'+
+     '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">You\'re here from a reset email — this replaces your old password.</p>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }else if(step==="pw"&&logState.pwMode==="set"){
     h+='<div class="who">Set your password<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
@@ -598,23 +605,15 @@ function renderLogin(){
      '<input class="f" id="pwInput" type="password" name="password" placeholder="Password" autocomplete="current-password" style="text-align:center;font-size:18px">'+
      '<button class="btn coral block" data-act="pwsignin" style="margin-top:14px">Sign in</button>'+
      '<button class="btn block ghost" data-act="pwmode" data-mode="set" style="margin-top:8px">First time? Set your password</button>'+
+     '<button class="btn block ghost" data-act="pwforgot" style="margin-top:4px">Forgot password? Email me a reset link</button>'+
      '<button class="btn block ghost" data-act="otpback" style="margin-top:4px">Use a different account</button>'+
-     '<button class="btn block ghost" data-act="sendotp" data-email="'+esc(logState.pwEmail)+'" style="margin-top:4px">Email me a one-time code instead</button>'+
-     '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
-  }else{
-    h+='<div class="who">Enter the 6-digit code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div>'+
-     '<input class="f" id="otpCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:8px;font-weight:700">'+
-     '<button class="btn coral block" data-act="verifyotp" style="margin-top:14px">Sign in</button>'+
-     '<button class="btn block ghost" data-act="otpback" style="margin-top:8px">Use a different account</button>'+
-     (logState.pendingPw?'<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">Once you\'re in, the password you typed will be saved — next time you can skip the code.</p>':'')+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }
   document.getElementById("screen").innerHTML=h+"</div>";
-  const p1=document.getElementById("pwInput"),p2=document.getElementById("pwInput2"),oc=document.getElementById("otpCode");
-  const f=p1||oc;if(f)setTimeout(()=>f.focus(),60);
+  const p1=document.getElementById("pwInput"),p2=document.getElementById("pwInput2");
+  if(p1)setTimeout(()=>p1.focus(),60);
   if(p1)p1.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();p2?p2.focus():signInPw();}});
-  if(p2)p2.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();setPw();}});
-  if(oc)oc.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();verifyOtp();}});
+  if(p2)p2.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();logState.recover?resetPw():setPw();}});
 }
 function loginMsg(m,bad){const el=document.getElementById("loginMsg");if(el){el.textContent=m;el.style.color=bad?"var(--dang-t)":"var(--muted)";}}
 function finishLogin(j,email){
@@ -645,8 +644,8 @@ async function setPw(){
         body:JSON.stringify({email:email,password:pw})});
       j=await res.json().catch(()=>({}));
       if(res.ok&&j.access_token){markPwKnown(email);finishLogin(j,email);return;}
-      logState.pwMode="enter";logState.pendingPw=pw;renderLogin();
-      loginMsg("This account already has a password — enter it here. Forgotten? Tap “Email me a one-time code instead.”",true);return;
+      logState.pwMode="enter";renderLogin();
+      loginMsg("This account already has a password — enter it here, or tap “Forgot password?” to email yourself a reset link.",true);return;
     }
     if(em.indexOf("signup")>=0&&(em.indexOf("disabled")>=0||em.indexOf("not allowed")>=0)){
       loginMsg("Password sign-in is switched off on the server — in Supabase turn on the Email provider with sign-ups allowed.",true);return;
@@ -670,36 +669,39 @@ async function signInPw(){
       body:JSON.stringify({email:email,password:pw})});
     const j=await res.json().catch(()=>({}));
     if(res.ok&&j.access_token){markPwKnown(email);finishLogin(j,email);return;}
-    logState.pendingPw=pw;
-    loginMsg("That password didn't work. Try again — or tap “Email me a one-time code instead” and the password you just typed will be saved once you're in.",true);
+    loginMsg("That password didn't work. Try again — or tap “Forgot password?” to email yourself a reset link.",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
-async function sendOtp(email){
-  const pwEl=document.getElementById("pwInput");
-  if(pwEl&&pwEl.value.length>=6)logState.pendingPw=pwEl.value;
-  loginMsg("Sending code…");
+async function forgotPw(){
+  const email=logState.pwEmail;
+  loginMsg("Sending reset email…");
   try{
-    const res=await fetch(SUPA_URL+"/auth/v1/otp",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({email:email,create_user:false})});
-    if(!res.ok){const j=await res.json().catch(()=>({}));loginMsg(j.msg||j.error_description||"Couldn't send the code — try again",true);return;}
-    logState.otpEmail=email;renderLogin();loginMsg("Code sent — check your email (and spam, the first time).");
+    const redirect=/^http/.test(location.protocol)?("?redirect_to="+encodeURIComponent(location.origin+location.pathname)):"";
+    const res=await fetch(SUPA_URL+"/auth/v1/recover"+redirect,{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email})});
+    if(res.ok){loginMsg("Reset email sent — open the link on this device and you'll choose a new password. Check spam the first time.");return;}
+    const j=await res.json().catch(()=>({}));
+    const em=(j.msg||j.message||j.error_description||"").toLowerCase();
+    if(res.status===429||em.indexOf("rate limit")>=0){loginMsg("The email service is rate-limited right now — wait an hour and try again.",true);return;}
+    loginMsg(j.msg||j.error_description||"Couldn't send the reset email — try again",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
-async function verifyOtp(){
-  const code=(document.getElementById("otpCode").value||"").trim();
-  if(code.length<6){loginMsg("Enter the 6-digit code",true);return;}
-  loginMsg("Checking…");
+async function resetPw(){
+  const pw=(document.getElementById("pwInput").value||""), pw2=(document.getElementById("pwInput2").value||"");
+  if(pw.length<6){loginMsg("Choose a password with at least 6 characters",true);return;}
+  if(pw!==pw2){loginMsg("Those don't match — type the same password in both boxes",true);return;}
+  loginMsg("Saving your new password…");
   try{
-    const res=await fetch(SUPA_URL+"/auth/v1/verify",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({type:"email",email:logState.otpEmail,token:code})});
-    const j=await res.json();
-    if(!res.ok||!j.access_token){loginMsg(j.msg||j.error_description||"That code didn't work — check it or send a fresh one",true);return;}
-    const email=logState.otpEmail, pending=logState.pendingPw;
-    saveSession(j);
-    if(pending){ // migrate this account to the password they typed on the previous screen
-      try{const r=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pending})});if(r.ok){markPwKnown(email);toast("Password saved — next time just type it");}}catch(e){}
+    const res=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pw})});
+    const j=await res.json().catch(()=>({}));
+    if(res.ok){
+      const email=((j.email||(j.user&&j.user.email))||"").toLowerCase();
+      if(email)markPwKnown(email);
+      USER=TEAM_EMAILS[email]||localStorage.getItem(UKEY)||"";
+      localStorage.setItem(UKEY,USER);
+      logState={};toast("Password updated — you're in");view="today";render();bootSync();return;
     }
-    finishLogin(j,email);
+    loginMsg(j.msg||j.error_description||"Couldn't save it — the link may have expired. Send yourself a fresh one.",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return g+", "+teamById(USER).name.split(" ")[0];}
@@ -2307,8 +2309,8 @@ document.addEventListener("click",e=>{
   if(a==="pwmode"){logState.pwMode=t.dataset.mode;renderLogin();return;}
   if(a==="pwset"){setPw();return;}
   if(a==="pwsignin"){signInPw();return;}
-  if(a==="sendotp"){sendOtp(t.dataset.email);return;}
-  if(a==="verifyotp"){verifyOtp();return;}
+  if(a==="pwforgot"){forgotPw();return;}
+  if(a==="pwreset"){resetPw();return;}
   if(a==="otpback"){logState={};renderLogin();return;}
   if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
@@ -2457,7 +2459,16 @@ document.addEventListener("input",e=>{
 function refocus(idv){const el=document.getElementById(idv);if(el){const v=el.value;el.focus();try{el.setSelectionRange(v.length,v.length);}catch(_){}}}
 
 load();applyManrepPersonCoverage();
+(function(){ // password-reset links land back here with tokens in the URL hash
+  if(!/access_token=/.test(location.hash))return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  if(!p.get("access_token"))return;
+  saveSession({access_token:p.get("access_token"),refresh_token:p.get("refresh_token"),token_type:p.get("token_type")||"bearer"});
+  if(p.get("type")==="recovery")logState={recover:true};
+  try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+})();
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
+if(logState.recover)USER=null; // force the choose-a-new-password screen
 render();
 if(authed())bootSync();
 </script>
