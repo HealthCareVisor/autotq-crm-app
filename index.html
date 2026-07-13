@@ -2333,7 +2333,8 @@ document.addEventListener("click",e=>{
   if(a==="addhub"){addHub();return;}
   if(a==="travel"){formTravel();return;}
   if(a==="form"){const f=t.dataset.form;
-    if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
+    if(f==="opportunity")formOpp(null);
+    else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
   if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="roster"){curCompany=id;view="roster";render();window.scrollTo(0,0);return;}
