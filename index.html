@@ -580,13 +580,19 @@ function renderLogin(){
   const step=(logState.recover&&authed())?"recover":(logState.pwEmail?"pw":"who");
   let h='<div class="login"><div class="logo">Auto<span>TQ</span></div><div class="tag">Channel CRM</div>';
   if(step==="who"){
-    h+=(location.protocol.indexOf("http")===0?
-      '<button class="btn block" data-act="mslogin" style="margin-bottom:12px;font-weight:600"><svg viewBox="0 0 21 21" style="width:15px;height:15px;vertical-align:-2px;margin-right:8px"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Sign in with Microsoft (Outlook)</button>'+
-      '<div style="text-align:center;color:var(--hint);font-size:12px;margin-bottom:10px">— or tap your name for password sign-in —</div>':'')+
-     '<div class="who">Tap your name to sign in</div>'+
-     TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
-      return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("")+
-     '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
+    const httpApp=location.protocol.indexOf("http")===0;
+    const msBtn='<button class="btn block" data-act="mslogin" style="margin-bottom:12px;font-weight:600"><svg viewBox="0 0 21 21" style="width:15px;height:15px;vertical-align:-2px;margin-right:8px"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Sign in with Microsoft (Outlook)</button>';
+    const names=TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
+      return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("");
+    if(httpApp&&!logState.showPw){
+      h+='<div class="who">Sign in with your work email</div>'+msBtn+
+       '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>'+
+       '<button class="btn block ghost" data-act="showpw" style="margin-top:22px">Trouble with Microsoft? Use password sign-in</button>';
+    }else{
+      h+=(httpApp?msBtn+'<div style="text-align:center;color:var(--hint);font-size:12px;margin-bottom:10px">— or tap your name for password sign-in —</div>':'')+
+       '<div class="who">Tap your name to sign in</div>'+names+
+       '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
+    }
   }else if(step==="recover"){
     h+='<div class="who">Choose a new password</div>'+
      '<input class="f" id="pwInput" type="password" placeholder="New password (6+ characters)" autocomplete="new-password" style="text-align:center;font-size:18px">'+
@@ -2310,6 +2316,7 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a==="mslogin"){location.href=SUPA_URL+"/auth/v1/authorize?provider=azure&redirect_to="+encodeURIComponent(location.origin+location.pathname);return;}
+  if(a==="showpw"){logState.showPw=true;renderLogin();return;}
   if(a==="pickuser"){const em=t.dataset.email;logState={pwEmail:em,pwMode:pwKnown(em)?"enter":"set"};renderLogin();return;}
   if(a==="pwmode"){logState.pwMode=t.dataset.mode;renderLogin();return;}
   if(a==="pwset"){setPw();return;}
