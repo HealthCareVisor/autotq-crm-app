@@ -333,7 +333,7 @@ const KEY="autotq_crm_v16", UKEY="autotq_crm_user", HKEY="autotq_crm_onboarded";
 const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
-const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie"};
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","devin@goldenhourmedical.com":"devin"};
 const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","usage"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
@@ -465,7 +465,7 @@ function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUp
 function uid(){return Math.random().toString(36).slice(2,9);}
 function titlecase(s){return s.replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());}
 function isTop(p){return p.units>=60;}
-function admin(){return USER==="max"||USER==="hannah";}
+function admin(){return USER==="max"||USER==="hannah"||USER==="devin";}
 function mine(o){return admin()||o===USER;}
 function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";}
 
@@ -473,7 +473,8 @@ const TEAM=[
  {id:"max",name:"Max Herbst",role:"Strategic Account Manager",c:"#D85A30"},
  {id:"john",name:"John Cornejo",role:"Channel Sales Manager",c:"#185FA5"},
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
- {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"}
+ {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
+ {id:"devin",name:"Devin",role:"Software Engineer",c:"#5B5EA6"}
 ];
 const ENRICH={
  "grainger":{name:"W.W. Grainger, Inc.",website:"grainger.com",industry:"Industrial MRO",city:"Lake Forest",state:"IL",kind:"National distributor"},
@@ -750,7 +751,6 @@ function render(){
   else if(view==="reports")body=viewReports();
   else if(view==="report")body=viewReport(curReport);
   else if(view==="insights")body=viewInsights();
-  else if(view==="resources")body=viewResources();
   else if(view==="confleads")body=viewConfLeads();
   else if(view==="person")body=viewPerson(curPerson);
   else if(view==="roster")body=viewRoster(curCompany);
@@ -760,7 +760,7 @@ function render(){
   else body=viewToday();
   const groups=[
    ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"]]],
-   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["resources","folder","Resources"]]],
+   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
   ];
@@ -1178,15 +1178,6 @@ function viewRoster(cid){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
     h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>City</th><th>State</th><th>Status</th><th>Source</th></tr></thead><tbody>'+
       demos.map(d=>'<tr><td class="lvname">'+esc(d.holder||"—")+'</td><td>'+esc(d.city||"")+'</td><td>'+(d.state?stateChip(d.state):"—")+'</td><td>'+esc(d.status||"")+'</td><td>'+esc(d.source||"")+'</td></tr>').join("")+'</tbody></table></div>';
-  }
-  const files=RES.filter(r=>r.cid===cid);
-  if(files.length||c.type==="distributor"||c.type==="manrep"){
-    h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Resources · '+files.length+'</button></div>'+
-       '<button class="btn sm" data-act="resupload" data-cid="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Upload for '+esc(c.name.split(" ")[0])+'</button></div>';
-    h+=files.length?files.map(r=>'<div class="card"><div class="row"><span class="ic info">'+svg(resIcon(r.name))+'</span>'+
-      '<div class="grow"><p class="t1" style="font-size:14px">'+esc(r.name)+'</p><p class="t2"><span class="pill gray" style="font-size:11px">'+esc(r.cat)+'</span> '+fmtBytes(r.size)+' · '+esc((r.date||"").slice(0,10))+'</p></div>'+
-      '<button class="btn sm coral" data-act="resdl" data-id="'+esc(r.id)+'">'+svg("dl")+' Open</button></div></div>').join("")
-      :'<div class="empty" style="padding:14px">No files for this account yet.</div>';
   }
   h+='<div class="sectlabel" style="margin-top:20px">Activity</div>';
   h+=acts.length?'<div class="tl">'+acts.slice(0,20).map(a=>{const p=a.pid?person(a.pid):null;
@@ -2254,7 +2245,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="height:8px"></div>'+
- [["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"],["resources","folder","Resources"]]
+ [["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b>'+n[2]+'</b></button>').join("")+
  '<div style="height:8px"></div>'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -2295,7 +2286,6 @@ function helpSheet(){
    ["Reports","10 ready-made reports; sort any column, export CSV."],
    ["Field Map","US map — flip between demos in the field and distributor reps by state. Tap a state."],
    ["Volume","Distributor volume — units bought, revenue, orders and the demo units they've picked up."],
-   ["Resources","The company file library — make a bubble (folder) per distributor or topic, nest sub-folders SharePoint-style, upload literature and price lists."],
    ["Conferences","The show calendar; shows with lead lists link straight to the call list."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
