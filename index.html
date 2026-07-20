@@ -334,7 +334,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","usage"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -437,6 +437,11 @@ function syncBadge(state){
   el.style.color=state==="off"?"var(--dang-t)":"var(--ok-t)";
   el.title=state==="off"?"Offline — changes will sync when you're back":"Synced with the team";
 }
+/* ---- team pulse: minutes-in-app + last-seen per member, synced like any record ---- */
+function ensureUsage(){if(!DB.usage)DB.usage=[];}
+function usageRow(){ensureUsage();const day=todayStr(),id=USER+"_"+day;let u=DB.usage.find(r=>r.id===id);if(!u){u={id:id,user:USER,day:day,mins:0,ts:""};DB.usage.push(u);}return u;}
+function usageStamp(){if(!USER||!DB)return;usageRow().ts=new Date().toISOString();save();}
+function usageBeat(){if(!USER||!authed()||document.hidden)return;const u=usageRow();u.mins=(u.mins||0)+1;u.ts=new Date().toISOString();save();}
 async function bootSync(){
   loadSyncMeta();
   await pullChanges(true);      // full pull — server is the source of truth
@@ -445,18 +450,22 @@ async function bootSync(){
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});
+  usageStamp();
+  clearInterval(bootSync._beat);bootSync._beat=setInterval(usageBeat,60000);
 }
 function di(n){const d=new Date();d.setDate(d.getDate()-n);return d.toISOString();}
 function df(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString();}
 function since(iso){return iso?Math.floor((Date.now()-new Date(iso))/86400000):null;}
 function until(iso){return Math.ceil((new Date(iso)-Date.now())/86400000);}
 function ago(iso){if(!iso)return"never";const d=since(iso);if(d<=0)return"today";if(d===1)return"yesterday";return d+" days ago";}
+function agoShort(iso){if(!iso)return"—";const s=(Date.now()-new Date(iso))/1000;if(s<90)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";}
+function fmtMins(m){if(!m)return"0m";const h=Math.floor(m/60),r=m%60;return h?h+"h"+(r?" "+r+"m":""):r+"m";}
 function money(n){return"$"+Math.round(n).toLocaleString();}
 function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();}
 function uid(){return Math.random().toString(36).slice(2,9);}
 function titlecase(s){return s.replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());}
 function isTop(p){return p.units>=60;}
-function admin(){return USER==="max";}
+function admin(){return USER==="max"||USER==="hannah";}
 function mine(o){return admin()||o===USER;}
 function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";}
 
@@ -568,71 +577,135 @@ function closeSheet(){document.getElementById("scrim").classList.remove("open");
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 
 function renderLogin(){
-  const step=logState.otpEmail?"code":(logState.pwEmail?"pw":"email");
+  const step=(logState.recover&&authed())?"recover":(logState.pwEmail?"pw":"who");
   let h='<div class="login"><div class="logo">Auto<span>TQ</span></div><div class="tag">Channel CRM</div>';
-  if(step==="email"){
-    h+='<div class="who">Tap your name to sign in</div>'+
+  if(step==="who"){
+    h+=(location.protocol.indexOf("http")===0?
+      '<button class="btn block" data-act="mslogin" style="margin-bottom:12px;font-weight:600"><svg viewBox="0 0 21 21" style="width:15px;height:15px;vertical-align:-2px;margin-right:8px"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>Sign in with Microsoft (Outlook)</button>'+
+      '<div style="text-align:center;color:var(--hint);font-size:12px;margin-bottom:10px">— or tap your name for password sign-in —</div>':'')+
+     '<div class="who">Tap your name to sign in</div>'+
      TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
       return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span><b>'+t.name+'</b><small>'+esc(em)+'</small></span></button>';}).join("")+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
-  }else if(step==="pw"){
-    h+='<div class="who">Password for<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
-     '<input class="f" id="pwInput" type="password" placeholder="Password" autocomplete="current-password">'+
-     '<button class="btn coral block" data-act="verifypw" style="margin-top:14px">Sign in</button>'+
-     '<button class="btn block ghost" data-act="sendotp" data-email="'+esc(logState.pwEmail)+'" style="margin-top:8px">Email me a code instead</button>'+
-     '<button class="btn block ghost" data-act="otpback" style="margin-top:4px">Different account</button>'+
+  }else if(step==="recover"){
+    h+='<div class="who">Choose a new password</div>'+
+     '<input class="f" id="pwInput" type="password" placeholder="New password (6+ characters)" autocomplete="new-password" style="text-align:center;font-size:18px">'+
+     '<input class="f" id="pwInput2" type="password" placeholder="Type it again" autocomplete="new-password" style="text-align:center;font-size:18px;margin-top:8px">'+
+     '<button class="btn coral block" data-act="pwreset" style="margin-top:14px">Save password &amp; enter</button>'+
+     '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">You\'re here from a reset email — this replaces your old password.</p>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
-  }else{
-    h+='<div class="who">Enter the 6-digit code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div>'+
-     '<input class="f" id="otpCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:8px;font-weight:700">'+
-     '<button class="btn coral block" data-act="verifyotp" style="margin-top:14px">Sign in</button>'+
-     '<button class="btn block ghost" data-act="otpback" style="margin-top:8px">Back</button>'+
+  }else if(step==="pw"&&logState.pwMode==="set"){
+    h+='<div class="who">Set your password<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
+     '<input class="f" id="pwInput" type="password" name="new-password" placeholder="Choose a password (6+ characters)" autocomplete="new-password" style="text-align:center;font-size:18px">'+
+     '<input class="f" id="pwInput2" type="password" name="confirm-password" placeholder="Type it again" autocomplete="new-password" style="text-align:center;font-size:18px;margin-top:8px">'+
+     '<button class="btn coral block" data-act="pwset" style="margin-top:14px">Set password &amp; enter</button>'+
+     '<p style="color:var(--muted);font-size:13px;text-align:center;margin-top:10px">This becomes your CRM password — from now on you\'ll just type it once to get in.</p>'+
+     '<button class="btn block ghost" data-act="pwmode" data-mode="enter" style="margin-top:8px">I already have a password</button>'+
+     '<button class="btn block ghost" data-act="otpback" style="margin-top:4px">Use a different account</button>'+
+     '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
+  }else if(step==="pw"){
+    h+='<div class="who">Enter your password<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
+     '<input class="f" id="pwInput" type="password" name="password" placeholder="Password" autocomplete="current-password" style="text-align:center;font-size:18px">'+
+     '<button class="btn coral block" data-act="pwsignin" style="margin-top:14px">Sign in</button>'+
+     '<button class="btn block ghost" data-act="pwmode" data-mode="set" style="margin-top:8px">First time? Set your password</button>'+
+     '<button class="btn block ghost" data-act="pwforgot" style="margin-top:4px">Forgot password? Email me a reset link</button>'+
+     '<button class="btn block ghost" data-act="otpback" style="margin-top:4px">Use a different account</button>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }
   document.getElementById("screen").innerHTML=h+"</div>";
-  const f=document.getElementById("pwInput")||document.getElementById("otpCode");if(f)setTimeout(()=>f.focus(),60);
-}
-async function verifyPw(){
-  const pw=document.getElementById("pwInput").value;
-  if(!pw){loginMsg("Enter your password",true);return;}
-  loginMsg("Signing in…");
-  try{
-    const res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",
-      headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({email:logState.pwEmail,password:pw})});
-    const j=await res.json();
-    if(!res.ok||!j.access_token){loginMsg("Wrong password — try again, or use an email code",true);return;}
-    saveSession(j);
-    USER=TEAM_EMAILS[((j.user&&j.user.email)||logState.pwEmail).toLowerCase()]||"";
-    localStorage.setItem(UKEY,USER);
-    logState.pwEmail=null;logState.otpEmail=null;view="today";render();
-    bootSync();
-  }catch(e){loginMsg("Network problem — try again",true);}
+  const p1=document.getElementById("pwInput"),p2=document.getElementById("pwInput2");
+  if(p1)setTimeout(()=>p1.focus(),60);
+  if(p1)p1.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();p2?p2.focus():signInPw();}});
+  if(p2)p2.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();logState.recover?resetPw():setPw();}});
 }
 function loginMsg(m,bad){const el=document.getElementById("loginMsg");if(el){el.textContent=m;el.style.color=bad?"var(--dang-t)":"var(--muted)";}}
-async function sendOtp(email){
-  loginMsg("Sending code…");
+function finishLogin(j,email){
+  saveSession(j);
+  USER=TEAM_EMAILS[((j.user&&j.user.email)||email||"").toLowerCase()]||"";
+  localStorage.setItem(UKEY,USER);
+  logState={};view="today";render();
+  bootSync();
+}
+const PWKEY="autotq_pw_known"; // emails that have a password set, per this device — picks the right login screen
+function pwKnown(email){try{return !!(JSON.parse(localStorage.getItem(PWKEY)||"{}")[email]);}catch(e){return false;}}
+function markPwKnown(email){try{const m=JSON.parse(localStorage.getItem(PWKEY)||"{}");m[email]=1;localStorage.setItem(PWKEY,JSON.stringify(m));}catch(e){}}
+async function setPw(){
+  const email=logState.pwEmail;
+  const pw=(document.getElementById("pwInput").value||""), pw2=(document.getElementById("pwInput2").value||"");
+  if(pw.length<6){loginMsg("Choose a password with at least 6 characters",true);return;}
+  if(pw!==pw2){loginMsg("Those don't match — type the same password in both boxes",true);return;}
+  loginMsg("Setting your password…");
   try{
-    const res=await fetch(SUPA_URL+"/auth/v1/otp",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({email:email,create_user:false})});
-    if(!res.ok){const j=await res.json().catch(()=>({}));loginMsg(j.msg||j.error_description||"Couldn't send the code — try again",true);return;}
-    logState.otpEmail=email;renderLogin();loginMsg("Code sent — check your email (and spam, the first time).");
+    let res=await fetch(SUPA_URL+"/auth/v1/signup",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email,password:pw})});
+    let j=await res.json().catch(()=>({}));
+    if(res.ok&&j.access_token){markPwKnown(email);toast("Password set — welcome in");finishLogin(j,email);return;}
+    const em=(j.msg||j.message||j.error_description||"").toLowerCase();
+    if(j.error_code==="user_already_exists"||em.indexOf("already registered")>=0||em.indexOf("already exists")>=0){
+      // account exists — maybe they set this password on another device; try it as a sign-in
+      res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+        body:JSON.stringify({email:email,password:pw})});
+      j=await res.json().catch(()=>({}));
+      if(res.ok&&j.access_token){markPwKnown(email);finishLogin(j,email);return;}
+      logState.pwMode="enter";renderLogin();
+      loginMsg("This account already has a password — enter it here, or tap “Forgot password?” to email yourself a reset link.",true);return;
+    }
+    if(em.indexOf("signup")>=0&&(em.indexOf("disabled")>=0||em.indexOf("not allowed")>=0)){
+      loginMsg("Password sign-in is switched off on the server — in Supabase turn on the Email provider with sign-ups allowed.",true);return;
+    }
+    if(res.ok&&!j.access_token&&(j.user||j.id||j.email||j.confirmation_sent_at)){
+      // GoTrue answers 200 with a bare user object when it wants email confirmation
+      loginMsg("Your password was accepted but the server is holding it for email confirmation. One-time fix in Supabase: Authentication → Sign In / Providers → Email → turn OFF “Confirm email” → Save. Then tap Set password again.",true);return;
+    }
+    if(res.status===429||em.indexOf("rate limit")>=0){
+      loginMsg("The server tried to send a confirmation email and hit its email limit. In Supabase turn OFF “Confirm email” (Authentication → Sign In / Providers → Email) — then this works instantly with no email at all.",true);return;
+    }
+    const detail=j.msg||j.message||j.error_description||(j.error&&j.error.message)||"";
+    loginMsg((detail||"Couldn't set the password")+" (error "+res.status+(j.error_code?" · "+j.error_code:"")+") — try again",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
-async function verifyOtp(){
-  const code=(document.getElementById("otpCode").value||"").trim();
-  if(code.length<6){loginMsg("Enter the 6-digit code",true);return;}
-  loginMsg("Checking…");
+async function signInPw(){
+  const email=logState.pwEmail, pw=(document.getElementById("pwInput").value||"");
+  if(!pw){loginMsg("Type your password",true);return;}
+  loginMsg("Signing in…");
   try{
-    const res=await fetch(SUPA_URL+"/auth/v1/verify",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
-      body:JSON.stringify({type:"email",email:logState.otpEmail,token:code})});
-    const j=await res.json();
-    if(!res.ok||!j.access_token){loginMsg(j.msg||j.error_description||"That code didn't work — check it or send a fresh one",true);return;}
-    saveSession(j);
-    USER=TEAM_EMAILS[((j.user&&j.user.email)||logState.otpEmail).toLowerCase()]||"";
-    localStorage.setItem(UKEY,USER);
-    logState.otpEmail=null;view="today";render();
-    bootSync();
+    const res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email,password:pw})});
+    const j=await res.json().catch(()=>({}));
+    if(res.ok&&j.access_token){markPwKnown(email);finishLogin(j,email);return;}
+    loginMsg("That password didn't work. Try again — or tap “Forgot password?” to email yourself a reset link.",true);
+  }catch(e){loginMsg("Network problem — try again",true);}
+}
+async function forgotPw(){
+  const email=logState.pwEmail;
+  loginMsg("Sending reset email…");
+  try{
+    const redirect=/^http/.test(location.protocol)?("?redirect_to="+encodeURIComponent(location.origin+location.pathname)):"";
+    const res=await fetch(SUPA_URL+"/auth/v1/recover"+redirect,{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
+      body:JSON.stringify({email:email})});
+    if(res.ok){loginMsg("Reset email sent — open the link on this device and you'll choose a new password. Check spam the first time.");return;}
+    const j=await res.json().catch(()=>({}));
+    const em=(j.msg||j.message||j.error_description||"").toLowerCase();
+    if(res.status===429||em.indexOf("rate limit")>=0){loginMsg("The email service is rate-limited right now — wait an hour and try again.",true);return;}
+    loginMsg(j.msg||j.error_description||"Couldn't send the reset email — try again",true);
+  }catch(e){loginMsg("Network problem — try again",true);}
+}
+async function resetPw(){
+  const pw=(document.getElementById("pwInput").value||""), pw2=(document.getElementById("pwInput2").value||"");
+  if(pw.length<6){loginMsg("Choose a password with at least 6 characters",true);return;}
+  if(pw!==pw2){loginMsg("Those don't match — type the same password in both boxes",true);return;}
+  loginMsg("Saving your new password…");
+  try{
+    const res=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pw})});
+    const j=await res.json().catch(()=>({}));
+    if(res.ok){
+      const email=((j.email||(j.user&&j.user.email))||"").toLowerCase();
+      if(email)markPwKnown(email);
+      USER=TEAM_EMAILS[email]||localStorage.getItem(UKEY)||"";
+      localStorage.setItem(UKEY,USER);
+      logState={};toast("Password updated — you're in");view="today";render();bootSync();return;
+    }
+    loginMsg(j.msg||j.error_description||"Couldn't save it — the link may have expired. Send yourself a fresh one.",true);
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return g+", "+teamById(USER).name.split(" ")[0];}
@@ -912,6 +985,7 @@ function viewToday(){
    '<div class="kpi"><b>Set-up distributors</b><span>'+setup.length+'</span><small>'+potN+' potential</small></div>'+
    '<div class="kpi"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span></div>'+
   '</div>';
+  h+=teamPulse();
   h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add an action for today…" autocomplete="off">'+
    '<div class="qa-types" id="taskTypes">'+[["call","Call"],["email","Email"],["demo","Demo"],["train","Train"],["followup","Follow-up"],["todo","To-do"]].map((t,i)=>'<span class="qchip'+((logState.taskType||"call")===t[0]?" on":"")+'" data-act="settask" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
@@ -958,6 +1032,33 @@ function taskRow(t){
    tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
 }
 function rtag(region){return admin()&&region?" · "+region:"";}
+function teamPulse(){
+  ensureUsage();
+  const cut=Date.now()-7*86400000;
+  const rows=TEAM.map(t=>{
+    const acts=(DB.activities||[]).filter(a=>a.by===t.id&&a.date&&new Date(a.date)>=cut).length;
+    const tks=(DB.tasks||[]).filter(k=>k.owner===t.id&&k.done&&k.completedAt&&new Date(k.completedAt)>=cut).length;
+    const mins=DB.usage.filter(u=>u.user===t.id&&u.day&&new Date(u.day)>=cut).reduce((s,u)=>s+(u.mins||0),0);
+    const last=[
+      DB.usage.filter(u=>u.user===t.id).map(u=>u.ts||"").sort().pop()||"",
+      (DB.activities||[]).filter(a=>a.by===t.id).map(a=>a.date||"").sort().pop()||"",
+      (DB.tasks||[]).filter(k=>k.owner===t.id&&k.completedAt).map(k=>k.completedAt).sort().pop()||""
+    ].sort().pop()||"";
+    return {t:t,n:acts+tks,mins:mins,last:last};
+  }).sort((a,b)=>b.n-a.n||b.mins-a.mins);
+  const max=Math.max(1,...rows.map(r=>r.n));
+  let h='<div class="sectlabel">Team pulse — last 7 days</div><div class="card" style="padding:12px 14px">';
+  h+=rows.map(r=>{
+    const pct=r.n?Math.max(6,Math.round(r.n/max*100)):0;
+    return '<div class="row" style="margin:7px 0;gap:10px;align-items:center">'+
+     '<span class="uav" style="background:'+r.t.c+';width:26px;height:26px;font-size:11px;flex:none">'+initials(r.t.name)+'</span>'+
+     '<div class="grow"><div class="row" style="justify-content:space-between;gap:8px">'+
+      '<p class="t1" style="font-size:13px">'+r.t.name.split(" ")[0]+(r.t.id===USER?' <span style="color:var(--hint);font-weight:400">(you)</span>':'')+'</p>'+
+      '<p class="t2" style="font-size:12px;white-space:nowrap">'+r.n+' entr'+(r.n===1?"y":"ies")+' · '+fmtMins(r.mins)+' in app · '+agoShort(r.last)+'</p></div>'+
+      '<div class="bar" style="margin-top:4px;height:6px"><i style="width:'+pct+'%;background:'+r.t.c+'"></i></div></div></div>';
+  }).join("");
+  return h+'</div>';
+}
 function teamFeed(){
   const feed=DB.activities.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,6);
   if(!feed.length)return"";
@@ -2151,7 +2252,6 @@ function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="heig
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b>'+n[2]+'</b></button>').join("")+
  '<div style="height:8px"></div>'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
- '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
  '<button class="hub" data-act="backup">'+svg("dl")+'<b>Back up my data</b></button>'+
  '<button class="hub" data-act="restorepick">'+svg("box")+'<b>Restore from backup</b></button>'+
  '<button class="hub" data-act="switch">'+svg("users")+'<b>Sign out</b></button>'+
@@ -2209,19 +2309,14 @@ function exportCSV(){
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
-  if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
-  if(a==="sendotp"){sendOtp(t.dataset.email);return;}
-  if(a==="verifypw"){verifyPw();return;}
-  if(a==="verifyotp"){verifyOtp();return;}
-  if(a==="otpback"){logState.otpEmail=null;logState.pwEmail=null;renderLogin();return;}
-  if(a==="chpw"){openSheet('<h2>Change my password</h2>'+
-    '<label class="fl">New password (8+ characters)</label><input class="f" id="newPw" type="password" autocomplete="new-password">'+
-    '<button class="btn coral block" data-act="chpwsave" style="margin-top:18px">Change password</button>');return;}
-  if(a==="chpwsave"){const pw=document.getElementById("newPw").value;
-    if(pw.length<8){toast("Use at least 8 characters");return;}
-    supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pw})})
-      .then(r=>{if(r.ok){closeSheet();toast("Password changed");}else toast("Couldn't change it — try again");});
-    return;}
+  if(a==="mslogin"){location.href=SUPA_URL+"/auth/v1/authorize?provider=azure&redirect_to="+encodeURIComponent(location.origin+location.pathname);return;}
+  if(a==="pickuser"){const em=t.dataset.email;logState={pwEmail:em,pwMode:pwKnown(em)?"enter":"set"};renderLogin();return;}
+  if(a==="pwmode"){logState.pwMode=t.dataset.mode;renderLogin();return;}
+  if(a==="pwset"){setPw();return;}
+  if(a==="pwsignin"){signInPw();return;}
+  if(a==="pwforgot"){forgotPw();return;}
+  if(a==="pwreset"){resetPw();return;}
+  if(a==="otpback"){logState={};renderLogin();return;}
   if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
   if(a==="sort"){const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
@@ -2325,7 +2420,7 @@ document.addEventListener("click",e=>{
   if(a==="menu"){menu();return;}
   if(a==="switch"){if(!confirm("Sign out of the CRM on this device?"))return;
     if(authed())fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token}}).catch(()=>{});
-    saveSession(null);localStorage.removeItem(UKEY);USER=null;logState.otpEmail=null;closeSheet();render();return;}
+    saveSession(null);localStorage.removeItem(UKEY);USER=null;logState={};closeSheet();render();return;}
   if(a==="reset"){if(!confirm("Reset local data? Deals, tasks, logged calls and lead statuses entered in this browser will be lost. Back up first if unsure."))return;DB=seed();save();closeSheet();view="today";render();toast("Data reset to the seed");return;}
   if(a==="backup"){backupDB();return;}
   if(a==="restorepick"){formRestore();return;}
@@ -2333,8 +2428,7 @@ document.addEventListener("click",e=>{
   if(a==="addhub"){addHub();return;}
   if(a==="travel"){formTravel();return;}
   if(a==="form"){const f=t.dataset.form;
-    if(f==="opportunity")formOpp(null);
-    else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
+    if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
   if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="roster"){curCompany=id;view="roster";render();window.scrollTo(0,0);return;}
@@ -2370,9 +2464,37 @@ document.addEventListener("input",e=>{
 function refocus(idv){const el=document.getElementById(idv);if(el){const v=el.value;el.focus();try{el.setSelectionRange(v.length,v.length);}catch(_){}}}
 
 load();applyManrepPersonCoverage();
+let BOOT_ERR="";
+(function(){ // reset links and Microsoft sign-ins land back here with tokens (or an error) in the URL hash
+  if(!/access_token=|error=/.test(location.hash))return;
+  const p=new URLSearchParams(location.hash.slice(1));
+  if(p.get("error")){BOOT_ERR=(p.get("error_description")||p.get("error")||"").replace(/\+/g," ");}
+  else if(p.get("access_token")){
+    saveSession({access_token:p.get("access_token"),refresh_token:p.get("refresh_token"),token_type:p.get("token_type")||"bearer"});
+    logState=(p.get("type")==="recovery")?{recover:true}:{oauthResolve:true};
+  }
+  try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+})();
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
+if(logState.recover||logState.oauthResolve)USER=null; // hold the login screen until resolved
 render();
-if(authed())bootSync();
+if(BOOT_ERR)loginMsg(BOOT_ERR,true);
+if(authed()&&!logState.recover&&!logState.oauthResolve)bootSync();
+if(logState.oauthResolve)(async()=>{ // Microsoft sign-in: find out who this is, then admit or reject
+  loginMsg("Signing you in with Microsoft…");
+  try{
+    const res=await supa("/auth/v1/user");
+    const j=await res.json().catch(()=>({}));
+    const email=((j.email||(j.user&&j.user.email))||"").toLowerCase();
+    const u=TEAM_EMAILS[email];
+    if(u){USER=u;localStorage.setItem(UKEY,USER);logState={};view="today";render();bootSync();}
+    else{
+      try{fetch(SUPA_URL+"/auth/v1/logout",{method:"POST",headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token}}).catch(()=>{});}catch(e){}
+      saveSession(null);USER=null;logState={};render();
+      loginMsg(email?("The Microsoft account "+email+" isn't on the CRM team list — sign in with your @goldenhourmedical.com account."):"Couldn't confirm who signed in — try again.",true);
+    }
+  }catch(e){logState={};render();loginMsg("Network problem finishing the Microsoft sign-in — try again.",true);}
+})();
 </script>
 </body>
 </html>
