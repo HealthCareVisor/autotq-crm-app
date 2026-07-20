@@ -333,7 +333,7 @@ const KEY="autotq_crm_v16", UKEY="autotq_crm_user", HKEY="autotq_crm_onboarded";
 const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
-const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","devin@goldenhourmedical.com":"devin"};
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","devin@goldenhourmedical.com":"devin","billing@goldenhourmedical.com":"billing"};
 const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","usage"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
@@ -465,7 +465,7 @@ function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUp
 function uid(){return Math.random().toString(36).slice(2,9);}
 function titlecase(s){return s.replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());}
 function isTop(p){return p.units>=60;}
-function admin(){return USER==="max"||USER==="hannah"||USER==="devin";}
+function admin(){return USER==="max"||USER==="hannah"||USER==="devin"||USER==="billing";}
 function mine(o){return admin()||o===USER;}
 function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";}
 
@@ -474,7 +474,8 @@ const TEAM=[
  {id:"john",name:"John Cornejo",role:"Channel Sales Manager",c:"#185FA5"},
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
  {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
- {id:"devin",name:"Devin",role:"Software Engineer",c:"#5B5EA6"}
+ {id:"devin",name:"Devin",role:"Software Engineer",c:"#5B5EA6"},
+ {id:"billing",name:"Billing",role:"Billing / Operations",c:"#8A6D3B"}
 ];
 const ENRICH={
  "grainger":{name:"W.W. Grainger, Inc.",website:"grainger.com",industry:"Industrial MRO",city:"Lake Forest",state:"IL",kind:"National distributor"},
