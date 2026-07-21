@@ -925,6 +925,34 @@ function viewAccounts(){
   return h;
 }
 /* ---------- CONTACTS (list view) ---------- */
+var MANREP_ORG_ORDER=["Blueprint","PMG Safety","ISI (Industrial Source)","NII Solutions"];
+var MANREP_ORG_NOTE={"Blueprint":"East-leaning man-rep group","PMG Safety":"West / Central man-rep group","ISI (Industrial Source)":"BDMs tied to distributors — Grainger, Fastenal, MSC","NII Solutions":"West man-rep group"};
+function manrepGroupedHTML(pool){
+  var groups={};
+  pool.forEach(function(p){var c=company(p.cid);var key=c?c.name:(p.branch||"Other");(groups[key]=groups[key]||[]).push(p);});
+  var order=MANREP_ORG_ORDER.filter(function(k){return groups[k];}).concat(Object.keys(groups).filter(function(k){return MANREP_ORG_ORDER.indexOf(k)<0;}).sort());
+  var h="";
+  order.forEach(function(org){
+    var list=groups[org].slice().sort(function(a,b){
+      var ca=personStates(a).length?0:1, cb=personStates(b).length?0:1;   // field reps first, then inside/office
+      return ca-cb || String(a.name||"").localeCompare(String(b.name||""));
+    });
+    var covered={};list.forEach(function(p){personStates(p).forEach(function(s){covered[s]=1;});});
+    var ncov=Object.keys(covered).length;
+    h+='<div class="sectlabel" style="margin-top:20px;font-size:13px">'+esc(org)+' · '+list.length+' contact'+(list.length>1?"s":"")+(MANREP_ORG_NOTE[org]?' · '+esc(MANREP_ORG_NOTE[org]):'')+(ncov?' · covers '+ncov+' states':'')+'</div>';
+    h+=list.map(function(p){
+      var ri=repIntel(p), sts=personStates(p);
+      var typePill=ri?' <span class="pill info" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+esc(ri[0])+'</span>':'';
+      var stateBits=sts.length?sts.map(stateChip).join(" "):'<span class="muted" style="font-size:12px">Inside / office</span>';
+      var read=ri?'<p class="t2" style="white-space:normal;margin-top:4px"><b style="color:var(--ink)">Team read:</b> '+esc(ri[1])+'</p>':'';
+      return '<div class="card" style="width:100%;text-align:left;cursor:pointer" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info" style="flex:none">'+initials(p.name)+'</span>'+
+        '<div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+typePill+'</p>'+
+        (p.role?'<p class="t2">'+esc(p.role)+'</p>':'')+
+        '<div style="margin-top:4px">'+stateBits+'</div>'+read+'</div>'+lastTag(p.last)+'</div></div>';
+    }).join("");
+  });
+  return h;
+}
 function viewContacts(){
   const scoped=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
   const cnt={manrep:0,distrep:0,enduser:0};
@@ -941,7 +969,7 @@ function viewContacts(){
     tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+'</div>'+
     '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
-  h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
+  h+=pool.length?(contactFilter==="manrep"?manrepGroupedHTML(pool):contactTableHTML(pool,true)):'<div class="empty">No contacts here.</div>';
   return h;
 }
 /* ---------- GLOBAL SEARCH ---------- */
