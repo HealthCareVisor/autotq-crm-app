@@ -1292,7 +1292,7 @@ function viewMap(){
       var home=(d.state||"").toUpperCase().slice(0,2);
       var hp=d.holder?DB.people.find(function(p){return String(p.name||"").toLowerCase().trim()===String(d.holder||"").toLowerCase().trim();}):null;
       var cov=hp?personStates(hp).map(function(x){return String(x||"").toUpperCase().slice(0,2);}):[];
-      var sts=cov.length>1?cov.slice():(home?[home]:[]); // multi-state rep: the demo travels their whole territory
+      var sts=cov.length?cov.slice():(home?[home]:[]); // rep with a territory: the demo shows across it, not just where they live
       if(home&&sts.indexOf(home)<0)sts.push(home);
       sts.forEach(function(s){if(!s)return;(byState[s]=byState[s]||[]).push(s===home?d:Object.assign({},d,{_terr:true}));});
     });
