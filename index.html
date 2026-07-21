@@ -1434,6 +1434,7 @@ var REP_INTEL={
  "mmonocchio@indl-source.com":["BDM","Great","mitch monocchio"],
 };
 var REP_INTEL_NAME={};for(var _ri in REP_INTEL)REP_INTEL_NAME[REP_INTEL[_ri][2]]=REP_INTEL[_ri];
+REP_INTEL_NAME["mark acruri"]=REP_INTEL_NAME["mark arcuri"];REP_INTEL_NAME["roland alaniz"]=REP_INTEL_NAME["rolando alaniz"];REP_INTEL_NAME["christin kirkland"]=REP_INTEL_NAME["christin ballard"];
 function repIntel(p){var e=String(p.email||"").toLowerCase().trim();if(REP_INTEL[e])return REP_INTEL[e];return REP_INTEL_NAME[String(p.name||"").toLowerCase().trim()]||null;}
 /* ---------- STATE QUICK-FILTER ---------- */
 var MANREP_COVERAGE={
@@ -1443,7 +1444,7 @@ var MANREP_COVERAGE={
 var MANREP_PERSON_COVERAGE={
   "jay petry":["MO","IL","IA"],
   "drew cunningham":["CO","WY"],
-  "jeff springer":["KS","NE","SD"],
+  "jeff springer":["KS","NE","SD","MO"],
   "jordan serbus":["WI"],
   "ben walker":["AZ","NM"],
   "sam fernholz":["MN","ND"],
@@ -1468,7 +1469,8 @@ var MANREP_PERSON_COVERAGE={
   "austin witt":["GA"],
   "carlos guerrero":["TX","LA"],
   "michael rodriguez":["TX"],
-  "roland alaniz":["TX"]
+  "roland alaniz":["TX"],
+  "rolando alaniz":["TX"]
 };
 function applyManrepPersonCoverage(){
   if(!DB||!DB.people)return;
