@@ -1085,7 +1085,8 @@ function rtag(region){return admin()&&region?" · "+region:"";}
 function teamPulse(){
   ensureUsage();
   const cut=Date.now()-7*86400000;
-  const rows=TEAM.map(t=>{
+  const roster=admin()?TEAM:TEAM.filter(t=>t.id===USER);  // reps see only their own activity, admins see the team
+  const rows=roster.map(t=>{
     const acts=(DB.activities||[]).filter(a=>a.by===t.id&&a.date&&new Date(a.date)>=cut).length;
     const tks=(DB.tasks||[]).filter(k=>k.owner===t.id&&k.done&&k.completedAt&&new Date(k.completedAt)>=cut).length;
     const mins=DB.usage.filter(u=>u.user===t.id&&u.day&&new Date(u.day)>=cut).reduce((s,u)=>s+(u.mins||0),0);
@@ -1097,7 +1098,7 @@ function teamPulse(){
     return {t:t,n:acts+tks,mins:mins,last:last};
   }).sort((a,b)=>b.n-a.n||b.mins-a.mins);
   const max=Math.max(1,...rows.map(r=>r.n));
-  let h='<div class="sectlabel">Team pulse — last 7 days</div><div class="card" style="padding:12px 14px">';
+  let h='<div class="sectlabel">'+(admin()?"Team pulse":"Your activity")+' — last 7 days</div><div class="card" style="padding:12px 14px">';
   h+=rows.map(r=>{
     const pct=r.n?Math.max(6,Math.round(r.n/max*100)):0;
     return '<div class="row" style="margin:7px 0;gap:10px;align-items:center">'+
