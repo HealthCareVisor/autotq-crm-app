@@ -1440,6 +1440,31 @@ function pricingMig(){
   save();
   toast("Distributor HQ + AutoTQ pricing loaded ("+updated+" updated · "+created+" new)");
 }
+/* mig_manrep_v1: Blueprint/PMG/ISI man-rep roster (ALL REPS sheet) — the live book had lost these people.
+   [name, email, org, city, state, phone, coverageCSV] ; team read comes from REP_INTEL by email. */
+var MANREP_IMPORT_V1=[["Christin Ballard","cballard@teamblueprint.com","Blueprint","Chattanooga","TN","423-635-2934",""],["Jessica Morante","jmorante@teamblueprint.com","Blueprint","Chattanooga","TN","423-605-0750",""],["Aaron Brown","abrown@teamblueprint.com","Blueprint","","","423-994-7550","DE,PA,NJ"],["Kevin Whaley","kwhaley@teamblueprint.com","Blueprint","Cullman","AL","256-338-6672","AL,MS,FL"],["Carlos Guerrero","cguerrero@teamblueprint.com","Blueprint","CT Pearland","TX","281-939-6442","TX,LA"],["Tripp Smith","tsmith@teamblueprint.com","Blueprint","","","423-364-2113","AR,KY,WV,TN"],["Meghan Lee","mlee@teamblueprint.com","Blueprint","Punta Gorda","FL","423-605-1283","FL"],["Rigo Guerrero","rguerrero@teamblueprint.com","Blueprint","","","817- 713-8645",""],["Matt Sherlock","msherlock@teamblueprint.com","Blueprint","","","508-962-8177","CT,MA,NH,ME,RI,VT"],["Tom Kasper","tkasper@teamblueprint.com","Blueprint","Mooresville","NC","423-605-1414","NC"],["Christine Rodas","crodas@teamblueprint.com","Blueprint","","","202- 317-0628","DC,MD,VA"],["Madeline Pittman","mpittman@teamblueprint.com","Blueprint","Chattanooga","TN","423-388-4618",""],["Julianne Lavariega","jlavariega@teamblueprint.com","Blueprint","Chattanooga","TN","423-750-5481",""],["Hannah Cole","hcole@teamblueprint.com","Blueprint","Chattanooga","TN","423-647-3057",""],["Steven Zellner","szellner@teamblueprint.com","Blueprint","Chattanooga","TN","423-647-3149",""],["Mark Arcuri","marcuri@teamblueprint.com","Blueprint","Clarence","NY","716-579-0400","PA,NY,WV"],["Abi Rosado","arosado@teamblueprint.com","Blueprint","","","646-570-2184",""],["Michael Cosmo","mcosmo@teamblueprint.com","Blueprint","","","704-560-6701","NC,SC"],["Michael Rodriguez","mrodriguez@teamblueprint.com","Blueprint","","","512-738-0798","TX"],["Austin Witt","awitt@teamblueprint.com","Blueprint","","","423-602-0018","GA"],["Darric Miller","dmiller@teamblueprint.com","Blueprint","Chattanooga","TN","305-726-7611",""],["Rolando Alaniz","ralaniz@teamblueprint.com","Blueprint","","","281-965-2116","TX"],["Drew Cunningham","drewc@pmg-safety.com","PMG Safety","St Denver","CO","303-243-4566","CO,WY"],["Sam Fernholz","samf@pmg-safety.com","PMG Safety","Ave  Horace","ND","320-493-7080","MN,ND"],["Jon Fickenworth","jonf@pmg-safety.com","PMG Safety","Court Cincinnati","OH","513-446-8135","IN,MI,OH"],["Arne Seaberg","arnes@pmg-safety.com","PMG Safety","SW Mukilteo","WA","425-361-3004","AK,ID,MT,OR,WA"],["Jordan Serbus","jordans@pmg-safety.com","PMG Safety","Road Grafton","WI","507-829-0558","WI"],["Galen Smith","galens@pmg-safety.com","PMG Safety","Dr Brentwood","CA","925-550-9164","CA,NV"],["Jeff Springer","jeffs@pmg-safety.com","PMG Safety","Drive Springfield","NE","402-881-2227","KS,NE,SD,MO"],["Ben Walker","benw@pmg-safety.com","PMG Safety","Dr Gilbert","AZ","219-851-7784","AZ,NM"],["Stephen Schrater","stephens@pmg-safety.com","PMG Safety","Way Ridgefield","WA","360-609-6216","OR,ID"],["Cara McDonough","caram@pmg-safety.com","PMG Safety","Lane Woodbury","MN","651-208-3191",""],["Beth Terranova","betht@pmg-safety.com","PMG Safety","Way Ridgefield","WA","919-943-2526",""],["Dale Bartelson","daleb@pmg-safety.com","PMG Safety","Lake Elmo","MN","651-272-8572",""],["Jay Petry","jayp@pmg-safety.com","PMG Safety","Des Peres","MO","314-614-1419","MO,IL,IA"],["Teresa Rothanzl","teresar@pmg-safety.com","PMG Safety","Dr Blair","NE","402-850-8711",""],["Janna Shepard","jannas@pmg-safety.com","PMG Safety","","","317-668-9567","IN,MI,OH"],["Luis Turcios","luist@pmg-safety.com","PMG Safety","Crown Point","IN","412-537-3267","IL"],["Rob Harms","robh@pmg-safety.com","PMG Safety","Drive Noblesville","IN","317-219-8811","IN,MI,OH"],["Alec Gavin","agavin@indl-source.com","ISI (Industrial Source)","","","515-419-0447",""],["Brenden Nagel","bnagel@indl-source.com","ISI (Industrial Source)","","","281-299-9101",""],["Claire Berry","cberry@indl-source.com","ISI (Industrial Source)","","","336-899-3226",""],["Corey Finley","cfinley@indl-source.com","ISI (Industrial Source)","","","609-501-3605",""],["Ian O'Brien","iobrien@indl-source.com","ISI (Industrial Source)","","","423-400-0892",""],["Mike Muto","mmuto@indl-source.com","ISI (Industrial Source)","","","630-240-0933",""],["Sam Lew","slew@indl-source.com","ISI (Industrial Source)","","","949-795-2299",""],["Seth Snoap","ssnoap@indl-source.com","ISI (Industrial Source)","","","616-994-3326",""],["Steve White","swhite@indl-source.com","ISI (Industrial Source)","","","630-310-4498",""],["Tim Kovis","tkovis@indl-source.com","ISI (Industrial Source)","","","815-954-6795",""],["Sam Nemanich","snemanich@indl-source.com","ISI (Industrial Source)","","","224-723-9190",""],["Brian Driskell","bdriskell@indl-source.com","ISI (Industrial Source)","","","775-219-9005",""],["Doug DiVenere","ddivenere@indl-source.com","ISI (Industrial Source)","","","630-200.9388",""],["Marketta Wiekerson","mwiekerson@indl-source.com","ISI (Industrial Source)","","","630-873-4321",""],["Allison Schindler","aschindler@indl-source.com","ISI (Industrial Source)","","","224-723-7412",""],["Kyle Slamans","kslamans@indl-source.com","ISI (Industrial Source)","","","630-391-3647",""],["Ben Van Gorp","bvangorp@indl-source.com","ISI (Industrial Source)","","","630-290-0762",""],["Tom Prukop","tprukop@indl-source.com","ISI (Industrial Source)","","","949 300 4270",""],["Mitch Monocchio","mmonocchio@indl-source.com","ISI (Industrial Source)","","","",""]];
+function manrepMig(){
+  var have={};DB.people.forEach(function(p){if(p.email)have[String(p.email).toLowerCase().trim()]=1;});
+  function orgId(orgName){
+    var re=/blueprint/i.test(orgName)?/blueprint/i:(/pmg/i.test(orgName)?/pmg/i:(/isi|industrial source/i.test(orgName)?/isi|industrial source|indl-source/i:/nii/i));
+    var c=DB.companies.find(function(x){return re.test(x.name||"");});
+    if(!c){c={id:"a_"+orgName.toLowerCase().replace(/[^a-z0-9]+/g,""),name:orgName,type:"manrep",territory:"Nationwide",owner:"",stage:"",website:"",industry:"Manufacturer rep group",city:"",state:"",note:"Man-rep organization",segment:"",units:0,revenue:0,orders:0,lastOrder:"",demoCount:0};DB.companies.push(c);}
+    else if(c.type!=="manrep"&&c.type!=="partner")c.type="manrep";
+    return c.id;
+  }
+  var oc={},added=0;
+  MANREP_IMPORT_V1.forEach(function(r){
+    var name=r[0],email=r[1],org=r[2],city=r[3],st=r[4],phone=r[5],cov=r[6];
+    if(!email||have[email])return;
+    if(!oc[org])oc[org]=orgId(org);
+    var p={id:"mr"+uid(),name:name,cid:oc[org],branch:org,role:"Man-rep",city:city,state:st,units:0,pos:0,last:null,owner:"",email:email,phone:phone,note:""};
+    if(cov)p.states=cov.split(",").filter(Boolean);
+    DB.people.push(p);have[email]=1;added++;
+  });
+  DB.meta.push({id:"mig_manrep_v1",when:new Date().toISOString(),added:added});
+  save();
+  if(added)toast(added+" man-rep contacts imported (Blueprint, PMG, ISI)");
+}
 function runDataMigrations(){
   if(!admin())return false;
   DB.meta=DB.meta||[];
@@ -1469,6 +1494,7 @@ function runDataMigrations(){
     if(added)toast(added+" distributor contacts imported (Fastenal, Grainger, Coromed/GoRescue)");
   }
   if(!done("mig_distpricing_v1")){pricingMig();ran=true;}
+  if(!done("mig_manrep_v1")){manrepMig();ran=true;}
   return ran;
 }
 /* team read on each man-rep — from ALL REPS internal evaluation sheet (2026-07) */
