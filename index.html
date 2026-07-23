@@ -447,7 +447,10 @@ async function bootSync(){
   await pullChanges(true);      // full pull — server is the source of truth
   snapshotShadow();             // then baseline the shadow from merged state
   SYNC.booted=true;
-  runDataMigrations();
+  if(runDataMigrations()){ // a migration changed data — redraw so this device shows it immediately
+    const ae=document.activeElement;
+    if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();
+  }
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});
@@ -1433,8 +1436,9 @@ function pricingMig(){
   toast("Distributor HQ + AutoTQ pricing loaded ("+updated+" updated · "+created+" new)");
 }
 function runDataMigrations(){
-  if(!admin())return;
+  if(!admin())return false;
   DB.meta=DB.meta||[];
+  var ran=false;
   function done(id){return DB.meta.some(function(m){return m&&m.id===id;});}
   if(!done("mig_dist_v1")){
     var have={};DB.people.forEach(function(p){if(p.email)have[String(p.email).toLowerCase().trim()]=1;});
@@ -1456,10 +1460,11 @@ function runDataMigrations(){
       DB.people.push(p);have[email]=1;added++;
     });
     DB.meta.push({id:"mig_dist_v1",when:new Date().toISOString(),added:added});
-    save();
+    save();ran=true;
     if(added)toast(added+" distributor contacts imported (Fastenal, Grainger, Coromed/GoRescue)");
   }
-  if(!done("mig_distpricing_v1"))pricingMig();
+  if(!done("mig_distpricing_v1")){pricingMig();ran=true;}
+  return ran;
 }
 /* team read on each man-rep — from ALL REPS internal evaluation sheet (2026-07) */
 var REP_INTEL={
