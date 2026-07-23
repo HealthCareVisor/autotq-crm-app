@@ -536,7 +536,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let acctFilter="setup", contactFilter="distrep", manrepView="org", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
+let acctFilter="setup", contactFilter="distrep", manrepView="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
 function seed(){var b=demoSeed();b.resources=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -818,15 +818,14 @@ function contactRow(p){const c=company(p.cid);const rb=roleBucket(p.role);return
   '<td>'+(personStates(p).length?personStates(p).map(stateChip).join(" "):'<span class="muted">—</span>')+'</td>'+
   '<td>'+regionTag(personRegion(p))+'</td>'+
   '<td>'+(p.email?'<span class="muted">'+esc(p.email)+'</span>':'<span class="muted">—</span>')+'</td>'+
-  '<td>'+(p.phone?esc(p.phone):'<span class="muted">—</span>')+'</td>'+
-  '<td>'+lastTag(p.last)+'</td></tr>';}
+  '<td>'+(p.phone?esc(p.phone):'<span class="muted">—</span>')+'</td></tr>';}
 function accountTableHTML(list,sortable){const cc=contactCountMap();
   function th(k,l){return sortable?thSort("accounts",k,l):'<th>'+l+'</th>';}
   const head='<tr>'+th("name","Account")+th("type","Type")+th("territory","Region")+th("stage","Stage")+th("contacts","Contacts")+th("units","Units")+th("revenue","Revenue")+th("demos","Demos")+'</tr>';
   return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+list.map(c=>accountRow(c,cc)).join("")+'</tbody></table></div>';}
 function contactTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("contacts",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Contact")+th("account","Account")+th("state","State")+th("region","Region")+th("email","Email")+th("phone","Phone")+th("last","Last touch")+'</tr>';
+  const head='<tr>'+th("name","Contact")+th("account","Account")+th("state","State")+th("region","Region")+th("email","Email")+th("phone","Phone")+'</tr>';
   return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+list.map(contactRow).join("")+'</tbody></table></div>';}
 
 /* ---------- tasks + channel enablement ---------- */
@@ -941,7 +940,8 @@ function manrepCard(p,showOrg){
   var typePill=ri?' <span class="pill info" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+esc(ri[0])+'</span>':'';
   var stateBits=sts.length?sts.map(stateChip).join(" "):'<span class="muted" style="font-size:12px">Inside / office</span>';
   var read=ri?'<p class="t2" style="white-space:normal;margin-top:4px"><b style="color:var(--ink)">Team read:</b> '+esc(ri[1])+'</p>':'';
-  var sub=showOrg?esc(manrepOrgOf(p)):(p.role?esc(p.role):'');
+  var role=(p.role||"").trim();
+  var sub=showOrg?esc(manrepOrgOf(p)):(role&&role.toLowerCase()!=="man-rep"?esc(role):'');  // drop the redundant "Man-rep" line
   return '<div class="card" style="width:100%;text-align:left;cursor:pointer" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info" style="flex:none">'+initials(p.name)+'</span>'+
     '<div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+typePill+'</p>'+
     (sub?'<p class="t2">'+sub+'</p>':'')+
@@ -951,18 +951,12 @@ function manrepHTML(pool){
   if(manrepView==="all"){
     return pool.slice().sort(manrepSort).map(function(p){return manrepCard(p,true);}).join("");
   }
-  var groups={};
-  pool.forEach(function(p){var key=manrepOrgOf(p);(groups[key]=groups[key]||[]).push(p);});
-  var order=MANREP_ORG_ORDER.filter(function(k){return groups[k];}).concat(Object.keys(groups).filter(function(k){return MANREP_ORG_ORDER.indexOf(k)<0;}).sort());
-  var h="";
-  order.forEach(function(org){
-    var list=groups[org].slice().sort(manrepSort);
-    var covered={};list.forEach(function(p){personStates(p).forEach(function(s){covered[s]=1;});});
-    var ncov=Object.keys(covered).length;
-    h+='<div class="sectlabel" style="margin-top:20px;font-size:13px">'+esc(org)+' · '+list.length+' contact'+(list.length>1?"s":"")+(MANREP_ORG_NOTE[org]?' · '+esc(MANREP_ORG_NOTE[org]):'')+(ncov?' · covers '+ncov+' states':'')+'</div>';
-    h+=list.map(function(p){return manrepCard(p,false);}).join("");
-  });
-  return h;
+  var list=pool.filter(function(p){return manrepOrgOf(p)===manrepView;}).sort(manrepSort);
+  if(!list.length)return '<div class="empty">No contacts in '+esc(manrepView)+' here.</div>';
+  var covered={};list.forEach(function(p){personStates(p).forEach(function(s){covered[s]=1;});});
+  var ncov=Object.keys(covered).length;
+  var h='<div class="sectlabel" style="margin-top:6px;font-size:13px">'+esc(manrepView)+' · '+list.length+' contact'+(list.length>1?"s":"")+(MANREP_ORG_NOTE[manrepView]?' · '+esc(MANREP_ORG_NOTE[manrepView]):'')+(ncov?' · covers '+ncov+' states':'')+'</div>';
+  return h+list.map(function(p){return manrepCard(p,false);}).join("");
 }
 function viewContacts(){
   const scoped=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
@@ -981,9 +975,11 @@ function viewContacts(){
     '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   if(contactFilter==="manrep"){
-    h+='<div class="seg" style="max-width:280px;margin:14px 0 2px">'+
-       '<button class="'+(manrepView==="org"?"on":"")+'" data-act="manrepview" data-v="org">By organization</button>'+
-       '<button class="'+(manrepView==="all"?"on":"")+'" data-act="manrepview" data-v="all">View all</button></div>';
+    const SHORT={"Blueprint":"Blueprint","PMG Safety":"PMG","ISI (Industrial Source)":"ISI","NII Solutions":"NII"};
+    const orgsPresent=MANREP_ORG_ORDER.filter(o=>pool.some(p=>manrepOrgOf(p)===o));
+    h+='<div class="seg" style="max-width:520px;margin:14px 0 2px;flex-wrap:wrap">'+
+       '<button class="'+(manrepView==="all"?"on":"")+'" data-act="manrepview" data-v="all">All</button>'+
+       orgsPresent.map(o=>'<button class="'+(manrepView===o?"on":"")+'" data-act="manrepview" data-v="'+esc(o)+'">'+esc(SHORT[o]||o)+'</button>').join("")+'</div>';
     h+=pool.length?manrepHTML(pool):'<div class="empty">No contacts here.</div>';
   } else {
     h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
