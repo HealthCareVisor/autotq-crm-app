@@ -852,7 +852,12 @@ function distStatus(c){if(c.dstatus)return c.dstatus;return (((c.units||0)>0)||(
 const ESTAGES=["Identified","Demoed","Trained","Selling","Scaling"];
 function enableStage(c){if(c.estage)return c.estage;const o=c.orders||0,u=c.units||0,dm=c.demoCount||0;if(o>=2)return "Scaling";if(o>=1||u>0)return "Selling";if(dm>0)return "Demoed";return "Identified";}
 function stageTag(s){const i=ESTAGES.indexOf(s);const cls=["gray","info","ok","coral","coral"][i]||"gray";return '<span class="pill '+cls+'">'+esc(s)+'</span>';}
-function contactType(p){const c=company(p.cid);if(!c)return '';if(c.type==='manrep'||c.type==='partner')return 'manrep';if(c.type==='distributor')return 'distrep';if(c.type==='enduser')return 'enduser';return '';}
+/* man-rep groups are identified by email domain — authoritative even if the org's account type drifted to "distributor" in the book */
+var MANREP_DOMAIN_ORG={"teamblueprint.com":"Blueprint","pmg-safety.com":"PMG Safety","indl-source.com":"ISI (Industrial Source)","niisolutions.com":"NII Solutions"};
+function emailDomain(p){var m=String(p&&p.email||"").toLowerCase().match(/@([^@\s]+)$/);return m?m[1]:"";}
+function isManrepPerson(p){return !!MANREP_DOMAIN_ORG[emailDomain(p)];}
+function manrepOrgOf(p){var d=emailDomain(p);if(MANREP_DOMAIN_ORG[d])return MANREP_DOMAIN_ORG[d];var c=company(p.cid);return c?c.name:(p.branch||"Other");}
+function contactType(p){if(isManrepPerson(p))return 'manrep';const c=company(p.cid);if(!c)return '';if(c.type==='manrep'||c.type==='partner')return 'manrep';if(c.type==='distributor')return 'distrep';if(c.type==='enduser')return 'enduser';return '';}
 function roleBucket(r){r=(r||'').toLowerCase();
   if(/exec|vice president|\bvp\b|president|\bceo\b|\bcfo\b|\bcoo\b|owner|principal|founder|director|chief/.test(r))return ['Executive','info'];
   if(/safety|ehs|hse|hygien|health/.test(r))return ['Safety/EHS','ok'];
@@ -932,7 +937,7 @@ var MANREP_ORG_ORDER=["Blueprint","PMG Safety","ISI (Industrial Source)","NII So
 var MANREP_ORG_NOTE={"Blueprint":"East-leaning man-rep group","PMG Safety":"West / Central man-rep group","ISI (Industrial Source)":"BDMs tied to distributors — Grainger, Fastenal, MSC","NII Solutions":"West man-rep group"};
 function manrepGroupedHTML(pool){
   var groups={};
-  pool.forEach(function(p){var c=company(p.cid);var key=c?c.name:(p.branch||"Other");(groups[key]=groups[key]||[]).push(p);});
+  pool.forEach(function(p){var key=manrepOrgOf(p);(groups[key]=groups[key]||[]).push(p);});
   var order=MANREP_ORG_ORDER.filter(function(k){return groups[k];}).concat(Object.keys(groups).filter(function(k){return MANREP_ORG_ORDER.indexOf(k)<0;}).sort());
   var h="";
   order.forEach(function(org){
