@@ -536,7 +536,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
+let acctFilter="setup", contactFilter="distrep", manrepView="org", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
 function seed(){var b=demoSeed();b.resources=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -935,29 +935,32 @@ function viewAccounts(){
 /* ---------- CONTACTS (list view) ---------- */
 var MANREP_ORG_ORDER=["Blueprint","PMG Safety","ISI (Industrial Source)","NII Solutions"];
 var MANREP_ORG_NOTE={"Blueprint":"East-leaning man-rep group","PMG Safety":"West / Central man-rep group","ISI (Industrial Source)":"BDMs tied to distributors — Grainger, Fastenal, MSC","NII Solutions":"West man-rep group"};
-function manrepGroupedHTML(pool){
+function manrepSort(a,b){var ca=personStates(a).length?0:1,cb=personStates(b).length?0:1;return ca-cb||String(a.name||"").localeCompare(String(b.name||""));}
+function manrepCard(p,showOrg){
+  var ri=repIntel(p), sts=personStates(p);
+  var typePill=ri?' <span class="pill info" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+esc(ri[0])+'</span>':'';
+  var stateBits=sts.length?sts.map(stateChip).join(" "):'<span class="muted" style="font-size:12px">Inside / office</span>';
+  var read=ri?'<p class="t2" style="white-space:normal;margin-top:4px"><b style="color:var(--ink)">Team read:</b> '+esc(ri[1])+'</p>':'';
+  var sub=showOrg?esc(manrepOrgOf(p)):(p.role?esc(p.role):'');
+  return '<div class="card" style="width:100%;text-align:left;cursor:pointer" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info" style="flex:none">'+initials(p.name)+'</span>'+
+    '<div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+typePill+'</p>'+
+    (sub?'<p class="t2">'+sub+'</p>':'')+
+    '<div style="margin-top:4px">'+stateBits+'</div>'+read+'</div></div></div>';
+}
+function manrepHTML(pool){
+  if(manrepView==="all"){
+    return pool.slice().sort(manrepSort).map(function(p){return manrepCard(p,true);}).join("");
+  }
   var groups={};
   pool.forEach(function(p){var key=manrepOrgOf(p);(groups[key]=groups[key]||[]).push(p);});
   var order=MANREP_ORG_ORDER.filter(function(k){return groups[k];}).concat(Object.keys(groups).filter(function(k){return MANREP_ORG_ORDER.indexOf(k)<0;}).sort());
   var h="";
   order.forEach(function(org){
-    var list=groups[org].slice().sort(function(a,b){
-      var ca=personStates(a).length?0:1, cb=personStates(b).length?0:1;   // field reps first, then inside/office
-      return ca-cb || String(a.name||"").localeCompare(String(b.name||""));
-    });
+    var list=groups[org].slice().sort(manrepSort);
     var covered={};list.forEach(function(p){personStates(p).forEach(function(s){covered[s]=1;});});
     var ncov=Object.keys(covered).length;
     h+='<div class="sectlabel" style="margin-top:20px;font-size:13px">'+esc(org)+' · '+list.length+' contact'+(list.length>1?"s":"")+(MANREP_ORG_NOTE[org]?' · '+esc(MANREP_ORG_NOTE[org]):'')+(ncov?' · covers '+ncov+' states':'')+'</div>';
-    h+=list.map(function(p){
-      var ri=repIntel(p), sts=personStates(p);
-      var typePill=ri?' <span class="pill info" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+esc(ri[0])+'</span>':'';
-      var stateBits=sts.length?sts.map(stateChip).join(" "):'<span class="muted" style="font-size:12px">Inside / office</span>';
-      var read=ri?'<p class="t2" style="white-space:normal;margin-top:4px"><b style="color:var(--ink)">Team read:</b> '+esc(ri[1])+'</p>':'';
-      return '<div class="card" style="width:100%;text-align:left;cursor:pointer" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info" style="flex:none">'+initials(p.name)+'</span>'+
-        '<div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+typePill+'</p>'+
-        (p.role?'<p class="t2">'+esc(p.role)+'</p>':'')+
-        '<div style="margin-top:4px">'+stateBits+'</div>'+read+'</div>'+lastTag(p.last)+'</div></div>';
-    }).join("");
+    h+=list.map(function(p){return manrepCard(p,false);}).join("");
   });
   return h;
 }
@@ -977,7 +980,14 @@ function viewContacts(){
     tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+'</div>'+
     '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
-  h+=pool.length?(contactFilter==="manrep"?manrepGroupedHTML(pool):contactTableHTML(pool,true)):'<div class="empty">No contacts here.</div>';
+  if(contactFilter==="manrep"){
+    h+='<div class="seg" style="max-width:280px;margin:14px 0 2px">'+
+       '<button class="'+(manrepView==="org"?"on":"")+'" data-act="manrepview" data-v="org">By organization</button>'+
+       '<button class="'+(manrepView==="all"?"on":"")+'" data-act="manrepview" data-v="all">View all</button></div>';
+    h+=pool.length?manrepHTML(pool):'<div class="empty">No contacts here.</div>';
+  } else {
+    h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
+  }
   return h;
 }
 /* ---------- GLOBAL SEARCH ---------- */
@@ -2546,6 +2556,7 @@ document.addEventListener("click",e=>{
   if(a==="sort"){const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="acctfilter"){acctFilter=t.dataset.v;listQ="";render();return;}
   if(a==="contactfilter"){contactFilter=t.dataset.v;listQ="";contactStateF="";render();return;}
+  if(a==="manrepview"){manrepView=t.dataset.v;render();return;}
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
   if(a==="settask"){logState.taskType=t.dataset.v;document.querySelectorAll("#taskTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="addtask"){const ti=document.getElementById("taskTitle"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,title:title,type:logState.taskType||"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});save();render();refocus("taskTitle");return;}
