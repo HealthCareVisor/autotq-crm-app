@@ -288,8 +288,9 @@ table.lv td.num{text-align:right;font-variant-numeric:tabular-nums}
 .pngrid td.ro{padding:9px 12px;white-space:nowrap}
 .pngrid td.ro .lvsub{white-space:normal}
 .pngrid tr:hover td{background:#fcfaf6}
-.pncell{border:none;background:transparent;width:100%;min-width:120px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink)}
-.pncell:focus{outline:2px solid var(--coral);outline-offset:-2px;background:#fff;border-radius:4px}
+.pncell,.opcell{border:none;background:transparent;width:100%;min-width:110px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink)}
+.pncell:focus,.opcell:focus{outline:2px solid var(--coral);outline-offset:-2px;background:#fff;border-radius:4px}
+.pngrid td.potcol,.pngrid th.potcol{border-left:2px solid var(--coral);background:var(--coral-t);font-weight:600}
 .pngrid tr.addrow td{padding:0;border-right:none}
 .pngrid tr.addrow button{width:100%;border:none;background:none;text-align:left;padding:10px 12px;font-size:13px;font-weight:600;color:var(--hint);cursor:pointer}
 .pngrid tr.addrow button:hover{color:var(--coral);background:var(--coral-t)}
@@ -869,7 +870,7 @@ function roleBucket(r){r=(r||'').toLowerCase();
 const OPP_STAGES=["Prospecting","Qualification","Proposal/Price Quote","Negotiation","Closed Won","Closed Lost"];
 const OPP_SHORT={"Prospecting":"Prospecting","Qualification":"Qualification","Proposal/Price Quote":"Proposal","Negotiation":"Negotiation","Closed Won":"Won","Closed Lost":"Lost"};
 const OPP_PROB={"Prospecting":10,"Qualification":25,"Proposal/Price Quote":50,"Negotiation":75,"Closed Won":100,"Closed Lost":0};
-function oppStageTag(s){const cls={"Prospecting":"gray","Qualification":"info","Proposal/Price Quote":"warn","Negotiation":"coral","Closed Won":"ok","Closed Lost":"dang"}[s]||"gray";return '<span class="pill '+cls+'">'+esc(OPP_SHORT[s]||s||"—")+'</span>';}
+function oppStageTag(s){const cls={"Prospecting":"gray","Qualification":"info","Proposal/Price Quote":"warn","Negotiation":"coral","Closed Won":"ok","Closed Lost":"dang"}[s]||"gray";var pct=(s&&s!=="Closed Won"&&s!=="Closed Lost"&&OPP_PROB[s]!=null)?" "+OPP_PROB[s]+"%":"";return '<span class="pill '+cls+'">'+esc((OPP_SHORT[s]||s||"—")+pct)+'</span>';}
 function val(id){const e=document.getElementById(id);return e?e.value.trim():"";}
 function ensureOpps(){
   if(!DB.opps){
@@ -888,6 +889,21 @@ function oppAcctLabel(o){const c=o.accountId?company(o.accountId):null;return c?
 function fmtK(n){n=Math.round(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2).replace(/\.?0+$/,"")+"M";if(Math.abs(n)>=1e4)return "$"+Math.round(n/1e3)+"k";return "$"+n.toLocaleString();}
 function oppAge(o){if(!o.createdAt)return null;return Math.max(0,Math.floor((Date.now()-new Date(o.createdAt))/86400000));}
 function oppOverdue(o){return oppIsOpen(o)&&o.closeDate&&o.closeDate<todayStr();}
+/* org potential multiplier — scales by the size/reach of the organization (national chains >> local shops) */
+var POTENTIAL_MULT={"a27":12,"a22":10,"a38":9,"a54":8,"a340":7,"a16":5,"a9":4,"a46":4,"a6":3.5,"a346":3.5,"a15":3,"a343":2.5,"a458":2.5,"a41":2.5,"a35":2.5,"a49":2.5,"a454":1.5,"a17":1.5,"a32":1.5,"a4":1.5};
+function orgPotentialMult(o){
+  var c=o.accountId?company(o.accountId):(o.distributorId?company(o.distributorId):null);
+  if(c&&POTENTIAL_MULT[c.id]!=null)return POTENTIAL_MULT[c.id];
+  var nm=((c?c.name:"")+" "+(o.accountName||"")+" "+(o.distributorName||"")).toLowerCase();
+  if(/grainger/.test(nm))return 12;if(/fastenal/.test(nm))return 10;if(/\bmsc\b|industrial supply/.test(nm))return 9;
+  if(/unifirst/.test(nm))return 8;if(/medique/.test(nm))return 7;
+  if(/coro med|ballard|ritz|aed professional|macgill/.test(nm))return 4.5;
+  if(/copperstate|central welding|mars supply|packer|morton|safety products/.test(nm))return 2.5;
+  return 2;
+}
+function oppPotential(o){return Math.round((o.amount||0)*orgPotentialMult(o));}
+function oppYear(o){if(o.closeDate)return parseInt(o.closeDate.slice(0,4),10)||0;return o.forecastYear?(parseInt(o.forecastYear,10)||0):0;}
+function oppSortDefault(a,b){var ya=oppYear(a),yb=oppYear(b);var ra=ya===2026?0:(ya?1:2),rb=yb===2026?0:(yb?1:2);if(ra!==rb)return ra-rb;if(ya!==yb)return ya-yb;return (b.amount||0)-(a.amount||0);}
 /* region model — contacts/accounts are East or West (no person owns a contact); Nationwide = multi-region account */
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL".split(" "));
 function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":"West";}
@@ -2048,6 +2064,27 @@ function oppTableHTML(list,sortable){
   return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
     '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="5"></td></tr></tfoot></table></div>';
 }
+function opCell(o,field,type,val,extra){return '<td><input class="opcell" data-id="'+o.id+'" data-field="'+field+'" type="'+type+'" value="'+esc(val)+'"'+(extra||"")+'></td>';}
+function oppGridHTML(list){
+  if(!list.length)return '<div class="empty">Nothing in this tab.</div>';
+  var head='<tr><th>Opportunity</th><th>Account</th><th>Stage</th><th>Amount</th><th>Units</th><th>Prob</th><th>Close</th><th>Rep</th><th class="potcol">Potential</th></tr>';
+  var body=list.map(function(o){
+    var lbl=oppAcctLabel(o);if(lbl==="—")lbl="";
+    var stageSel='<td><select class="opcell" data-id="'+o.id+'" data-field="stage">'+OPP_STAGES.map(function(s){return '<option value="'+esc(s)+'"'+(o.stage===s?" selected":"")+'>'+esc(OPP_SHORT[s]+(s!=="Closed Won"&&s!=="Closed Lost"?" "+OPP_PROB[s]+"%":""))+'</option>';}).join("")+'</select></td>';
+    return '<tr>'+
+      opCell(o,"name","text",o.name||"")+
+      opCell(o,"accountName","text",lbl)+
+      stageSel+
+      opCell(o,"amount","number",o.amount||"")+
+      opCell(o,"units","number",o.units||"")+
+      '<td class="ro" id="prob-'+o.id+'">'+oppProb(o)+'%</td>'+
+      opCell(o,"closeDate","date",o.closeDate||"")+
+      opCell(o,"rep","text",o.rep||"")+
+      '<td class="ro potcol" id="pot-'+o.id+'">'+(oppPotential(o)?money(oppPotential(o)):"—")+'</td></tr>';
+  }).join("");
+  return '<p style="font-size:12.5px;color:var(--hint);margin:2px 0 8px">Edit any cell — changes save and sync to the team instantly. 2026 deals sort to the top. <b>Potential</b> (far right) = amount × the org\'s size factor.</p>'+
+    '<div class="tablewrap pngrid"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+}
 function oppCard(o){
   const si=OPP_STAGES.indexOf(o.stage);
   const adv=(oppIsOpen(o)?'<span class="adv">'+
@@ -2067,15 +2104,15 @@ function oppCard(o){
    '<div class="pv"><span>'+money(o.amount||0)+' <small style="color:var(--hint);font-weight:500">'+oppProb(o)+'%</small></span>'+adv+'</div></div>';
 }
 function oppKpis(pool){
-  const open=pool.filter(oppIsOpen), won=pool.filter(o=>o.stage==="Closed Won"), lost=pool.filter(o=>o.stage==="Closed Lost");
+  const open=pool.filter(oppIsOpen), won=pool.filter(o=>o.stage==="Closed Won");
   const openAmt=open.reduce((s,o)=>s+(o.amount||0),0), wAmt=open.reduce((s,o)=>s+oppWeighted(o),0);
   const wonAmt=won.reduce((s,o)=>s+(o.amount||0),0);
-  const winRate=(won.length+lost.length)?Math.round(won.length/(won.length+lost.length)*100):null;
+  const potAmt=open.reduce((s,o)=>s+oppPotential(o),0);
   return '<div class="kpis">'+
    '<div class="kpi"><b>Open pipeline</b><span>'+fmtK(openAmt)+'</span><small>'+open.length+' deals</small></div>'+
    '<div class="kpi"><b>Weighted forecast</b><span>'+fmtK(wAmt)+'</span><small>probability-adjusted</small></div>'+
    '<div class="kpi"><b>Closed won</b><span>'+fmtK(wonAmt)+'</span><small>'+won.length+' deals</small></div>'+
-   '<div class="kpi"><b>Win rate</b><span>'+(winRate===null?"—":winRate+"%")+'</span><small>'+won.length+'W / '+lost.length+'L</small></div>'+
+   '<div class="kpi"><b>Org potential</b><span>'+fmtK(potAmt)+'</span><small>scaled by org size</small></div>'+
   '</div>';
 }
 function viewOpps(){
@@ -2097,15 +2134,14 @@ function viewOpps(){
    '<button class="btn sm coral" data-act="addopp">'+svg("plus")+' New</button></div>';
   if(!show.length)return h+'<div class="empty">'+(pool.length?'Nothing in this tab.':'The pipeline is a clean slate — add deals as you confirm real numbers.<br><br><button class="btn coral" data-act="addopp">'+svg("plus")+' Add your first opportunity</button><br><br><span style="font-size:12.5px">The old imported pipeline is archived in CRM_Cleanup/opportunities_import_archive.csv for reference.</span>')+'</div>';
   if(oppView==="list"){
-    const s=sortState.opps;
-    show=show.slice().sort((a,b)=>cmpv(oppVal(a,s.key),oppVal(b,s.key))*s.dir);
-    return h+oppTableHTML(show,true);
+    return h+oppGridHTML(show.slice().sort(oppSortDefault));
   }
   const cols=(oppFilter==="open")?OPP_STAGES.slice(0,4):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
   h+='<div class="pipe">'+cols.map(st=>{
-    const os=show.filter(o=>o.stage===st).sort((a,b)=>(b.amount||0)-(a.amount||0));
+    const os=show.filter(o=>o.stage===st).sort(oppSortDefault);
     const amt=os.reduce((s,o)=>s+(o.amount||0),0);
-    return '<div class="pcol"><h4>'+esc(OPP_SHORT[st])+' · '+os.length+'<em>'+fmtK(amt)+'</em></h4>'+os.map(oppCard).join("")+'</div>';
+    const pct=(st!=="Closed Won"&&st!=="Closed Lost")?' '+OPP_PROB[st]+'%':'';
+    return '<div class="pcol"><h4>'+esc(OPP_SHORT[st]+pct)+' · '+os.length+'<em>'+fmtK(amt)+'</em></h4>'+os.map(oppCard).join("")+'</div>';
   }).join("")+'</div>';
   return h;
 }
@@ -2383,7 +2419,7 @@ function formOpp(id,prefillCid){
    '<label class="fl">Opportunity name</label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Fastenal — Tahlequah stocking order" autocomplete="off">'+
    '<label class="fl">Account</label><select class="f" id="oCid">'+acctOpts+'</select>'+
    '<label class="fl">Account name (if not in CRM)</label><input class="f" id="oAcctName" value="'+(o?esc(o.accountName||""):"")+'" placeholder="prospect not in Accounts yet" autocomplete="off">'+
-   '<label class="fl">Stage</label><div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+esc(OPP_SHORT[s])+'</span>').join("")+'</div>'+
+   '<label class="fl">Stage</label><div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+esc(OPP_SHORT[s]+(s!=="Closed Won"&&s!=="Closed Lost"?" "+OPP_PROB[s]+"%":""))+'</span>').join("")+'</div>'+
    '<label class="fl">Amount ($)</label><input class="f" id="oAmt" inputmode="numeric" value="'+(o&&o.amount?o.amount:"")+'" placeholder="15200">'+
    '<label class="fl"># of units</label><input class="f" id="oUnits" inputmode="numeric" value="'+(o&&o.units?o.units:"")+'" placeholder="40">'+
    '<label class="fl">Expected close date</label><input class="f" id="oClose" type="date" value="'+(o&&o.closeDate?esc(o.closeDate):"")+'">'+
@@ -2703,6 +2739,17 @@ document.addEventListener("click",e=>{
   if(a==="export"){exportCSV();return;}
 });
 document.addEventListener("input",e=>{
+  if(e.target.classList&&e.target.classList.contains("opcell")){
+    const o=DB.opps.find(x=>x.id===e.target.dataset.id);if(!o)return;
+    const f=e.target.dataset.field,v=e.target.value;
+    if(f==="amount"||f==="units"){o[f]=parseFloat(String(v).replace(/[^0-9.\-]/g,""))||0;}
+    else if(f==="stage"){o.stage=v;o.probability=OPP_PROB[v];if((v==="Closed Won"||v==="Closed Lost")&&!o.closeDate)o.closeDate=todayStr();}
+    else{o[f]=v;}
+    save();
+    const pe=document.getElementById("prob-"+o.id);if(pe)pe.textContent=oppProb(o)+"%";
+    const pt=document.getElementById("pot-"+o.id);if(pt)pt.textContent=oppPotential(o)?money(oppPotential(o)):"—";
+    return; // no re-render — keep focus while editing
+  }
   if(e.target.classList&&e.target.classList.contains("pncell")){
     const c=company(e.target.dataset.cid);if(!c)return;
     ensurePnGrid(c);
