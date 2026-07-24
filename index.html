@@ -291,6 +291,12 @@ table.lv td.num{text-align:right;font-variant-numeric:tabular-nums}
 .pncell,.opcell{border:none;background:transparent;width:100%;min-width:110px;padding:9px 12px;font-size:13.5px;font-family:inherit;color:var(--ink)}
 .pncell:focus,.opcell:focus{outline:2px solid var(--coral);outline-offset:-2px;background:#fff;border-radius:4px}
 .pngrid td.potcol,.pngrid th.potcol{border-left:2px solid var(--coral);background:var(--coral-t);font-weight:600}
+.rzgrid{table-layout:fixed}
+.rzgrid th{position:relative}
+.rzgrid th,.rzgrid td{overflow:hidden;text-overflow:ellipsis}
+.rzgrid .opcell{min-width:0}
+.colrz{position:absolute;top:0;right:0;width:8px;height:100%;cursor:col-resize;user-select:none}
+.colrz:hover{background:var(--coral)}
 .pngrid tr.addrow td{padding:0;border-right:none}
 .pngrid tr.addrow button{width:100%;border:none;background:none;text-align:left;padding:10px 12px;font-size:13px;font-weight:600;color:var(--hint);cursor:pointer}
 .pngrid tr.addrow button:hover{color:var(--coral);background:var(--coral-t)}
@@ -537,6 +543,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
+let oppColW=[];try{oppColW=JSON.parse(localStorage.getItem("autotq_oppcolw")||"[]");}catch(e){}
 let acctFilter="setup", contactFilter="distrep", manrepView="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
 function seed(){var b=demoSeed();b.resources=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
@@ -2065,9 +2072,11 @@ function oppTableHTML(list,sortable){
     '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="5"></td></tr></tfoot></table></div>';
 }
 function opCell(o,field,type,val,extra){return '<td><input class="opcell" data-id="'+o.id+'" data-field="'+field+'" type="'+type+'" value="'+esc(val)+'"'+(extra||"")+'></td>';}
+var OPP_COLS=[["Opportunity",230],["Account",170],["Stage",150],["Amount",110],["Units",80],["Prob",70],["Close",150],["Rep",120],["Potential",120]];
 function oppGridHTML(list){
   if(!list.length)return '<div class="empty">Nothing in this tab.</div>';
-  var head='<tr><th>Opportunity</th><th>Account</th><th>Stage</th><th>Amount</th><th>Units</th><th>Prob</th><th>Close</th><th>Rep</th><th class="potcol">Potential</th></tr>';
+  var colg='<colgroup>'+OPP_COLS.map(function(c,i){return '<col style="width:'+(oppColW[i]||c[1])+'px">';}).join("")+'</colgroup>';
+  var head='<tr>'+OPP_COLS.map(function(c,i){return '<th'+(c[0]==="Potential"?' class="potcol"':'')+'>'+esc(c[0])+'<span class="colrz" data-ci="'+i+'"></span></th>';}).join("")+'</tr>';
   var body=list.map(function(o){
     var lbl=oppAcctLabel(o);if(lbl==="—")lbl="";
     var stageSel='<td><select class="opcell" data-id="'+o.id+'" data-field="stage">'+OPP_STAGES.map(function(s){return '<option value="'+esc(s)+'"'+(o.stage===s?" selected":"")+'>'+esc(OPP_SHORT[s]+(s!=="Closed Won"&&s!=="Closed Lost"?" "+OPP_PROB[s]+"%":""))+'</option>';}).join("")+'</select></td>';
@@ -2082,8 +2091,8 @@ function oppGridHTML(list){
       opCell(o,"rep","text",o.rep||"")+
       '<td class="ro potcol" id="pot-'+o.id+'">'+(oppPotential(o)?money(oppPotential(o)):"—")+'</td></tr>';
   }).join("");
-  return '<p style="font-size:12.5px;color:var(--hint);margin:2px 0 8px">Edit any cell — changes save and sync to the team instantly. 2026 deals sort to the top. <b>Potential</b> (far right) = amount × the org\'s size factor.</p>'+
-    '<div class="tablewrap pngrid"><table><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  return '<p style="font-size:12.5px;color:var(--hint);margin:2px 0 8px">Edit any cell — changes save and sync to the team instantly. Drag a column\'s right edge to resize it. 2026 deals sort to the top. <b>Potential</b> (far right) = amount × the org\'s size factor.</p>'+
+    '<div class="tablewrap pngrid"><table class="rzgrid">'+colg+'<thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>';
 }
 function oppCard(o){
   const si=OPP_STAGES.indexOf(o.stage);
@@ -2764,6 +2773,16 @@ document.addEventListener("input",e=>{
   if(e.target.id==="gsearch"){searchQ=e.target.value;view=searchQ.trim()?"search":"today";render();refocus("gsearch");}
   if(e.target.id==="lvsearch"){listQ=e.target.value;render();refocus("lvsearch");}
   if(e.target.id==="contactState"){contactStateF=e.target.value;render();}
+});
+document.addEventListener("mousedown",e=>{ // Excel-style column resize on the pipeline grid
+  const rz=e.target.closest&&e.target.closest(".colrz");if(!rz)return;
+  e.preventDefault();
+  const table=rz.closest("table"),ci=parseInt(rz.dataset.ci,10);
+  const col=table.querySelectorAll("colgroup col")[ci];if(!col)return;
+  const startX=e.clientX,startW=oppColW[ci]||(OPP_COLS[ci]&&OPP_COLS[ci][1])||120;
+  function mv(ev){const w=Math.max(50,startW+(ev.clientX-startX));col.style.width=w+"px";oppColW[ci]=w;}
+  function up(){document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);try{localStorage.setItem("autotq_oppcolw",JSON.stringify(oppColW));}catch(_){}}
+  document.addEventListener("mousemove",mv);document.addEventListener("mouseup",up);
 });
 function refocus(idv){const el=document.getElementById(idv);if(el){const v=el.value;el.focus();try{el.setSelectionRange(v.length,v.length);}catch(_){}}}
 
