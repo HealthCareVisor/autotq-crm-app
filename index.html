@@ -1080,8 +1080,7 @@ function viewToday(){
       bits.push(companyRegion(c));
       return '<button class="card" style="width:100%;text-align:left" data-act="roster" data-id="'+c.id+'"><div class="row">'+
         '<span class="ic" style="background:var(--coral-t);color:var(--coral)">'+svg("ware")+'</span>'+
-        '<div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+bits.filter(Boolean).join(" · ")+'</p></div>'+
-        stageTag(enableStage(c))+'</div></button>';
+        '<div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+bits.filter(Boolean).join(" · ")+'</p></div></div></button>';
     }).join("");
   }
   if(admin())h+=teamFeed();
@@ -1096,12 +1095,18 @@ function taskRow(t){
    tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
 }
 function rtag(region){return admin()&&region?" · "+region:"";}
-function demoContactPhone(d){
-  if(d.phone)return d.phone;
+function demoPerson(d){
   const em=(d.email||"").toLowerCase().trim();
   let p=em?DB.people.find(x=>String(x.email||"").toLowerCase().trim()===em):null;
   if(!p&&d.holder)p=DB.people.find(x=>String(x.name||"").toLowerCase().trim()===String(d.holder||"").toLowerCase().trim());
-  return p&&p.phone?p.phone:"";
+  return p||null;
+}
+function demoContactPhone(d){if(d.phone)return d.phone;const p=demoPerson(d);return p&&p.phone?p.phone:"";}
+function contactLine(email,phone){
+  if(!email&&!phone)return '<p class="t2"><span class="muted">no contact info on file</span></p>';
+  return '<p class="t2" style="white-space:normal;display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:2px">'+
+    (email?svg("mail")+'<a href="mailto:'+esc(email)+'" style="color:var(--info-t)">'+esc(email)+'</a>':'')+
+    (phone?svg("phone")+'<a href="tel:'+esc(String(phone).replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(phone)+'</a>':'')+'</p>';
 }
 function demosSheet(){
   const ds=(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state)))
@@ -1187,7 +1192,8 @@ function viewPerson(id){
   let h='<button class="btn sm ghost" data-act="nav" data-view="contacts" style="margin:2px 0 14px">'+svg("back")+' Contacts</button>';
   h+='<div class="card"><div class="row"><span class="ic info" style="width:52px;height:52px;font-size:17px">'+initials(p.name)+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:18px">'+esc(p.name)+'</p><p class="t2">'+esc(p.role)+(c?' · <a style="color:var(--info-t)" href="#" data-act="roster" data-id="'+c.id+'">'+esc(c.name)+'</a>':(p.branch?' · '+esc(p.branch):''))+(personStates(p).length>1?' · covers '+esc(personStates(p).join(", ")):'')+'</p></div>'+regionTag(personRegion(p))+
-   '<button class="btn sm" data-act="editperson" data-id="'+p.id+'">Edit</button></div>'+
+   '<button class="btn sm" data-act="editperson" data-id="'+p.id+'">Edit</button>'+
+   '<button class="btn sm ghost" data-act="delperson" data-id="'+p.id+'" style="color:var(--dang-t)">Delete</button></div>'+
    '<div class="facts" style="margin-top:14px">'+
    '<div><b>Email</b><span>'+(p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--info-t)">'+esc(p.email)+'</a>':"—")+'</span></div>'+
    '<div><b>Phone</b><span>'+(p.phone?'<a href="tel:'+esc(p.phone.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.phone)+'</a>':"—")+'</span></div>'+
@@ -1250,10 +1256,15 @@ function viewRoster(cid){
    '<div class="grow"><p class="t1" style="font-size:20px">'+esc(c.name)+'</p><p class="t2">'+typeTag(c.type)+(c.website?' &nbsp; <a href="'+esc(c.website)+'" target="_blank" rel="noopener" style="color:var(--info-t)">'+esc(c.website.replace(/^https:\/\//,""))+'</a>':'')+'</p></div>'+
    '<div class="qa"><button class="btn sm coral" data-act="newoppfor" data-id="'+c.id+'">'+svg("plus")+' Opportunity</button>'+
    '<button class="btn sm" data-act="logacct" data-id="'+c.id+'">'+svg("note")+' Log</button>'+
-   '<button class="btn sm" data-act="editacct" data-id="'+c.id+'">Edit</button></div></div>'+
-   '<div class="recstats">'+stat("Region",regionTag(companyRegion(c)))+stat("Enablement",c.type==="distributor"?stageTag(enableStage(c)):(c.stage?esc(c.stage):"—"))+stat("Contacts",reps.length)+
+   '<button class="btn sm" data-act="editacct" data-id="'+c.id+'">Edit</button>'+
+   '<button class="btn sm ghost" data-act="delacct" data-id="'+c.id+'" style="color:var(--dang-t)">Delete</button></div></div>'+
+   '<div class="recstats">'+stat("Region",regionTag(companyRegion(c)))+
+    ((c.type==="distributor"&&distStatus(c)==="setup")?"":stat("Enablement",c.type==="distributor"?stageTag(enableStage(c)):(c.stage?esc(c.stage):"—")))+
+    stat("Contacts",reps.length)+
     stat("Open opps",opps.filter(oppIsOpen).length)+stat("Pipeline",fmtK(opps.filter(oppIsOpen).reduce((s,o)=>s+(o.amount||0),0)))+
-    stat("Units sold",c.units||0)+(c.stocked?stat("Stocked",c.stocked):"")+stat("Revenue",c.revenue?money(c.revenue):"—")+stat("Orders",c.orders||0)+stat("Demos",c.demoCount||demos.length||0)+'</div>'+
+    stat("Units sold",c.units||0)+(c.stocked?stat("Stocked",c.stocked):"")+
+    stat(admin()?"Revenue":("Revenue ("+(userRegion(USER)||"—")+")"),c.revenue?money(c.revenue):"—")+
+    stat("Orders",c.orders||0)+stat("Demos",c.demoCount||demos.length||0)+'</div>'+
    '<div class="detail-grid">'+
     '<div><b>City / State</b><span>'+esc([c.city,c.state].filter(Boolean).join(", ")||"—")+'</span></div>'+
     '<div><b>Industry</b><span>'+esc(c.industry||"—")+'</span></div>'+
@@ -1272,12 +1283,10 @@ function viewRoster(cid){
     h+=pnGridHTML(c);
   }
   if(c.note&&c.note.trim())h+='<div class="banner" style="white-space:normal">'+svg("note")+esc(c.note)+'</div>';
-  if(opps.length){
-    h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Opportunities · '+opps.length+'</button></div></div>';
-    h+=oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false);
-  }
-  h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div></div>';
-  h+=reps.length?contactTableHTML(reps,false):'<div class="empty">No contacts at this account yet.</div>';
+  h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Opportunities · '+opps.length+'</button></div><button class="btn sm coral" data-act="newoppfor" data-id="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Opportunity</button></div>';
+  h+=opps.length?oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false):'<div class="empty" style="padding:14px">No opportunities yet — tap <b>+ Opportunity</b> to add one for '+esc(c.name)+'.</div>';
+  h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div><button class="btn sm coral" data-act="newcontactfor" data-id="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Contact</button></div>';
+  h+=reps.length?contactTableHTML(reps,false):'<div class="empty" style="padding:14px">No contacts at this account yet — tap <b>+ Contact</b> to add one.</div>';
   if(demos.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
     h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>City</th><th>State</th><th>Status</th><th>Source</th></tr></thead><tbody>'+
@@ -1436,11 +1445,15 @@ function viewMap(){
   if(mapState&&byState[mapState]){var list=byState[mapState];
     if(mapMode==="reps"){
       h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' distributor rep'+(list.length>1?"s":"")+'</div>';
-      h+=list.slice(0,30).map(function(p){var c=company(p.cid);return '<button class="card" style="width:100%;text-align:left" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p></div>'+lastTag(p.last)+'</div></button>';}).join("");
+      h+=list.slice(0,60).map(function(p){var c=company(p.cid);return '<div class="card" data-act="person" data-id="'+p.id+'" style="cursor:pointer"><div class="row"><span class="ic info" style="flex:none">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p>'+contactLine(p.email,p.phone)+'</div></div></div>';}).join("");
       h+='<button class="btn block" data-act="stpop" data-st="'+mapState+'" style="margin-top:8px">'+svg("search")+' Everything in '+mapState+' (man-reps, distributors, demos)</button>';
     }else{
       h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' demo'+(list.length>1?"s":"")+'</div>';
-      h+=list.map(function(d){var loc=[d.city,d.state].filter(Boolean).join(", ");var sub=[loc,d.company].filter(Boolean).join(" · ");return '<div class="card"><div class="row"><span class="ic coral">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(d.holder||"—")+'</p><p class="t2" style="white-space:normal">'+esc(sub)+'</p></div>'+(d._terr?'<span class="pill info">covers</span>':(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>'))+'</div></div>';}).join("");}
+      h+=list.map(function(d){
+        var loc=[d.city,d.state].filter(Boolean).join(", ")||"—";
+        var p=demoPerson(d),email=d.email||(p&&p.email)||"",phone=demoContactPhone(d);
+        var nav=p?('data-act="person" data-id="'+p.id+'"'):(d.cid&&company(d.cid)?('data-act="roster" data-id="'+d.cid+'"'):'');
+        return '<div class="card"'+(nav?' '+nav+' style="cursor:pointer"':'')+'><div class="row"><span class="ic coral" style="flex:none">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(d.holder||"—")+'</p><p class="t2" style="white-space:normal">'+esc(loc)+(d.company?' · '+esc(d.company):'')+'</p>'+contactLine(email,phone)+'</div>'+(d._terr?'<span class="pill info">covers</span>':(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>'))+'</div></div>';}).join("");}
   }
   return h;
 }
@@ -2517,18 +2530,24 @@ function saveFollowup(){
   DB.tasks.unshift({id:uid(),owner:USER,title:title,type:"followup",due:due,done:false,createdAt:new Date().toISOString(),pid:logState.fuPid||null});
   save();closeSheet();toast("Follow-up scheduled");if(view==="today")render();
 }
-function formRep(){
-  const opts=DB.companies.filter(c=>c.type==="distributor"||c.type==="manrep").map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join("");
-  openSheet('<h2>Add rep</h2><label class="fl">Name</label><input class="f" id="rName" placeholder="e.g. Chris Walker">'+
-   '<label class="fl">Works at</label><select class="f" id="rCid">'+opts+'</select>'+
+function formRep(prefillCid){
+  const pc=prefillCid?company(prefillCid):null;
+  const opts=DB.companies.filter(c=>c.type==="distributor"||c.type==="manrep"||c.type==="partner").slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+(c.id===prefillCid?" selected":"")+'>'+esc(c.name)+'</option>').join("");
+  openSheet('<h2>Add contact'+(pc?' — '+esc(pc.name):'')+'</h2><label class="fl">Name</label><input class="f" id="rName" placeholder="e.g. Chris Walker">'+
+   '<label class="fl">Organization</label><select class="f" id="rCid">'+opts+'</select>'+
+   '<label class="fl">Role / title</label><input class="f" id="rRole" placeholder="e.g. Safety Sales Rep">'+
+   '<label class="fl">Email</label><input class="f" id="rEmail" type="email" placeholder="name@company.com" autocomplete="off">'+
+   '<label class="fl">Phone</label><input class="f" id="rPhone" placeholder="(555) 123-4567" autocomplete="off">'+
    '<label class="fl">City</label><input class="f" id="rCity" placeholder="Orlando"><label class="fl">State</label><input class="f" id="rState" placeholder="FL" maxlength="2">'+
-   '<button class="btn coral block" data-act="saveRep" style="margin-top:18px">Add rep</button>'+
-   '<p style="text-align:center;color:var(--hint);font-size:13px;margin-top:9px">City + state powers the map &amp; travel planner.</p>');
+   '<button class="btn coral block" data-act="saveRep" style="margin-top:18px">Add contact</button>'+
+   '<p style="text-align:center;color:var(--hint);font-size:13px;margin-top:9px">'+(pc?'Attached to <b>'+esc(pc.name)+'</b>. ':'')+'City + state powers the map &amp; travel planner.</p>');
 }
-function saveRep(){const name=document.getElementById("rName").value.trim(),cid=document.getElementById("rCid").value;
-  if(!name||!cid){toast("Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
-  DB.people.unshift({id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null});
-  save();closeSheet();view="contacts";render();toast(name+" added");}
+function saveRep(){const name=val("rName"),cid=document.getElementById("rCid").value;
+  if(!name||!cid){toast("Add a name and organization");return;}const c=company(cid),city=val("rCity");
+  DB.people.unshift({id:uid(),name:name,cid:cid,branch:c?c.name:"",role:val("rRole")||"Contact",city:city,state:val("rState").toUpperCase(),email:val("rEmail"),phone:val("rPhone"),units:0,pos:0,last:null,owner:""});
+  save();closeSheet();
+  if(view==="roster"&&curCompany===cid)render();else{view="contacts";contactFilter=(c&&(c.type==="manrep"||c.type==="partner"))?"manrep":"distrep";render();}
+  toast(name+" added to "+(c?c.name:"the org"));}
 function formLog(prefillPid,prefillType){
   const types=[["call","phone","Call"],["email","mail","Email"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   logState.logType=prefillType||"call";logState.outcome="Interested";
@@ -2637,6 +2656,7 @@ function exportCSV(){
 }
 
 document.addEventListener("click",e=>{
+  if(e.target.closest("a[href^='mailto:'],a[href^='tel:']"))return; // let email/phone links work without triggering card navigation
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a==="mslogin"){location.href=SUPA_URL+"/auth/v1/authorize?provider=azure&redirect_to="+encodeURIComponent(location.origin+location.pathname);return;}
@@ -2669,6 +2689,13 @@ document.addEventListener("click",e=>{
   if(a==="addopp"){formOpp(null);return;}
   if(a==="editopp"){formOpp(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
+  if(a==="newcontactfor"){formRep(id);return;}
+  if(a==="delacct"){const c=company(id);if(!c)return;const n=DB.people.filter(p=>p.cid===id).length;
+    if(confirm("Are you sure you would like to delete "+c.name+"?"+(n?" Its "+n+" contact"+(n>1?"s":"")+" will be unlinked.":"")+" This can't be undone.")){
+      DB.people.forEach(p=>{if(p.cid===id)p.cid="";});DB.companies=DB.companies.filter(x=>x.id!==id);save();curCompany=null;view="accounts";render();toast(c.name+" deleted");}return;}
+  if(a==="delperson"){const p=person(id);if(!p)return;
+    if(confirm("Are you sure you would like to delete "+p.name+"? This can't be undone.")){
+      DB.people=DB.people.filter(x=>x.id!==id);save();curPerson=null;view="contacts";render();toast(p.name+" deleted");}return;}
   if(a==="delopp"){DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
   if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="saveOpp"){saveOpp();return;}
