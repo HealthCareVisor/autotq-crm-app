@@ -188,6 +188,13 @@ table.lv td.num{text-align:right;font-variant-numeric:tabular-nums}
 .tk .chk svg{width:14px;height:14px;stroke-width:3}
 .tk .tkdel{border:none;background:none;color:var(--hint);font-size:20px;line-height:1;flex:none;padding:0 4px}
 .tk .tkdel:hover{color:var(--dang-t)}
+.tk .tkfu{border:1px solid var(--line);background:#fff;color:var(--info-t);font:inherit;font-size:12px;font-weight:600;border-radius:8px;padding:4px 9px;flex:none;cursor:pointer;white-space:nowrap}
+.tk .tkfu:hover{background:var(--info-t);color:#fff;border-color:var(--info-t)}
+.tk .pill svg{width:12px;height:12px;vertical-align:-1px}
+.planbar .rmk{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);flex:none;white-space:nowrap;cursor:pointer}
+.planbar .rmk input{width:15px;height:15px;accent-color:var(--coral)}
+.upcoming{background:var(--info-bg,#eef4fb);border:1px solid var(--info-line,#cfe0f2);border-radius:14px;padding:12px 14px 4px;margin-bottom:16px}
+.upcoming .tk{background:#fff}
 .sugg-act{display:flex;flex-direction:column;gap:6px;flex:none}
 .enrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .enlbl{font-size:12px;color:var(--hint);font-weight:600;width:84px;flex:none}
@@ -1048,8 +1055,8 @@ function searchView(){
 function demoListHTML(){
   const ds=(DB.demos||[]).slice().sort((a,b)=>String(a.state||"").localeCompare(String(b.state||"")));
   if(!ds.length)return '<div class="empty">No demos loaded.</div>';
-  const rows=ds.map(d=>'<tr><td><div class="lvname">'+esc(d.holder||"—")+'</div></td><td>'+esc(d.company||"")+'</td><td>'+esc(d.city||"")+'</td><td>'+esc(d.state||"")+'</td><td>'+(d._terr?'<span class="pill info">covers</span>':(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>'))+'</td></tr>').join("");
-  return '<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>Company</th><th>City</th><th>State</th><th>Source</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  const rows=ds.map(d=>'<tr data-act="demoinfo" data-key="'+esc(d.email||d.holder||"")+'" style="cursor:pointer"><td><div class="lvname" style="color:var(--info-t)">'+esc(d.holder||"—")+'</div></td><td>'+esc(d.company||"")+'</td><td>'+esc(d.city||"")+'</td><td>'+esc(d.state||"")+'</td></tr>').join("");
+  return '<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>Company</th><th>City</th><th>State</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 /* ---------- HOME — rep dashboard ---------- */
@@ -1061,8 +1068,10 @@ function viewToday(){
   const open=myOpps().filter(oppIsOpen);
   const overdue=open.filter(oppOverdue).length;
   const T=todayStr();
-  const tasks=myTasks().filter(t=>!t.done||t.completedDay===T).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||String(a.due).localeCompare(String(b.due)));
-  const dueToday=tasks.filter(t=>!t.done&&t.due<=T).length;
+  const mine=myTasks().slice().sort((a,b)=>(a.done?1:0)-(b.done?1:0)||String(a.due).localeCompare(String(b.due)));
+  const dayTasks=mine.filter(t=>t.done?t.completedDay===T:t.due<=T);   // today / overdue / just-completed
+  const upTasks=mine.filter(t=>!t.done&&t.due>T);                       // scheduled ahead
+  const dueToday=dayTasks.filter(t=>!t.done&&t.due<=T).length;
   let h='';
   if(!localStorage.getItem(HKEY)){
     h+='<div class="onboard"><button class="x" data-act="dismissonboard" title="Dismiss">×</button>'+
@@ -1079,13 +1088,19 @@ function viewToday(){
    '<div class="kpi" data-act="demossheet" style="cursor:pointer"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span><small>tap to see who has them</small></div>'+
   '</div>';
   h+=teamPulse();
-  h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add Action" autocomplete="off">'+
+  h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add Action — e.g. Conference in Dallas 12/12" autocomplete="off">'+
    '<input class="qa-input" id="taskNote" placeholder="Note (optional) — tailor the action…" autocomplete="off" style="flex:1;min-width:180px">'+
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
+   '<label class="rmk" title="Email me a reminder on the due date"><input type="checkbox" id="taskRemind" checked> Remind me</label>'+
    '<button class="btn coral" data-act="addtask">Add</button></div>';
-  if(tasks.length){
-    h+='<div class="sectlabel">My day — '+tasks.filter(t=>!t.done).length+' open</div>';
-    h+=tasks.slice(0,12).map(taskRow).join("");
+  if(upTasks.length){
+    h+='<div class="upcoming"><div class="sectlabel" style="margin-top:0">Upcoming activities — '+upTasks.length+'</div>';
+    h+=upTasks.slice(0,20).map(taskRow).join("");
+    h+='</div>';
+  }
+  if(dayTasks.length){
+    h+='<div class="sectlabel">My day — '+dayTasks.filter(t=>!t.done).length+' open</div>';
+    h+=dayTasks.slice(0,12).map(taskRow).join("");
   }
   const homeDist=setup.filter(c=>!c.hideHome);
   if(homeDist.length){
@@ -1106,11 +1121,13 @@ function viewToday(){
 }
 function taskRow(t){
   const T=todayStr(),overdue=!t.done&&t.due<T;
+  const rem=(t.remind!==false)?'<span class="pill info" title="Email reminder on '+esc(t.due)+'">'+svg("mail")+'</span>':'';
   const tag=t.done?'<span class="pill gray">done</span>':overdue?'<span class="pill dang">overdue '+t.due.slice(5)+'</span>':(t.due===T?'<span class="pill warn">today</span>':'<span class="pill info">'+t.due.slice(5)+'</span>');
+  const fu=t.done?'':'<button class="tkfu" data-act="schedfutask" data-id="'+t.id+'" title="Add a follow-up">Follow up</button>';
   return '<div class="tk'+(t.done?" done":"")+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button>'+
    '<div class="grow"><p class="t1" style="font-size:14px'+(t.done?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p>'+
    (t.note?'<p class="t2" style="white-space:normal">'+esc(t.note)+'</p>':'')+'</div>'+
-   tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
+   fu+rem+tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
 }
 function rtag(region){return admin()&&region?" · "+region:"";}
 function demoPerson(d){
@@ -1144,6 +1161,20 @@ function demosSheet(){
      '<p class="t2" style="white-space:normal;display:flex;align-items:center;gap:3px;flex-wrap:wrap">'+line3+'</p></div>'+
      (d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>')+'</div></div>';
   }).join("");
+  openSheet(h);
+}
+// Single demo-holder contact card — used when a demo's holder isn't a full CRM person record.
+function demoContactSheet(d){
+  const loc=[d.city,d.state].filter(Boolean).join(", ")||"—";
+  const email=d.email||"",phone=demoContactPhone(d),c=d.cid?company(d.cid):null;
+  let h='<h2>'+esc(d.holder||"Demo holder")+'</h2>';
+  h+='<div class="card"><div class="row"><span class="ic coral" style="flex:none">'+svg("box")+'</span><div class="grow">'+
+     '<p class="t2" style="white-space:normal;display:flex;align-items:center;gap:3px">'+svg("pin")+esc(loc)+(d.company?' · '+esc(d.company):'')+'</p>'+
+     contactLine(email,phone)+
+     (d.date?'<p class="t2" style="margin-top:2px">Demo since '+esc(d.date)+'</p>':'')+
+     (d.note?'<p class="t2" style="white-space:normal;margin-top:2px">'+esc(d.note)+'</p>':'')+
+     '</div></div></div>';
+  if(c)h+='<button class="btn block" data-act="roster" data-id="'+c.id+'" style="margin-top:8px">'+svg("ware")+' Open '+esc(c.name)+'</button>';
   openSheet(h);
 }
 function pulseMemberSheet(uid){
@@ -1470,8 +1501,8 @@ function viewMap(){
       h+=list.map(function(d){
         var loc=[d.city,d.state].filter(Boolean).join(", ")||"—";
         var p=demoPerson(d),email=d.email||(p&&p.email)||"",phone=demoContactPhone(d);
-        var nav=p?('data-act="person" data-id="'+p.id+'"'):(d.cid&&company(d.cid)?('data-act="roster" data-id="'+d.cid+'"'):'');
-        return '<div class="card"'+(nav?' '+nav+' style="cursor:pointer"':'')+'><div class="row"><span class="ic coral" style="flex:none">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(d.holder||"—")+'</p><p class="t2" style="white-space:normal">'+esc(loc)+(d.company?' · '+esc(d.company):'')+'</p>'+contactLine(email,phone)+'</div>'+(d._terr?'<span class="pill info">covers</span>':(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>'))+'</div></div>';}).join("");}
+        var nav=p?('data-act="person" data-id="'+p.id+'"'):('data-act="demoinfo" data-key="'+esc(d.email||d.holder||"")+'"');
+        return '<div class="card" '+nav+' style="cursor:pointer"><div class="row"><span class="ic coral" style="flex:none">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(d.holder||"—")+'</p><p class="t2" style="white-space:normal">'+esc(loc)+(d.company?' · '+esc(d.company):'')+'</p>'+contactLine(email,phone)+'</div>'+(d._terr?'<span class="pill info">covers</span>':(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>'))+'</div></div>';}).join("");}
   }
   return h;
 }
@@ -2556,6 +2587,29 @@ function saveFollowup(){
   DB.tasks.unshift({id:uid(),owner:USER,title:title,type:"followup",due:due,done:false,createdAt:new Date().toISOString(),pid:logState.fuPid||null});
   save();closeSheet();toast("Follow-up scheduled");if(view==="today")render();
 }
+// Follow-up on a Home action — rep picks an activity and schedules the next touch ("follow up again here").
+function formFollowupTask(id){
+  const src=(DB.tasks||[]).find(x=>x.id===id);if(!src){toast("Action not found");return;}
+  logState.fuTaskId=id;
+  const base=src.due&&src.due>todayStr()?new Date(src.due+"T00:00:00").getTime():Date.now();
+  openSheet('<h2>Follow up</h2><p style="color:var(--muted);font-size:14px;margin:0 0 8px">On “'+esc(src.title)+'”</p>'+
+   '<label class="fl">Follow-up action</label><input class="f" id="futTitle" value="'+esc("Follow up: "+src.title)+'" placeholder="e.g. Call to confirm the order">'+
+   '<label class="fl">Note (optional)</label><input class="f" id="futNote" value="" placeholder="Tailor it — who to call, what to bring…">'+
+   '<label class="fl">When</label><input class="f" id="futDue" type="date" value="'+ymd(new Date(base+3*86400000))+'">'+
+   '<label class="rmk" style="margin:10px 2px 0"><input type="checkbox" id="futRemind" checked> Email me a reminder on the due date</label>'+
+   '<button class="btn coral block" data-act="saveFuTask" style="margin-top:18px">Schedule follow-up</button>');
+}
+function saveFollowupTask(){
+  ensureTasks();
+  const title=(document.getElementById("futTitle").value||"").trim();
+  const note=(document.getElementById("futNote").value||"").trim();
+  const due=document.getElementById("futDue").value||todayStr();
+  const rem=document.getElementById("futRemind");
+  if(!title){toast("Name the follow-up");return;}
+  const src=(DB.tasks||[]).find(x=>x.id===logState.fuTaskId);
+  DB.tasks.unshift({id:uid(),owner:USER,title:title,note:note,type:"followup",due:due,remind:rem?rem.checked:true,done:false,createdAt:new Date().toISOString(),pid:(src&&src.pid)||null,followsUp:logState.fuTaskId||null});
+  save();closeSheet();toast("Follow-up scheduled");if(view==="today")render();
+}
 function formRep(prefillCid){
   const pc=prefillCid?company(prefillCid):null;
   const opts=DB.companies.filter(c=>c.type==="distributor"||c.type==="manrep"||c.type==="partner").slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+(c.id===prefillCid?" selected":"")+'>'+esc(c.name)+'</option>').join("");
@@ -2703,7 +2757,10 @@ document.addEventListener("click",e=>{
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
   if(a==="pulsemember"){pulseMemberSheet(t.dataset.id);return;}
   if(a==="demossheet"){demosSheet();return;}
-  if(a==="addtask"){const ti=document.getElementById("taskTitle"),nn=document.getElementById("taskNote"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,title:title,note:(nn?nn.value:"").trim(),type:"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});save();render();refocus("taskTitle");return;}
+  if(a==="demoinfo"){const key=t.dataset.key;const d=(DB.demos||[]).find(x=>String(x.email||x.holder||"")===key);if(d){const p=demoPerson(d);if(p){closeSheet();curPerson=p.id;view="person";render();window.scrollTo(0,0);}else demoContactSheet(d);}return;}
+  if(a==="addtask"){const ti=document.getElementById("taskTitle"),nn=document.getElementById("taskNote"),dd=document.getElementById("taskDue"),rm=document.getElementById("taskRemind");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,title:title,note:(nn?nn.value:"").trim(),type:"todo",due:(dd&&dd.value)||todayStr(),remind:rm?rm.checked:true,done:false,createdAt:new Date().toISOString()});save();render();refocus("taskTitle");return;}
+  if(a==="schedfutask"){formFollowupTask(id);return;}
+  if(a==="saveFuTask"){saveFollowupTask();return;}
   if(a==="toggletask"){const tk=DB.tasks.find(x=>x.id===id);if(tk){tk.done=!tk.done;tk.completedAt=tk.done?new Date().toISOString():null;tk.completedDay=tk.done?todayStr():null;}save();render();return;}
   if(a==="deltask"){DB.tasks=(DB.tasks||[]).filter(x=>x.id!==id);save();render();return;}
   if(a==="setdstatus"){const c=company(id);if(c){c.dstatus=t.dataset.v;save();render();toast(c.name+" → "+(t.dataset.v==="setup"?"Set-up":"Potential"));}return;}
