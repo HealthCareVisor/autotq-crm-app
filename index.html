@@ -199,6 +199,9 @@ table.lv td.num{text-align:right;font-variant-numeric:tabular-nums}
 .kpi b{display:block;font-size:10.5px;color:var(--hint);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
 .kpi span{font-size:19px;font-weight:700;letter-spacing:-.3px}
 .kpi small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.pipe-top{overflow-x:auto;overflow-y:hidden;margin-bottom:4px}
+.pipe-top::-webkit-scrollbar{height:10px}
+.pipe-top::-webkit-scrollbar-thumb{background:#c9c5ba;border-radius:6px}
 .pipe{display:flex;gap:10px;overflow-x:auto;align-items:flex-start;padding-bottom:10px}
 .pcol{flex:1;min-width:250px;background:#edebe3;border-radius:14px;padding:8px 8px 4px}
 .pcol>h4{margin:2px 4px 8px;font-size:12px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px;align-items:flex-start;line-height:1.35;white-space:normal}
@@ -796,6 +799,15 @@ function render(){
      '<button class="plus" data-act="addhub"><span class="bubble">'+svg("plus")+'</span></button>'+
      navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts")+'</div>'+
    '</div></div>';
+  if(view==="opps"&&oppView==="board")requestAnimationFrame(wirePipeScroll);
+}
+function wirePipeScroll(){ // mirror the board's horizontal scrollbar at the top so you don't scroll down to reach it
+  var top=document.getElementById("pipeTop"),board=document.getElementById("pipeBoard"),inner=document.getElementById("pipeTopInner");
+  if(!top||!board||!inner)return;
+  inner.style.width=board.scrollWidth+"px";
+  var lock=false;
+  top.onscroll=function(){if(lock)return;lock=true;board.scrollLeft=top.scrollLeft;lock=false;};
+  board.onscroll=function(){if(lock)return;lock=true;top.scrollLeft=board.scrollLeft;lock=false;};
 }
 function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="reports"&&view==="report");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
@@ -882,6 +894,9 @@ const OPP_STAGES=["Place Holder","Demo / Meeting with Customer","Quote for Purch
 const OPP_WON="Deal Won", OPP_LOST="Deal Lost", OPP_OPEN_COUNT=6; // first 6 are open stages
 const OPP_PROB={"Place Holder":1,"Demo / Meeting with Customer":25,"Quote for Purchase":50,"Run Rate (120-365 days out)":60,"Verbal Commitment to Order (90-120 days)":75,"Order is Pending (30 days out)":90,"Deal Won":100,"Deal Lost":0};
 const OPP_SHORT={};OPP_STAGES.forEach(function(s){OPP_SHORT[s]=s;}); // show the full descriptive label everywhere
+/* days-out per stage — only where the pick-list attaches a range to the probability */
+const OPP_DAYSTXT={"Run Rate (120-365 days out)":"120-365 days","Verbal Commitment to Order (90-120 days)":"90-120 days","Order is Pending (30 days out)":"30 days"};
+function oppDaysTxt(o){return OPP_DAYSTXT[o.stage]||"";}
 function oppStageColor(s){if(s===OPP_LOST)return "dang";if(s===OPP_WON)return "ok";var p=OPP_PROB[s]||0;return p>=75?"coral":p>=50?"warn":p>=25?"info":"gray";}
 function oppStageTag(s){var pct=(s&&s!==OPP_WON&&s!==OPP_LOST&&OPP_PROB[s]!=null)?" · "+OPP_PROB[s]+"%":"";return '<span class="pill '+oppStageColor(s)+'">'+esc((OPP_SHORT[s]||s||"—")+pct)+'</span>';}
 function val(id){const e=document.getElementById(id);return e?e.value.trim():"";}
@@ -2125,7 +2140,7 @@ function oppTableHTML(list,sortable){
     '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="5"></td></tr></tfoot></table></div>';
 }
 function opCell(o,field,type,val,extra){return '<td><input class="opcell" data-id="'+o.id+'" data-field="'+field+'" type="'+type+'" value="'+esc(val)+'"'+(extra||"")+'></td>';}
-var OPP_COLS=[["Opportunity",230],["Account",170],["Stage",150],["Amount",110],["Units",80],["Prob",70],["Close",150],["Rep",120],["Potential",120]];
+var OPP_COLS=[["Opportunity",230],["Account",170],["Stage",150],["Amount",110],["Units",80],["Prob",70],["Days out",130],["Rep",120],["Potential",120]];
 function oppGridHTML(list){
   if(!list.length)return '<div class="empty">Nothing in this tab.</div>';
   var colg='<colgroup>'+OPP_COLS.map(function(c,i){return '<col style="width:'+(oppColW[i]||c[1])+'px">';}).join("")+'</colgroup>';
@@ -2140,7 +2155,7 @@ function oppGridHTML(list){
       opCell(o,"amount","number",o.amount||"")+
       opCell(o,"units","number",o.units||"")+
       '<td class="ro" id="prob-'+o.id+'">'+oppProb(o)+'%</td>'+
-      opCell(o,"closeDate","date",o.closeDate||"")+
+      '<td class="ro" id="days-'+o.id+'">'+esc(oppDaysTxt(o)||"—")+'</td>'+
       opCell(o,"rep","text",o.rep||"")+
       '<td class="ro potcol" id="pot-'+o.id+'">'+(oppPotential(o)?money(oppPotential(o)):"—")+'</td></tr>';
   }).join("");
@@ -2151,15 +2166,15 @@ function oppCard(o){
   const si=OPP_STAGES.indexOf(o.stage);
   const adv=(oppIsOpen(o)?'<span class="adv">'+
     (si>0?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="-1" title="Back a stage">‹</button>':'')+
-    (si<3?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="1" title="Advance stage">›</button>'
+    (si<OPP_OPEN_COUNT-1?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="1" title="Advance stage">›</button>'
         :'<button data-act="oppclose" data-id="'+o.id+'" data-v="Deal Won" title="Mark won">✓</button><button data-act="oppclose" data-id="'+o.id+'" data-v="Deal Lost" title="Mark lost">✕</button>')+
     '</span>':'');
-  const age=oppAge(o);
+  const age=oppAge(o), dtxt=oppDaysTxt(o);
   return '<div class="pcard" data-act="editopp" data-id="'+o.id+'">'+
    '<div class="pn">'+esc(o.name)+'</div>'+
    '<div class="pa">'+esc(oppAcctLabel(o))+(o.distributorName&&o.distributorName!==oppAcctLabel(o)?' · via '+esc(o.distributorName):'')+'</div>'+
    '<div class="pm">'+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
-     (o.units?'<span>'+o.units+'u</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
+     (o.units?'<span>'+o.units+'u</span>':'')+(dtxt&&oppIsOpen(o)?'<span title="days out at this stage">'+esc(dtxt)+'</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
      (o.stage===OPP_WON?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
      (o.stage===OPP_LOST?'<span class="pill dang" style="font-size:10.5px">Lost</span>':'')+'</div>'+
@@ -2199,7 +2214,8 @@ function viewOpps(){
     return h+oppGridHTML(show.slice().sort(oppSortDefault));
   }
   const cols=(oppFilter==="open")?OPP_STAGES.slice(0,OPP_OPEN_COUNT):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
-  h+='<div class="pipe">'+cols.map(st=>{
+  h+='<div class="pipe-top" id="pipeTop"><div id="pipeTopInner" style="height:1px"></div></div>';
+  h+='<div class="pipe" id="pipeBoard">'+cols.map(st=>{
     const os=show.filter(o=>o.stage===st).sort(oppSortDefault);
     const amt=os.reduce((s,o)=>s+(o.amount||0),0);
     const pct=(st!==OPP_WON&&st!==OPP_LOST)?' '+OPP_PROB[st]+'%':'';
@@ -2825,6 +2841,7 @@ document.addEventListener("input",e=>{
     save();
     const pe=document.getElementById("prob-"+o.id);if(pe)pe.textContent=oppProb(o)+"%";
     const pt=document.getElementById("pot-"+o.id);if(pt)pt.textContent=oppPotential(o)?money(oppPotential(o)):"—";
+    const dc=document.getElementById("days-"+o.id);if(dc)dc.textContent=oppDaysTxt(o)||"—";
     return; // no re-render — keep focus while editing
   }
   if(e.target.classList&&e.target.classList.contains("pncell")){
