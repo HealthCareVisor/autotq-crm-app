@@ -779,7 +779,6 @@ function render(){
     '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts & contacts…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
     '<button class="btn coral" data-act="addhub">'+svg("plus")+'<span class="t">New</span></button>'+
     '<span id="syncdot" title="Synced with the team" style="font-size:13px;color:var(--ok-t);flex:none;cursor:default">●</span>'+
-    '<button class="btn sm ghost" data-act="help" title="How this CRM works" style="border-radius:50%;width:34px;height:34px;padding:0;font-weight:700">?</button>'+
     '<button class="av" style="background:'+me.c+'" data-act="menu">'+initials(me.name)+'</button></header>'+
     '<main class="content">'+body+'</main>'+
     '<div class="nav">'+navbtn("today","home","Home")+navbtn("opps","chart","Pipeline")+
@@ -1027,7 +1026,7 @@ function viewToday(){
      '<li><b>Pipeline</b> is where deals live — drag them through stages with ‹ ›, and <b>Forecasts</b> rolls them up by quarter.</li>'+
      '<li><b>Accounts</b> are distributors &amp; end-users; <b>Contacts</b> are the reps we enable. Everything is East/West by state.</li>'+
      '<li>Log every call from the record you\'re on — and work your <b>conference call lists</b> right from Home.</li></ol>'+
-     '<p style="margin:10px 0 0;font-size:12.5px;color:var(--muted)">Tap the <b>?</b> up top any time for the full guide.</p></div>';
+     '<p style="margin:10px 0 0;font-size:12.5px;color:var(--muted)">Open the <b>⋯</b> menu (bottom left) for the full guide any time.</p></div>';
   }
   h+='<div class="kpis">'+
    '<div class="kpi"><b>My pipeline</b><span>'+fmtK(open.reduce((s,o)=>s+(o.amount||0),0))+'</span><small>'+open.length+' open'+(overdue?' · '+overdue+' past due':'')+'</small></div>'+
@@ -1036,52 +1035,43 @@ function viewToday(){
    '<div class="kpi"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span></div>'+
   '</div>';
   h+=teamPulse();
-  h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add an action for today…" autocomplete="off">'+
-   '<div class="qa-types" id="taskTypes">'+[["call","Call"],["email","Email"],["demo","Demo"],["train","Train"],["followup","Follow-up"],["todo","To-do"]].map((t,i)=>'<span class="qchip'+((logState.taskType||"call")===t[0]?" on":"")+'" data-act="settask" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
+  h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add Action" autocomplete="off">'+
+   '<input class="qa-input" id="taskNote" placeholder="Note (optional) — tailor the action…" autocomplete="off" style="flex:1;min-width:180px">'+
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
    '<button class="btn coral" data-act="addtask">Add</button></div>';
   if(tasks.length){
     h+='<div class="sectlabel">My day — '+tasks.filter(t=>!t.done).length+' open</div>';
     h+=tasks.slice(0,12).map(taskRow).join("");
   }
-  const confs=confLeadLists();
-  if(confs.length){
-    h+='<div class="sectlabel">Conference reach-out</div>';
-    h+=confs.map(cl=>{
-      const pct=cl.total?Math.round(cl.contacted/cl.total*100):0;
-      return '<button class="card" style="width:100%;text-align:left" data-act="confleads" data-conf="'+esc(cl.conf)+'">'+
-       '<div class="row" style="margin-bottom:8px"><span class="ic coral">'+svg("cal")+'</span>'+
-       '<div class="grow"><p class="t1">'+esc(cl.conf)+'</p><p class="t2">'+cl.tocall+' to call · '+cl.contacted+' contacted'+(cl.hot?' · '+cl.hot+' hot':'')+'</p></div>'+
-       '<span class="pill '+(cl.hot?"dang":"coral")+'">'+pct+'%</span></div>'+
-       '<div class="bar"><i style="width:'+pct+'%"></i></div></button>';
-    }).join("");
-  }
-  if(!mydist.length){return h+'<div class="empty" style="padding:18px">No distributors in your region yet.</div>';}
-  h+='<div class="sectlabel">Distributors in my region — '+setup.length+' set-up · '+potN+' potential</div>';
-  if(setup.length){
-    h+=setup.map(c=>{
-      var bits=[(c.demoCount?c.demoCount+" demo":""),companyRegion(c)];
-      if(admin())bits.unshift(c.units?c.units+"u sold":"");
-      return '<button class="card" style="width:100%;text-align:left" data-act="roster" data-id="'+c.id+'"><div class="row">'+
-        '<span class="ic" style="background:var(--coral-t);color:var(--coral)">'+svg("ware")+'</span>'+
-        '<div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+bits.filter(Boolean).join(" · ")+'</p></div>'+
-        stageTag(enableStage(c))+'</div></button>';
-    }).join("");
-  } else {
-    h+='<div class="empty" style="padding:18px">No set-up distributors yet — work the '+potN+' in your Potential tab to onboard them.</div>';
-  }
   if(admin())h+=teamFeed();
   return h;
 }
 function taskRow(t){
-  const m=taskTypeMeta(t.type),T=todayStr(),overdue=!t.done&&t.due<T;
+  const T=todayStr(),overdue=!t.done&&t.due<T;
   const tag=t.done?'<span class="pill gray">done</span>':overdue?'<span class="pill dang">overdue '+t.due.slice(5)+'</span>':(t.due===T?'<span class="pill warn">today</span>':'<span class="pill info">'+t.due.slice(5)+'</span>');
   return '<div class="tk'+(t.done?" done":"")+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button>'+
-   '<span class="pill '+m[1]+'" style="flex:none">'+m[2]+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:14px'+(t.done?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p></div>'+
+   '<div class="grow"><p class="t1" style="font-size:14px'+(t.done?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p>'+
+   (t.note?'<p class="t2" style="white-space:normal">'+esc(t.note)+'</p>':'')+'</div>'+
    tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
 }
 function rtag(region){return admin()&&region?" · "+region:"";}
+function pulseMemberSheet(uid){
+  const who=teamById(uid);
+  const acts=(DB.activities||[]).filter(a=>a.by===uid).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,40);
+  const tks=(DB.tasks||[]).filter(k=>k.owner===uid&&k.done&&k.completedAt).sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt)).slice(0,40);
+  let h='<h2>'+esc(who.name.split(" ")[0])+' — recent activity</h2>';
+  if(acts.length){
+    h+='<div class="sectlabel">Logged touches · '+acts.length+'</div>';
+    h+=acts.map(a=>{const p=a.pid?person(a.pid):null;const c=a.cid?company(a.cid):(p&&p.cid?company(p.cid):null);
+      return '<div class="card"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(titlecase(a.type))+(p?' with '+esc(p.name):(c?' · '+esc(c.name):''))+'</p><p class="t2" style="white-space:normal">'+ago(a.date)+(a.note?' · '+esc(a.note):'')+'</p></div></div></div>';}).join("");
+  }
+  if(tks.length){
+    h+='<div class="sectlabel">Completed actions · '+tks.length+'</div>';
+    h+=tks.map(k=>'<div class="card"><div class="row"><span class="ic ok">'+svg("check")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(k.title)+'</p><p class="t2" style="white-space:normal">'+ago(k.completedAt)+(k.note?' · '+esc(k.note):'')+'</p></div></div></div>').join("");
+  }
+  if(!acts.length&&!tks.length)h+='<div class="empty" style="padding:18px">No logged activity yet.</div>';
+  openSheet(h);
+}
 function teamPulse(){
   ensureUsage();
   const cut=Date.now()-7*86400000;
@@ -1101,7 +1091,7 @@ function teamPulse(){
   let h='<div class="sectlabel">'+(admin()?"Team pulse":"Your activity")+' — last 7 days</div><div class="card" style="padding:12px 14px">';
   h+=rows.map(r=>{
     const pct=r.n?Math.max(6,Math.round(r.n/max*100)):0;
-    return '<div class="row" style="margin:7px 0;gap:10px;align-items:center">'+
+    return '<div class="row" data-act="pulsemember" data-id="'+r.t.id+'" style="margin:7px 0;gap:10px;align-items:center;cursor:pointer">'+
      '<span class="uav" style="background:'+r.t.c+';width:26px;height:26px;font-size:11px;flex:none">'+initials(r.t.name)+'</span>'+
      '<div class="grow"><div class="row" style="justify-content:space-between;gap:8px">'+
       '<p class="t1" style="font-size:13px">'+r.t.name.split(" ")[0]+(r.t.id===USER?' <span style="color:var(--hint);font-weight:400">(you)</span>':'')+'</p>'+
@@ -2555,8 +2545,8 @@ document.addEventListener("click",e=>{
   if(a==="contactfilter"){contactFilter=t.dataset.v;listQ="";contactStateF="";render();return;}
   if(a==="manrepview"){manrepView=t.dataset.v;render();return;}
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
-  if(a==="settask"){logState.taskType=t.dataset.v;document.querySelectorAll("#taskTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
-  if(a==="addtask"){const ti=document.getElementById("taskTitle"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,title:title,type:logState.taskType||"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});save();render();refocus("taskTitle");return;}
+  if(a==="pulsemember"){pulseMemberSheet(t.dataset.id);return;}
+  if(a==="addtask"){const ti=document.getElementById("taskTitle"),nn=document.getElementById("taskNote"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,title:title,note:(nn?nn.value:"").trim(),type:"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});save();render();refocus("taskTitle");return;}
   if(a==="toggletask"){const tk=DB.tasks.find(x=>x.id===id);if(tk){tk.done=!tk.done;tk.completedAt=tk.done?new Date().toISOString():null;tk.completedDay=tk.done?todayStr():null;}save();render();return;}
   if(a==="deltask"){DB.tasks=(DB.tasks||[]).filter(x=>x.id!==id);save();render();return;}
   if(a==="setdstatus"){const c=company(id);if(c){c.dstatus=t.dataset.v;save();render();toast(c.name+" → "+(t.dataset.v==="setup"?"Set-up":"Potential"));}return;}
