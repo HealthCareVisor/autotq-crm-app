@@ -200,8 +200,8 @@ table.lv td.num{text-align:right;font-variant-numeric:tabular-nums}
 .kpi span{font-size:19px;font-weight:700;letter-spacing:-.3px}
 .kpi small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
 .pipe{display:flex;gap:10px;overflow-x:auto;align-items:flex-start;padding-bottom:10px}
-.pcol{flex:1;min-width:216px;background:#edebe3;border-radius:14px;padding:8px 8px 4px}
-.pcol>h4{margin:2px 4px 8px;font-size:12px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.pcol{flex:1;min-width:250px;background:#edebe3;border-radius:14px;padding:8px 8px 4px}
+.pcol>h4{margin:2px 4px 8px;font-size:12px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px;align-items:flex-start;line-height:1.35;white-space:normal}
 .pcol>h4 em{font-style:normal;color:var(--hint);font-weight:600}
 .pcard{background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
 .pcard:hover{border-color:var(--coral)}
@@ -877,10 +877,13 @@ function roleBucket(r){r=(r||'').toLowerCase();
   if(/sales|account|\brep\b|bdm|branch|specialist|business develop|territory|outside|inside/.test(r))return ['Sales','coral'];
   return ['Contact','gray'];}
 /* ---------- OPPORTUNITIES (Salesforce-style stages) ---------- */
-const OPP_STAGES=["Prospecting","Qualification","Proposal/Price Quote","Negotiation","Closed Won","Closed Lost"];
-const OPP_SHORT={"Prospecting":"Prospecting","Qualification":"Qualification","Proposal/Price Quote":"Proposal","Negotiation":"Negotiation","Closed Won":"Won","Closed Lost":"Lost"};
-const OPP_PROB={"Prospecting":10,"Qualification":25,"Proposal/Price Quote":50,"Negotiation":75,"Closed Won":100,"Closed Lost":0};
-function oppStageTag(s){const cls={"Prospecting":"gray","Qualification":"info","Proposal/Price Quote":"warn","Negotiation":"coral","Closed Won":"ok","Closed Lost":"dang"}[s]||"gray";var pct=(s&&s!=="Closed Won"&&s!=="Closed Lost"&&OPP_PROB[s]!=null)?" "+OPP_PROB[s]+"%":"";return '<span class="pill '+cls+'">'+esc((OPP_SHORT[s]||s||"—")+pct)+'</span>';}
+/* deal stages — mirror the Zoho pick-list: descriptive name + probability */
+const OPP_STAGES=["Place Holder","Demo / Meeting with Customer","Quote for Purchase","Run Rate (120-365 days out)","Verbal Commitment to Order (90-120 days)","Order is Pending (30 days out)","Deal Won","Deal Lost"];
+const OPP_WON="Deal Won", OPP_LOST="Deal Lost", OPP_OPEN_COUNT=6; // first 6 are open stages
+const OPP_PROB={"Place Holder":1,"Demo / Meeting with Customer":25,"Quote for Purchase":50,"Run Rate (120-365 days out)":60,"Verbal Commitment to Order (90-120 days)":75,"Order is Pending (30 days out)":90,"Deal Won":100,"Deal Lost":0};
+const OPP_SHORT={};OPP_STAGES.forEach(function(s){OPP_SHORT[s]=s;}); // show the full descriptive label everywhere
+function oppStageColor(s){if(s===OPP_LOST)return "dang";if(s===OPP_WON)return "ok";var p=OPP_PROB[s]||0;return p>=75?"coral":p>=50?"warn":p>=25?"info":"gray";}
+function oppStageTag(s){var pct=(s&&s!==OPP_WON&&s!==OPP_LOST&&OPP_PROB[s]!=null)?" · "+OPP_PROB[s]+"%":"";return '<span class="pill '+oppStageColor(s)+'">'+esc((OPP_SHORT[s]||s||"—")+pct)+'</span>';}
 function val(id){const e=document.getElementById(id);return e?e.value.trim():"";}
 function ensureOpps(){
   if(!DB.opps){
@@ -889,7 +892,7 @@ function ensureOpps(){
     save();
   }
 }
-function oppIsOpen(o){return o.stage!=="Closed Won"&&o.stage!=="Closed Lost";}
+function oppIsOpen(o){return o.stage!==OPP_WON&&o.stage!==OPP_LOST;}
 function oppProb(o){return typeof o.probability==="number"?o.probability:(OPP_PROB[o.stage]||0);}
 function oppWeighted(o){return (o.amount||0)*oppProb(o)/100;}
 function oppRegion(o){if(o.state)return regionFromState(o.state);const c=o.accountId?company(o.accountId):null;return c?companyRegion(c):"";}
@@ -1562,6 +1565,12 @@ function diststatsMig(){
   DB.meta.push({id:"mig_diststats_v1",when:new Date().toISOString()});
   save();toast("Distributor stats updated");
 }
+var OPP_STAGE_MAP={"Prospecting":"Place Holder","Qualification":"Demo / Meeting with Customer","Proposal/Price Quote":"Quote for Purchase","Proposal":"Quote for Purchase","Negotiation":"Verbal Commitment to Order (90-120 days)","Closed Won":"Deal Won","Closed Lost":"Deal Lost","Won":"Deal Won","Lost":"Deal Lost"};
+function oppStagesMig(){
+  var n=0;(DB.opps||[]).forEach(function(o){if(OPP_STAGE_MAP[o.stage]){o.stage=OPP_STAGE_MAP[o.stage];o.probability=OPP_PROB[o.stage];n++;}});
+  DB.meta.push({id:"mig_oppstages_v1",when:new Date().toISOString(),remapped:n});save();
+  if(n)toast(n+" deals remapped to the new stage names");
+}
 function runDataMigrations(){
   if(!admin())return false;
   DB.meta=DB.meta||[];
@@ -1593,6 +1602,7 @@ function runDataMigrations(){
   if(!done("mig_distpricing_v1")){pricingMig();ran=true;}
   if(!done("mig_manrep_v1")){manrepMig();ran=true;}
   if(!done("mig_diststats_v1")){diststatsMig();ran=true;}
+  if(!done("mig_oppstages_v1")){oppStagesMig();ran=true;}
   return ran;
 }
 /* team read on each man-rep — from ALL REPS internal evaluation sheet (2026-07) */
@@ -2142,7 +2152,7 @@ function oppCard(o){
   const adv=(oppIsOpen(o)?'<span class="adv">'+
     (si>0?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="-1" title="Back a stage">‹</button>':'')+
     (si<3?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="1" title="Advance stage">›</button>'
-        :'<button data-act="oppclose" data-id="'+o.id+'" data-v="Closed Won" title="Mark won">✓</button><button data-act="oppclose" data-id="'+o.id+'" data-v="Closed Lost" title="Mark lost">✕</button>')+
+        :'<button data-act="oppclose" data-id="'+o.id+'" data-v="Deal Won" title="Mark won">✓</button><button data-act="oppclose" data-id="'+o.id+'" data-v="Deal Lost" title="Mark lost">✕</button>')+
     '</span>':'');
   const age=oppAge(o);
   return '<div class="pcard" data-act="editopp" data-id="'+o.id+'">'+
@@ -2151,12 +2161,12 @@ function oppCard(o){
    '<div class="pm">'+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (o.units?'<span>'+o.units+'u</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
-     (o.stage==="Closed Won"?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
-     (o.stage==="Closed Lost"?'<span class="pill dang" style="font-size:10.5px">Lost</span>':'')+'</div>'+
+     (o.stage===OPP_WON?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
+     (o.stage===OPP_LOST?'<span class="pill dang" style="font-size:10.5px">Lost</span>':'')+'</div>'+
    '<div class="pv"><span>'+money(o.amount||0)+' <small style="color:var(--hint);font-weight:500">'+oppProb(o)+'%</small></span>'+adv+'</div></div>';
 }
 function oppKpis(pool){
-  const open=pool.filter(oppIsOpen), won=pool.filter(o=>o.stage==="Closed Won");
+  const open=pool.filter(oppIsOpen), won=pool.filter(o=>o.stage===OPP_WON);
   const openAmt=open.reduce((s,o)=>s+(o.amount||0),0), wAmt=open.reduce((s,o)=>s+oppWeighted(o),0);
   const wonAmt=won.reduce((s,o)=>s+(o.amount||0),0);
   const potAmt=open.reduce((s,o)=>s+oppPotential(o),0);
@@ -2172,12 +2182,12 @@ function viewOpps(){
   const q=listQ.trim().toLowerCase();
   let show=pool.filter(o=>{
     if(oppFilter==="open"&&!oppIsOpen(o))return false;
-    if(oppFilter==="won"&&o.stage!=="Closed Won")return false;
-    if(oppFilter==="lost"&&o.stage!=="Closed Lost")return false;
+    if(oppFilter==="won"&&o.stage!==OPP_WON)return false;
+    if(oppFilter==="lost"&&o.stage!==OPP_LOST)return false;
     if(q&&!((o.name||"").toLowerCase().includes(q)||oppAcctLabel(o).toLowerCase().includes(q)||(o.rep||"").toLowerCase().includes(q)))return false;
     return true;
   });
-  const cnt={open:pool.filter(oppIsOpen).length,won:pool.filter(o=>o.stage==="Closed Won").length,lost:pool.filter(o=>o.stage==="Closed Lost").length,all:pool.length};
+  const cnt={open:pool.filter(oppIsOpen).length,won:pool.filter(o=>o.stage===OPP_WON).length,lost:pool.filter(o=>o.stage===OPP_LOST).length,all:pool.length};
   const tab=(v,l,n)=>'<button class="'+(oppFilter===v?"on":"")+'" data-act="oppfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   let h=oppKpis(pool);
   h+='<div class="lvhead"><div class="lvtabs">'+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+tab("all","All",cnt.all)+'</div>'+
@@ -2188,11 +2198,11 @@ function viewOpps(){
   if(oppView==="list"){
     return h+oppGridHTML(show.slice().sort(oppSortDefault));
   }
-  const cols=(oppFilter==="open")?OPP_STAGES.slice(0,4):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
+  const cols=(oppFilter==="open")?OPP_STAGES.slice(0,OPP_OPEN_COUNT):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
   h+='<div class="pipe">'+cols.map(st=>{
     const os=show.filter(o=>o.stage===st).sort(oppSortDefault);
     const amt=os.reduce((s,o)=>s+(o.amount||0),0);
-    const pct=(st!=="Closed Won"&&st!=="Closed Lost")?' '+OPP_PROB[st]+'%':'';
+    const pct=(st!==OPP_WON&&st!==OPP_LOST)?' '+OPP_PROB[st]+'%':'';
     return '<div class="pcol"><h4>'+esc(OPP_SHORT[st]+pct)+' · '+os.length+'<em>'+fmtK(amt)+'</em></h4>'+os.map(oppCard).join("")+'</div>';
   }).join("")+'</div>';
   return h;
@@ -2200,12 +2210,12 @@ function viewOpps(){
 
 /* ---------- FORECASTS (Salesforce-style category × period) ---------- */
 const FCATS=[
- {key:"closed",label:"Closed",c:"#3B6D11",stages:["Closed Won"]},
- {key:"commit",label:"Commit",c:"#D85A30",stages:["Negotiation"]},
- {key:"best",label:"Best case",c:"#854F0B",stages:["Proposal/Price Quote"]},
- {key:"pipeline",label:"Pipeline",c:"#185FA5",stages:["Prospecting","Qualification"]}
+ {key:"closed",label:"Closed",c:"#3B6D11",stages:["Deal Won"]},
+ {key:"commit",label:"Commit",c:"#D85A30",stages:["Order is Pending (30 days out)","Verbal Commitment to Order (90-120 days)"]},
+ {key:"best",label:"Best case",c:"#854F0B",stages:["Quote for Purchase","Run Rate (120-365 days out)"]},
+ {key:"pipeline",label:"Pipeline",c:"#185FA5",stages:["Place Holder","Demo / Meeting with Customer"]}
 ];
-function fcatOf(o){if(o.stage==="Closed Lost")return "omitted";const f=FCATS.find(f=>f.stages.includes(o.stage));return f?f.key:"pipeline";}
+function fcatOf(o){if(o.stage===OPP_LOST)return "omitted";const f=FCATS.find(f=>f.stages.includes(o.stage));return f?f.key:"pipeline";}
 function fPeriod(o){
   if(o.closeDate){const y=o.closeDate.slice(0,4),q=Math.floor((parseInt(o.closeDate.slice(5,7),10)-1)/3)+1;return "Q"+q+" "+y;}
   return o.forecastYear?("FY "+o.forecastYear):"No date";
@@ -2218,7 +2228,7 @@ function fPeriodSort(p){
 let fSel=null; // {cat, period} — selected matrix cell
 function viewForecast(){
   if(!myOpps().length)return '<div class="empty">No deals in the pipeline yet.<br>Forecasts build themselves as you add opportunities — tap <b>New</b> (or the + button) and pick Opportunity.<br><br><span style="font-size:12.5px">The old imported pipeline is archived at CRM_Cleanup/opportunities_import_archive.csv if you need to reference it.</span></div>';
-  const pool=myOpps().filter(o=>o.stage!=="Closed Lost");
+  const pool=myOpps().filter(o=>o.stage!==OPP_LOST);
   const periods=[...new Set(pool.map(fPeriod))].sort((a,b)=>fPeriodSort(a).localeCompare(fPeriodSort(b)));
   const cell={};pool.forEach(o=>{const k=fcatOf(o)+"|"+fPeriod(o);(cell[k]=cell[k]||[]).push(o);});
   const sum=os=>os.reduce((s,o)=>s+(o.amount||0),0);
@@ -2243,7 +2253,7 @@ function viewForecast(){
   h+='<tr class="total"><td>Total</td>'+periods.map(p=>{
     const os=pool.filter(o=>fPeriod(o)===p);
     return '<td>'+money(sum(os))+'</td>';}).join("")+'<td>'+money(sum(pool))+'</td></tr>';
-  const lost=myOpps().filter(o=>o.stage==="Closed Lost");
+  const lost=myOpps().filter(o=>o.stage===OPP_LOST);
   if(lost.length)h+='<tr class="muted"><td>Omitted (lost)</td><td colspan="'+periods.length+'"></td><td>'+money(sum(lost))+'</td></tr>';
   h+='</tbody></table></div>';
   h+='<p style="font-size:12.5px;color:var(--hint);margin:10px 2px 0">Closed = won · Commit = in negotiation · Best case = quoted/proposal out · Pipeline = still qualifying. Deals without a close date sit in their forecast-year bucket — set close dates from the deal to tighten this.</p>';
@@ -2280,7 +2290,7 @@ function viewDash(){
   const ppl=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
   const dms=(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state)));
   const openAmt=open.reduce((s,o)=>s+(o.amount||0),0), wAmt=open.reduce((s,o)=>s+oppWeighted(o),0);
-  const wonAmt=opps.filter(o=>o.stage==="Closed Won").reduce((s,o)=>s+(o.amount||0),0);
+  const wonAmt=opps.filter(o=>o.stage===OPP_WON).reduce((s,o)=>s+(o.amount||0),0);
   const rev=cos.reduce((s,c)=>s+(c.revenue||0),0), units=cos.reduce((s,c)=>s+(c.units||0),0);
   let h='<div class="kpis">'+
    '<div class="kpi"><b>Open pipeline</b><span>'+fmtK(openAmt)+'</span><small>'+open.length+' deals</small></div>'+
@@ -2307,7 +2317,7 @@ function viewDash(){
     cards.push('<div class="dcard"><h3>Conference call-list progress</h3>'+donutSVG(segs)+'</div>');
   }
   if(open.length){
-    const stageRows=OPP_STAGES.slice(0,4).map((s,i)=>({l:OPP_SHORT[s],v:open.filter(o=>o.stage===s).reduce((a,o)=>a+(o.amount||0),0),c:CHART_COLORS[i%6]}));
+    const stageRows=OPP_STAGES.slice(0,OPP_OPEN_COUNT).map((s,i)=>({l:OPP_SHORT[s],v:open.filter(o=>o.stage===s).reduce((a,o)=>a+(o.amount||0),0),c:CHART_COLORS[i%6]}));
     cards.push('<div class="dcard"><h3>Open pipeline by stage</h3>'+hbars(stageRows,fmtK)+'</div>');
   }else{
     cards.push('<div class="dcard"><h3>Open pipeline by stage</h3><div class="empty" style="padding:14px">No deals yet — the chart appears as you add opportunities.</div></div>');
@@ -2457,7 +2467,7 @@ function oppConChips(){
 }
 function formOpp(id,prefillCid){
   ensureOpps();
-  const o=id?DB.opps.find(x=>x.id===id):null; logState.oppId=id||null; logState.oppStage=o?o.stage:"Prospecting";
+  const o=id?DB.opps.find(x=>x.id===id):null; logState.oppId=id||null; logState.oppStage=o?o.stage:"Place Holder";
   logState.oppContacts=(o&&o.contacts?o.contacts.slice():[]).filter(c=>person(c.pid));
   const selCid=o?(o.accountId||""):(prefillCid||"");
   const acctOpts='<option value="">— not in CRM yet —</option>'+DB.companies.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+(selCid===c.id?" selected":"")+'>'+esc(c.name)+'</option>').join("");
@@ -2492,11 +2502,11 @@ function saveOpp(){
   const cid=document.getElementById("oCid").value;
   const c=cid?company(cid):null;
   const data={name:name,accountId:cid||null,accountName:c?c.name:val("oAcctName"),
-    stage:logState.oppStage||"Prospecting",amount:parseFloat(val("oAmt"))||0,
+    stage:logState.oppStage||"Place Holder",amount:parseFloat(val("oAmt"))||0,
     units:parseInt(val("oUnits"),10)||0,closeDate:document.getElementById("oClose").value||"",
     dealType:document.getElementById("oType").value,state:val("oLoc").toUpperCase().slice(0,2),
     rep:val("oRep"),note:val("oNotes"),contacts:(logState.oppContacts||[]).slice(),
-    probability:OPP_PROB[logState.oppStage||"Prospecting"]};
+    probability:OPP_PROB[logState.oppStage||"Place Holder"]};
   if(logState.oppId){const o=DB.opps.find(x=>x.id===logState.oppId);
     if(o){if(o.stage===data.stage&&typeof o.probability==="number")data.probability=o.probability;Object.assign(o,data);}}
   else DB.opps.unshift(Object.assign({id:uid(),owner:USER,source:"app",createdAt:new Date().toISOString()},data));
@@ -2701,7 +2711,7 @@ document.addEventListener("click",e=>{
   if(a==="saveOpp"){saveOpp();return;}
   if(a==="oppview"){oppView=t.dataset.v;render();return;}
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
-  if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
+  if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<OPP_OPEN_COUNT){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
   if(a==="openreport"){curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
   if(a==="repsort"){const k=parseInt(t.dataset.key,10);const s=sortState.report;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
@@ -2810,7 +2820,7 @@ document.addEventListener("input",e=>{
     const o=DB.opps.find(x=>x.id===e.target.dataset.id);if(!o)return;
     const f=e.target.dataset.field,v=e.target.value;
     if(f==="amount"||f==="units"){o[f]=parseFloat(String(v).replace(/[^0-9.\-]/g,""))||0;}
-    else if(f==="stage"){o.stage=v;o.probability=OPP_PROB[v];if((v==="Closed Won"||v==="Closed Lost")&&!o.closeDate)o.closeDate=todayStr();}
+    else if(f==="stage"){o.stage=v;o.probability=OPP_PROB[v];if((v===OPP_WON||v===OPP_LOST)&&!o.closeDate)o.closeDate=todayStr();}
     else{o[f]=v;}
     save();
     const pe=document.getElementById("prob-"+o.id);if(pe)pe.textContent=oppProb(o)+"%";
