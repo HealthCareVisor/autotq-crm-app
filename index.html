@@ -1043,6 +1043,21 @@ function viewToday(){
     h+='<div class="sectlabel">My day — '+tasks.filter(t=>!t.done).length+' open</div>';
     h+=tasks.slice(0,12).map(taskRow).join("");
   }
+  const homeDist=setup.filter(c=>!c.hideHome);
+  if(homeDist.length){
+    h+='<div class="sectlabel">Distributors in '+(userRegion(USER)?"my region":"the channel")+' — '+homeDist.length+' active</div>';
+    h+=homeDist.map(c=>{
+      var bits=[];
+      if(c.stocked)bits.push(c.stocked+" stocked");
+      if(c.units)bits.push(c.units+"u sold");
+      if(c.demoCount)bits.push(c.demoCount+" demo"+(c.demoCount>1?"s":""));
+      bits.push(companyRegion(c));
+      return '<button class="card" style="width:100%;text-align:left" data-act="roster" data-id="'+c.id+'"><div class="row">'+
+        '<span class="ic" style="background:var(--coral-t);color:var(--coral)">'+svg("ware")+'</span>'+
+        '<div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+bits.filter(Boolean).join(" · ")+'</p></div>'+
+        stageTag(enableStage(c))+'</div></button>';
+    }).join("");
+  }
   if(admin())h+=teamFeed();
   return h;
 }
@@ -1185,7 +1200,7 @@ function viewRoster(cid){
    '<button class="btn sm" data-act="editacct" data-id="'+c.id+'">Edit</button></div></div>'+
    '<div class="recstats">'+stat("Region",regionTag(companyRegion(c)))+stat("Enablement",c.type==="distributor"?stageTag(enableStage(c)):(c.stage?esc(c.stage):"—"))+stat("Contacts",reps.length)+
     stat("Open opps",opps.filter(oppIsOpen).length)+stat("Pipeline",fmtK(opps.filter(oppIsOpen).reduce((s,o)=>s+(o.amount||0),0)))+
-    stat("Units sold",c.units||0)+stat("Revenue",c.revenue?money(c.revenue):"—")+stat("Orders",c.orders||0)+stat("Demos",c.demoCount||demos.length||0)+'</div>'+
+    stat("Units sold",c.units||0)+(c.stocked?stat("Stocked",c.stocked):"")+stat("Revenue",c.revenue?money(c.revenue):"—")+stat("Orders",c.orders||0)+stat("Demos",c.demoCount||demos.length||0)+'</div>'+
    '<div class="detail-grid">'+
     '<div><b>City / State</b><span>'+esc([c.city,c.state].filter(Boolean).join(", ")||"—")+'</span></div>'+
     '<div><b>Industry</b><span>'+esc(c.industry||"—")+'</span></div>'+
@@ -1462,6 +1477,25 @@ function manrepMig(){
   save();
   if(added)toast(added+" man-rep contacts imported (Blueprint, PMG, ISI)");
 }
+/* mig_diststats_v1: Max's distributor stat corrections 2026-07 (units sold, demos, units stocked).
+   [accountId, unitsSold|null, demoCount|null, stocked|null] */
+var DIST_STATS_V1=[
+["a346",2,1,null],["a46",14,null,null],["a6",5,null,null],["a340",28,14,158],
+["a15",4,null,null],["a16",11,null,null],["a343",2,null,null],["a454",1,null,null],
+["a9",18,null,38],["a54",28,14,158]];
+function diststatsMig(){
+  DIST_STATS_V1.forEach(function(r){
+    var c=company(r[0]);if(!c)return;
+    if(c.type!=="distributor")c.type="distributor";
+    if(r[1]!=null)c.units=r[1];
+    if(r[2]!=null)c.demoCount=r[2];
+    if(r[3]!=null)c.stocked=r[3];
+  });
+  var ad=company("a4");if(ad)ad.hideHome=true;                       // Advocates for Health — Max/Hannah handle it, hide from Home list
+  var uni=company("a54");if(uni&&!/mirror/i.test(uni.note||""))uni.note=(uni.note?uni.note+" — ":"")+"Parent company of Medique; stats mirror Medique.";
+  DB.meta.push({id:"mig_diststats_v1",when:new Date().toISOString()});
+  save();toast("Distributor stats updated");
+}
 function runDataMigrations(){
   if(!admin())return false;
   DB.meta=DB.meta||[];
@@ -1492,6 +1526,7 @@ function runDataMigrations(){
   }
   if(!done("mig_distpricing_v1")){pricingMig();ran=true;}
   if(!done("mig_manrep_v1")){manrepMig();ran=true;}
+  if(!done("mig_diststats_v1")){diststatsMig();ran=true;}
   return ran;
 }
 /* team read on each man-rep — from ALL REPS internal evaluation sheet (2026-07) */
