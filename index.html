@@ -761,7 +761,7 @@ function render(){
     insights:"Units bought & demos picked up, by distributor",
     resources:(RES.length+" file"+(RES.length===1?"":"s")+" — literature, price lists, company docs"),
     map:(mapMode==="reps"?"Distributor reps by state":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
-    conf:((confSchedule().length)+" on the calendar"),
+    conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
     confleads:"Conference call list — tap a lead to log the call",
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
@@ -2682,7 +2682,8 @@ function confCard(c,isPast,last){
     '</div>';
 }
 function viewConf(){
-  var list=confSchedule(); if(!list.length)return '<div class="empty">No conference schedule loaded.</div>';
+  var list=confSchedule().filter(function(c){return !!confLeadsFor(c.name);}); // only shows with a lead list
+  if(!list.length)return '<div class="empty" style="padding:18px">No conference lead lists yet. Send an attendee sheet and it shows up here.</div>';
   var today=todayStr();
   var up=list.filter(function(c){return (c.start||"")>=today;});
   var past=list.filter(function(c){return (c.start||"")<today;});
