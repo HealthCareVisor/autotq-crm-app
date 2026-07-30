@@ -557,7 +557,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let oppColW=[];try{oppColW=JSON.parse(localStorage.getItem("autotq_oppcolw")||"[]");}catch(e){}
-let acctFilter="setup", contactFilter="distrep", manrepView="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", repFilter="all", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
+let acctFilter="setup", contactFilter="distrep", manrepView="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", repFilter="all", demoFilter="all", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
 function seed(){var b=demoSeed();b.resources=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -1053,7 +1053,7 @@ function searchView(){
   return h;
 }
 function demoListHTML(){
-  const ds=(DB.demos||[]).slice().sort((a,b)=>String(a.state||"").localeCompare(String(b.state||"")));
+  const ds=demosFiltered().slice().sort((a,b)=>String(a.state||"").localeCompare(String(b.state||"")));
   if(!ds.length)return '<div class="empty">No demos loaded.</div>';
   const rows=ds.map(d=>'<tr data-act="demoinfo" data-key="'+esc(d.email||d.holder||"")+'" style="cursor:pointer"><td><div class="lvname" style="color:var(--info-t)">'+esc(d.holder||"—")+'</div></td><td>'+esc(d.company||"")+'</td><td>'+esc(d.city||"")+'</td><td>'+esc(d.state||"")+'</td></tr>').join("");
   return '<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>Company</th><th>City</th><th>State</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -1137,6 +1137,18 @@ function demoPerson(d){
   return p||null;
 }
 function demoContactPhone(d){if(d.phone)return d.phone;const p=demoPerson(d);return p&&p.phone?p.phone:"";}
+// Who holds this demo — a man-rep, a distributor('s rep), or someone else (end user etc.)
+function demoHolderType(d){
+  const p=demoPerson(d);
+  if(p){const ct=contactType(p);if(ct==="manrep")return "manrep";if(ct==="distrep")return "distrep";}
+  if(d.cid){const c=company(d.cid);if(c){if(c.type==="distributor")return "distrep";if(c.type==="manrep"||c.type==="partner")return "manrep";}}
+  const co=String(d.company||"").toLowerCase();
+  if(/blueprint|pmg|isi|industrial source|nii solutions/.test(co))return "manrep";
+  const c2=co?DB.companies.find(x=>String(x.name||"").toLowerCase()===co):null;
+  if(c2){if(c2.type==="distributor")return "distrep";if(c2.type==="manrep"||c2.type==="partner")return "manrep";}
+  return "other";
+}
+function demosFiltered(){return (DB.demos||[]).filter(d=>demoFilter==="all"||demoHolderType(d)===demoFilter);}
 function contactLine(email,phone){
   if(!email&&!phone)return '<p class="t2"><span class="muted">no contact info on file</span></p>';
   return '<p class="t2" style="white-space:normal;display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:2px">'+
@@ -1450,7 +1462,7 @@ function viewMap(){
       (personStates(p)||[]).forEach(function(s){s=String(s||"").toUpperCase().slice(0,2);if(s){(byState[s]=byState[s]||[]).push(p);}});
     });
   }else{
-    (DB.demos||[]).forEach(function(d){
+    demosFiltered().forEach(function(d){
       var home=(d.state||"").toUpperCase().slice(0,2);
       var hp=d.holder?DB.people.find(function(p){return String(p.name||"").toLowerCase().trim()===String(d.holder||"").toLowerCase().trim();}):null;
       var cov=hp?personStates(hp).map(function(x){return String(x||"").toUpperCase().slice(0,2);}):[];
@@ -1461,13 +1473,14 @@ function viewMap(){
   }
   var nst=Object.keys(byState).length;
   var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:220px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Reps</button></div>'+
-   (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>'
+   (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>'+
+    '<div class="seg" style="max-width:320px;margin:0"><button class="'+(demoFilter==="all"?"on":"")+'" data-act="demofilter" data-v="all">All</button><button class="'+(demoFilter==="manrep"?"on":"")+'" data-act="demofilter" data-v="manrep">Man-reps</button><button class="'+(demoFilter==="distrep"?"on":"")+'" data-act="demofilter" data-v="distrep">Distributors</button></div>'
     :'<div class="seg" style="max-width:320px;margin:0"><button class="'+(repFilter==="all"?"on":"")+'" data-act="repfilter" data-v="all">All</button><button class="'+(repFilter==="manrep"?"on":"")+'" data-act="repfilter" data-v="manrep">Man-reps</button><button class="'+(repFilter==="distrep"?"on":"")+'" data-act="repfilter" data-v="distrep">Distributors</button></div>')+
    '<button class="travel" style="width:auto;flex:none;margin:0;padding:10px 14px" data-act="travel">'+svg("plane")+'Traveling soon?</button></div>';
-  if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+(DB.demos||[]).length+'</div>'+demoListHTML();}
+  if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+demosFiltered().length+'</div>'+demoListHTML();}
   var total=Object.values(byState).reduce(function(s,a){return s+a.length;},0);
   var repLbl=repFilter==="manrep"?"Man-reps":repFilter==="distrep"?"Distributor reps":"Reps (man-rep + distributor)";
-  h+='<div class="sectlabel">'+(mapMode==="reps"?(repLbl+' — '+total+' across '+nst+' states · tap a state to see who\'s there'):('Demos in the field — '+(DB.demos||[]).length+' across '+nst+' states'))+'</div>';
+  h+='<div class="sectlabel">'+(mapMode==="reps"?(repLbl+' — '+total+' across '+nst+' states · tap a state to see who\'s there'):('Demos in the field'+(demoFilter==="manrep"?" (man-reps)":demoFilter==="distrep"?" (distributors)":"")+' — '+demosFiltered().length+' across '+nst+' states'))+'</div>';
   var G=window.US_GEO;
   if(!G){return h+'<div class="empty">Map data not loaded.</div>';}
   var paths="",labels="",pins="";
@@ -3682,6 +3695,7 @@ document.addEventListener("click",e=>{
     return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
   if(a==="repfilter"){repFilter=t.dataset.v;mapState=null;render();return;}
+  if(a==="demofilter"){demoFilter=t.dataset.v;mapState=null;render();return;}
   if(a==="resupload"){formResUpload(t.dataset.cid||null);return;}
   if(a==="ressave"){saveResources();return;}
   if(a==="resdl"){resOpen(id);return;}
