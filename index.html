@@ -557,7 +557,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let oppColW=[];try{oppColW=JSON.parse(localStorage.getItem("autotq_oppcolw")||"[]");}catch(e){}
-let acctFilter="setup", contactFilter="distrep", manrepView="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
+let acctFilter="setup", contactFilter="distrep", manrepView="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", repFilter="all", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
 function seed(){var b=demoSeed();b.resources=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -760,7 +760,7 @@ function render(){
     report:rep?rep.desc:"",
     insights:"Units bought & demos picked up, by distributor",
     resources:(RES.length+" file"+(RES.length===1?"":"s")+" — literature, price lists, company docs"),
-    map:(mapMode==="reps"?"Distributor reps by state":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
+    map:(mapMode==="reps"?"Man-reps & distributor reps by state":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
     conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
     confleads:"Conference call list — tap a lead to log the call",
     person:pn?(pn.role+" · "+pn.branch):"",
@@ -1443,7 +1443,10 @@ function viewMap(){
   var byState={};
   if(mapMode==="reps"){
     DB.people.forEach(function(p){
-      if(contactType(p)!=="distrep")return;
+      var ct=contactType(p);
+      if(ct!=="distrep"&&ct!=="manrep")return;
+      if(repFilter==="manrep"&&ct!=="manrep")return;
+      if(repFilter==="distrep"&&ct!=="distrep")return;
       (personStates(p)||[]).forEach(function(s){s=String(s||"").toUpperCase().slice(0,2);if(s){(byState[s]=byState[s]||[]).push(p);}});
     });
   }else{
@@ -1457,12 +1460,14 @@ function viewMap(){
     });
   }
   var nst=Object.keys(byState).length;
-  var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:280px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Distributor reps</button></div>'+
-   (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>':'')+
+  var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:220px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Reps</button></div>'+
+   (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>'
+    :'<div class="seg" style="max-width:320px;margin:0"><button class="'+(repFilter==="all"?"on":"")+'" data-act="repfilter" data-v="all">All</button><button class="'+(repFilter==="manrep"?"on":"")+'" data-act="repfilter" data-v="manrep">Man-reps</button><button class="'+(repFilter==="distrep"?"on":"")+'" data-act="repfilter" data-v="distrep">Distributors</button></div>')+
    '<button class="travel" style="width:auto;flex:none;margin:0;padding:10px 14px" data-act="travel">'+svg("plane")+'Traveling soon?</button></div>';
   if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+(DB.demos||[]).length+'</div>'+demoListHTML();}
   var total=Object.values(byState).reduce(function(s,a){return s+a.length;},0);
-  h+='<div class="sectlabel">'+(mapMode==="reps"?('Distributor reps — '+total+' across '+nst+' states · tap a state to see who\'s there'):('Demos in the field — '+(DB.demos||[]).length+' across '+nst+' states'))+'</div>';
+  var repLbl=repFilter==="manrep"?"Man-reps":repFilter==="distrep"?"Distributor reps":"Reps (man-rep + distributor)";
+  h+='<div class="sectlabel">'+(mapMode==="reps"?(repLbl+' — '+total+' across '+nst+' states · tap a state to see who\'s there'):('Demos in the field — '+(DB.demos||[]).length+' across '+nst+' states'))+'</div>';
   var G=window.US_GEO;
   if(!G){return h+'<div class="empty">Map data not loaded.</div>';}
   var paths="",labels="",pins="";
@@ -1490,11 +1495,12 @@ function viewMap(){
   }
   pins+=inset("AK",26,88)+inset("HI",124,80);
   h+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:8px"><svg viewBox="0 0 1040 600" style="width:100%;height:auto;display:block">'+paths+labels+pins+'</svg></div>';
-  h+='<p style="font-size:12.5px;color:var(--hint);text-align:center;margin:10px 0 0">'+(mapMode==="reps"?'Pins count distributor reps based there — tap any state for the full drill-down (man-reps covering it, distributors, reps, demos).':'Pins mark demos in the field — tap any state to see who holds them.')+'</p>';
+  h+='<p style="font-size:12.5px;color:var(--hint);text-align:center;margin:10px 0 0">'+(mapMode==="reps"?('Pins count '+repLbl.toLowerCase()+' covering each state — tap any state for the full drill-down.'):'Pins mark demos in the field — tap any state to see who holds them.')+'</p>';
   if(mapState&&byState[mapState]){var list=byState[mapState];
     if(mapMode==="reps"){
-      h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' distributor rep'+(list.length>1?"s":"")+'</div>';
-      h+=list.slice(0,60).map(function(p){var c=company(p.cid);return '<div class="card" data-act="person" data-id="'+p.id+'" style="cursor:pointer"><div class="row"><span class="ic info" style="flex:none">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p>'+contactLine(p.email,p.phone)+'</div></div></div>';}).join("");
+      h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' '+(repFilter==="manrep"?"man-rep":repFilter==="distrep"?"distributor rep":"rep")+(list.length>1?"s":"")+'</div>';
+      h+=list.slice(0,60).map(function(p){var c=company(p.cid);var mr=contactType(p)==="manrep";
+        return '<div class="card" data-act="person" data-id="'+p.id+'" style="cursor:pointer"><div class="row"><span class="ic '+(mr?"coral":"info")+'" style="flex:none">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p>'+contactLine(p.email,p.phone)+'</div>'+(repFilter==="all"?(mr?'<span class="pill coral">man-rep</span>':'<span class="pill info">distributor</span>'):'')+'</div></div>';}).join("");
       h+='<button class="btn block" data-act="stpop" data-st="'+mapState+'" style="margin-top:8px">'+svg("search")+' Everything in '+mapState+' (man-reps, distributors, demos)</button>';
     }else{
       h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' demo'+(list.length>1?"s":"")+'</div>';
@@ -3675,6 +3681,7 @@ document.addEventListener("click",e=>{
       save();render();}
     return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
+  if(a==="repfilter"){repFilter=t.dataset.v;mapState=null;render();return;}
   if(a==="resupload"){formResUpload(t.dataset.cid||null);return;}
   if(a==="ressave"){saveResources();return;}
   if(a==="resdl"){resOpen(id);return;}
