@@ -91,6 +91,10 @@ input.f:focus,select.f:focus,textarea.f:focus{outline:none;border-color:var(--co
 .seg{display:flex;background:#ece9e1;border-radius:12px;padding:4px;margin-bottom:14px}
 .seg button{flex:1;border:none;background:none;padding:9px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted)}
 .seg button.on{background:#fff;color:var(--ink)}
+.rgseg{margin:0;flex:none;padding:3px}
+.rgseg button{padding:6px 11px;font-size:12.5px;flex:none}
+.rgseg button.on{background:var(--coral);color:#fff}
+@media(max-width:640px){.rgseg button{padding:5px 8px;font-size:11.5px}}
 .toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%);background:#1d1c1a;color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;max-width:88%;text-align:center}
 .toast.show{opacity:1}
 .empty{text-align:center;color:var(--hint);padding:40px 20px;font-size:15px}
@@ -489,7 +493,7 @@ function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUp
 function uid(){return Math.random().toString(36).slice(2,9);}
 function titlecase(s){return s.replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());}
 function isTop(p){return p.units>=60;}
-function admin(){return USER==="max"||USER==="hannah"||USER==="devin"||USER==="billing";}
+function admin(){return USER==="max"||USER==="hannah"||USER==="devin"||USER==="billing"||USER==="jamie";}
 function mine(o){return admin()||o===USER;}
 function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";}
 
@@ -751,11 +755,11 @@ function render(){
   const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),resources:"Resources",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
-    accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
-    contacts:(userRegion(USER)?userRegion(USER)+" territory":DB.people.length+" contacts"),
+    accounts:(regionView!=="All"?regionView+" view":"All accounts"),
+    contacts:(regionView!=="All"?regionView+" view":DB.people.length+" contacts"),
     opps:(myOpps().filter(oppIsOpen).length+" open · "+fmtK(myOpps().filter(oppIsOpen).reduce((s,o)=>s+(o.amount||0),0))+" pipeline"),
     fcast:"Committed + best case by quarter — tap any cell",
-    dash:(userRegion(USER)?userRegion(USER)+" territory":"Whole channel"),
+    dash:(regionView!=="All"?regionView+" view":"Whole channel"),
     reports:"Run, sort & export",
     report:rep?rep.desc:"",
     insights:"Units bought & demos picked up, by distributor",
@@ -798,6 +802,7 @@ function render(){
    '<div class="su"><span class="av" style="background:'+me.c+'">'+initials(me.name)+'</span><div class="grow"><b>'+me.name.split(" ")[0]+'</b><small>'+roleShort(me)+'</small></div><button class="btn sm ghost" data-act="menu" style="padding:5px 9px">⋯</button></div></aside>'+
    '<div class="work"><header class="tbar"><div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+subs[view]+'</div></div>'+
     '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts & contacts…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
+    '<div class="seg rgseg">'+["All","East","West"].map(function(v){return '<button class="'+(regionView===v?"on":"")+'" data-act="regionview" data-v="'+v+'">'+v+'</button>';}).join("")+'</div>'+
     '<button class="btn coral" data-act="addhub">'+svg("plus")+'<span class="t">New</span></button>'+
     '<span id="syncdot" title="Synced with the team" style="font-size:13px;color:var(--ok-t);flex:none;cursor:default">●</span>'+
     '<button class="av" style="background:'+me.c+'" data-act="menu">'+initials(me.name)+'</button></header>'+
@@ -918,7 +923,7 @@ function oppIsOpen(o){return o.stage!==OPP_WON&&o.stage!==OPP_LOST;}
 function oppProb(o){return typeof o.probability==="number"?o.probability:(OPP_PROB[o.stage]||0);}
 function oppWeighted(o){return (o.amount||0)*oppProb(o)/100;}
 function oppRegion(o){if(o.state)return regionFromState(o.state);const c=o.accountId?company(o.accountId):null;return c?companyRegion(c):"";}
-function oppVisible(o){if(admin())return true;const r=oppRegion(o);return !r||inRegion(r)||o.owner===USER;}
+function oppVisible(o){const r=oppRegion(o);return !r||inRegion(r)||o.owner===USER;}
 function myOpps(){ensureOpps();return DB.opps.filter(oppVisible);}
 function oppAcctLabel(o){const c=o.accountId?company(o.accountId):null;return c?c.name:(o.accountName||"—");}
 function fmtK(n){n=Math.round(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2).replace(/\.?0+$/,"")+"M";if(Math.abs(n)>=1e4)return "$"+Math.round(n/1e3)+"k";return "$"+n.toLocaleString();}
@@ -947,12 +952,15 @@ function regionFromStates(arr){if(!arr||!arr.length)return '';const r=new Set(ar
 function personRegion(p){return regionFromStates(personStates(p));}
 function companyRegion(c){return c.territory?c.territory:regionFromState(c.state);}
 function userRegion(u){return u==="john"?"West":(u==="jamie"?"East":null);}
-function inRegion(region){if(admin())return true;const ur=userRegion(USER);if(!ur)return true;return region===ur||region==="Nationwide";}
+/* Region is a VIEW FILTER now, not a permission wall (Max, 2026-07-31): everyone sees the whole
+   book; anyone can narrow to East/West with the header toggle. Blank-region records always show. */
+let regionView=localStorage.getItem("autotq_regionview")||"All";
+function inRegion(region){if(regionView==="All"||!regionView)return true;if(!region)return true;return region===regionView||region==="Nationwide";}
 function regionTag(region){if(!region)return '<span class="muted">—</span>';const cls={East:"info",West:"ok",Nationwide:"coral"}[region]||"gray";return '<span class="pill '+cls+'">'+region+'</span>';}
 
 /* ---------- ACCOUNTS (list view) ---------- */
 function viewAccounts(){
-  const base=DB.companies.filter(c=>admin()||inRegion(companyRegion(c)));
+  const base=DB.companies.filter(c=>inRegion(companyRegion(c)));
   const cnt={potential:0,setup:0,enduser:0,manrep:0};
   base.forEach(c=>{
     if(c.type==="distributor")cnt[distStatus(c)]++;
@@ -1009,7 +1017,7 @@ function manrepHTML(pool){
   return h+list.map(function(p){return manrepCard(p,false);}).join("");
 }
 function viewContacts(){
-  const scoped=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
+  const scoped=DB.people.filter(p=>inRegion(personRegion(p)));
   const cnt={manrep:0,distrep:0,enduser:0};
   scoped.forEach(p=>{const t=contactType(p);if(cnt[t]!=null)cnt[t]++;});
   let pool=scoped.filter(p=>contactType(p)===contactFilter);
@@ -1040,8 +1048,8 @@ function viewContacts(){
 function searchView(){
   const q=searchQ.trim().toLowerCase();
   if(!q)return '<div class="empty">Type to search accounts and contacts.</div>';
-  const cs=DB.companies.filter(c=>(admin()||inRegion(companyRegion(c)))&&((c.name||"").toLowerCase().includes(q)||(c.state||"").toLowerCase().includes(q)||(c.website||"").toLowerCase().includes(q))).slice(0,60);
-  const ps=DB.people.filter(p=>(admin()||inRegion(personRegion(p)))&&((p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q))).slice(0,60);
+  const cs=DB.companies.filter(c=>(inRegion(companyRegion(c)))&&((c.name||"").toLowerCase().includes(q)||(c.state||"").toLowerCase().includes(q)||(c.website||"").toLowerCase().includes(q))).slice(0,60);
+  const ps=DB.people.filter(p=>(inRegion(personRegion(p)))&&((p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q))).slice(0,60);
   const os=myOpps().filter(o=>(o.name||"").toLowerCase().includes(q)||oppAcctLabel(o).toLowerCase().includes(q)||(o.rep||"").toLowerCase().includes(q)).slice(0,60);
   let h="";
   h+='<div class="lvhead"><div class="lvtabs"><button class="on">Accounts · '+cs.length+'</button></div></div>';
@@ -1062,7 +1070,7 @@ function demoListHTML(){
 /* ---------- HOME — rep dashboard ---------- */
 function viewToday(){
   ensureTasks();ensureOpps();
-  const mydist=DB.companies.filter(c=>c.type==="distributor"&&(admin()||inRegion(companyRegion(c))));
+  const mydist=DB.companies.filter(c=>c.type==="distributor"&&(inRegion(companyRegion(c))));
   const setup=mydist.filter(c=>distStatus(c)==="setup").sort((a,b)=>ESTAGES.indexOf(enableStage(b))-ESTAGES.indexOf(enableStage(a)));
   const potN=mydist.filter(c=>distStatus(c)==="potential").length;
   const open=myOpps().filter(oppIsOpen);
@@ -1085,7 +1093,7 @@ function viewToday(){
    '<div class="kpi"><b>My pipeline</b><span>'+fmtK(open.reduce((s,o)=>s+(o.amount||0),0))+'</span><small>'+open.length+' open'+(overdue?' · '+overdue+' past due':'')+'</small></div>'+
    '<div class="kpi"><b>Tasks due</b><span>'+dueToday+'</span><small>today or overdue</small></div>'+
    '<div class="kpi"><b>Set-up distributors</b><span>'+setup.length+'</span><small>'+potN+' potential</small></div>'+
-   '<div class="kpi" data-act="demossheet" style="cursor:pointer"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span><small>tap to see who has them</small></div>'+
+   '<div class="kpi" data-act="demossheet" style="cursor:pointer"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span><small>tap to see who has them</small></div>'+
   '</div>';
   h+=teamPulse();
   h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add Action — e.g. Conference in Dallas 12/12" autocomplete="off">'+
@@ -1104,7 +1112,7 @@ function viewToday(){
   }
   const homeDist=setup.filter(c=>!c.hideHome);
   if(homeDist.length){
-    h+='<div class="sectlabel">Distributors in '+(userRegion(USER)?"my region":"the channel")+' — '+homeDist.length+' active</div>';
+    h+='<div class="sectlabel">Distributors in '+(regionView!=="All"?regionView:"the channel")+' — '+homeDist.length+' active</div>';
     h+=homeDist.map(c=>{
       var bits=[];
       if(c.stocked)bits.push(c.stocked+" stocked");
@@ -1156,7 +1164,7 @@ function contactLine(email,phone){
     (phone?svg("phone")+'<a href="tel:'+esc(String(phone).replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(phone)+'</a>':'')+'</p>';
 }
 function demosSheet(){
-  const ds=(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state)))
+  const ds=(DB.demos||[]).filter(d=>!regionFromState(d.state)||inRegion(regionFromState(d.state)))
     .slice().sort((a,b)=>String(a.state||"zz").localeCompare(String(b.state||"zz"))||String(a.holder||"").localeCompare(String(b.holder||"")));
   let h='<h2>Demos in the field · '+ds.length+'</h2>';
   if(!ds.length){openSheet(h+'<div class="empty" style="padding:18px">No demos out'+(admin()?"":" in your region")+'.</div>');return;}
@@ -2469,6 +2477,41 @@ function confLeadsMig(){
   if(added)toast(added+" conference leads imported (IACLEA · NASN · Mid-Atlantic)");
 }
 
+var IACLEA_SCANS=[["James Andrews", "Safety and Security Manager", "Alabama College of Osteopathic Medicine", "Dothan", "AL", "jandrews@acom.edu", "(334) 405-6276"], ["MaryAnn May", "Director of Campus Safety", "Alabama College of Osteopathic Medicine", "Dothan", "AL", "mmay@acom.edu", "(954) 803-3837"], ["Richard Guberman", "Police Officer (University Liaison)", "Boca Raton Police Services", "Boca Raton", "FL", "rguberman@bocaraton-fl.gov", "(561) 756-3730"], ["Brian Joschko", "Associate Vice President for Public Safety & Chief of Police", "Bradley University", "Peoria", "IL", "bjoschko@bradley.edu", "(309) 660-0147"], ["Elliott Courchaine", "Security Sergeant", "Carleton College", "Northfield", "MN", "ecourchaine@carleton.edu", "(507) 222-4610"], ["Leigh Ellington", "AVP of Public Safety", "Catawba College", "Salisbury", "NC", "lellingt22@catawba.edu", "(704) 639-0363"], ["Dwayne Betts", "Police Chief", "Chicago State University", "Chicago", "IL", "dbetts23@csu.edu", "(773) 450-1996"], ["Angelica Arroyos", "Executive Asst to the Chief of Police", "Collin College", "McKinney", "TX", "aarroyos2557@collin.edu", "(972) 553-1144"], ["Marc Dawkins", "Campus Safety Manager", "Department of Criminal Justice Services", "Richmond", "VA", "marc.dawkins@dcjs.virginia.gov", "(804) 263-7572"], ["Elliot T. Boyce, Sr.", "Principal Consultant", "Diverse Perspectives, LLC.", "", "", "diverseperspectives87@gmail.com", "(315) 491-4666"], ["Robert Gerlach", "Director, Emergency Management and Threat Assessment", "Duquesne University", "Pittsburgh", "PA", "gerlachr@duq.edu", "(412) 396-4702"], ["Eric Holmes", "Chief of Police", "Duquesne University", "Pittsburgh", "PA", "holmese5@duq.edu", "(412) 823-3717"], ["Jeffery Spence", "Chief of Campus Police", "Enterprise State Community College", "Enterprise", "AL", "jspence@escc.edu", "(334) 406-0504"], ["Joseph Carrion", "", "Federal Bureau of Investigation (FBI)", "", "", "jccarrion@fbi.gov", ""], ["Christopher Berry", "Campus Safety Supervisor", "Front Range Community College", "Westminster", "CO", "christopher.berry@frontrange.edu", ""], ["Brandon Hinds", "Technician IV", "Front Range Community College", "Westminster", "CO", "brandon.hinds@frontrange.edu", ""], ["Brian List", "Clery Coordinator/ Deputy Title IX Coordinator", "Front Range Community College", "Westminster", "CO", "brian.list@frontrange.edu", ""], ["Will McFarland", "Technician III", "Front Range Community College", "Westminster", "CO", "william.mcfarland@frontrange.edu", ""], ["Virginia Fedor", "", "Gallaudet", "Washington", "DC", "virginia.fedor@gallaudet.edu", ""], ["Jeff Johns", "Chief of Police & Director of Public Safety", "Hinds Community College", "Raymond", "MS", "jeff.johns@hindscc.edu", ""], ["Rob Kilfoyle", "Director of Public Safety and Emergency Management", "Humber College Institute of Technology & Advanced Learning", "Toronto", "ON", "rob.kilfoyle@humber.ca", "(416) 675-6622 x417"], ["Scott Garin", "Chief of Police", "Ithaca College", "Ithaca", "NY", "sgarin@ithaca.edu", "(607) 274-3353"], ["Kenneth Scott", "Director of Campus Safety", "Kalamazoo College", "Kalamazoo", "MI", "chiefkenscott@gmail.com", "(269) 337-7321"], ["Dylan Torgerson", "Public Safety Manager", "Kirkwood Community College", "Cedar Rapids", "IA", "dylan.torgerson@kirkwood.edu", ""], ["Peter Mose", "Associate Director of Public Safety", "Lackawanna College", "Scranton", "PA", "mosep@lackawanna.edu", "(570) 961-7899"], ["Joseph Nalepa", "Director of Public Safety", "Lackawanna College", "Scranton", "PA", "nalepaj@lackawanna.edu", ""], ["Timothy Davis", "Deputy Chief of Police", "Lansing Community College", "Lansing", "MI", "davist12@lcc.edu", "(517) 483-1800"], ["Kelli Tays", "Emergency Manager Specialist", "Loyola Marymount University", "Los Angeles", "CA", "kelli.tays@lmu.edu", ""], ["John McAvoy", "Chief of Campus Safety", "Lynn University", "Boca Raton", "FL", "jmcavoy@lynn.edu", "(561) 237-7847"], ["Adam Pankratz", "Deputy Chief", "Montana State University - Bozeman", "Bozeman", "MT", "adam.pankratz@montana.edu", "(406) 579-1101"], ["Scott Sophier", "Chief of Police", "Northeastern Illinois University", "Chicago", "IL", "s-sophier2@neiu.edu", "(773) 442-4103"], ["Andrew Zakos", "Campus Safety Supervisor", "Oglethorpe University", "Atlanta", "GA", "azakos@oglethorpe.edu", "(404) 509-4162"], ["Chad Carnegie", "Assoc Vice President/Chief of Public Safety", "Providence College", "Providence", "RI", "ccarnegi@providence.edu", "(202) 669-0811"], ["Lisa Peumsang", "Director of Emergency Management", "San Diego State University", "San Diego", "CA", "lpeumsang@sdsu.edu", "(805) 823-3203"], ["Douglas Parrow", "Chief of University Police", "South Dakota School of Mines & Technology", "Rapid City", "SD", "douglas.parrow@sdsmt.edu", "(605) 949-0769"], ["Donald Sullivan", "Director of School Safety and Compliance", "St. Paul's School", "Concord", "NH", "dsullivan@sps.edu", "(603) 333-5353"], ["Scott Marciszewski", "Deputy Chief of Patrol Operations", "State University of New York - Buffalo (SUNY)", "Buffalo", "NY", "sm44@buffalo.edu", "(716) 645-8931"], ["Christopher Laird", "Sergeant", "The Pennsylvania State University", "University Park", "PA", "cal266@psu.edu", "(862) 432-1301"], ["Michael Kuhlmann", "", "United Tribes Technical College", "Bismarck", "ND", "mkuhlmann@uttc.edu", "(701) 471-0768"], ["Jeff Earle", "Chief of Police", "University of Alaska - Anchorage", "Anchorage", "AK", "", "(907) 786-1120"], ["Alan Elliot", "", "University of Central Florida", "Orlando", "FL", "aelliot@ucf.edu", "(407) 823-5555"], ["Joseph Thalheimer", "", "University of Central Florida", "Orlando", "FL", "jo863018@ucf.edu", ""], ["Vanessa Gay", "Accreditation Manager Lieutenant", "University of Houston Downtown", "Houston", "TX", "garzav@uhd.edu", ""], ["Vanessa Harrington", "Executive Director", "University of Maryland - Baltimore", "Baltimore", "MD", "vharrington@police.umaryland.edu", "(301) 801-4282"], ["Thomas Leone", "Chief of Police", "University of Maryland - Baltimore", "Baltimore", "MD", "tleone@police.umaryland.edu", "(410) 706-6882"], ["Jack Steinberg", "Captain", "University of North Carolina At Chapel Hill", "Chapel Hill", "NC", "jlsteinb@unc.edu", "(336) 498-1856"], ["Jason Wade", "Chief of Police", "University of Oregon", "Eugene", "OR", "jason.wade@uopd.org", "(541) 913-9652"], ["Annette Parker", "Senior Executive Director", "University of Texas at San Antonio", "San Antonio", "TX", "annette.parker@utsa.edu", ""], ["Regina Lawson", "Assistant Vice President & Chief of Police", "Wake Forest University", "Winston-Salem", "NC", "lawsonrg@wfu.edu", "(336) 758-6066"], ["Tammy Taylor", "Accreditation Manager", "Wake Forest University", "Winston-Salem", "NC", "taylotal@wfu.edu", "(336) 758-4332"], ["Amina Kamber", "", "Wayne County Community College District", "Detroit", "MI", "akamber1@wcccd.edu", "(313) 875-9521"], ["Mia Spruce", "Corporal/PAO Dispatcher", "Wayne County Community College District", "Detroit", "MI", "mspruce1@wcccd.edu", "(313) 717-2335"], ["Daniel Donohue", "Deputy Chief of Police", "Western New England University", "Springfield", "MA", "ddonohue@wne.edu", "(917) 623-4538"], ["Paul Dean", "", "", "", "", "pdean1427@gmail.com", ""]];
+/* mig_iacleaphones_v1: booth-scan contact sheet (54 leads scanned 6/26 at IACLEA) — adds phone numbers,
+   city/state (and therefore region) to the IACLEA call list; scans not already on the list are added.
+   Row = [name,title,company,city,state,email,phone]. */
+function iacleaPhonesMig(){
+  var pool=(DB.confLeads||[]).filter(function(l){return l.conf==="IACLEA 2026";});
+  var byEmail={},byName={};
+  pool.forEach(function(l){
+    if(l.email)byEmail[String(l.email).toLowerCase().trim()]=l;
+    byName[String(l.name||"").toLowerCase().trim()]=l;
+  });
+  var updated=0,added=0;
+  IACLEA_SCANS.forEach(function(r,i){
+    var name=r[0],title=r[1],co=r[2],city=r[3],st=r[4],em=r[5],ph=r[6];
+    var l=(em&&byEmail[em])||byName[name.toLowerCase().trim()];
+    if(l){
+      if(ph&&!l.phone)l.phone=ph;
+      if(city&&!l.city)l.city=city;
+      if(st&&!l.state){l.state=st;l.region=l.region||regionFromState(st);}
+      if(em&&!l.email)l.email=em;
+      if(!/booth scan/i.test(l.notes||""))l.notes=((l.notes?l.notes+" | ":"")+"Booth scan 6/26");
+      updated++;
+    }else{
+      DB.confLeads.push({id:"IACLEA-S"+String(i+1).padStart(3,"0"),conf:"IACLEA 2026",segment:"",
+        region:st?regionFromState(st):"",tz:"",company:co,name:name,title:title,email:em,phone:ph,
+        city:city,state:st,contacted:false,status:"Not contacted",temp:"New",owner:"",next:"",
+        notes:"Booth scan 6/26"});
+      added++;
+    }
+  });
+  DB.meta.push({id:"mig_iacleaphones_v1",when:new Date().toISOString(),updated:updated,added:added});
+  save();
+  toast("IACLEA booth scans merged — "+updated+" leads updated, "+added+" added");
+}
+
 function runDataMigrations(){
   if(!admin())return false;
   DB.meta=DB.meta||[];
@@ -2502,6 +2545,12 @@ function runDataMigrations(){
   if(!done("mig_diststats_v1")){diststatsMig();ran=true;}
   if(!done("mig_oppstages_v1")){oppStagesMig();ran=true;}
   if(!done("mig_confleads_v1")){confLeadsMig();ran=true;}
+  if(!done("mig_iacleaphones_v1")){iacleaPhonesMig();ran=true;}
+  if(!done("mig_eastopps_v1")){ // Jamie's deals -> "East" (new East rep incoming; deals belong to the territory, not the person)
+    var eo=0;(DB.opps||[]).forEach(function(o){if(o.owner==="jamie"){if(!o.rep)o.rep="East";o.owner="";eo++;}});
+    DB.meta.push({id:"mig_eastopps_v1",when:new Date().toISOString(),changed:eo});save();ran=true;
+    if(eo)toast(eo+" East opportunities reassigned from Jamie to “East”");
+  }
   return ran;
 }
 /* team read on each man-rep — from ALL REPS internal evaluation sheet (2026-07) */
@@ -2900,7 +2949,7 @@ function leadVal(l,key){
 function viewConfLeads(){
   const all=(DB.confLeads||[]).filter(l=>l.conf===curConf);
   if(!all.length)return '<div class="empty">No leads loaded for this conference.</div>';
-  const scoped=all.filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region));
+  const scoped=all.filter(l=>!l.region||l.region==="International"||inRegion(l.region));
   const cnt={tocall:scoped.filter(l=>!l.contacted&&l.segment!=="Set Aside").length,
     contacted:scoped.filter(l=>l.contacted).length,
     hot:scoped.filter(l=>["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp)).length,
@@ -3187,9 +3236,9 @@ function donutSVG(segs){
 const CHART_COLORS=["#D85A30","#185FA5","#3B6D11","#854F0B","#993556","#6b6a64"];
 function viewDash(){
   const opps=myOpps(), open=opps.filter(oppIsOpen);
-  const cos=DB.companies.filter(c=>admin()||inRegion(companyRegion(c)));
-  const ppl=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
-  const dms=(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state)));
+  const cos=DB.companies.filter(c=>inRegion(companyRegion(c)));
+  const ppl=DB.people.filter(p=>inRegion(personRegion(p)));
+  const dms=(DB.demos||[]).filter(d=>!regionFromState(d.state)||inRegion(regionFromState(d.state)));
   const openAmt=open.reduce((s,o)=>s+(o.amount||0),0), wAmt=open.reduce((s,o)=>s+oppWeighted(o),0);
   const wonAmt=opps.filter(o=>o.stage===OPP_WON).reduce((s,o)=>s+(o.amount||0),0);
   const rev=cos.reduce((s,c)=>s+(c.revenue||0),0), units=cos.reduce((s,c)=>s+(c.units||0),0);
@@ -3239,28 +3288,28 @@ const REPORTS=[
    rows:myOpps().map(o=>[o.name,oppAcctLabel(o),o.stage,o.amount||0,o.units||0,oppProb(o),oppRegion(o),o.rep||"",o.dealType||"",o.note||""])};}},
  {id:"accounts",name:"Accounts by Region",desc:"Full account book with type, stage and order history",
   run(){return {cols:["Account","Type","Region","State","Stage","Contacts","Units","Revenue","Orders","Demos","Website"],
-   rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>admin()||inRegion(companyRegion(c))).map(c=>[c.name,typeLabel(c.type),companyRegion(c),c.state||"",c.type==="distributor"?enableStage(c):(c.stage||""),cc[c.id]||0,c.units||0,c.revenue||0,c.orders||0,c.demoCount||0,c.website||""]);})()};}},
+   rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>inRegion(companyRegion(c))).map(c=>[c.name,typeLabel(c.type),companyRegion(c),c.state||"",c.type==="distributor"?enableStage(c):(c.stage||""),cc[c.id]||0,c.units||0,c.revenue||0,c.orders||0,c.demoCount||0,c.website||""]);})()};}},
  {id:"enablement",name:"Distributor Enablement",desc:"Every distributor by enablement stage — the core channel metric",
   run(){return {cols:["Distributor","Status","Enablement","Region","State","Contacts","Demos","Units","Revenue","Last order"],
-   rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>c.type==="distributor"&&(admin()||inRegion(companyRegion(c)))).map(c=>[c.name,distStatus(c)==="setup"?"Set-up":"Potential",enableStage(c),companyRegion(c),c.state||"",cc[c.id]||0,c.demoCount||0,c.units||0,c.revenue||0,c.lastOrder||""]);})()};}},
+   rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>c.type==="distributor"&&(inRegion(companyRegion(c)))).map(c=>[c.name,distStatus(c)==="setup"?"Set-up":"Potential",enableStage(c),companyRegion(c),c.state||"",cc[c.id]||0,c.demoCount||0,c.units||0,c.revenue||0,c.lastOrder||""]);})()};}},
  {id:"contact-book",name:"Contact Book",desc:"Every contact with account, role, email and phone",
   run(){return {cols:["Contact","Account","Role","Email","Phone","City","State","Region"],
-   rows:DB.people.filter(p=>admin()||inRegion(personRegion(p))).map(p=>{const c=company(p.cid);return [p.name,c?c.name:(p.branch||""),p.role||"",p.email||"",p.phone||"",p.city||"",personStates(p).join(" "),personRegion(p)];})};}},
+   rows:DB.people.filter(p=>inRegion(personRegion(p))).map(p=>{const c=company(p.cid);return [p.name,c?c.name:(p.branch||""),p.role||"",p.email||"",p.phone||"",p.city||"",personStates(p).join(" "),personRegion(p)];})};}},
  {id:"never-touched",name:"Never-Contacted Contacts",desc:"Contacts with no logged touch — the outreach backlog",
   run(){return {cols:["Contact","Account","Role","Email","Phone","State","Region"],
-   rows:DB.people.filter(p=>(admin()||inRegion(personRegion(p)))&&!p.last).map(p=>{const c=company(p.cid);return [p.name,c?c.name:(p.branch||""),p.role||"",p.email||"",p.phone||"",personStates(p).join(" "),personRegion(p)];})};}},
+   rows:DB.people.filter(p=>(inRegion(personRegion(p)))&&!p.last).map(p=>{const c=company(p.cid);return [p.name,c?c.name:(p.branch||""),p.role||"",p.email||"",p.phone||"",personStates(p).join(" "),personRegion(p)];})};}},
  {id:"demo-inv",name:"Demo Inventory",desc:"Every demo unit in the field with holder and status",
   run(){return {cols:["Holder","Company","City","State","Status","Source","Date","Note"],
    rows:(DB.demos||[]).map(d=>[d.holder||"",d.company||"",d.city||"",d.state||"",d.status||"",d.source||"",d.date||"",d.note||""])};}},
  {id:"top-buyers",name:"Top Buyers",desc:"Accounts ranked by units shipped",
   run(){return {cols:["Account","Type","Units","Revenue","Orders","Last order","Region"],
-   rows:DB.companies.filter(c=>(c.units||0)>0&&(admin()||inRegion(companyRegion(c)))).sort((a,b)=>(b.units||0)-(a.units||0)).map(c=>[c.name,typeLabel(c.type),c.units||0,c.revenue||0,c.orders||0,c.lastOrder||"",companyRegion(c)])};}},
+   rows:DB.companies.filter(c=>(c.units||0)>0&&(inRegion(companyRegion(c)))).sort((a,b)=>(b.units||0)-(a.units||0)).map(c=>[c.name,typeLabel(c.type),c.units||0,c.revenue||0,c.orders||0,c.lastOrder||"",companyRegion(c)])};}},
  {id:"no-contacts",name:"Accounts Without Contacts",desc:"Accounts with zero people attached — data-quality worklist",
   run(){return {cols:["Account","Type","Region","State","Units","Revenue","Note"],
-   rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>!cc[c.id]&&(admin()||inRegion(companyRegion(c)))).map(c=>[c.name,typeLabel(c.type),companyRegion(c),c.state||"",c.units||0,c.revenue||0,(c.note||"").slice(0,80)]);})()};}},
+   rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>!cc[c.id]&&(inRegion(companyRegion(c)))).map(c=>[c.name,typeLabel(c.type),companyRegion(c),c.state||"",c.units||0,c.revenue||0,(c.note||"").slice(0,80)]);})()};}},
  {id:"conf-leads",name:"Conference Call List",desc:"Every conference lead with call status — printable / exportable",
   run(){return {cols:["Lead","Company","Title","Email","Phone","City","State","Region","Segment","Contacted","Status","Temp","Next step","In CRM"],
-   rows:(DB.confLeads||[]).filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region))
+   rows:(DB.confLeads||[]).filter(l=>!l.region||l.region==="International"||inRegion(l.region))
     .map(l=>[l.name,l.company||"",l.title||"",l.email||"",l.phone||"",l.city||"",l.state||"",l.region||"",l.segment||"",l.contacted?"Yes":"No",l.status||"",l.temp||"",l.next||"",l.promoted?"Yes":""])};}}
 ];
 function viewReports(){
@@ -3293,7 +3342,7 @@ function reportCSV(id){
 
 /* ---------- DISTRIBUTOR VOLUME ---------- */
 function viewInsights(){
-  const dist=DB.companies.filter(c=>c.type==="distributor"&&(admin()||inRegion(companyRegion(c))));
+  const dist=DB.companies.filter(c=>c.type==="distributor"&&(inRegion(companyRegion(c))));
   const pool=dist.filter(c=>(c.units||0)>0||(c.orders||0)>0||(c.demoCount||0)>0)
     .sort((a,b)=>(b.units||0)-(a.units||0)||(b.revenue||0)-(a.revenue||0));
   const units=pool.reduce((s,c)=>s+(c.units||0),0), rev=pool.reduce((s,c)=>s+(c.revenue||0),0);
@@ -3696,6 +3745,7 @@ document.addEventListener("click",e=>{
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
   if(a==="repfilter"){repFilter=t.dataset.v;mapState=null;render();return;}
   if(a==="demofilter"){demoFilter=t.dataset.v;mapState=null;render();return;}
+  if(a==="regionview"){regionView=t.dataset.v;localStorage.setItem("autotq_regionview",regionView);render();return;}
   if(a==="resupload"){formResUpload(t.dataset.cid||null);return;}
   if(a==="ressave"){saveResources();return;}
   if(a==="resdl"){resOpen(id);return;}
