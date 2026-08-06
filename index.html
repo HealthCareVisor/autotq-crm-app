@@ -1028,7 +1028,7 @@ function viewContacts(){
   const stateOpts=[...new Set(pool.flatMap(p=>personStates(p)))].filter(Boolean).sort();
   if(contactStateF)pool=pool.filter(p=>personStates(p).includes(contactStateF));
   const q=listQ.trim().toLowerCase();
-  if(q)pool=pool.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q)||(p.role||"").toLowerCase().includes(q));
+  if(q)pool=pool.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q)||(p.role||"").toLowerCase().includes(q)||(p.covers||[]).join(" ").toLowerCase().includes(q));
   const s=sortState.contacts;
   pool=pool.slice().sort((a,b)=>cmpv(contactVal(a,s.key),contactVal(b,s.key))*s.dir);
   const tab=(v,l,n)=>'<button class="'+(contactFilter===v?"on":"")+'" data-act="contactfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
@@ -1053,7 +1053,7 @@ function searchView(){
   const q=searchQ.trim().toLowerCase();
   if(!q)return '<div class="empty">Type to search accounts and contacts.</div>';
   const cs=DB.companies.filter(c=>(inRegion(companyRegion(c)))&&((c.name||"").toLowerCase().includes(q)||(c.state||"").toLowerCase().includes(q)||(c.website||"").toLowerCase().includes(q))).slice(0,60);
-  const ps=DB.people.filter(p=>(inRegion(personRegion(p)))&&((p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q))).slice(0,60);
+  const ps=DB.people.filter(p=>(inRegion(personRegion(p)))&&((p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q)||(p.covers||[]).join(" ").toLowerCase().includes(q))).slice(0,60);
   const os=myOpps().filter(o=>(o.name||"").toLowerCase().includes(q)||oppAcctLabel(o).toLowerCase().includes(q)||(o.rep||"").toLowerCase().includes(q)).slice(0,60);
   let h="";
   h+='<div class="lvhead"><div class="lvtabs"><button class="on">Accounts · '+cs.length+'</button></div></div>';
