@@ -264,29 +264,6 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .rolechip small{font-weight:500;color:var(--muted)}
 .rolechip button{border:none;background:#e0ddd3;border-radius:50%;width:17px;height:17px;line-height:1;font-size:11px;color:var(--muted);padding:0}
 .rolechip button:hover{background:var(--dang-b);color:var(--dang-t)}
-/* resources folder bubbles */
-.crumbbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13.5px;margin-bottom:12px}
-.crumbbar button{border:none;background:none;color:var(--info-t);font-size:13.5px;font-weight:600;padding:2px 4px;cursor:pointer}
-.crumbbar b{color:var(--ink)}
-.crumbbar .sep{color:var(--hint)}
-.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;margin-bottom:18px}
-.rtile{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 17px;cursor:pointer;text-align:left;transition:border-color .12s, box-shadow .12s, transform .12s}
-.rtile:hover{border-color:var(--coral);box-shadow:0 4px 14px rgba(216,90,48,.10);transform:translateY(-1px)}
-.rtile .hicon{width:46px;height:46px;border-radius:13px;background:var(--coral-t);color:var(--coral);display:flex;align-items:center;justify-content:center;margin-bottom:11px}
-.rtile .hicon svg{width:23px;height:23px}
-.rtile h4{margin:0 0 3px;font-size:15.5px;font-weight:600;letter-spacing:-.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rtile .hmeta{font-size:12.5px;color:var(--muted)}
-.rtile .hsub{font-size:12px;color:var(--hint);margin-top:8px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
-.rtile.new{border-style:dashed;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px;color:var(--muted);font-weight:600;font-size:14px;gap:8px}
-.rtile.new svg{width:26px;height:26px;color:var(--hint)}
-.rtile.new:hover{color:var(--coral-tt);box-shadow:none;transform:none}
-.rrow{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 15px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left}
-.rrow:hover{border-color:var(--coral)}
-.rrow .hicon{width:38px;height:38px;border-radius:10px;background:var(--coral-t);color:var(--coral);display:flex;align-items:center;justify-content:center;flex:none}
-.rrow .hicon svg{width:19px;height:19px}
-.rrow b{font-size:14.5px;display:block}
-.rrow small{font-size:12.5px;color:var(--muted)}
-.rrow .chev{margin-left:auto;color:var(--hint);font-size:18px;flex:none}
 /* excel-style part-number grid */
 .pngrid table{width:100%;border-collapse:collapse;font-size:13.5px}
 .pngrid th{position:relative;text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--hint);padding:10px 12px;border-bottom:1px solid var(--line);border-right:1px solid #f0eee7;background:#faf9f5;white-space:nowrap}
@@ -669,11 +646,10 @@ function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
-  resRefresh(); // RES mirrors the synced DB.resources
   const me=teamById(USER);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),resources:"Resources",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -684,7 +660,6 @@ function render(){
     reports:"Run, sort & export",
     report:rep?rep.desc:"",
     insights:"Units bought & demos picked up, by distributor",
-    resources:(RES.length+" file"+(RES.length===1?"":"s")+" — literature, price lists, company docs"),
     map:(mapMode==="reps"?"Field reps by state — distributor + man-rep":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
     conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
     confleads:"Conference call list — tap a lead to log the call",
@@ -702,7 +677,6 @@ function render(){
   else if(view==="reports")body=viewReports();
   else if(view==="report")body=viewReport(curReport);
   else if(view==="insights")body=viewInsights();
-  else if(view==="resources")body=viewResources();
   else if(view==="confleads")body=viewConfLeads();
   else if(view==="person")body=viewPerson(curPerson);
   else if(view==="roster")body=viewRoster(curCompany);
@@ -712,7 +686,7 @@ function render(){
   else body=viewToday();
   const groups=[
    ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"]]],
-   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["resources","folder","Resources"]]],
+   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
   ];
@@ -1139,15 +1113,6 @@ function viewRoster(cid){
     h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>City</th><th>State</th><th>Status</th><th>Source</th></tr></thead><tbody>'+
       demos.map(d=>'<tr><td class="lvname">'+esc(d.holder||"—")+'</td><td>'+esc(d.city||"")+'</td><td>'+(d.state?stateChip(d.state):"—")+'</td><td>'+esc(d.status||"")+'</td><td>'+esc(d.source||"")+'</td></tr>').join("")+'</tbody></table></div>';
   }
-  const files=RES.filter(r=>r.cid===cid);
-  if(files.length||c.type==="distributor"||c.type==="manrep"){
-    h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Resources · '+files.length+'</button></div>'+
-       '<button class="btn sm" data-act="resupload" data-cid="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Upload for '+esc(c.name.split(" ")[0])+'</button></div>';
-    h+=files.length?files.map(r=>'<div class="card"><div class="row"><span class="ic info">'+svg(resIcon(r.name))+'</span>'+
-      '<div class="grow"><p class="t1" style="font-size:14px">'+esc(r.name)+'</p><p class="t2"><span class="pill gray" style="font-size:11px">'+esc(r.cat)+'</span> '+fmtBytes(r.size)+' · '+esc((r.date||"").slice(0,10))+'</p></div>'+
-      '<button class="btn sm coral" data-act="resdl" data-id="'+esc(r.id)+'">'+svg("dl")+' Open</button></div></div>').join("")
-      :'<div class="empty" style="padding:14px">No files for this account yet.</div>';
-  }
   h+='<div class="sectlabel" style="margin-top:20px">Activity</div>';
   h+=acts.length?'<div class="tl">'+acts.slice(0,20).map(a=>{const p=a.pid?person(a.pid):null;
     return '<div class="tle"><p><strong>'+esc(titlecase(a.type))+'</strong>'+(p?' with '+esc(p.name):'')+' · <span class="tls">'+ago(a.date)+' by '+esc(teamById(a.by).name.split(" ")[0])+'</span></p><p class="tls" style="font-size:13px;color:var(--muted)">'+esc(a.note||"")+'</p></div>';}).join("")+'</div>'
@@ -1484,164 +1449,6 @@ function viewConf(){
   if(past.length){h+='<div class="sectlabel" style="margin-top:20px">Past · '+past.length+'</div>';
     h+=past.slice().reverse().map(function(c){return confCard(c,true,last);}).join("");}
   return h;
-}
-
-/* ---------- RESOURCES (file library — shared: metadata syncs, blobs live in team storage) ---------- */
-let RES=[];
-const RES_CATS=["Literature","Price list","Training","Contract","Company doc","Other"];
-function resCache(){return new Promise((ok,bad)=>{const q=indexedDB.open("autotq_blobcache",1);
-  q.onupgradeneeded=()=>q.result.createObjectStore("blobs",{keyPath:"id"});
-  q.onsuccess=()=>ok(q.result);q.onerror=()=>bad(q.error);});}
-function cacheGet(id){return resCache().then(db=>new Promise(ok=>{const q=db.transaction("blobs").objectStore("blobs").get(id);q.onsuccess=()=>ok(q.result?q.result.blob:null);q.onerror=()=>ok(null);}));}
-function cachePut(id,blob){return resCache().then(db=>new Promise(ok=>{const tx=db.transaction("blobs","readwrite");tx.objectStore("blobs").put({id:id,blob:blob});tx.oncomplete=ok;tx.onerror=ok;}));}
-function cacheDel(id){return resCache().then(db=>new Promise(ok=>{const tx=db.transaction("blobs","readwrite");tx.objectStore("blobs").delete(id);tx.oncomplete=ok;tx.onerror=ok;}));}
-function resRefresh(){DB.resources=DB.resources||[];RES=DB.resources.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));return Promise.resolve(RES);}
-async function resPut(rec){
-  DB.resources=DB.resources||[];
-  const meta=Object.assign({},rec);delete meta.blob;
-  if(rec.blob){
-    meta.path=rec.id+"/"+rec.name;
-    const res=await supa("/storage/v1/object/resources/"+encodeURIComponent(meta.path).replace(/%2F/g,"/"),
-      {method:"POST",headers:{"Content-Type":rec.blob.type||"application/octet-stream","x-upsert":"true"},body:rec.blob});
-    if(!res.ok)throw new Error("upload failed");
-    cachePut(rec.id,rec.blob);
-  }
-  const i=DB.resources.findIndex(r=>r.id===meta.id);
-  if(i>-1)DB.resources[i]=meta;else DB.resources.push(meta);
-  save();return meta;
-}
-async function resRemove(id){
-  const r=(DB.resources||[]).find(x=>x.id===id);
-  if(r&&r.path)await supa("/storage/v1/object/resources/"+encodeURIComponent(r.path).replace(/%2F/g,"/"),{method:"DELETE"}).catch(()=>{});
-  DB.resources=(DB.resources||[]).filter(x=>x.id!==id);
-  cacheDel(id);save();
-}
-function fmtBytes(n){if(!n)return"—";if(n>=1048576)return(n/1048576).toFixed(1)+" MB";if(n>=1024)return Math.round(n/1024)+" KB";return n+" B";}
-function resIcon(name){return /\.pdf$/i.test(name)?"file":/\.(png|jpe?g|gif|webp|heic)$/i.test(name)?"pin":/\.(xlsx?|csv)$/i.test(name)?"chart":"note";}
-let curFolder=null; // null = library root
-let resLayout=localStorage.getItem("autotq_res_layout")||"grid";
-function resFolders(parent){return RES.filter(r=>r.kind==="folder"&&(r.parent||null)===(parent||null)).sort((a,b)=>a.name.localeCompare(b.name));}
-function resFiles(folderId){return RES.filter(r=>r.kind!=="folder"&&(r.folderId||null)===(folderId||null));}
-function folderStats(id){ // recursive: files, bytes, latest date, direct subfolders
-  const st={folders:resFolders(id).length,files:0,bytes:0,last:""};
-  (function walk(fid){
-    resFiles(fid).forEach(f=>{st.files++;st.bytes+=(f.size||0);if((f.date||"")>st.last)st.last=f.date;});
-    resFolders(fid).forEach(sub=>{if((sub.date||"")>st.last)st.last=sub.date;walk(sub.id);});
-  })(id);
-  return st;
-}
-function folderPreview(id){ // a few content names for the tile
-  const names=resFolders(id).map(f=>f.name+"/").concat(resFiles(id).map(f=>f.name));
-  return names.slice(0,3).join(" · ")+(names.length>3?" · +"+(names.length-3)+" more":"");
-}
-function folderTile(f){
-  const st=folderStats(f.id);
-  const meta=[st.folders?st.folders+" folder"+(st.folders>1?"s":""):"",st.files?st.files+" file"+(st.files>1?"s":""):""].filter(Boolean).join(" · ")||"Empty";
-  const sub=[st.bytes?fmtBytes(st.bytes):"",st.last?"updated "+st.last.slice(0,10):""].filter(Boolean).join(" · ");
-  const pv=folderPreview(f.id);
-  return '<button class="rtile" data-act="openfolder" data-id="'+esc(f.id)+'"><span class="hicon">'+svg("folder")+'</span>'+
-   '<h4 title="'+esc(f.name)+'">'+esc(f.name)+'</h4>'+
-   '<div class="hmeta">'+esc(meta)+(sub?'<br>'+esc(sub):'')+'</div>'+
-   (pv?'<div class="hsub">'+esc(pv)+'</div>':'')+'</button>';
-}
-function folderRow(f){
-  const st=folderStats(f.id);
-  const meta=[st.folders?st.folders+" folders":"",st.files?st.files+" files":"",st.bytes?fmtBytes(st.bytes):"",st.last?"updated "+st.last.slice(0,10):""].filter(Boolean).join(" · ")||"Empty";
-  return '<button class="rrow" data-act="openfolder" data-id="'+esc(f.id)+'"><span class="hicon">'+svg("folder")+'</span>'+
-   '<span class="grow" style="min-width:0"><b>'+esc(f.name)+'</b><small>'+esc(meta)+'</small></span><span class="chev">›</span></button>';
-}
-function folderById(id){return RES.find(r=>r.kind==="folder"&&r.id===id);}
-function folderCount(id){return resFolders(id).length+resFiles(id).length;}
-function folderPath(id){const out=[];let f=folderById(id);let hop=0;while(f&&hop++<12){out.unshift(f);f=f.parent?folderById(f.parent):null;}return out;}
-function allFolderOptions(){ // flattened, indented, for the upload sheet
-  const out=[];(function walk(parent,depth){resFolders(parent).forEach(f=>{out.push({id:f.id,label:"  ".repeat(depth)+f.name});walk(f.id,depth+1);});})(null,0);
-  return out;
-}
-function fileCard(r){
-  const c=r.cid?company(r.cid):null;
-  return '<div class="card"><div class="row"><span class="ic info">'+svg(resIcon(r.name))+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:14.5px">'+esc(r.name)+'</p>'+
-   '<p class="t2"><span class="pill gray" style="font-size:11px">'+esc(r.cat||"File")+'</span> '+fmtBytes(r.size)+' · '+esc((r.date||"").slice(0,10))+' · '+esc(teamById(r.by).name.split(" ")[0])+
-   (c?' · <a href="#" data-act="roster" data-id="'+c.id+'" style="color:var(--info-t)">'+esc(c.name)+'</a>':'')+'</p></div>'+
-   '<div class="qa"><button class="btn sm coral" data-act="resdl" data-id="'+esc(r.id)+'">'+svg("dl")+' Open</button>'+
-   '<button class="btn sm" data-act="resdel" data-id="'+esc(r.id)+'" style="color:var(--dang-t)">Delete</button></div></div></div>';
-}
-function viewResources(){
-  const path=folderPath(curFolder);
-  const folders=resFolders(curFolder), files=resFiles(curFolder);
-  let h='<div class="crumbbar">'+
-   (curFolder?'<button data-act="openfolder" data-id="">'+svg("folder")+' Resources</button>':'<b>'+svg("folder")+' Resources</b>')+
-   path.map((f,i)=>'<span class="sep">/</span>'+(i===path.length-1?'<b>'+esc(f.name)+'</b>':'<button data-act="openfolder" data-id="'+esc(f.id)+'">'+esc(f.name)+'</button>')).join("")+
-   '<span style="margin-left:auto"></span>'+
-   (curFolder&&!folderCount(curFolder)?'<button class="btn sm" data-act="foldel" data-id="'+esc(curFolder)+'" style="color:var(--dang-t)">Delete folder</button>':'')+
-   '<div class="seg" style="margin:0;max-width:150px"><button class="'+(resLayout==="grid"?"on":"")+'" data-act="reslayout" data-v="grid" title="Squares">⊞</button><button class="'+(resLayout==="list"?"on":"")+'" data-act="reslayout" data-v="list" title="List">☰</button></div>'+
-   '<button class="btn coral" data-act="resupload">'+svg("plus")+' Upload here</button></div>';
-  if(resLayout==="grid"){
-    h+='<div class="rgrid">'+folders.map(folderTile).join("")+
-     '<button class="rtile new" data-act="newbubble">'+svg("plus")+'New bubble</button></div>';
-  }else{
-    h+='<div style="margin-bottom:16px">'+folders.map(folderRow).join("")+
-     '<button class="rrow" data-act="newbubble" style="border-style:dashed;background:transparent"><span class="hicon" style="background:transparent;color:var(--hint)">'+svg("plus")+'</span><span class="grow"><b style="color:var(--muted)">New bubble</b><small>Create a folder here</small></span></button></div>';
-  }
-  if(!files.length&&!folders.length){
-    h+='<div class="empty">'+(curFolder?'This folder is empty — upload files here or add a sub-bubble.':'The library is empty.<br>Make a bubble per distributor (Grainger, Fastenal…) or per topic, then push sub-folders and files into it — SharePoint style.<br><br><span style="font-size:12.5px">Files are stored in this browser on this device.</span>')+'</div>';
-    return h;
-  }
-  if(files.length){
-    h+='<div class="sectlabel" style="margin-top:2px">Files · '+files.length+'</div>';
-    h+=files.map(fileCard).join("");
-  }
-  return h;
-}
-function formNewBubble(){
-  openSheet('<h2>New bubble</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+
-   (curFolder?'Creates a sub-folder inside <b>'+esc(folderById(curFolder).name)+'</b>.':'Creates a folder at the top of the library — e.g. a distributor name like Grainger.')+'</p>'+
-   '<label class="fl">What\'s the name of the folder?</label><input class="f" id="bubName" placeholder="e.g. Grainger" autocomplete="off">'+
-   '<button class="btn coral block" data-act="bubblesave" style="margin-top:18px">Create bubble</button>');
-  setTimeout(()=>{const e=document.getElementById("bubName");if(e)e.focus();},50);
-}
-function saveBubble(){
-  const name=val("bubName");if(!name){toast("Give the folder a name");return;}
-  const siblings=resFolders(curFolder).map(f=>f.name.toLowerCase());
-  if(siblings.includes(name.toLowerCase())){toast("A bubble with that name already exists here");return;}
-  resPut({id:uid(),kind:"folder",name:name,parent:curFolder||null,by:USER,date:new Date().toISOString()})
-   .then(resRefresh).then(()=>{closeSheet();render();toast('"'+name+'" created');});
-}
-function formResUpload(prefillCid){
-  const acctOpts='<option value="">— whole company (general) —</option>'+DB.companies.filter(c=>c.type==="distributor"||c.type==="manrep").sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+(prefillCid===c.id?" selected":"")+'>'+esc(c.name)+'</option>').join("");
-  const folderOpts='<option value="">— library root —</option>'+allFolderOptions().map(f=>'<option value="'+esc(f.id)+'"'+(curFolder===f.id?" selected":"")+'>'+f.label+'</option>').join("");
-  openSheet('<h2>Upload to Resources</h2>'+
-   '<label class="fl">Files</label><input class="f" type="file" id="resFile" multiple>'+
-   '<label class="fl">Folder</label><select class="f" id="resFolder">'+folderOpts+'</select>'+
-   '<label class="fl">Category</label><select class="f" id="resCat">'+RES_CATS.map(c=>'<option>'+c+'</option>').join("")+'</select>'+
-   '<label class="fl">For a specific account? <span style="font-weight:400;color:var(--hint)">(shows on their page too)</span></label><select class="f" id="resCid">'+acctOpts+'</select>'+
-   '<button class="btn coral block" data-act="ressave" style="margin-top:18px">Add to library</button>'+
-   '<p style="text-align:center;color:var(--hint);font-size:12.5px;margin-top:9px">Stored in this browser — not synced between devices.</p>');
-}
-function saveResources(){
-  const inp=document.getElementById("resFile");
-  const files=inp?Array.from(inp.files):[];
-  if(!files.length){toast("Pick at least one file");return;}
-  const cat=document.getElementById("resCat").value, cid=document.getElementById("resCid").value||null;
-  const folderId=document.getElementById("resFolder").value||null;
-  Promise.all(files.map(f=>resPut({id:uid(),name:f.name,size:f.size,mime:f.type,cat:cat,cid:cid,folderId:folderId,by:USER,date:new Date().toISOString(),blob:f})))
-   .then(resRefresh).then(()=>{closeSheet();curFolder=folderId;render();toast(files.length+" file"+(files.length>1?"s":"")+" added to the team library");})
-   .catch(()=>toast("Upload failed — check your connection (50 MB max per file)"));
-}
-async function resOpen(id){
-  const r=RES.find(x=>x.id===id);if(!r)return;
-  let blob=await cacheGet(id);
-  if(!blob){
-    if(!r.path){toast("This file has no content — re-upload it");return;}
-    toast("Fetching from the team library…");
-    const res=await supa("/storage/v1/object/resources/"+encodeURIComponent(r.path).replace(/%2F/g,"/"));
-    if(!res.ok){toast("Couldn't fetch the file — check your connection");return;}
-    blob=await res.blob();cachePut(id,blob);
-  }
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");a.href=url;
-  if(/\.(pdf|png|jpe?g|gif|webp)$/i.test(r.name))a.target="_blank";else a.download=r.name;
-  a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
 }
 
 /* ---------- CONFERENCE LEADS ---------- */
@@ -2264,7 +2071,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="height:8px"></div>'+
- [["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"],["resources","folder","Resources"]]
+ [["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b>'+n[2]+'</b></button>').join("")+
  '<div style="height:8px"></div>'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -2280,7 +2087,7 @@ function backupDB(){
   a.download="autotq_crm_backup_"+todayStr()+".json";a.click();toast("Backup downloaded — keep it somewhere safe");
 }
 function formRestore(){
-  openSheet('<h2>Restore from backup</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">Replaces everything in this browser (deals, tasks, logged calls, lead statuses) with the backup file. Files in Resources are not affected.</p>'+
+  openSheet('<h2>Restore from backup</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">Replaces everything in this browser (deals, tasks, logged calls, lead statuses) with the backup file.</p>'+
    '<label class="fl">Backup file (.json)</label><input class="f" type="file" id="restoreFile" accept=".json,application/json">'+
    '<button class="btn coral block" data-act="restoredo" style="margin-top:18px">Restore</button>');
 }
@@ -2306,7 +2113,6 @@ function helpSheet(){
    ["Reports","10 ready-made reports; sort any column, export CSV."],
    ["Field Map","US map — flip between demos in the field and distributor reps by state. Tap a state."],
    ["Volume","Distributor volume — units bought, revenue, orders and the demo units they've picked up."],
-   ["Resources","The company file library — make a bubble (folder) per distributor or topic, nest sub-folders SharePoint-style, upload literature and price lists."],
    ["Conferences","The show calendar; shows with lead lists link straight to the call list."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
@@ -2421,15 +2227,6 @@ document.addEventListener("click",e=>{
       save();render();}
     return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
-  if(a==="resupload"){formResUpload(t.dataset.cid||null);return;}
-  if(a==="ressave"){saveResources();return;}
-  if(a==="resdl"){resOpen(id);return;}
-  if(a==="resdel"){const r=RES.find(x=>x.id===id);if(r&&confirm('Delete "'+r.name+'" from the library?')){resRemove(id).then(resRefresh).then(()=>{render();toast("Deleted");});}return;}
-  if(a==="openfolder"){curFolder=t.dataset.id||null;view="resources";render();return;}
-  if(a==="reslayout"){resLayout=t.dataset.v;localStorage.setItem("autotq_res_layout",resLayout);render();return;}
-  if(a==="newbubble"){formNewBubble();return;}
-  if(a==="bubblesave"){saveBubble();return;}
-  if(a==="foldel"){const f=folderById(id);if(f&&!folderCount(id)&&confirm('Delete the empty folder "'+f.name+'"?')){const parent=f.parent||null;resRemove(id).then(resRefresh).then(()=>{curFolder=parent;render();toast("Folder deleted");});}return;}
   if(a==="fcell"){fSel=t.dataset.cat?{cat:t.dataset.cat,period:t.dataset.period}:null;render();return;}
   if(a==="help"){helpSheet();return;}
   if(a==="closehelp"){localStorage.setItem(HKEY,"1");closeSheet();if(view==="today")render();return;}
