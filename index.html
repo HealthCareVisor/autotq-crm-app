@@ -685,8 +685,8 @@ function render(){
     report:rep?rep.desc:"",
     insights:"Units bought & demos picked up, by distributor",
     resources:(RES.length+" file"+(RES.length===1?"":"s")+" — literature, price lists, company docs"),
-    map:(mapMode==="reps"?"Distributor reps by state":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
-    conf:((confSchedule().length)+" on the calendar"),
+    map:(mapMode==="reps"?"Field reps by state — distributor + man-rep":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
+    conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
     confleads:"Conference call list — tap a lead to log the call",
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
@@ -1250,19 +1250,20 @@ function viewMap(){
   var byState={};
   if(mapMode==="reps"){
     DB.people.forEach(function(p){
-      if(contactType(p)!=="distrep")return;
+      var ct=contactType(p);
+      if(ct!=="distrep"&&ct!=="manrep")return; // field reps = distributor reps + man-rep reps (their coverage states)
       (personStates(p)||[]).forEach(function(s){s=String(s||"").toUpperCase().slice(0,2);if(s){(byState[s]=byState[s]||[]).push(p);}});
     });
   }else{
     (DB.demos||[]).forEach(function(d){var s=(d.state||"").toUpperCase().slice(0,2);if(s){(byState[s]=byState[s]||[]).push(d);}});
   }
   var nst=Object.keys(byState).length;
-  var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:280px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Distributor reps</button></div>'+
+  var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:280px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Field reps</button></div>'+
    (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>':'')+
    '<button class="travel" style="width:auto;flex:none;margin:0;padding:10px 14px" data-act="travel">'+svg("plane")+'Traveling soon?</button></div>';
   if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+(DB.demos||[]).length+'</div>'+demoListHTML();}
   var total=Object.values(byState).reduce(function(s,a){return s+a.length;},0);
-  h+='<div class="sectlabel">'+(mapMode==="reps"?('Distributor reps — '+total+' across '+nst+' states · tap a state to see who\'s there'):('Demos in the field — '+(DB.demos||[]).length+' across '+nst+' states'))+'</div>';
+  h+='<div class="sectlabel">'+(mapMode==="reps"?('Field reps (distributor + man-rep) — '+total+' across '+nst+' states · tap a state to see who\'s there'):('Demos in the field — '+(DB.demos||[]).length+' across '+nst+' states'))+'</div>';
   var G=window.US_GEO;
   if(!G){return h+'<div class="empty">Map data not loaded.</div>';}
   var paths="",labels="",pins="";
@@ -1290,10 +1291,10 @@ function viewMap(){
   }
   pins+=inset("AK",26,88)+inset("HI",124,80);
   h+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:8px"><svg viewBox="0 0 1040 600" style="width:100%;height:auto;display:block">'+paths+labels+pins+'</svg></div>';
-  h+='<p style="font-size:12.5px;color:var(--hint);text-align:center;margin:10px 0 0">'+(mapMode==="reps"?'Pins count distributor reps based there — tap any state for the full drill-down (man-reps covering it, distributors, reps, demos).':'Pins mark demos in the field — tap any state to see who holds them.')+'</p>';
+  h+='<p style="font-size:12.5px;color:var(--hint);text-align:center;margin:10px 0 0">'+(mapMode==="reps"?'Pins count field reps covering that state (distributor reps + man-rep territories) — tap any state for the full drill-down.':'Pins mark demos in the field — tap any state to see who holds them.')+'</p>';
   if(mapState&&byState[mapState]){var list=byState[mapState];
     if(mapMode==="reps"){
-      h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' distributor rep'+(list.length>1?"s":"")+'</div>';
+      h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' field rep'+(list.length>1?"s":"")+'</div>';
       h+=list.slice(0,30).map(function(p){var c=company(p.cid);return '<button class="card" style="width:100%;text-align:left" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p></div>'+lastTag(p.last)+'</div></button>';}).join("");
       h+='<button class="btn block" data-act="stpop" data-st="'+mapState+'" style="margin-top:8px">'+svg("search")+' Everything in '+mapState+' (man-reps, distributors, demos)</button>';
     }else{
@@ -1470,7 +1471,9 @@ function confCard(c,isPast,last){
     '</div>';
 }
 function viewConf(){
-  var list=confSchedule(); if(!list.length)return '<div class="empty">No conference schedule loaded.</div>';
+  /* only conferences we hold a lead list for (Max, 2026-08-10) — the rest of the calendar stays in CONF_SCHEDULE but doesn't render */
+  var list=confSchedule().filter(function(c){return !!confLeadsFor(c.name);});
+  if(!list.length)return '<div class="empty">No conferences with lead lists yet — import a show\'s lead list and it will appear here.</div>';
   var today=todayStr();
   var up=list.filter(function(c){return (c.start||"")>=today;});
   var past=list.filter(function(c){return (c.start||"")<today;});
