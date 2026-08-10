@@ -1467,8 +1467,8 @@ function ensureCampaigns(){DB.campaigns=DB.campaigns||[];}
 function campaignById(id){ensureCampaigns();return DB.campaigns.find(c=>c.id===id);}
 function campDefaultSteps(){return [
  {day:1,subject:"Bleed control at {{company}}",body:"Hi {{first_name}},\n\nQuick one — does {{company}} have tourniquets staged where your crews actually work?\n\nAutoTQ is an automatic tourniquet anyone can apply in seconds, even one-handed, no training required. Severe bleeding is the jobsite injury that kills fastest — minutes matter.\n\nWorth a 10-minute look? Happy to send a demo unit.\n"},
- {day:3,subject:"Re: Bleed control at {{company}}",body:"Hi {{first_name}},\n\nFloating this back to the top of your inbox — I know safety gear requests pile up.\n\nIf a demo unit for {{company}} would be useful, just reply \"send it\" and I'll get one out this week.\n"},
- {day:7,subject:"Last note from me",body:"Hi {{first_name}},\n\nI'll close the loop here — if bleeding control isn't on the roadmap this quarter, no worries at all.\n\nIf it ever is, I'm one reply away.\n"}];}
+ {day:5,subject:"Re: Bleed control at {{company}}",body:"Hi {{first_name}},\n\nFloating this back to the top of your inbox — I know safety gear requests pile up.\n\nIf a demo unit for {{company}} would be useful, just reply \"send it\" and I'll get one out this week.\n"},
+ {day:12,subject:"Last note from me",body:"Hi {{first_name}},\n\nI'll close the loop here — if bleeding control isn't on the roadmap this quarter, no worries at all.\n\nIf it ever is, I'm one reply away.\n"}];}
 function campReady(c,step){if(step===1)return (c.leads||[]).some(l=>l.flag==="ok");if(step===2)return (c.steps||[]).some(s=>(s.subject||"").trim()&&(s.body||"").trim());return false;}
 function campStatusTag(c){return c.status==="active"?'<span class="pill ok">Active</span>':'<span class="pill gray">Draft</span>';}
 function campFlagTag(f){return f==="ok"?'<span class="pill ok">Ready</span>':f==="missing"?'<span class="pill gray">No email</span>':f==="dupe"?'<span class="pill warn">Duplicate</span>':'<span class="pill dang">Bad email</span>';}
