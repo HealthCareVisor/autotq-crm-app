@@ -157,6 +157,16 @@ table.lv tr:last-child td{border-bottom:none}
 table.lv tbody tr{cursor:pointer}
 table.lv tbody tr:hover{background:#fbf7f4}
 table.lv td.num{text-align:right;font-variant-numeric:tabular-nums}
+/* Excel-style list views: gridlines, resizable columns, per-column filters */
+table.lv th,table.lv td{border-right:1px solid #f0eee7}
+table.lv th:last-child,table.lv td:last-child{border-right:0}
+table.lv.fixedcols{table-layout:fixed}
+table.lv.fixedcols td{overflow:hidden;text-overflow:ellipsis}
+table.lv th .rz{position:absolute;right:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:3}
+table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,transparent 3px,var(--coral) 3px,var(--coral) 5px,transparent 5px)}
+.cf{display:block;width:100%;min-width:56px;margin-top:5px;padding:3px 7px;font-size:12px;font-weight:400;letter-spacing:0;text-transform:none;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+.cf::placeholder{color:#c9c5b9}
+.cf:focus{outline:none;border-color:var(--coral)}
 .lvname{font-weight:600;color:var(--ink)}
 .lvsub{color:var(--hint);font-size:12px;margin-top:1px}
 .who{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
@@ -333,7 +343,7 @@ const KEY="autotq_crm_v16", UKEY="autotq_crm_user", HKEY="autotq_crm_onboarded";
 const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
-const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie"};
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan"};
 const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
@@ -425,7 +435,7 @@ async function pullChanges(full){
       from=rows[rows.length-1].updated_at;page++;
     }
     SYNC.online=true;saveSyncMeta();
-    if(changed){localStorage.setItem(KEY,JSON.stringify(DB));
+    if(changed){normOppStages();localStorage.setItem(KEY,JSON.stringify(DB));
       const ae=document.activeElement;
       if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();}
     syncBadge("ok");
@@ -456,7 +466,7 @@ function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUp
 function uid(){return Math.random().toString(36).slice(2,9);}
 function titlecase(s){return s.replace(/\w\S*/g,t=>t[0].toUpperCase()+t.slice(1).toLowerCase());}
 function isTop(p){return p.units>=60;}
-function admin(){return USER==="max";}
+function admin(){return USER==="max"||USER==="kellan";}
 function mine(o){return admin()||o===USER;}
 function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";}
 
@@ -464,7 +474,8 @@ const TEAM=[
  {id:"max",name:"Max Herbst",role:"Strategic Account Manager",c:"#D85A30"},
  {id:"john",name:"John Cornejo",role:"Channel Sales Manager",c:"#185FA5"},
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
- {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"}
+ {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
+ {id:"kellan",name:"Kellan",role:"Admin",c:"#6B4FA3"}
 ];
 const ENRICH={
  "grainger":{name:"W.W. Grainger, Inc.",website:"grainger.com",industry:"Industrial MRO",city:"Lake Forest",state:"IL",kind:"National distributor"},
@@ -657,6 +668,7 @@ async function setPwSave(){
 function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return g+", "+teamById(USER).name.split(" ")[0];}
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
+  normOppStages(); // legacy stage labels from synced records → canonical, every render path
   resRefresh(); // RES mirrors the synced DB.resources
   const me=teamById(USER);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
@@ -721,6 +733,7 @@ function render(){
      '<button class="plus" data-act="addhub"><span class="bubble">'+svg("plus")+'</span></button>'+
      navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts")+'</div>'+
    '</div></div>';
+  applyColW();
 }
 function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="reports"&&view==="report");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
@@ -731,7 +744,24 @@ function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.rol
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function cmpv(a,b){if(typeof a==="number"&&typeof b==="number")return a-b;return String(a).localeCompare(String(b));}
 function contactCountMap(){const m={};DB.people.forEach(p=>{if(p.cid)m[p.cid]=(m[p.cid]||0)+1;});return m;}
-function thSort(tbl,key,lbl){const s=sortState[tbl];const on=s.key===key;return '<th class="srt'+(on?" on":"")+'" data-act="sort" data-tbl="'+tbl+'" data-key="'+key+'">'+lbl+(on?(s.dir>0?" ▲":" ▼"):"")+'</th>';}
+const FLT_TABLES={opps:1};
+let colFlt={};
+function cfInput(tbl,key){const v=(colFlt[tbl]||{})[key]||"";return '<input class="cf" id="cf_'+tbl+'_'+key+'" data-tbl="'+tbl+'" data-key="'+key+'" value="'+esc(v)+'" placeholder="Filter" autocomplete="off">';}
+function thSort(tbl,key,lbl){const s=sortState[tbl];const on=s.key===key;return '<th class="srt'+(on?" on":"")+'" data-act="sort" data-tbl="'+tbl+'" data-key="'+key+'">'+lbl+(on?(s.dir>0?" ▲":" ▼"):"")+(FLT_TABLES[tbl]?cfInput(tbl,key):'')+'<span class="rz"></span></th>';}
+function fltMatch(val,q){
+  q=String(q||"").trim();if(!q)return true;
+  const m=q.match(/^([<>]=?)\s*\$?([\d.,]+)\s*([kK])?$/);
+  if(m){const n=parseFloat(String(val).replace(/[^0-9.\-]/g,""));if(isNaN(n))return false;
+    let t=parseFloat(m[2].replace(/,/g,""));if(m[3])t*=1000;
+    return m[1]===">"?n>t:m[1]==="<"?n<t:m[1]===">="?n>=t:n<=t;}
+  return String(val).toLowerCase().includes(q.toLowerCase());
+}
+let COLW={};try{COLW=JSON.parse(localStorage.getItem("autotq_colw_v1")||"{}");}catch(e){}
+function applyColW(){document.querySelectorAll("table.lv[data-tbl]").forEach(t=>{
+  const w=COLW[t.dataset.tbl];if(!w)return;
+  const ths=t.querySelectorAll("thead th");if(ths.length!==w.length)return;
+  t.classList.add("fixedcols");ths.forEach((x,i)=>x.style.width=w[i]+"px");
+});}
 function typeTag(t){return {distributor:'<span class="pill coral">Distributor</span>',manrep:'<span class="pill info">Man-rep</span>',partner:'<span class="pill info">Partner</span>',enduser:'<span class="pill gray">End-user</span>'}[t]||'<span class="pill gray">Account</span>';}
 function ownerWho(o){if(!o)return '<span class="muted">—</span>';const t=teamById(o);return '<span class="who"><i style="background:'+t.c+'"></i>'+t.name.split(" ")[0]+'</span>';}
 function ownerWhoBig(o){if(!o)return '<span class="pill gray">Unassigned</span>';const t=teamById(o);return '<span class="who" style="font-size:14px"><i style="background:'+t.c+'"></i>'+t.name.split(" ")[0]+'</span>';}
@@ -758,11 +788,11 @@ function contactRow(p){const c=company(p.cid);const rb=roleBucket(p.role);return
 function accountTableHTML(list,sortable){const cc=contactCountMap();
   function th(k,l){return sortable?thSort("accounts",k,l):'<th>'+l+'</th>';}
   const head='<tr>'+th("name","Account")+th("type","Type")+th("territory","Region")+th("stage","Stage")+th("contacts","Contacts")+th("units","Units")+th("revenue","Revenue")+th("demos","Demos")+'</tr>';
-  return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+list.map(c=>accountRow(c,cc)).join("")+'</tbody></table></div>';}
+  return '<div class="tablewrap"><table class="lv" data-tbl="accounts"><thead>'+head+'</thead><tbody>'+list.map(c=>accountRow(c,cc)).join("")+'</tbody></table></div>';}
 function contactTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("contacts",k,l):'<th>'+l+'</th>';}
   const head='<tr>'+th("name","Contact")+th("account","Account")+th("state","State")+th("region","Region")+th("email","Email")+th("phone","Phone")+th("last","Last touch")+'</tr>';
-  return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+list.map(contactRow).join("")+'</tbody></table></div>';}
+  return '<div class="tablewrap"><table class="lv" data-tbl="contacts"><thead>'+head+'</thead><tbody>'+list.map(contactRow).join("")+'</tbody></table></div>';}
 
 /* ---------- tasks + channel enablement ---------- */
 function pad2(n){return (n<10?"0":"")+n;}
@@ -801,6 +831,23 @@ function roleBucket(r){r=(r||'').toLowerCase();
 const OPP_STAGES=["Prospecting","Qualification","Proposal/Price Quote","Negotiation","Closed Won","Closed Lost"];
 const OPP_SHORT={"Prospecting":"Prospecting","Qualification":"Qualification","Proposal/Price Quote":"Proposal","Negotiation":"Negotiation","Closed Won":"Won","Closed Lost":"Lost"};
 const OPP_PROB={"Prospecting":10,"Qualification":25,"Proposal/Price Quote":50,"Negotiation":75,"Closed Won":100,"Closed Lost":0};
+/* Synced records may carry man-rep-report stage labels ("Place Holder", "Demo / Meeting
+   with Customer"…) — map anything non-canonical onto OPP_STAGES so the board/forecasts see it. */
+const OPP_STAGE_ALIASES={"place holder":"Prospecting","demo / meeting with customer":"Qualification","demo/meeting with customer":"Qualification","quote for purchase":"Proposal/Price Quote","verbal commitment to order (90-120 days)":"Negotiation","run rate (120-365 days out)":"Negotiation","deal won":"Closed Won","deal lost":"Closed Lost"};
+function canonOppStage(s){
+  if(OPP_STAGES.includes(s))return s;
+  const k=String(s||"").trim().toLowerCase();
+  if(!k)return "Prospecting";
+  if(OPP_STAGE_ALIASES[k])return OPP_STAGE_ALIASES[k];
+  const ex=OPP_STAGES.find(x=>x.toLowerCase()===k);if(ex)return ex;
+  if(k.includes("won"))return "Closed Won";
+  if(k.includes("lost")||k.includes("dead"))return "Closed Lost";
+  if(k.includes("quote")||k.includes("proposal"))return "Proposal/Price Quote";
+  if(k.includes("verbal")||k.includes("negoti")||k.includes("commit")||k.includes("run rate"))return "Negotiation";
+  if(k.includes("demo")||k.includes("meeting")||k.includes("qualif"))return "Qualification";
+  return "Prospecting";
+}
+function normOppStages(){((DB&&DB.opps)||[]).forEach(o=>{if(o&&!OPP_STAGES.includes(o.stage))o.stage=canonOppStage(o.stage);});}
 function oppStageTag(s){const cls={"Prospecting":"gray","Qualification":"info","Proposal/Price Quote":"warn","Negotiation":"coral","Closed Won":"ok","Closed Lost":"dang"}[s]||"gray";return '<span class="pill '+cls+'">'+esc(OPP_SHORT[s]||s||"—")+'</span>';}
 function val(id){const e=document.getElementById(id);return e?e.value.trim():"";}
 function ensureOpps(){
@@ -1738,11 +1785,22 @@ function oppRow(o){
   '<td>'+regionTag(oppRegion(o))+'</td>'+
   '<td>'+(o.rep?esc(o.rep):(o.owner?esc(teamById(o.owner).name.split(" ")[0]):'<span class="muted">—</span>'))+'</td></tr>';
 }
+function oppFltVal(o,key){
+  if(key==="stage")return (OPP_SHORT[o.stage]||"")+" "+(o.stage||"")+(oppOverdue(o)?" past due":"");
+  if(key==="amount")return o.amount||0;
+  if(key==="units")return o.units||0;
+  if(key==="prob")return oppProb(o);
+  if(key==="close")return o.closeDate||(o.forecastYear?"FY "+o.forecastYear:"");
+  if(key==="region")return oppRegion(o)||"";
+  if(key==="rep")return o.rep||(o.owner?teamById(o.owner).name:"");
+  if(key==="account")return oppAcctLabel(o)+" "+(o.distributorName||"");
+  return (o.name||"")+" "+(o.dealType||"");
+}
 function oppTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("opps",k,l):'<th>'+l+'</th>';}
   const head='<tr>'+th("name","Opportunity")+th("account","Account")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("close","Close")+th("region","Region")+th("rep","Rep")+'</tr>';
   const total=list.reduce((s,o)=>s+(o.amount||0),0);
-  return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
+  return '<div class="tablewrap"><table class="lv"'+(sortable?' data-tbl="opps"':'')+'><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
     '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="5"></td></tr></tfoot></table></div>';
 }
 function oppCard(o){
@@ -1794,6 +1852,8 @@ function viewOpps(){
    '<button class="btn sm coral" data-act="addopp">'+svg("plus")+' New</button></div>';
   if(!show.length)return h+'<div class="empty">'+(pool.length?'Nothing in this tab.':'The pipeline is a clean slate — add deals as you confirm real numbers.<br><br><button class="btn coral" data-act="addopp">'+svg("plus")+' Add your first opportunity</button><br><br><span style="font-size:12.5px">The old imported pipeline is archived in CRM_Cleanup/opportunities_import_archive.csv for reference.</span>')+'</div>';
   if(oppView==="list"){
+    const f=colFlt.opps||{};
+    show=show.filter(o=>Object.keys(f).every(k=>fltMatch(oppFltVal(o,k),f[k])));
     const s=sortState.opps;
     show=show.slice().sort((a,b)=>cmpv(oppVal(a,s.key),oppVal(b,s.key))*s.dir);
     return h+oppTableHTML(show,true);
@@ -2280,7 +2340,7 @@ document.addEventListener("click",e=>{
     return;}
   if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
-  if(a==="sort"){const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
+  if(a==="sort"){if(e.target.tagName==="INPUT"||e.target.classList.contains("rz"))return;const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="acctfilter"){acctFilter=t.dataset.v;listQ="";render();return;}
   if(a==="contactfilter"){contactFilter=t.dataset.v;listQ="";contactStateF="";render();return;}
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
@@ -2421,9 +2481,34 @@ document.addEventListener("input",e=>{
   if(e.target.id==="travelState")renderTravel();
   if(e.target.id==="gsearch"){searchQ=e.target.value;view=searchQ.trim()?"search":"today";render();refocus("gsearch");}
   if(e.target.id==="lvsearch"){listQ=e.target.value;render();refocus("lvsearch");}
+  if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
   if(e.target.id==="contactState"){contactStateF=e.target.value;render();}
 });
 function refocus(idv){const el=document.getElementById(idv);if(el){const v=el.value;el.focus();try{el.setSelectionRange(v.length,v.length);}catch(_){}}}
+
+/* Excel-style column resize: drag a header's right edge; double-click the edge to reset the table */
+document.addEventListener("mousedown",e=>{
+  const rz=e.target.closest&&e.target.closest("table.lv th .rz");if(!rz)return;
+  e.preventDefault();e.stopPropagation();
+  const th=rz.parentElement,tr=th.parentElement,table=th.closest("table"),tbl=table.dataset.tbl;
+  const ths=[...tr.children];
+  const widths=ths.map(x=>x.getBoundingClientRect().width);
+  table.classList.add("fixedcols");
+  ths.forEach((x,i)=>x.style.width=widths[i]+"px");
+  const idx=ths.indexOf(th),startX=e.clientX,w0=widths[idx];
+  rz.classList.add("on");
+  function mv(ev){th.style.width=Math.max(52,w0+(ev.clientX-startX))+"px";}
+  function up(){document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);rz.classList.remove("on");
+    if(tbl){COLW[tbl]=[...tr.children].map(x=>x.getBoundingClientRect().width);localStorage.setItem("autotq_colw_v1",JSON.stringify(COLW));}}
+  document.addEventListener("mousemove",mv);
+  document.addEventListener("mouseup",up);
+});
+document.addEventListener("dblclick",e=>{
+  const rz=e.target.closest&&e.target.closest("table.lv th .rz");if(!rz)return;
+  const table=rz.closest("table"),tbl=table.dataset.tbl;
+  if(tbl){delete COLW[tbl];localStorage.setItem("autotq_colw_v1",JSON.stringify(COLW));}
+  table.classList.remove("fixedcols");table.querySelectorAll("thead th").forEach(x=>x.style.width="");
+});
 
 load();applyRosterCorrections();applyManrepPersonCoverage();applyPersonAddresses();
 // Arriving via a Supabase magic link: tokens land in the URL hash — capture them,
