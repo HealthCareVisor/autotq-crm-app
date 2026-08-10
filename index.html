@@ -264,6 +264,14 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .rolechip small{font-weight:500;color:var(--muted)}
 .rolechip button{border:none;background:#e0ddd3;border-radius:50%;width:17px;height:17px;line-height:1;font-size:11px;color:var(--muted);padding:0}
 .rolechip button:hover{background:var(--dang-b);color:var(--dang-t)}
+/* campaign wizard */
+.wiz{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.wiz button{flex:1;min-width:130px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;text-align:left}
+.wiz button.on{border-color:var(--coral);color:var(--coral);background:var(--coral-t)}
+.wiz button.done{color:var(--ok-t)}
+.dropzone{border:2px dashed var(--line);border-radius:16px;padding:26px 18px;text-align:center;color:var(--muted);background:#fff;cursor:pointer;transition:border-color .12s}
+.dropzone:hover,.dropzone.drag{border-color:var(--coral)}
+.dropzone svg{width:26px;height:26px;color:var(--hint)}
 /* excel-style part-number grid */
 .pngrid table{width:100%;border-collapse:collapse;font-size:13.5px}
 .pngrid th{position:relative;text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--hint);padding:10px 12px;border-bottom:1px solid var(--line);border-right:1px solid #f0eee7;background:#faf9f5;white-space:nowrap}
@@ -321,7 +329,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -510,7 +518,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
-function seed(){var b=demoSeed();b.resources=[];
+function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
   return b;}
@@ -649,7 +657,7 @@ function render(){
   const me=teamById(USER);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -662,6 +670,7 @@ function render(){
     insights:"Units bought & demos picked up, by distributor",
     map:(mapMode==="reps"?"Field reps by state — distributor + man-rep":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
     conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
+    camp:((DB.campaigns||[]).length?((DB.campaigns||[]).filter(c=>c.status==="active").length+" active · "+(DB.campaigns||[]).length+" total"):"Email sequences, sent from your own inbox"),
     confleads:"Conference call list — tap a lead to log the call",
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
@@ -678,6 +687,7 @@ function render(){
   else if(view==="report")body=viewReport(curReport);
   else if(view==="insights")body=viewInsights();
   else if(view==="confleads")body=viewConfLeads();
+  else if(view==="camp")body=viewCampaigns();
   else if(view==="person")body=viewPerson(curPerson);
   else if(view==="roster")body=viewRoster(curCompany);
   else if(view==="map")body=viewMap();
@@ -685,7 +695,7 @@ function render(){
   else if(view==="search")body=searchView();
   else body=viewToday();
   const groups=[
-   ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"]]],
+   ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
@@ -1451,6 +1461,248 @@ function viewConf(){
   return h;
 }
 
+/* ---------- CAMPAIGN (Apollo-powered email sequences) ---------- */
+let curCampaign=null, campStep=1;
+function ensureCampaigns(){DB.campaigns=DB.campaigns||[];}
+function campaignById(id){ensureCampaigns();return DB.campaigns.find(c=>c.id===id);}
+function campDefaultSteps(){return [
+ {day:1,subject:"Bleed control at {{company}}",body:"Hi {{first_name}},\n\nQuick one — does {{company}} have tourniquets staged where your crews actually work?\n\nAutoTQ is an automatic tourniquet anyone can apply in seconds, even one-handed, no training required. Severe bleeding is the jobsite injury that kills fastest — minutes matter.\n\nWorth a 10-minute look? Happy to send a demo unit.\n"},
+ {day:3,subject:"Re: Bleed control at {{company}}",body:"Hi {{first_name}},\n\nFloating this back to the top of your inbox — I know safety gear requests pile up.\n\nIf a demo unit for {{company}} would be useful, just reply \"send it\" and I'll get one out this week.\n"},
+ {day:7,subject:"Last note from me",body:"Hi {{first_name}},\n\nI'll close the loop here — if bleeding control isn't on the roadmap this quarter, no worries at all.\n\nIf it ever is, I'm one reply away.\n"}];}
+function campReady(c,step){if(step===1)return (c.leads||[]).some(l=>l.flag==="ok");if(step===2)return (c.steps||[]).some(s=>(s.subject||"").trim()&&(s.body||"").trim());return false;}
+function campStatusTag(c){return c.status==="active"?'<span class="pill ok">Active</span>':'<span class="pill gray">Draft</span>';}
+function campFlagTag(f){return f==="ok"?'<span class="pill ok">Ready</span>':f==="missing"?'<span class="pill gray">No email</span>':f==="dupe"?'<span class="pill warn">Duplicate</span>':'<span class="pill dang">Bad email</span>';}
+function campFill(t,l){return String(t||"").replace(/\{\{\s*first_name\s*\}\}/g,l.first||"there").replace(/\{\{\s*last_name\s*\}\}/g,l.last||"").replace(/\{\{\s*company\s*\}\}/g,l.company||"your team").replace(/\{\{\s*title\s*\}\}/g,l.title||"");}
+/* file parsing — CSV + XLSX, no libraries */
+function csvRows(text){
+  const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(q){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=ch;}
+    else if(ch==='"')q=true;
+    else if(ch===","){row.push(cell);cell="";}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cell);cell="";if(row.some(x=>String(x).trim()!==""))rows.push(row);row=[];}
+    else cell+=ch;}
+  row.push(cell);if(row.some(x=>String(x).trim()!==""))rows.push(row);
+  return rows;
+}
+function xmlDec(s){return String(s||"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#(\d+);/g,(_,d)=>String.fromCharCode(+d)).replace(/&amp;/g,"&");}
+async function xlsxRows(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf);
+  let e=-1;
+  for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-65558);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break;}}
+  if(e<0)throw new Error("That doesn't look like an Excel file");
+  const n=dv.getUint16(e+10,true);let off=dv.getUint32(e+16,true);
+  const files={};
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(off,true)!==0x02014b50)break;
+    const method=dv.getUint16(off+10,true),csize=dv.getUint32(off+20,true),nlen=dv.getUint16(off+28,true),xlen=dv.getUint16(off+30,true),clen=dv.getUint16(off+32,true),lho=dv.getUint32(off+42,true);
+    files[new TextDecoder().decode(u8.subarray(off+46,off+46+nlen))]={method,csize,lho};
+    off+=46+nlen+xlen+clen;
+  }
+  async function read(nm){
+    const f=files[nm];if(!f)return null;
+    const lnlen=dv.getUint16(f.lho+26,true),lxlen=dv.getUint16(f.lho+28,true);
+    const data=u8.subarray(f.lho+30+lnlen+lxlen,f.lho+30+lnlen+lxlen+f.csize);
+    if(f.method===0)return new TextDecoder().decode(data);
+    return new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+  }
+  const sst=[];const sx=await read("xl/sharedStrings.xml");
+  if(sx){const re=/<si[\s>][\s\S]*?<\/si>/g;let m;while((m=re.exec(sx))){const ts=m[0].match(/<t[^>]*>[\s\S]*?<\/t>/g)||[];sst.push(ts.map(t=>xmlDec(t.replace(/<[^>]*>/g,""))).join(""));}}
+  const sheetName=Object.keys(files).filter(k=>/^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}))[0];
+  const xml=await read(sheetName);if(!xml)throw new Error("No worksheet found in that file");
+  const rows=[];const rre=/<row[^>]*>([\s\S]*?)<\/row>/g;let rm;
+  while((rm=rre.exec(xml))){
+    const cells=[];const cre=/<c([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;let cm;
+    while((cm=cre.exec(rm[1]))){
+      const attrs=cm[1],inner=cm[2]||"";
+      const ref=(attrs.match(/r="([A-Z]+)\d+"/)||[])[1]||"";
+      let col=cells.length;
+      if(ref){col=0;for(const ch of ref)col=col*26+(ch.charCodeAt(0)-64);col=Math.max(0,col-1);}
+      const t=(attrs.match(/t="([^"]+)"/)||[])[1]||"";
+      let v="";
+      if(t==="inlineStr")v=xmlDec(((inner.match(/<t[^>]*>([\s\S]*?)<\/t>/)||[])[1]||"").replace(/<[^>]*>/g,""));
+      else{v=(inner.match(/<v>([\s\S]*?)<\/v>/)||[])[1]||"";v=(t==="s")?(sst[+v]||""):xmlDec(v);}
+      cells[col]=v;
+    }
+    rows.push(cells);
+  }
+  return rows;
+}
+function campParseFile(f){
+  const nm=f.name.toLowerCase();
+  if(nm.endsWith(".csv")||f.type==="text/csv")return f.text().then(csvRows);
+  if(nm.endsWith(".xlsx"))return f.arrayBuffer().then(xlsxRows);
+  return Promise.reject(new Error("Use a .csv or .xlsx file"));
+}
+function campMapRows(rows){
+  if(!rows.length)return {leads:[],found:{}};
+  const hdr=rows[0].map(h=>String(h||"").trim().toLowerCase());
+  function col(res){for(let i=0;i<hdr.length;i++){if(res.some(r=>r.test(hdr[i])))return i;}return -1;}
+  const iEmail=col([/e-?mail/]);
+  const iFirst=col([/first\s*_?name|^first$/]);
+  const iLast=col([/last\s*_?name|^last$/]);
+  const iName=col([/^(full\s*)?name$|contact\s*name/]);
+  const iCo=col([/company|account|organi[sz]ation|employer/]);
+  const iTitle=col([/title|role|position/]);
+  const seen=new Set(),leads=[];
+  rows.slice(1).forEach(r=>{
+    const email=String(iEmail>-1?(r[iEmail]||""):"").trim();
+    let first=iFirst>-1?String(r[iFirst]||"").trim():"",last=iLast>-1?String(r[iLast]||"").trim():"";
+    if(!first&&iName>-1){const parts=String(r[iName]||"").trim().split(/\s+/);first=parts[0]||"";last=parts.slice(1).join(" ");}
+    const lead={first,last,company:iCo>-1?String(r[iCo]||"").trim():"",title:iTitle>-1?String(r[iTitle]||"").trim():"",email};
+    const valid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    lead.flag=!email?"missing":(!valid?"bad":(seen.has(email.toLowerCase())?"dupe":"ok"));
+    if(lead.flag==="ok")seen.add(email.toLowerCase());
+    if(first||last||email||lead.company)leads.push(lead);
+  });
+  return {leads,found:{email:iEmail>-1,first:iFirst>-1||iName>-1,company:iCo>-1,title:iTitle>-1}};
+}
+function campHandleFile(f){
+  if(!f)return;
+  toast("Reading "+f.name+"…");
+  campParseFile(f).then(rows=>{
+    const m=campMapRows(rows);
+    if(!m.found.email){toast("No Email column found — add one and re-upload");return;}
+    if(!m.leads.length){toast("Couldn't find any contacts in that file");return;}
+    const c=campaignById(curCampaign);if(!c)return;
+    c.leads=m.leads;c.listName=f.name;save();render();
+    toast(m.leads.filter(l=>l.flag==="ok").length+" contacts ready to email");
+  }).catch(err=>toast(err.message||"Couldn't read that file"));
+}
+/* views */
+function viewCampaigns(){
+  ensureCampaigns();
+  const c=curCampaign?campaignById(curCampaign):null;
+  if(c)return c.status==="active"?campDashboard(c):campWizard(c);
+  const list=DB.campaigns.slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  let h='<div class="banner">'+svg("spark")+'Three steps: upload a lead list, write the emails, hit launch. Apollo sends them from your own inbox on schedule and stops the moment someone replies.</div>';
+  h+='<button class="btn coral" data-act="campnew" style="margin-bottom:16px">'+svg("plus")+' New campaign</button>';
+  if(!list.length)return h+'<div class="empty">No campaigns yet — start your first one above.</div>';
+  h+='<div class="sectlabel">All campaigns · '+list.length+'</div>';
+  h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Campaign</th><th>Status</th><th>Contacts</th><th>Sent</th><th>Opened</th><th>Replied</th><th>Bounced</th><th>Created</th></tr></thead><tbody>'+
+   list.map(x=>{const s=x.stats||{};const okn=(x.leads||[]).filter(l=>l.flag==="ok").length;
+    return '<tr data-act="campopen" data-id="'+x.id+'"><td class="lvname">'+esc(x.name)+'</td><td>'+campStatusTag(x)+'</td><td class="num">'+okn+'</td><td class="num">'+(s.sent!=null?s.sent:"—")+'</td><td class="num">'+(s.opened!=null?s.opened:"—")+'</td><td class="num">'+(s.replied!=null?s.replied:"—")+'</td><td class="num">'+(s.bounced!=null?s.bounced:"—")+'</td><td>'+esc(String(x.createdAt||"").slice(0,10))+'</td></tr>';}).join("")+
+  '</tbody></table></div>';
+  return h;
+}
+function campWizard(c){
+  const steps=[[1,"Upload leads"],[2,"Write the emails"],[3,"Launch"]];
+  let h='<div class="lvhead" style="margin-bottom:12px"><button class="btn sm ghost" data-act="campback">'+svg("back")+' All campaigns</button>'+
+   '<input class="f" id="campName" value="'+esc(c.name)+'" placeholder="Name this campaign" style="max-width:340px;font-weight:700">'+
+   '<button class="btn sm ghost" data-act="campdel" data-id="'+c.id+'" style="margin-left:auto;color:var(--dang-t)">Delete draft</button></div>';
+  h+='<div class="wiz">'+steps.map(s=>'<button class="'+(campStep===s[0]?"on":(campReady(c,s[0])?"done":""))+'" data-act="campstep" data-v="'+s[0]+'">'+(campReady(c,s[0])?"✓ ":"")+s[0]+'. '+s[1]+'</button>').join("")+'</div>';
+  if(campStep===1)h+=campLeadsUI(c);
+  else if(campStep===2)h+=campEmailsUI(c);
+  else h+=campLaunchUI(c);
+  return h;
+}
+function campLeadsUI(c){
+  const leads=c.leads||[];
+  let h='<div class="dropzone" data-act="camppick">'+svg("dl")+
+   '<p style="margin:8px 0 2px;font-weight:600">'+(leads.length?'Swap the list — drop a new file here':'Drop your lead list here, or tap to choose a file')+'</p>'+
+   '<p style="margin:0;font-size:12.5px;color:var(--hint)">CSV or Excel (.xlsx). Needs an Email column — Name, Company and Title make the personalization work.</p></div>'+
+   '<input type="file" id="campFile" accept=".csv,.xlsx" style="display:none">';
+  if(leads.length){
+    const ok=leads.filter(l=>l.flag==="ok").length,miss=leads.filter(l=>l.flag==="missing").length,bad=leads.filter(l=>l.flag==="bad").length,dupe=leads.filter(l=>l.flag==="dupe").length;
+    h+='<div class="kpis" style="margin-top:14px">'+
+     '<div class="kpi"><b>Ready to email</b><span>'+ok+'</span><small>'+esc(c.listName||"")+'</small></div>'+
+     '<div class="kpi"><b>No email</b><span>'+miss+'</span><small>left out automatically</small></div>'+
+     '<div class="kpi"><b>Bad address</b><span>'+bad+'</span><small>left out automatically</small></div>'+
+     '<div class="kpi"><b>Duplicates</b><span>'+dupe+'</span><small>left out automatically</small></div></div>';
+    h+='<div class="tablewrap" style="margin-top:6px"><table class="lv"><thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Email</th><th></th></tr></thead><tbody>'+
+     leads.slice(0,500).map(l=>'<tr'+(l.flag!=="ok"?' style="opacity:.45"':'')+'><td class="lvname">'+esc((l.first+" "+l.last).trim()||"—")+'</td><td>'+esc(l.company||"—")+'</td><td>'+esc(l.title||"—")+'</td><td>'+esc(l.email||"—")+'</td><td>'+campFlagTag(l.flag)+'</td></tr>').join("")+'</tbody></table></div>'+
+     (leads.length>500?'<p style="font-size:12.5px;color:var(--hint);text-align:center;margin-top:6px">Showing the first 500 of '+leads.length+' — everyone valid still gets enrolled.</p>':'');
+    if(ok)h+='<button class="btn coral block" data-act="campstep" data-v="2" style="margin-top:14px">Looks right — write the emails →</button>';
+  }
+  return h;
+}
+function campEmailsUI(c){
+  if(!c.steps||!c.steps.length){c.steps=campDefaultSteps();save();}
+  const first=(c.leads||[]).find(l=>l.flag==="ok");
+  let h='<div class="banner">'+svg("note")+'Short and human wins. The starter emails below are editable — tap a token chip to drop {{first_name}}-style fills at your cursor. Day numbers control the wait between emails.</div>';
+  c.steps.forEach((s,i)=>{
+    h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="margin-bottom:8px;align-items:center"><b style="font-size:14px">Email '+(i+1)+'</b>'+
+     '<span style="margin-left:12px;font-size:13px;color:var(--muted)">sends on day</span><input class="f" data-cfield="day" data-ci="'+i+'" value="'+(s.day||1)+'" inputmode="numeric" style="width:56px;text-align:center;padding:6px;margin-left:6px">'+
+     (c.steps.length>1?'<button class="btn sm ghost" data-act="campdelstep" data-v="'+i+'" style="margin-left:auto;color:var(--dang-t)">Remove</button>':'')+'</div>'+
+     '<label class="fl">Subject</label><input class="f" data-cfield="subject" data-ci="'+i+'" value="'+esc(s.subject||"")+'" placeholder="Subject line">'+
+     '<label class="fl">Message</label><textarea class="f" data-cfield="body" data-ci="'+i+'" rows="7" placeholder="Hi {{first_name}}, …">'+esc(s.body||"")+'</textarea>'+
+     '<div class="chips" style="margin-top:8px">'+["first_name","last_name","company","title"].map(t=>'<span class="chip" data-act="camptoken" data-v="'+t+'" data-ci="'+i+'">{{'+t+'}}</span>').join("")+'</div></div>';
+  });
+  h+='<button class="btn block" data-act="campaddstep" style="margin-bottom:14px">'+svg("plus")+' Add a follow-up</button>';
+  if(first)h+='<div class="sectlabel">Preview — Email 1 as '+esc(first.first||first.email)+' will read it</div>'+
+   '<div class="reccard" style="margin-bottom:14px"><b style="font-size:14px">'+esc(campFill(c.steps[0].subject,first))+'</b><p style="white-space:pre-wrap;font-size:13.5px;color:var(--muted);margin:8px 0 0">'+esc(campFill(c.steps[0].body,first))+'</p></div>';
+  h+='<button class="btn coral block" data-act="campstep" data-v="3">Emails are ready — review &amp; launch →</button>';
+  return h;
+}
+function campLaunchUI(c){
+  const ok=(c.leads||[]).filter(l=>l.flag==="ok");
+  const sorted=(c.steps||[]).slice().sort((a,b)=>(a.day||1)-(b.day||1));
+  let h='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel" style="margin:0 0 10px">What happens when you launch</div>'+
+   '<div class="tk" style="align-items:flex-start"><b style="width:86px;flex:none">Who</b><span style="font-size:13.5px">'+ok.length+' contacts with valid emails'+(((c.leads||[]).length-ok.length)?' · '+((c.leads||[]).length-ok.length)+' left out (missing/bad/duplicate)':'')+'</span></div>'+
+   sorted.map(s=>'<div class="tk" style="align-items:flex-start"><b style="width:86px;flex:none">Day '+(s.day||1)+'</b><span style="font-size:13.5px">'+esc(s.subject||"(no subject)")+'</span></div>').join("")+
+   '<div class="tk" style="align-items:flex-start"><b style="width:86px;flex:none">From</b><span style="font-size:13.5px" id="campMailbox">Checking your connected inbox…</span></div></div>';
+  h+='<div class="banner">'+svg("spark")+'Apollo sends on schedule from your own inbox, personalizes every email, and stops a thread the moment someone replies.</div>';
+  h+='<button class="btn coral block" data-act="camplaunch" style="font-size:15.5px;padding:14px">Launch — email '+ok.length+' people</button>';
+  setTimeout(campMailboxCheck,80);
+  return h;
+}
+function campDashboard(c){
+  const s=c.stats||{};const ok=(c.leads||[]).filter(l=>l.flag==="ok");
+  let h='<button class="btn sm ghost" data-act="campback" style="margin:0 0 12px">'+svg("back")+' All campaigns</button>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="row"><div class="grow"><p class="t1" style="font-size:18px">'+esc(c.name)+'</p>'+
+   '<p class="t2">'+campStatusTag(c)+' · '+ok.length+' contacts · launched '+esc(String(c.launchedAt||"").slice(0,10))+(s.updatedAt?' · stats from '+new Date(s.updatedAt).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}):'')+'</p></div>'+
+   '<button class="btn sm" data-act="campstats">'+svg("clock")+' Refresh stats</button></div></div>';
+  h+='<div class="kpis">'+[["Sent","sent"],["Opened","opened"],["Clicked","clicked"],["Replied","replied"],["Bounced","bounced"]].map(x=>{
+    const v=s[x[1]];const pct=(s.sent&&x[1]!=="sent"&&v!=null)?Math.round(v/s.sent*100)+"% of sent":"";
+    return '<div class="kpi"><b>'+x[0]+'</b><span>'+(v!=null?v:"—")+'</span><small>'+pct+'</small></div>';}).join("")+'</div>';
+  h+='<div class="sectlabel">Who\'s enrolled</div>'+
+   '<div class="tablewrap"><table class="lv"><thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Email</th></tr></thead><tbody>'+
+   ok.slice(0,500).map(l=>'<tr><td class="lvname">'+esc((l.first+" "+l.last).trim()||"—")+'</td><td>'+esc(l.company||"—")+'</td><td>'+esc(l.title||"—")+'</td><td>'+esc(l.email)+'</td></tr>').join("")+'</tbody></table></div>';
+  return h;
+}
+/* Apollo bridge (Supabase Edge Function proxy — the key never lives in this page) */
+async function apolloCall(action,payload){
+  const res=await supa("/functions/v1/apollo-bridge",{method:"POST",body:JSON.stringify(Object.assign({action:action},payload||{}))});
+  if(!res.ok)throw new Error("bridge unavailable ("+res.status+")");
+  return res.json();
+}
+async function campMailboxCheck(){
+  const el=document.getElementById("campMailbox");if(!el)return;
+  try{
+    const r=await apolloCall("status");
+    const mine=(r.mailboxes||[]).find(m=>SESSION&&SESSION.user&&m.email&&m.email.toLowerCase()===String(SESSION.user.email||"").toLowerCase());
+    const mb=mine||(r.mailboxes||[])[0];
+    el.innerHTML=mb?('<b style="color:var(--ok-t)">'+esc(mb.email)+'</b> — connected and ready'):'<b style="color:var(--dang-t)">No inbox connected yet</b> — link your Gmail/Outlook in Apollo (Settings → Mailboxes), then come back.';
+  }catch(e){el.innerHTML='<b style="color:var(--warn-t,#854F0B)">Apollo bridge not set up yet</b> — campaigns save as drafts until Max finishes the one-time setup.';}
+}
+async function campLaunch(){
+  const c=campaignById(curCampaign);if(!c)return;
+  const ok=(c.leads||[]).filter(l=>l.flag==="ok");
+  if(!ok.length){toast("Upload a lead list first");campStep=1;render();return;}
+  if(!campReady(c,2)){toast("Write at least one email first");campStep=2;render();return;}
+  if(!confirm('Launch "'+c.name+'" to '+ok.length+' people? Emails start going out today.'))return;
+  toast("Launching…");
+  try{
+    const r=await apolloCall("launch",{name:c.name,steps:c.steps,contacts:ok});
+    c.status="active";c.apolloId=r.campaignId||null;c.launchedAt=new Date().toISOString();
+    c.stats=r.stats||{sent:0,opened:0,clicked:0,replied:0,bounced:0,updatedAt:new Date().toISOString()};
+    save();render();toast("Campaign launched");
+  }catch(e){
+    openSheet('<h2>Almost there</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">Your campaign is saved as a draft — nothing was sent. The Apollo bridge isn\'t reachable yet ('+esc(e.message)+'). One-time setup:</p>'+
+     '<div class="tk" style="align-items:flex-start"><b style="flex:none;width:22px">1</b><span style="font-size:13.5px">Max deploys the <b>apollo-bridge</b> Edge Function in Supabase and adds the Apollo key as a secret (instructions in the repo: AutoTQ_CRM_scripts/APOLLO_SETUP.md).</span></div>'+
+     '<div class="tk" style="align-items:flex-start"><b style="flex:none;width:22px">2</b><span style="font-size:13.5px">Each sender links their inbox once in Apollo → Settings → Mailboxes.</span></div>');
+  }
+}
+async function campRefreshStats(){
+  const c=campaignById(curCampaign);if(!c||!c.apolloId){toast("No Apollo campaign attached");return;}
+  toast("Refreshing…");
+  try{
+    const r=await apolloCall("stats",{campaignId:c.apolloId});
+    c.stats=Object.assign({},c.stats,r.stats||{},{updatedAt:new Date().toISOString()});
+    save();render();
+  }catch(e){toast("Couldn't reach the Apollo bridge");}
+}
+
 /* ---------- CONFERENCE LEADS ---------- */
 function confLeadLists(){
   const by={};(DB.confLeads||[]).forEach(l=>{(by[l.conf]=by[l.conf]||[]).push(l);});
@@ -2071,7 +2323,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="height:8px"></div>'+
- [["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
+ [["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b>'+n[2]+'</b></button>').join("")+
  '<div style="height:8px"></div>'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -2113,7 +2365,8 @@ function helpSheet(){
    ["Reports","10 ready-made reports; sort any column, export CSV."],
    ["Field Map","US map — flip between demos in the field and distributor reps by state. Tap a state."],
    ["Volume","Distributor volume — units bought, revenue, orders and the demo units they've picked up."],
-   ["Conferences","The show calendar; shows with lead lists link straight to the call list."]
+   ["Conferences","The show calendar; shows with lead lists link straight to the call list."],
+   ["Campaign","Upload a lead list, write a short email sequence, launch — Apollo sends from your own inbox on schedule and tracks opens, clicks and replies."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / West</b> by state — John works West, Jamie works East, Max sees everything.</p>'+
@@ -2227,6 +2480,22 @@ document.addEventListener("click",e=>{
       save();render();}
     return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
+  if(a==="campnew"){ensureCampaigns();const nid=uid();DB.campaigns.push({id:nid,name:"New campaign — "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],steps:campDefaultSteps()});save();curCampaign=nid;campStep=1;render();return;}
+  if(a==="campopen"){curCampaign=id;campStep=1;render();return;}
+  if(a==="campback"){curCampaign=null;render();return;}
+  if(a==="campstep"){campStep=+t.dataset.v;render();window.scrollTo(0,0);return;}
+  if(a==="camppick"){const fi=document.getElementById("campFile");if(fi)fi.click();return;}
+  if(a==="campdel"){const c=campaignById(id);if(c&&confirm('Delete the draft "'+c.name+'"?')){DB.campaigns=DB.campaigns.filter(x=>x.id!==id);save();curCampaign=null;render();toast("Draft deleted");}return;}
+  if(a==="campaddstep"){const c=campaignById(curCampaign);if(c){const lastDay=Math.max.apply(null,c.steps.map(s=>s.day||1));c.steps.push({day:lastDay+4,subject:"",body:""});save();render();}return;}
+  if(a==="campdelstep"){const c=campaignById(curCampaign);if(c&&c.steps.length>1){c.steps.splice(+t.dataset.v,1);save();render();}return;}
+  if(a==="camptoken"){const ci=+t.dataset.ci;const c=campaignById(curCampaign);
+    const ta=document.querySelector('textarea[data-ci="'+ci+'"]');
+    if(ta&&c){const tok="{{"+t.dataset.v+"}}";const st=ta.selectionStart!=null?ta.selectionStart:ta.value.length;
+      ta.value=ta.value.slice(0,st)+tok+ta.value.slice(ta.selectionEnd!=null?ta.selectionEnd:st);
+      c.steps[ci].body=ta.value;save();ta.focus();ta.selectionStart=ta.selectionEnd=st+tok.length;}
+    return;}
+  if(a==="camplaunch"){campLaunch();return;}
+  if(a==="campstats"){campRefreshStats();return;}
   if(a==="fcell"){fSel=t.dataset.cat?{cat:t.dataset.cat,period:t.dataset.period}:null;render();return;}
   if(a==="help"){helpSheet();return;}
   if(a==="closehelp"){localStorage.setItem(HKEY,"1");closeSheet();if(view==="today")render();return;}
@@ -2282,6 +2551,14 @@ document.addEventListener("input",e=>{
   if(e.target.id==="gsearch"){searchQ=e.target.value;view=searchQ.trim()?"search":"today";render();refocus("gsearch");}
   if(e.target.id==="lvsearch"){listQ=e.target.value;render();refocus("lvsearch");}
   if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
+  if(e.target.id==="campFile"){campHandleFile(e.target.files&&e.target.files[0]);return;}
+  if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
+  if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
+    if(c&&c.steps[+e.target.dataset.ci]){const f=e.target.dataset.cfield;
+      if(f==="day")c.steps[+e.target.dataset.ci].day=Math.max(1,parseInt(e.target.value,10)||1);
+      else c.steps[+e.target.dataset.ci][f]=e.target.value;
+      save();}
+    return;}
   if(e.target.id==="contactState"){contactStateF=e.target.value;render();}
 });
 function refocus(idv){const el=document.getElementById(idv);if(el){const v=el.value;el.focus();try{el.setSelectionRange(v.length,v.length);}catch(_){}}}
@@ -2303,6 +2580,10 @@ document.addEventListener("mousedown",e=>{
   document.addEventListener("mousemove",mv);
   document.addEventListener("mouseup",up);
 });
+/* campaign dropzone drag & drop */
+document.addEventListener("dragover",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(dz){e.preventDefault();dz.classList.add("drag");}});
+document.addEventListener("dragleave",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(dz)dz.classList.remove("drag");});
+document.addEventListener("drop",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(!dz)return;e.preventDefault();dz.classList.remove("drag");campHandleFile(e.dataTransfer.files&&e.dataTransfer.files[0]);});
 document.addEventListener("dblclick",e=>{
   const rz=e.target.closest&&e.target.closest("table.lv th .rz");if(!rz)return;
   const table=rz.closest("table"),tbl=table.dataset.tbl;
