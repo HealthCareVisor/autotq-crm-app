@@ -314,10 +314,6 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
  .tbar .btn.coral span.t{display:none}
 }
 @media(min-width:641px){ .work>.nav{display:none!important} }
-.callgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
-.ldcard{margin-bottom:0}
-.ldcard .pill{font-size:10px;padding:2px 8px;vertical-align:middle;letter-spacing:.3px}
-.ldnote{font-size:12.5px;color:var(--muted);white-space:normal;margin-top:4px;font-style:italic}
 </style>
 </head>
 <body>
@@ -332,7 +328,7 @@ const KEY="autotq_crm_v16", UKEY="autotq_crm_user", HKEY="autotq_crm_onboarded";
 const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
-const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan"};
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm"};
 const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
@@ -464,7 +460,8 @@ const TEAM=[
  {id:"john",name:"John Cornejo",role:"Channel Sales Manager",c:"#185FA5"},
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
  {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
- {id:"kellan",name:"Kellan",role:"Admin",c:"#6B4FA3"}
+ {id:"kellan",name:"Kellan",role:"Admin",c:"#6B4FA3"},
+ {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"}
 ];
 const ENRICH={
  "grainger":{name:"W.W. Grainger, Inc.",website:"grainger.com",industry:"Industrial MRO",city:"Lake Forest",state:"IL",kind:"National distributor"},
@@ -862,7 +859,7 @@ function personStates(p){if(Array.isArray(p.states)&&p.states.length)return p.st
 function regionFromStates(arr){if(!arr||!arr.length)return '';const r=new Set(arr.map(regionFromState).filter(Boolean));if(r.size>1)return 'Nationwide';return [...r][0]||'';}
 function personRegion(p){return regionFromStates(personStates(p));}
 function companyRegion(c){return c.territory?c.territory:regionFromState(c.state);}
-function userRegion(u){return u==="john"?"West":(u==="jamie"?"East":null);}
+function userRegion(u){return u==="john"?"West":(u==="jamie"||u==="johnm"?"East":null);}
 function inRegion(region){if(admin())return true;const ur=userRegion(USER);if(!ur)return true;return region===ur||region==="Nationwide";}
 function regionTag(region){if(!region)return '<span class="muted">—</span>';const cls={East:"info",West:"ok",Nationwide:"coral"}[region]||"gray";return '<span class="pill '+cls+'">'+region+'</span>';}
 
@@ -1760,49 +1757,18 @@ function viewConfLeads(){
   h+='<div class="lvhead"><div class="lvtabs">'+tab("tocall","To call",cnt.tocall)+tab("contacted","Contacted",cnt.contacted)+tab("hot","Interest",cnt.hot)+tab("aside","Set aside",cnt.aside)+tab("all","All",cnt.all)+'</div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   if(!pool.length)return h+'<div class="empty">Nothing in this tab.</div>';
-  // Call-sheet cards (modeled on the AutoTQ printed call sheet): grouped, tap-to-call/email,
-  // status chip + date, whole card opens the log-the-call editor.
-  function grpKey(l){
-    if(l.segment&&l.segment!=="Set Aside")return l.segment.toUpperCase()+(l.tz?" · "+l.tz.toUpperCase()+" TIME":"");
-    if(l.region==="International")return "INTERNATIONAL";
-    if(l.region)return l.region.toUpperCase();
-    return "LEADS";
-  }
-  const groups={};
-  pool.forEach(l=>{(groups[grpKey(l)]=groups[grpKey(l)]||[]).push(l);});
-  h+=Object.keys(groups).sort().map(gk=>{
-    const ls=groups[gk].slice().sort((a,b)=>String(a.state||"~").localeCompare(String(b.state||"~"))||String(a.name).localeCompare(String(b.name)));
-    let g='<div class="sectlabel" style="margin-top:16px">'+esc(gk)+' — '+ls.length+'</div><div class="callgrid">';
-    g+=ls.map(l=>{
-      const chip=leadChip(l);
-      const loc=[l.city,l.state].filter(Boolean).join(", ");
-      return '<div class="card ldcard" data-act="leadopen" data-id="'+esc(l.id)+'" style="cursor:pointer">'+
-       '<p class="t1" style="font-size:14.5px">'+esc(l.name)+' '+chip+(l.promoted?' <span class="pill coral" style="font-size:10px;padding:1px 6px;vertical-align:middle">in CRM</span>':'')+'</p>'+
-       ((l.title||l.company)?'<p class="t2" style="white-space:normal">'+esc([l.title,l.company].filter(Boolean).join("  ·  "))+'</p>':'')+
-       (loc?'<p class="t2">'+esc(loc)+'</p>':'')+
-       contactLine(l.email,l.phone)+
-       ((l.status&&l.status!=="Not contacted")?'<p class="ldnote">'+esc(l.status)+(l.touched?' — '+fmtMD(l.touched):'')+'</p>':'')+
-       (l.next?'<p class="ldnote" style="color:var(--coral)">Next: '+esc(l.next)+'</p>':'')+
-       '</div>';}).join("");
-    return g+'</div>';
-  }).join("");
+  function th(k,l){return thSort("leads",k,l);}
+  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+th("state","State")+th("region","Region")+th("temp","Temp")+th("status","Status")+'<th>Phone</th></tr></thead><tbody>'+
+   pool.map(l=>'<tr data-act="leadopen" data-id="'+esc(l.id)+'">'+
+    '<td><div class="lvname">'+esc(l.name)+(l.contacted?' <span class="pill ok" style="font-size:10px;padding:1px 6px;vertical-align:middle">✓</span>':'')+(l.promoted?' <span class="pill coral" style="font-size:10px;padding:1px 6px;vertical-align:middle">in CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
+    '<td>'+esc(l.company||"—")+'</td>'+
+    '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
+    '<td>'+(l.region==="International"?'<span class="pill gray">Intl</span>':regionTag(l.region))+'</td>'+
+    '<td>'+leadTempTag(l.temp)+'</td>'+
+    '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+esc(l.status||"")+(l.next?'<div class="lvsub">'+esc(l.next)+'</div>':'')+'</td>'+
+    '<td>'+(l.phone?esc(l.phone):'<span class="muted">—</span>')+'</td></tr>').join("")+
+   '</tbody></table></div>';
   return h;
-}
-function fmtMD(ymd){if(!ymd)return"";const p=String(ymd).split("-");return p.length===3?(+p[1])+"/"+(+p[2]):ymd;}
-function contactLine(email,phone){
-  if(!email&&!phone)return '<p class="t2"><span class="muted">no contact info on file</span></p>';
-  return '<p class="t2" style="white-space:normal;display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:2px">'+
-    (email?svg("mail")+'<a href="mailto:'+esc(email)+'" style="color:var(--info-t)">'+esc(email)+'</a>':'')+
-    (phone?svg("phone")+'<a href="tel:'+esc(String(phone).replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(phone)+'</a>':'')+'</p>';
-}
-function leadChip(l){
-  const d=l.touched?" · "+fmtMD(l.touched):"";
-  if(l.temp==="Hot")return '<span class="pill dang">HOT'+d+'</span>';
-  if(l.temp==="Warm")return '<span class="pill warn">WARM'+d+'</span>';
-  if(l.temp==="Interested"||l.temp==="Interested (no budget)")return '<span class="pill info">'+(l.temp==="Interested"?"WANTS INFO":"NO BUDGET")+d+'</span>';
-  if(l.temp==="Voicemail")return '<span class="pill gray">LVM'+d+'</span>';
-  if(l.contacted)return '<span class="pill ok">CALLED'+d+'</span>';
-  return '';
 }
 function leadById(id){return (DB.confLeads||[]).find(l=>l.id===id);}
 function formLead(id){
@@ -1819,7 +1785,6 @@ function formLead(id){
    '<label class="fl">Temperature</label><div class="chips" id="ldT">'+
     temps.map(v=>'<span class="chip'+(l.temp===v?' on':'')+'" data-act="setLeadT" data-v="'+v+'">'+v+'</span>').join("")+'</div>'+
    '<label class="fl">Status / outcome</label><input class="f" id="ldStatus" value="'+esc(l.status||"")+'" placeholder="e.g. Voicemail left · HOT — wants demo">'+
-   '<label class="fl">Call date</label><input class="f" id="ldDate" type="date" value="'+esc(l.touched||todayStr())+'">'+
    '<label class="fl">Next step</label><input class="f" id="ldNext" value="'+esc(l.next||"")+'" placeholder="e.g. callback wk of 7/13">'+
    '<button class="btn coral block" data-act="saveLead" style="margin-top:18px">Save lead</button>'+
    (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ Already in the CRM as a contact</p>'
@@ -1855,7 +1820,6 @@ function saveLead(){
   l.contacted=logState.leadC==="Yes";l.temp=logState.leadT||l.temp;
   l.status=val("ldStatus")||l.status;l.next=val("ldNext");
   if(l.contacted&&l.status==="Not contacted")l.status="Contacted";
-  if(l.contacted||(l.temp&&l.temp!=="New"))l.touched=val("ldDate")||todayStr(); // date the touch (shows on the call sheet)
   save();closeSheet();render();toast(l.name+" updated");
 }
 
@@ -2420,7 +2384,6 @@ function exportCSV(){
 }
 
 document.addEventListener("click",e=>{
-  if(e.target.closest("a[href^='mailto:'],a[href^='tel:']"))return; // tap-to-call/email must not also open the card
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
