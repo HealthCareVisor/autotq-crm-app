@@ -407,20 +407,25 @@ function applyRemote(coll,id,data,deleted){
 async function pullChanges(full){
   if(!authed())return;
   try{
-    let changed=false,from=full?"1970-01-01T00:00:00Z":SYNC.lastPull,page=0;
-    while(page<10){
-      const res=await supa("/rest/v1/records?updated_at=gt."+encodeURIComponent(from)+"&order=updated_at.asc,collection.asc,id.asc&limit=1000");
+    // Page with a FIXED cursor + offset: bulk imports share one updated_at, so a
+    // strict gt.<last row ts> cursor skips every remaining row at the boundary ts.
+    let changed=false;
+    const from=full?"1970-01-01T00:00:00Z":SYNC.lastPull;
+    let maxTs=SYNC.lastPull,offset=0,page=0;
+    while(page<30){
+      const res=await supa("/rest/v1/records?updated_at=gte."+encodeURIComponent(from)+"&order=updated_at.asc,collection.asc,id.asc&limit=1000&offset="+offset);
       if(!res.ok){SYNC.online=false;syncBadge("off");return;}
       const rows=await res.json();
       rows.forEach(r=>{
         const k=syncKey(r.collection,r.id);
+        if(r.updated_at>maxTs)maxTs=r.updated_at;
         if(SYNC.dirty[k])return; // local unpushed edit wins until pushed
         if(SYNC_COLLECTIONS.includes(r.collection)&&applyRemote(r.collection,r.id,r.data,r.deleted))changed=true;
-        if(r.updated_at>SYNC.lastPull)SYNC.lastPull=r.updated_at;
       });
       if(rows.length<1000)break;
-      from=rows[rows.length-1].updated_at;page++;
+      offset+=1000;page++;
     }
+    SYNC.lastPull=maxTs;
     SYNC.online=true;saveSyncMeta();
     if(changed){normOppStages();localStorage.setItem(KEY,JSON.stringify(DB));
       const ae=document.activeElement;
