@@ -147,6 +147,8 @@ input.f:focus,select.f:focus,textarea.f:focus{outline:none;border-color:var(--co
 .lvselect{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:13.5px;font-family:inherit;color:var(--ink);margin-right:8px}
 .lvselect:focus{outline:none;border-color:var(--coral)}
 .tablewrap{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto}
+.topscroll{overflow-x:auto;overflow-y:hidden;height:14px;margin:0 0 6px}
+.topscroll>div{height:1px}
 table.lv{width:100%;border-collapse:collapse;font-size:13.5px}
 table.lv th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--hint);padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:#faf9f5}
 table.lv th.srt{cursor:pointer;user-select:none}
@@ -719,6 +721,7 @@ function render(){
      navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts")+'</div>'+
    '</div></div>';
   applyColW();
+  topScrollSync();
 }
 function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="reports"&&view==="report");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
@@ -741,6 +744,23 @@ function fltMatch(val,q){
     return m[1]===">"?n>t:m[1]==="<"?n<t:m[1]===">="?n>=t:n<=t;}
   return String(val).toLowerCase().includes(q.toLowerCase());
 }
+/* top scrollbar for wide tables — mirrors the table's horizontal scroll so you don't have to reach the bottom */
+function topScrollSync(){
+  document.querySelectorAll(".tablewrap").forEach(w=>{
+    let bar=w.previousElementSibling;
+    const isBar=bar&&bar.classList&&bar.classList.contains("topscroll");
+    const need=w.scrollWidth>w.clientWidth+4;
+    if(!need){if(isBar)bar.remove();return;}
+    if(!isBar){
+      bar=document.createElement("div");bar.className="topscroll";bar.innerHTML="<div></div>";
+      w.parentNode.insertBefore(bar,w);
+      bar.addEventListener("scroll",()=>{w.scrollLeft=bar.scrollLeft;});
+      w.addEventListener("scroll",()=>{bar.scrollLeft=w.scrollLeft;});
+    }
+    bar.firstChild.style.width=w.scrollWidth+"px";
+  });
+}
+window.addEventListener("resize",()=>{clearTimeout(window.__tsT);window.__tsT=setTimeout(topScrollSync,150);});
 let COLW={};try{COLW=JSON.parse(localStorage.getItem("autotq_colw_v1")||"{}");}catch(e){}
 function applyColW(){document.querySelectorAll("table.lv[data-tbl]").forEach(t=>{
   const w=COLW[t.dataset.tbl];if(!w)return;
@@ -2577,7 +2597,8 @@ document.addEventListener("mousedown",e=>{
   rz.classList.add("on");
   function mv(ev){th.style.width=Math.max(52,w0+(ev.clientX-startX))+"px";}
   function up(){document.removeEventListener("mousemove",mv);document.removeEventListener("mouseup",up);rz.classList.remove("on");
-    if(tbl){COLW[tbl]=[...tr.children].map(x=>x.getBoundingClientRect().width);localStorage.setItem("autotq_colw_v1",JSON.stringify(COLW));}}
+    if(tbl){COLW[tbl]=[...tr.children].map(x=>x.getBoundingClientRect().width);localStorage.setItem("autotq_colw_v1",JSON.stringify(COLW));}
+    topScrollSync();}
   document.addEventListener("mousemove",mv);
   document.addEventListener("mouseup",up);
 });
