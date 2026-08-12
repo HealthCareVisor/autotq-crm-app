@@ -1873,6 +1873,7 @@ function saveLead(){
 function oppVal(o,key){
   if(key==="name")return (o.name||"").toLowerCase();
   if(key==="account")return oppAcctLabel(o).toLowerCase();
+  if(key==="state")return o.state||"~";
   if(key==="stage")return OPP_STAGES.indexOf(o.stage);
   if(key==="amount")return o.amount||0;
   if(key==="units")return o.units||0;
@@ -1890,6 +1891,7 @@ function oppRow(o){
   return '<tr data-act="editopp" data-id="'+o.id+'">'+
   '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+esc(o.dealType||"")+(o.source==="manrep-report"?" · man-rep report":"")+'</div></td>'+
   '<td>'+esc(oppAcctLabel(o))+(o.distributorName&&o.distributorName!==oppAcctLabel(o)?'<div class="lvsub">via '+esc(o.distributorName)+'</div>':'')+'</td>'+
+  '<td>'+(o.state?stateChip(o.state):'<span class="muted">—</span>')+'</td>'+
   '<td>'+oppStageTag(o.stage)+(oppOverdue(o)?' <span class="pill dang">past due</span>':'')+'</td>'+
   '<td class="num">'+money(o.amount||0)+'</td>'+
   '<td class="num">'+(o.units||'—')+'</td>'+
@@ -1911,6 +1913,7 @@ function oppFltVal(o,key){
   if(key==="region")return oppRegion(o)||"";
   if(key==="rep")return o.rep||(o.owner?teamById(o.owner).name:"");
   if(key==="account")return oppAcctLabel(o)+" "+(o.distributorName||"");
+  if(key==="state")return o.state||"";
   if(key==="touches")return oppTouches(o);
   if(key==="lasttouch")return oppLastTouch(o)||"";
   if(key==="nextaction")return (o.nextAction||"")+" "+(o.nextActionDate||"");
@@ -1919,10 +1922,10 @@ function oppFltVal(o,key){
 }
 function oppTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("opps",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Opportunity")+th("account","Account")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("touches","Touches")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("dist","Distributor")+th("close","Close")+th("region","Region")+th("rep","Rep")+'</tr>';
+  const head='<tr>'+th("name","Opportunity")+th("account","Account")+th("state","State")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("touches","Touches")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("dist","Distributor")+th("close","Close")+th("region","Region")+th("rep","Rep")+'</tr>';
   const total=list.reduce((s,o)=>s+(o.amount||0),0);
   return '<div class="tablewrap"><table class="lv"'+(sortable?' data-tbl="opps"':'')+'><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
-    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="9"></td></tr></tfoot></table></div>';
+    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="9"></td></tr></tfoot></table></div>';
 }
 function oppCard(o){
   const si=OPP_STAGES.indexOf(o.stage);
