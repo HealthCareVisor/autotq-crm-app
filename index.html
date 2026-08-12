@@ -612,7 +612,7 @@ async function verifyPw(){
     saveSession(j);
     USER=TEAM_EMAILS[((j.user&&j.user.email)||logState.pwEmail).toLowerCase()]||"";
     localStorage.setItem(UKEY,USER);
-    logState.pwEmail=null;logState.otpEmail=null;view="today";render();
+    logState.pwEmail=null;logState.otpEmail=null;view="today";applyRoleDefaults();render();
     bootSync();
   }catch(e){loginMsg("Network problem — try again",true);}
 }
@@ -650,7 +650,7 @@ async function setPwSave(){
   try{
     const res=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:p1})});
     if(!res.ok){const j=await res.json().catch(()=>({}));loginMsg(j.msg||j.error_description||"Couldn't save it — try again",true);return;}
-    logState.setPw=null;view="today";render();toast("Password updated");
+    logState.setPw=null;view="today";applyRoleDefaults();render();toast("Password updated");
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return g+", "+teamById(USER).name.split(" ")[0];}
@@ -872,6 +872,27 @@ function oppAcctLabel(o){const c=o.accountId?company(o.accountId):null;return c?
 function fmtK(n){n=Math.round(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2).replace(/\.?0+$/,"")+"M";if(Math.abs(n)>=1e4)return "$"+Math.round(n/1e3)+"k";return "$"+n.toLocaleString();}
 function oppAge(o){if(!o.createdAt)return null;return Math.max(0,Math.floor((Date.now()-new Date(o.createdAt))/86400000));}
 function oppOverdue(o){return oppIsOpen(o)&&o.closeDate&&o.closeDate<todayStr();}
+/* touches + last contact: auto-counted from logged activity on the deal's account and attached people */
+function oppActivityPool(o){
+  if(!o)return[];
+  const pids=new Set((o.contacts||[]).map(x=>x.pid));
+  if(o.distRepPid)pids.add(o.distRepPid);
+  if(o.manrepPid)pids.add(o.manrepPid);
+  const since=o.createdAt?new Date(o.createdAt).getTime()-86400000:0;
+  return (DB.activities||[]).filter(a=>((o.accountId&&a.cid===o.accountId)||(a.pid&&pids.has(a.pid)))&&new Date(a.date).getTime()>=since);
+}
+function oppTouches(o){return oppActivityPool(o).length+(parseInt(o.touchesExtra,10)||0);}
+function oppLastTouch(o){
+  const ds=oppActivityPool(o).map(a=>String(a.date).slice(0,10));
+  if(o.lastContact)ds.push(o.lastContact);
+  ds.sort();return ds.length?ds[ds.length-1]:"";
+}
+function oppDistLabel(o){return o.distributorId?((company(o.distributorId)||{}).name||o.distributorName||""):(o.distributorName||"");}
+/* owner permissions: owners edit their deals, admins edit all, unowned deals are open to all; everyone can view */
+function canEditOpp(o){if(admin())return true;if(!o||!o.owner)return true;return o.owner===USER;}
+function oppOwnerName(o){return o&&o.owner?teamById(o.owner).name.split(" ")[0]:"";}
+/* rep landing: reps open on their own pipeline */
+function applyRoleDefaults(){if(userRegion(USER)){view="opps";oppFilter="mine";oppView="list";}}
 /* region model — contacts/accounts are East or West (no person owns a contact); Nationwide = multi-region account */
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL".split(" "));
 function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":"West";}
@@ -1854,6 +1875,10 @@ function oppVal(o,key){
   if(key==="region")return oppRegion(o)||"~";
   if(key==="rep")return (o.rep||"~").toLowerCase();
   if(key==="prob")return oppProb(o);
+  if(key==="touches")return oppTouches(o);
+  if(key==="lasttouch")return oppLastTouch(o)||"~";
+  if(key==="nextaction")return o.nextActionDate||(o.nextAction?"zz":"~");
+  if(key==="dist")return oppDistLabel(o).toLowerCase()||"~";
   return "";
 }
 function oppRow(o){
@@ -1863,7 +1888,11 @@ function oppRow(o){
   '<td>'+oppStageTag(o.stage)+(oppOverdue(o)?' <span class="pill dang">past due</span>':'')+'</td>'+
   '<td class="num">'+money(o.amount||0)+'</td>'+
   '<td class="num">'+(o.units||'—')+'</td>'+
-  '<td class="num">'+oppProb(o)+'%</td>'+
+  '<td class="num">'+oppProb(o)+'%'+(o.probReason?' <span title="'+esc(o.probReason)+'" style="cursor:help">ⓘ</span>':'')+'</td>'+
+  '<td class="num"><b>'+oppTouches(o)+'</b></td>'+
+  '<td>'+(oppLastTouch(o)?esc(oppLastTouch(o)):'<span class="muted">—</span>')+'</td>'+
+  '<td>'+(o.nextAction?'<div class="lvname" style="font-weight:500">'+esc(o.nextAction)+'</div>'+(o.nextActionDate?'<div class="lvsub"'+((o.nextActionDate<todayStr()&&oppIsOpen(o))?' style="color:var(--dang-t)"':'')+'>'+esc(o.nextActionDate)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
+  '<td>'+(oppDistLabel(o)?esc(oppDistLabel(o))+(o.distRepPid&&person(o.distRepPid)?'<div class="lvsub">'+esc(person(o.distRepPid).name)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
   '<td>'+(o.closeDate?esc(o.closeDate):(o.forecastYear?'FY '+o.forecastYear:'<span class="muted">—</span>'))+'</td>'+
   '<td>'+regionTag(oppRegion(o))+'</td>'+
   '<td>'+(o.rep?esc(o.rep):(o.owner?esc(teamById(o.owner).name.split(" ")[0]):'<span class="muted">—</span>'))+'</td></tr>';
@@ -1877,18 +1906,22 @@ function oppFltVal(o,key){
   if(key==="region")return oppRegion(o)||"";
   if(key==="rep")return o.rep||(o.owner?teamById(o.owner).name:"");
   if(key==="account")return oppAcctLabel(o)+" "+(o.distributorName||"");
+  if(key==="touches")return oppTouches(o);
+  if(key==="lasttouch")return oppLastTouch(o)||"";
+  if(key==="nextaction")return (o.nextAction||"")+" "+(o.nextActionDate||"");
+  if(key==="dist")return oppDistLabel(o)+" "+(o.distRepPid&&person(o.distRepPid)?person(o.distRepPid).name:"");
   return (o.name||"")+" "+(o.dealType||"");
 }
 function oppTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("opps",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Opportunity")+th("account","Account")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("close","Close")+th("region","Region")+th("rep","Rep")+'</tr>';
+  const head='<tr>'+th("name","Opportunity")+th("account","Account")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("touches","Touches")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("dist","Distributor")+th("close","Close")+th("region","Region")+th("rep","Rep")+'</tr>';
   const total=list.reduce((s,o)=>s+(o.amount||0),0);
   return '<div class="tablewrap"><table class="lv"'+(sortable?' data-tbl="opps"':'')+'><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
-    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="5"></td></tr></tfoot></table></div>';
+    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="9"></td></tr></tfoot></table></div>';
 }
 function oppCard(o){
   const si=OPP_STAGES.indexOf(o.stage);
-  const adv=(oppIsOpen(o)?'<span class="adv">'+
+  const adv=(oppIsOpen(o)&&canEditOpp(o)?'<span class="adv">'+
     (si>0?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="-1" title="Back a stage">‹</button>':'')+
     (si<3?'<button data-act="oppadv" data-id="'+o.id+'" data-dir="1" title="Advance stage">›</button>'
         :'<button data-act="oppclose" data-id="'+o.id+'" data-v="Closed Won" title="Mark won">✓</button><button data-act="oppclose" data-id="'+o.id+'" data-v="Closed Lost" title="Mark lost">✕</button>')+
@@ -1899,9 +1932,12 @@ function oppCard(o){
    '<div class="pa">'+esc(oppAcctLabel(o))+(o.distributorName&&o.distributorName!==oppAcctLabel(o)?' · via '+esc(o.distributorName):'')+'</div>'+
    '<div class="pm">'+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (o.units?'<span>'+o.units+'u</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
+     '<span class="pill info" style="font-size:10.5px">Touches: '+oppTouches(o)+'</span>'+
+     (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
      (o.stage==="Closed Won"?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
      (o.stage==="Closed Lost"?'<span class="pill dang" style="font-size:10.5px">Lost</span>':'')+'</div>'+
+   (o.nextAction?'<div class="pa" style="margin-top:4px;color:var(--coral-tt)">→ '+esc(o.nextAction)+(o.nextActionDate?' — '+esc(o.nextActionDate.slice(5))+((o.nextActionDate<todayStr()&&oppIsOpen(o))?' ⚠':''):'')+'</div>':'')+
    '<div class="pv"><span>'+money(o.amount||0)+' <small style="color:var(--hint);font-weight:500">'+oppProb(o)+'%</small></span>'+adv+'</div></div>';
 }
 function oppKpis(pool){
@@ -1919,17 +1955,19 @@ function oppKpis(pool){
 function viewOpps(){
   const pool=myOpps();
   const q=listQ.trim().toLowerCase();
+  const isMine=o=>o.owner===USER||(!o.owner&&userRegion(USER)&&oppRegion(o)===userRegion(USER));
   let show=pool.filter(o=>{
     if(oppFilter==="open"&&!oppIsOpen(o))return false;
+    if(oppFilter==="mine"&&!(oppIsOpen(o)&&isMine(o)))return false;
     if(oppFilter==="won"&&o.stage!=="Closed Won")return false;
     if(oppFilter==="lost"&&o.stage!=="Closed Lost")return false;
     if(q&&!((o.name||"").toLowerCase().includes(q)||oppAcctLabel(o).toLowerCase().includes(q)||(o.rep||"").toLowerCase().includes(q)))return false;
     return true;
   });
-  const cnt={open:pool.filter(oppIsOpen).length,won:pool.filter(o=>o.stage==="Closed Won").length,lost:pool.filter(o=>o.stage==="Closed Lost").length,all:pool.length};
+  const cnt={mine:pool.filter(o=>oppIsOpen(o)&&isMine(o)).length,open:pool.filter(oppIsOpen).length,won:pool.filter(o=>o.stage==="Closed Won").length,lost:pool.filter(o=>o.stage==="Closed Lost").length,all:pool.length};
   const tab=(v,l,n)=>'<button class="'+(oppFilter===v?"on":"")+'" data-act="oppfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   let h=oppKpis(pool);
-  h+='<div class="lvhead"><div class="lvtabs">'+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+tab("all","All",cnt.all)+'</div>'+
+  h+='<div class="lvhead"><div class="lvtabs">'+tab("mine","My pipeline",cnt.mine)+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+tab("all","All",cnt.all)+'</div>'+
    '<div class="seg" style="margin:0;max-width:180px"><button class="'+(oppView==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button><button class="'+(oppView==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button></div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search pipeline…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
    '<button class="btn sm coral" data-act="addopp">'+svg("plus")+' New</button></div>';
@@ -1941,7 +1979,7 @@ function viewOpps(){
     show=show.slice().sort((a,b)=>cmpv(oppVal(a,s.key),oppVal(b,s.key))*s.dir);
     return h+oppTableHTML(show,true);
   }
-  const cols=(oppFilter==="open")?OPP_STAGES.slice(0,4):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
+  const cols=(oppFilter==="open"||oppFilter==="mine")?OPP_STAGES.slice(0,4):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
   h+='<div class="pipe">'+cols.map(st=>{
     const os=show.filter(o=>o.stage===st).sort((a,b)=>(b.amount||0)-(a.amount||0));
     const amt=os.reduce((s,o)=>s+(o.amount||0),0);
@@ -2207,9 +2245,31 @@ function oppConChips(){
     return '<span class="rolechip">'+esc(p.name)+' <small>'+esc(c.role)+'</small><button data-act="oppDetach" data-i="'+i+'" title="Remove">×</button></span>';
   }).join("")||'<span class="muted" style="font-size:13px">No one attached yet.</span>';
 }
+function distRepOpts(cid,selPid){
+  const ppl=cid?DB.people.filter(p=>p.cid===cid).sort((a,b)=>a.name.localeCompare(b.name)):[];
+  return '<option value="">'+(cid?"— none —":"— pick the distributor first —")+'</option>'+
+    ppl.map(p=>'<option value="'+p.id+'"'+(selPid===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join("");
+}
+function formOppReadOnly(o){
+  const row=(l,v)=>v?'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:110px;font-size:13px">'+l+'</b><span style="font-size:13.5px">'+v+'</span></div>':'';
+  openSheet('<h2>'+esc(o.name)+'</h2>'+
+   '<div class="banner">'+svg("note")+'Owned by <b>'+esc(oppOwnerName(o))+'</b> — view only. Ask them (or an admin) for changes.</div>'+
+   row("Account",esc(oppAcctLabel(o)))+
+   row("Stage",esc(OPP_SHORT[o.stage]||o.stage)+" · "+oppProb(o)+"%")+
+   row("Why that %",esc(o.probReason||""))+
+   row("Amount",o.amount?money(o.amount):"")+row("Units",o.units?String(o.units):"")+
+   row("Touches",'<b>'+oppTouches(o)+'</b>')+row("Last contact",esc(oppLastTouch(o)||""))+
+   row("Next action",o.nextAction?esc(o.nextAction)+(o.nextActionDate?" — "+esc(o.nextActionDate):""):"")+
+   row("Distributor",esc(oppDistLabel(o))+(o.distRepPid&&person(o.distRepPid)?" · "+esc(person(o.distRepPid).name):""))+
+   row("Channel rep",esc(o.rep||(o.manrepPid&&person(o.manrepPid)?person(o.manrepPid).name:"")))+
+   row("Close date",esc(o.closeDate||""))+
+   row("Notes",esc(o.note||"")));
+}
 function formOpp(id,prefillCid){
   ensureOpps();
-  const o=id?DB.opps.find(x=>x.id===id):null; logState.oppId=id||null; logState.oppStage=o?o.stage:"Prospecting";
+  const o=id?DB.opps.find(x=>x.id===id):null;
+  if(o&&!canEditOpp(o)){formOppReadOnly(o);return;}
+  logState.oppId=id||null; logState.oppStage=o?o.stage:"Prospecting";
   logState.oppContacts=(o&&o.contacts?o.contacts.slice():[]).filter(c=>person(c.pid));
   const selCid=o?(o.accountId||""):(prefillCid||"");
   const acctOpts='<option value="">— not in CRM yet —</option>'+DB.companies.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+(selCid===c.id?" selected":"")+'>'+esc(c.name)+'</option>').join("");
@@ -2229,7 +2289,22 @@ function formOpp(id,prefillCid){
    '<label class="fl">Expected close date</label><input class="f" id="oClose" type="date" value="'+(o&&o.closeDate?esc(o.closeDate):"")+'">'+
    '<label class="fl">Deal type</label><select class="f" id="oType">'+dtypes.map(t=>'<option'+(o&&o.dealType===t?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
    '<label class="fl">State</label><input class="f" id="oLoc" value="'+(o?esc(o.state||""):"")+'" placeholder="TN" maxlength="2">'+
-   '<label class="fl">Channel rep driving it</label><input class="f" id="oRep" value="'+(o?esc(o.rep||""):"")+'" placeholder="man-rep / distributor rep">'+
+   '<label class="fl">Probability reason <span style="font-weight:400;color:var(--hint)">(why is it at '+(o?oppProb(o):OPP_PROB["Prospecting"])+'%? — keep it one line)</span></label>'+
+   '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, distributor involved, reviewing 50-unit rollout for Q4" autocomplete="off">'+
+   '<label class="fl">Next action</label><input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing manager" autocomplete="off">'+
+   '<label class="fl">Next action date</label><input class="f" id="oNextAD" type="date" value="'+(o?esc(o.nextActionDate||""):"")+'">'+
+   '<label class="fl">Touches <span style="font-weight:400;color:var(--hint)">('+(o?oppTouches(o):0)+' total — '+(o?oppActivityPool(o).length:0)+' auto-counted from logged activity; add offline touches below)</span></label>'+
+   '<input class="f" id="oTouchX" inputmode="numeric" value="'+(o&&o.touchesExtra?o.touchesExtra:"")+'" placeholder="0">'+
+   '<label class="fl">Last contact <span style="font-weight:400;color:var(--hint)">(auto from activity'+(o&&oppLastTouch(o)?': '+esc(oppLastTouch(o)):'')+' — set manually if newer)</span></label>'+
+   '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'">'+
+   '<label class="fl">Distributor on the deal</label><select class="f" id="oDist">'+
+     '<option value="">'+(o&&o.distributorName&&!o.distributorId?'— keep "'+esc(o.distributorName)+'" —':'— none —')+'</option>'+
+     DB.companies.filter(c=>c.type==="distributor").sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+((o&&o.distributorId)===c.id?' selected':'')+'>'+esc(c.name)+'</option>').join("")+'</select>'+
+   '<label class="fl">Distributor rep</label><select class="f" id="oDistRep">'+distRepOpts(o?o.distributorId:null,o?o.distRepPid:null)+'</select>'+
+   '<label class="fl">Man-rep / channel rep <span style="font-weight:400;color:var(--hint)">(who\'s helping generate this — attribution)</span></label><select class="f" id="oManrep">'+
+     '<option value="">— none —</option>'+DB.people.filter(p=>contactType(p)==="manrep").sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<option value="'+p.id+'"'+((o&&o.manrepPid)===p.id?' selected':'')+'>'+esc(p.name)+' — '+esc((company(p.cid)||{}).name||"")+'</option>').join("")+'</select>'+
+   '<label class="fl">Channel rep (free text — shows on cards)</label><input class="f" id="oRep" value="'+(o?esc(o.rep||""):"")+'" placeholder="man-rep / distributor rep">'+
+   (admin()?'<label class="fl">Owner</label><select class="f" id="oOwner">'+TEAM.map(t=>'<option value="'+t.id+'"'+((o?o.owner:USER)===t.id?' selected':'')+'>'+esc(t.name)+'</option>').join("")+'</select>':'')+
    '<label class="fl">People on this deal</label><div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
    '<div class="row" style="gap:8px"><select class="f" id="oConPid" style="flex:2;min-width:0">'+pplOpts+'</select>'+
    '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
@@ -2243,14 +2318,27 @@ function saveOpp(){
   ensureOpps();
   const cid=document.getElementById("oCid").value;
   const c=cid?company(cid):null;
+  const existing=logState.oppId?DB.opps.find(x=>x.id===logState.oppId):null;
+  if(existing&&!canEditOpp(existing)){toast("View only — "+oppOwnerName(existing)+" owns this deal");return;}
+  const distSel=document.getElementById("oDist").value;
+  const manrepSel=document.getElementById("oManrep").value;
+  let repTxt=val("oRep");
+  if(!repTxt&&manrepSel&&person(manrepSel))repTxt=person(manrepSel).name;
   const data={name:name,accountId:cid||null,accountName:c?c.name:val("oAcctName"),
     stage:logState.oppStage||"Prospecting",amount:parseFloat(val("oAmt"))||0,
     units:parseInt(val("oUnits"),10)||0,closeDate:document.getElementById("oClose").value||"",
     dealType:document.getElementById("oType").value,state:val("oLoc").toUpperCase().slice(0,2),
-    rep:val("oRep"),note:val("oNotes"),contacts:(logState.oppContacts||[]).slice(),
+    rep:repTxt,note:val("oNotes"),contacts:(logState.oppContacts||[]).slice(),
+    probReason:val("oProbWhy"),nextAction:val("oNextA"),nextActionDate:document.getElementById("oNextAD").value||"",
+    touchesExtra:parseInt(val("oTouchX"),10)||0,lastContact:document.getElementById("oLastC").value||"",
+    distributorId:distSel||null,
+    distributorName:distSel?((company(distSel)||{}).name||""):(existing?(existing.distributorName||""):""),
+    distRepPid:document.getElementById("oDistRep").value||null,
+    manrepPid:manrepSel||null,
     probability:OPP_PROB[logState.oppStage||"Prospecting"]};
-  if(logState.oppId){const o=DB.opps.find(x=>x.id===logState.oppId);
-    if(o){if(o.stage===data.stage&&typeof o.probability==="number")data.probability=o.probability;Object.assign(o,data);}}
+  const ownerSel=document.getElementById("oOwner");
+  if(ownerSel)data.owner=ownerSel.value;
+  if(existing){if(existing.stage===data.stage&&typeof existing.probability==="number")data.probability=existing.probability;Object.assign(existing,data);}
   else DB.opps.unshift(Object.assign({id:uid(),owner:USER,source:"app",createdAt:new Date().toISOString()},data));
   save();closeSheet();render();toast("Opportunity saved");
 }
@@ -2412,7 +2500,7 @@ document.addEventListener("click",e=>{
   if(a==="verifyotp"){verifyOtp();return;}
   if(a==="otpback"){logState.otpEmail=null;logState.pwEmail=null;renderLogin();return;}
   if(a==="setpwsave"){setPwSave();return;}
-  if(a==="setpwskip"){logState.setPw=null;view="today";render();return;}
+  if(a==="setpwskip"){logState.setPw=null;view="today";applyRoleDefaults();render();return;}
   if(a==="chpw"){openSheet('<h2>Change my password</h2>'+
     '<label class="fl">New password (8+ characters)</label><input class="f" id="newPw" type="password" autocomplete="new-password">'+
     '<button class="btn coral block" data-act="chpwsave" style="margin-top:18px">Change password</button>');return;}
@@ -2440,13 +2528,13 @@ document.addEventListener("click",e=>{
   if(a==="addopp"){formOpp(null);return;}
   if(a==="editopp"){formOpp(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
-  if(a==="delopp"){DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
+  if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
   if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="saveOpp"){saveOpp();return;}
   if(a==="oppview"){oppView=t.dataset.v;render();return;}
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
-  if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
-  if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
+  if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
+  if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
   if(a==="openreport"){curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
   if(a==="repsort"){const k=parseInt(t.dataset.key,10);const s=sortState.report;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="repcsv"){reportCSV(t.dataset.id);return;}
@@ -2573,6 +2661,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="lvsearch"){listQ=e.target.value;render();refocus("lvsearch");}
   if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
   if(e.target.id==="campFile"){campHandleFile(e.target.files&&e.target.files[0]);return;}
+  if(e.target.id==="oDist"){const sel=document.getElementById("oDistRep");if(sel)sel.innerHTML=distRepOpts(e.target.value||null,null);return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
     if(c&&c.steps[+e.target.dataset.ci]){const f=e.target.dataset.cfield;
@@ -2626,6 +2715,7 @@ if(location.hash&&location.hash.indexOf("access_token=")>-1){
   }
 }
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
+if(USER&&authed())applyRoleDefaults();
 render();
 if(HASHLOGIN)fetch(SUPA_URL+"/auth/v1/user",{headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token}})
   .then(r=>r.json()).then(u=>{
