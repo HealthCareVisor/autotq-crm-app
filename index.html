@@ -934,6 +934,7 @@ function viewAccounts(){
   pool=pool.slice().sort((a,b)=>cmpv(accountVal(a,s.key,cc),accountVal(b,s.key,cc))*s.dir);
   const tab=(v,l,n)=>'<button class="'+(acctFilter===v?"on":"")+'" data-act="acctfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   let h='<div class="lvhead"><div class="lvtabs">'+
+    tab("all","All",base.length)+
     tab("potential","Potential distributors",cnt.potential)+
     tab("setup","Set-up distributors",cnt.setup)+
     tab("enduser","End-user accounts",cnt.enduser)+
@@ -948,7 +949,7 @@ function viewContacts(){
   const scoped=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
   const cnt={manrep:0,distrep:0,enduser:0};
   scoped.forEach(p=>{const t=contactType(p);if(cnt[t]!=null)cnt[t]++;});
-  let pool=scoped.filter(p=>contactType(p)===contactFilter);
+  let pool=contactFilter==="all"?scoped.slice():scoped.filter(p=>contactType(p)===contactFilter);
   const stateOpts=[...new Set(pool.flatMap(p=>personStates(p)))].filter(Boolean).sort();
   if(contactStateF)pool=pool.filter(p=>personStates(p).includes(contactStateF));
   const q=listQ.trim().toLowerCase();
@@ -957,7 +958,7 @@ function viewContacts(){
   pool=pool.slice().sort((a,b)=>cmpv(contactVal(a,s.key),contactVal(b,s.key))*s.dir);
   const tab=(v,l,n)=>'<button class="'+(contactFilter===v?"on":"")+'" data-act="contactfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   let h='<div class="lvhead"><div class="lvtabs">'+
-    tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+'</div>'+
+    tab("all","All",scoped.length)+tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+'</div>'+
     '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
