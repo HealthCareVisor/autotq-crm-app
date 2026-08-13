@@ -169,6 +169,11 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .cf{display:block;width:100%;min-width:56px;margin-top:5px;padding:3px 7px;font-size:12px;font-weight:400;letter-spacing:0;text-transform:none;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
 .cf::placeholder{color:#c9c5b9}
 .cf:focus{outline:none;border-color:var(--coral)}
+/* type-to-search picker (replaces long dropdowns) */
+.sug{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);max-height:230px;overflow:auto;z-index:80;display:none}
+.sug button{display:block;width:100%;text-align:left;padding:9px 13px;border:none;background:none;font-size:13.5px;border-bottom:1px solid #f4f2ec}
+.sug button:last-child{border-bottom:none}
+.sug button:hover{background:var(--coral-t)}
 .lvname{font-weight:600;color:var(--ink)}
 .lvsub{color:var(--hint);font-size:12px;margin-top:1px}
 .who{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}
@@ -988,6 +993,26 @@ function demoListHTML(){
 }
 
 /* ---------- HOME — rep dashboard ---------- */
+/* End-of-day recap: what got logged today & yesterday — reps see their own, admins see the whole team */
+function eodRecapHTML(){
+  const mineOnly=!admin();
+  const t=todayStr(),y=ymd(new Date(Date.now()-86400000));
+  const pool=(DB.activities||[]).filter(a=>(!mineOnly||a.by===USER))
+    .filter(a=>{const d=String(a.date||"").slice(0,10);return d===t||d===y;})
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const entry=a=>{const p=a.pid?person(a.pid):null;const c=a.cid?company(a.cid):(p?company(p.cid):null);
+    return '<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer;padding:10px 14px;margin-bottom:8px"><div class="row"><span class="ic '+toneFor(a.type)+'" style="width:34px;height:34px">'+svg(iconFor(a.type))+'</span>'+
+    '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(titlecase(a.type))+(p?' — '+esc(p.name):'')+(c?' <span style="color:var(--hint);font-weight:500">('+esc(c.name)+')</span>':'')+'</p>'+
+    '<p class="t2">'+esc(a.note||"")+'</p></div>'+
+    (mineOnly?'':'<span class="pill gray" style="flex:none">'+esc(teamById(a.by).name.split(" ")[0])+'</span>')+'</div></div>';};
+  const today=pool.filter(a=>String(a.date).slice(0,10)===t);
+  const yest=pool.filter(a=>String(a.date).slice(0,10)===y);
+  let h='<div class="kpis" style="margin-bottom:10px"><div class="kpi"><b>Logged today</b><span>'+today.length+'</span><small>'+[...new Set(today.map(a=>a.type))].join(" · ")+'</small></div>'+
+     '<div class="kpi"><b>Yesterday</b><span>'+yest.length+'</span><small>'+[...new Set(yest.map(a=>a.type))].join(" · ")+'</small></div></div>';
+  h+=today.length?today.slice(0,15).map(entry).join(""):'<div class="empty" style="padding:12px">Nothing logged yet today — every call counts (literally, on the deals).</div>';
+  if(yest.length){h+='<div class="sectlabel" style="font-size:11px;margin-top:12px">Yesterday</div>'+yest.slice(0,10).map(entry).join("");}
+  return h;
+}
 function viewToday(){
   ensureTasks();ensureOpps();
   const mydist=DB.companies.filter(c=>c.type==="distributor"&&(admin()||inRegion(companyRegion(c))));
@@ -1047,6 +1072,9 @@ function viewToday(){
   } else {
     h+='<div class="empty" style="padding:18px">No set-up distributors yet — work the '+potN+' in your Potential tab to onboard them.</div>';
   }
+  h+='<div class="lvhead" style="margin:20px 0 8px"><div class="sectlabel" style="margin:0">End of day — '+(admin()?'team activity':'your activity')+'</div>'+
+     '<button class="btn sm coral" data-act="logfor" style="margin-left:auto">'+svg("phone")+' Log activity</button></div>';
+  h+=eodRecapHTML();
   if(admin())h+=teamFeed();
   return h;
 }
@@ -2285,16 +2313,11 @@ function formOpp(id,prefillCid){
   logState.oppId=id||null; logState.oppStage=o?o.stage:"Prospecting";
   logState.oppContacts=(o&&o.contacts?o.contacts.slice():[]).filter(c=>person(c.pid));
   const selCid=o?(o.accountId||""):(prefillCid||"");
-  const acctOpts='<option value="">— not in CRM yet —</option>'+DB.companies.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+(selCid===c.id?" selected":"")+'>'+esc(c.name)+'</option>').join("");
-  const atAcct=selCid?DB.people.filter(p=>p.cid===selCid):[];
-  const others=DB.people.filter(p=>p.cid!==selCid).slice().sort((a,b)=>a.name.localeCompare(b.name));
-  const pplOpts='<option value="">— pick a person —</option>'+
-    (atAcct.length?'<optgroup label="At this account">'+atAcct.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</optgroup>':'')+
-    '<optgroup label="Everyone">'+others.map(p=>'<option value="'+p.id+'">'+esc(p.name)+(p.branch?' — '+esc(p.branch):'')+'</option>').join("")+'</optgroup>';
+  logState.oppCid=selCid||null;logState.oppConPid=null;
   const dtypes=["End User Order","Stocking Order","Training / Demo","Other"];
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
    '<label class="fl">Opportunity name</label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Fastenal — Tahlequah stocking order" autocomplete="off">'+
-   '<label class="fl">Account</label><select class="f" id="oCid">'+acctOpts+'</select>'+
+   '<label class="fl">Account</label>'+comboField("oCidQ","Type the account name…",selCid?((company(selCid)||{}).name||""):"")+
    '<label class="fl">Account name (if not in CRM)</label><input class="f" id="oAcctName" value="'+(o?esc(o.accountName||""):"")+'" placeholder="prospect not in Accounts yet" autocomplete="off">'+
    '<label class="fl">Stage</label><div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+esc(OPP_SHORT[s])+'</span>').join("")+'</div>'+
    '<label class="fl">Amount ($)</label><input class="f" id="oAmt" inputmode="numeric" value="'+(o&&o.amount?o.amount:"")+'" placeholder="15200">'+
@@ -2319,7 +2342,7 @@ function formOpp(id,prefillCid){
    '<label class="fl">Channel rep (free text — shows on cards)</label><input class="f" id="oRep" value="'+(o?esc(o.rep||""):"")+'" placeholder="man-rep / distributor rep">'+
    (admin()?'<label class="fl">Owner</label><select class="f" id="oOwner">'+TEAM.map(t=>'<option value="'+t.id+'"'+((o?o.owner:USER)===t.id?' selected':'')+'>'+esc(t.name)+'</option>').join("")+'</select>':'')+
    '<label class="fl">People on this deal</label><div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
-   '<div class="row" style="gap:8px"><select class="f" id="oConPid" style="flex:2;min-width:0">'+pplOpts+'</select>'+
+   '<div class="row" style="gap:8px;align-items:flex-start"><div style="flex:2;min-width:0">'+comboField("oConQ","Type a person to attach…","")+'</div>'+
    '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
    '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>'+
    '<label class="fl">Notes</label><textarea class="f" id="oNotes" placeholder="What\'s the opportunity?">'+(o?esc(o.note||""):"")+'</textarea>'+
@@ -2329,7 +2352,7 @@ function formOpp(id,prefillCid){
 function saveOpp(){
   const name=val("oName"); if(!name){toast("Name the opportunity");return;}
   ensureOpps();
-  const cid=document.getElementById("oCid").value;
+  const cid=logState.oppCid||"";
   const c=cid?company(cid):null;
   const existing=logState.oppId?DB.opps.find(x=>x.id===logState.oppId):null;
   if(existing&&!canEditOpp(existing)){toast("View only — "+oppOwnerName(existing)+" owns this deal");return;}
@@ -2395,6 +2418,16 @@ function saveRep(){const name=document.getElementById("rName").value.trim(),cid=
   if(!name||!cid){toast("Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
   DB.people.unshift({id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null});
   save();closeSheet();view="contacts";render();toast(name+" added");}
+/* searchable pickers — type a few letters, tap a match (like the global search) */
+function comboField(id,placeholder,label){return '<div style="position:relative"><input class="f" id="'+id+'" placeholder="'+esc(placeholder)+'" value="'+esc(label||"")+'" autocomplete="off"><div class="sug" id="'+id+'_sug"></div></div>';}
+function sugRender(id,items){const el=document.getElementById(id+"_sug");if(el){el.innerHTML=items.join("");el.style.display=items.length?"block":"none";}}
+function personLabel(p){return p?p.name+" — "+((company(p.cid)||{}).name||p.branch||""):"";}
+function peopleSugItems(q,act){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  return DB.people.filter(p=>(p.name+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(q)).slice(0,8)
+   .map(p=>'<button type="button" data-act="'+act+'" data-id="'+p.id+'">'+esc(p.name)+' <span style="color:var(--hint)">— '+esc((company(p.cid)||{}).name||p.branch||"")+'</span></button>');}
+function acctSugItems(q,act){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  return DB.companies.filter(c=>(c.name||"").toLowerCase().includes(q)).slice(0,8)
+   .map(c=>'<button type="button" data-act="'+act+'" data-id="'+c.id+'">'+esc(c.name)+' <span style="color:var(--hint)">— '+typeLabel(c.type)+(c.state?' · '+esc(c.state):'')+'</span></button>');}
 function formActivity(id){
   const a=(DB.activities||[]).find(x=>x.id===id);
   if(!a){toast("Couldn't open that entry");return;}
@@ -2421,10 +2454,10 @@ function saveActivity(){
 function formLog(prefillPid,prefillType){
   const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   logState.logType=prefillType||"call";logState.outcome="Interested";
-  const opts=DB.people.map(p=>'<option value="'+p.id+'"'+(p.id===prefillPid?' selected':'')+'>'+p.name+' — '+p.branch+'</option>').join("");
+  logState.logPid=prefillPid||null;
   openSheet('<h2>Log activity</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.logType?' on':'')+'" data-act="setType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
-   '<label class="fl">With</label><select class="f" id="logWho">'+opts+'</select>'+
+   '<label class="fl">With</label>'+comboField("logWho2","Type a name — rep, contact, anyone…",personLabel(person(prefillPid)))+
    '<label class="fl">Note</label><textarea class="f" id="logNote" placeholder="One line is plenty…"></textarea>'+
    '<label class="fl">Outcome</label><div class="chips" id="logOut">'+
    ["Interested","Wants quote","Potential opportunity","Not now"].map(o=>'<span class="chip'+(o==="Interested"?" on":"")+'" data-act="setOut" data-v="'+o+'">'+o+'</span>').join("")+'</div>'+
@@ -2434,7 +2467,8 @@ function formLog(prefillPid,prefillType){
    '<p style="text-align:center;color:var(--hint);font-size:13px;margin-top:9px">3 taps. Done.</p>');
 }
 function saveLog(){
-  const pid=document.getElementById("logWho").value;
+  const pid=logState.logPid;
+  if(!pid){toast("Who was it with? Type a name and tap a match");return;}
   const note=document.getElementById("logNote").value.trim()||("("+logState.outcome+")");
   const mention=document.getElementById("logMention").value.trim();
   const p=person(pid);
@@ -2645,8 +2679,9 @@ document.addEventListener("click",e=>{
   if(a==="help"){helpSheet();return;}
   if(a==="closehelp"){localStorage.setItem(HKEY,"1");closeSheet();if(view==="today")render();return;}
   if(a==="dismissonboard"){localStorage.setItem(HKEY,"1");render();return;}
-  if(a==="oppAttach"){const pid=document.getElementById("oConPid").value,role=document.getElementById("oConRole").value;
-    if(!pid){toast("Pick a person first");return;}
+  if(a==="oppAttach"){const pid=logState.oppConPid,role=document.getElementById("oConRole").value;
+    if(!pid){toast("Type a name and tap a match first");return;}
+    logState.oppConPid=null;const cq=document.getElementById("oConQ");if(cq)cq.value="";
     logState.oppContacts=logState.oppContacts||[];
     if(!logState.oppContacts.some(x=>x.pid===pid))logState.oppContacts.push({pid:pid,role:role});
     document.getElementById("oppCons").innerHTML=oppConChips();return;}
@@ -2670,6 +2705,9 @@ document.addEventListener("click",e=>{
   if(a==="roster"){curCompany=id;view="roster";render();window.scrollTo(0,0);return;}
   if(a==="logfor"){formLog(id,"call");return;}
   if(a==="quicknote"){formLog(id,"note");return;}
+  if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);}return;}
+  if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const an=document.getElementById("oAcctName");if(an)an.value="";}return;}
+  if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="editact"){formActivity(id);return;}
   if(a==="saveact"){saveActivity();return;}
   if(a==="delact"){const ax=(DB.activities||[]).find(x=>x.id===logState.actId);
@@ -2704,6 +2742,9 @@ document.addEventListener("input",e=>{
   if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
   if(e.target.id==="campFile"){campHandleFile(e.target.files&&e.target.files[0]);return;}
   if(e.target.id==="oDist"){const sel=document.getElementById("oDistRep");if(sel)sel.innerHTML=distRepOpts(e.target.value||null,null);return;}
+  if(e.target.id==="logWho2"){logState.logPid=null;sugRender("logWho2",peopleSugItems(e.target.value,"pickLogWho"));return;}
+  if(e.target.id==="oCidQ"){logState.oppCid=null;sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct"));return;}
+  if(e.target.id==="oConQ"){logState.oppConPid=null;sugRender("oConQ",peopleSugItems(e.target.value,"pickOppCon"));return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
     if(c&&c.steps[+e.target.dataset.ci]){const f=e.target.dataset.cfield;
