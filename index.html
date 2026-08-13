@@ -1118,9 +1118,7 @@ function viewPerson(id){
    '<button class="btn sm" data-act="coverage" data-id="'+p.id+'" style="margin-top:12px">'+svg("pin")+' Edit coverage states</button>'+
    (isTop(p)?' <span class="pill coral" style="margin-left:8px">'+svg("flame")+' Top seller</span>':'')+'</div>';
   h+='<div class="qa" style="margin-bottom:8px"><button class="btn coral block" data-act="logfor" data-id="'+p.id+'">'+svg("phone")+' Log</button>'+
-   '<button class="btn block" data-act="quicknote" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("note")+' Add note</button>'+
-     '<button class="btn block" data-act="logemail" data-id="'+p.id+'">'+svg("mail")+' Log email</button>'+
-     '<button class="btn block" data-act="schedfu" data-id="'+p.id+'">'+svg("clock")+' Follow-up</button></div>';
+     '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button></div>';
   const onDeals=(DB.opps||[]).filter(o=>(o.contacts||[]).some(x=>x.pid===p.id));
   if(onDeals.length){h+='<div class="sectlabel">On deals ('+onDeals.length+')</div>';
     h+=onDeals.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)).map(o=>{const role=(o.contacts.find(x=>x.pid===p.id)||{}).role||"";
