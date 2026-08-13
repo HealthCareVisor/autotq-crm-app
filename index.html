@@ -453,6 +453,8 @@ function df(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString(
 function since(iso){return iso?Math.floor((Date.now()-new Date(iso))/86400000):null;}
 function until(iso){return Math.ceil((new Date(iso)-Date.now())/86400000);}
 function ago(iso){if(!iso)return"never";const d=since(iso);if(d<=0)return"today";if(d===1)return"yesterday";return d+" days ago";}
+function fmtDay(iso){if(!iso)return"";const d=new Date(iso);if(isNaN(d))return String(iso).slice(0,10);return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+function ensureActIds(){(DB.activities||[]).forEach(a=>{if(a&&!a.id)a.id=uid();});}
 function money(n){return"$"+Math.round(n).toLocaleString();}
 function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();}
 function uid(){return Math.random().toString(36).slice(2,9);}
@@ -662,6 +664,7 @@ function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
+  ensureActIds(); // older logged activities may predate ids — editing needs one
   const me=teamById(USER);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
@@ -1085,7 +1088,8 @@ function viewPerson(id){
    (p.note?'<p class="t2" style="white-space:normal;margin-top:10px">'+esc(p.note)+'</p>':'')+
    '<button class="btn sm" data-act="coverage" data-id="'+p.id+'" style="margin-top:12px">'+svg("pin")+' Edit coverage states</button>'+
    (isTop(p)?' <span class="pill coral" style="margin-left:8px">'+svg("flame")+' Top seller</span>':'')+'</div>';
-  h+='<div class="qa" style="margin-bottom:8px"><button class="btn coral block" data-act="logfor" data-id="'+p.id+'">'+svg("phone")+' Log call</button>'+
+  h+='<div class="qa" style="margin-bottom:8px"><button class="btn coral block" data-act="logfor" data-id="'+p.id+'">'+svg("phone")+' Log</button>'+
+   '<button class="btn block" data-act="quicknote" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("note")+' Add note</button>'+
      '<button class="btn block" data-act="logemail" data-id="'+p.id+'">'+svg("mail")+' Log email</button>'+
      '<button class="btn block" data-act="schedfu" data-id="'+p.id+'">'+svg("clock")+' Follow-up</button></div>';
   const onDeals=(DB.opps||[]).filter(o=>(o.contacts||[]).some(x=>x.pid===p.id));
@@ -1097,7 +1101,7 @@ function viewPerson(id){
   if(surfaced.length){h+='<div class="sectlabel">End-users '+esc(p.name.split(" ")[0])+' surfaced</div>';
     h+=surfaced.map(o=>'<div class="card" data-act="roster" data-id="'+o.id+'" style="cursor:pointer"><div class="row"><span class="ic ok">'+svg("build")+'</span><div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">End-user · '+esc(o.city?o.city+", "+o.state:"new")+'</p></div></div></div>').join("");}
   h+='<div class="sectlabel">History</div>';
-  h+= acts.length? acts.map(a=>'<div class="card"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(titlecase(a.type))+' · '+ago(a.date)+'</p><p class="t2" style="white-space:normal">'+esc(a.note)+'</p></div></div></div>').join("")
+  h+= acts.length? acts.map(a=>'<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(titlecase(a.type))+' · '+fmtDay(a.date)+' <span style="color:var(--hint);font-weight:500">('+ago(a.date)+(a.by?' · '+esc(teamById(a.by).name.split(" ")[0]):'')+')</span></p><p class="t2" style="white-space:normal">'+esc(a.note)+'</p></div><span style="color:var(--hint);font-size:18px;flex:none">›</span></div></div>').join("")
      :'<div class="empty">No touches logged yet.</div>';
   return h;
 }
@@ -1172,7 +1176,7 @@ function viewRoster(cid){
   }
   h+='<div class="sectlabel" style="margin-top:20px">Activity</div>';
   h+=acts.length?'<div class="tl">'+acts.slice(0,20).map(a=>{const p=a.pid?person(a.pid):null;
-    return '<div class="tle"><p><strong>'+esc(titlecase(a.type))+'</strong>'+(p?' with '+esc(p.name):'')+' · <span class="tls">'+ago(a.date)+' by '+esc(teamById(a.by).name.split(" ")[0])+'</span></p><p class="tls" style="font-size:13px;color:var(--muted)">'+esc(a.note||"")+'</p></div>';}).join("")+'</div>'
+    return '<div class="tle" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><p><strong>'+esc(titlecase(a.type))+'</strong>'+(p?' with '+esc(p.name):'')+' · <span class="tls">'+fmtDay(a.date)+' ('+ago(a.date)+') by '+esc(teamById(a.by).name.split(" ")[0])+'</span></p><p class="tls" style="font-size:13px;color:var(--muted)">'+esc(a.note||"")+'</p></div>';}).join("")+'</div>'
     :'<div class="empty" style="padding:16px">No activity logged yet — use Log to start the record.</div>';
   return h;
 }
@@ -2209,7 +2213,7 @@ function addHub(){
 }
 function formLogAcct(cid){
   const c=company(cid);if(!c)return;logState.logCid=cid;logState.logType="note";
-  const types=[["call","phone","Call"],["email","mail","Email"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   openSheet('<h2>Log on '+esc(c.name)+'</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.logType?' on':'')+'" data-act="setType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
    '<label class="fl">Note</label><textarea class="f" id="logAcctNote" placeholder="What happened?"></textarea>'+
@@ -2390,8 +2394,31 @@ function saveRep(){const name=document.getElementById("rName").value.trim(),cid=
   if(!name||!cid){toast("Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
   DB.people.unshift({id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null});
   save();closeSheet();view="contacts";render();toast(name+" added");}
+function formActivity(id){
+  const a=(DB.activities||[]).find(x=>x.id===id);
+  if(!a){toast("Couldn't open that entry");return;}
+  logState.actId=id;logState.actType=a.type||"note";
+  const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  if(!types.some(t=>t[0]===logState.actType))types.push([logState.actType,"note",titlecase(logState.actType)]);
+  openSheet('<h2>Edit logged activity</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">Logged by '+esc(a.by?teamById(a.by).name:"—")+' · '+esc(fmtDay(a.date))+'</p>'+
+   '<label class="fl">Type</label><div class="tiles" id="actTiles">'+
+   types.map(t=>'<div class="tile'+(t[0]===logState.actType?' on':'')+'" data-act="setActType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
+   '<label class="fl">Date</label><input class="f" id="actDate" type="date" value="'+esc(String(a.date||"").slice(0,10))+'">'+
+   '<label class="fl">Note</label><textarea class="f" id="actNote" rows="3">'+esc(a.note||"")+'</textarea>'+
+   '<button class="btn coral block" data-act="saveact" style="margin-top:18px">Save changes</button>'+
+   '<button class="btn block" data-act="delact" style="margin-top:8px;color:var(--dang-t)">Delete this entry</button>');
+}
+function saveActivity(){
+  const a=(DB.activities||[]).find(x=>x.id===logState.actId);if(!a)return;
+  a.type=logState.actType||a.type;
+  a.note=document.getElementById("actNote").value.trim();
+  const d=document.getElementById("actDate").value;
+  if(d&&d!==String(a.date||"").slice(0,10))a.date=d+"T12:00:00.000Z";
+  save();closeSheet();render();toast("Activity updated");
+}
 function formLog(prefillPid,prefillType){
-  const types=[["call","phone","Call"],["email","mail","Email"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   logState.logType=prefillType||"call";logState.outcome="Interested";
   const opts=DB.people.map(p=>'<option value="'+p.id+'"'+(p.id===prefillPid?' selected':'')+'>'+p.name+' — '+p.branch+'</option>').join("");
   openSheet('<h2>Log activity</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
@@ -2641,8 +2668,14 @@ document.addEventListener("click",e=>{
   if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="roster"){curCompany=id;view="roster";render();window.scrollTo(0,0);return;}
   if(a==="logfor"){formLog(id,"call");return;}
+  if(a==="quicknote"){formLog(id,"note");return;}
+  if(a==="editact"){formActivity(id);return;}
+  if(a==="saveact"){saveActivity();return;}
+  if(a==="delact"){const ax=(DB.activities||[]).find(x=>x.id===logState.actId);
+    if(ax&&confirm("Delete this logged "+ax.type+"?")){DB.activities=DB.activities.filter(x=>x.id!==logState.actId);save();closeSheet();render();toast("Deleted");}return;}
   if(a==="logemail"){formLog(id,"email");return;}
   if(a==="setType"){logState.logType=t.dataset.v;document.querySelectorAll("#logTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="setActType"){logState.actType=t.dataset.v;document.querySelectorAll("#actTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="setOut"){logState.outcome=t.dataset.v;document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="map"){mapState=null;view="map";render();window.scrollTo(0,0);return;}
   if(a==="mapstate"){mapState=t.dataset.st;render();return;}
