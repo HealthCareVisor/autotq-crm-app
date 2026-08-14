@@ -535,7 +535,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -955,11 +955,14 @@ function viewAccounts(){
   return h;
 }
 /* ---------- CONTACTS (list view) ---------- */
+function isSellerTier(p){return p.tier==="seller";}
 function viewContacts(){
   const scoped=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
-  const cnt={manrep:0,distrep:0,enduser:0};
-  scoped.forEach(p=>{const t=contactType(p);if(cnt[t]!=null)cnt[t]++;});
-  let pool=contactFilter==="all"?scoped.slice():scoped.filter(p=>contactType(p)===contactFilter);
+  const cnt={manrep:0,distrep:0,enduser:0,sellers:0};
+  scoped.forEach(p=>{if(isSellerTier(p)){cnt.sellers++;return;}const t=contactType(p);if(cnt[t]!=null)cnt[t]++;});
+  let pool=contactFilter==="sellers"?scoped.filter(isSellerTier)
+    :contactFilter==="all"?scoped.filter(p=>!isSellerTier(p))
+    :scoped.filter(p=>contactType(p)===contactFilter&&!isSellerTier(p));
   const stateOpts=[...new Set(pool.flatMap(p=>personStates(p)))].filter(Boolean).sort();
   if(contactStateF)pool=pool.filter(p=>personStates(p).includes(contactStateF));
   const q=listQ.trim().toLowerCase();
@@ -968,7 +971,7 @@ function viewContacts(){
   pool=pool.slice().sort((a,b)=>cmpv(contactVal(a,s.key),contactVal(b,s.key))*s.dir);
   const tab=(v,l,n)=>'<button class="'+(contactFilter===v?"on":"")+'" data-act="contactfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   let h='<div class="lvhead"><div class="lvtabs">'+
-    tab("all","All",scoped.length)+tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+'</div>'+
+    tab("all","All",scoped.length-cnt.sellers)+tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+(cnt.sellers?tab("sellers","Grainger sellers",cnt.sellers):"")+'</div>'+
     '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
@@ -1165,7 +1168,9 @@ function toneFor(t){return {call:"info",voicemail:"warn",meeting:"info",email:"i
 
 function viewRoster(cid){
   const c=company(cid);if(!c)return'<div class="empty">Not found.</div>';
-  const reps=DB.people.filter(p=>p.cid===cid).sort((a,b)=>(since(b.last)||9999)-(since(a.last)||9999));
+  const allReps=DB.people.filter(p=>p.cid===cid);
+  const sellerN=allReps.filter(isSellerTier).length;
+  const reps=allReps.filter(p=>!isSellerTier(p)).sort((a,b)=>(since(b.last)||9999)-(since(a.last)||9999));
   const opps=(DB.opps||[]).filter(o=>o.accountId===cid||o.distributorId===cid);
   const demos=(DB.demos||[]).filter(d=>d.cid===cid);
   const pidSet=new Set(reps.map(p=>p.id));
@@ -1203,6 +1208,7 @@ function viewRoster(cid){
   }
   h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div></div>';
   h+=reps.length?contactTableHTML(reps,false):'<div class="empty">No contacts at this account yet.</div>';
+  if(sellerN)h+='<div class="banner">'+svg("users")+sellerN+' Grainger sellers are in the directory tier — find them under Contacts → Grainger sellers, or search any name from the top bar.</div>';
   if(demos.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
     h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>City</th><th>State</th><th>Status</th><th>Source</th></tr></thead><tbody>'+
@@ -1310,6 +1316,7 @@ function viewMap(){
   var byState={};
   if(mapMode==="reps"){
     DB.people.forEach(function(p){
+      if(isSellerTier(p)&&!mapSellers)return;
       var ct=contactType(p);
       if(ct!=="distrep"&&ct!=="manrep")return; // field reps = distributor reps + man-rep reps (their coverage states)
       (personStates(p)||[]).forEach(function(s){s=String(s||"").toUpperCase().slice(0,2);if(s){(byState[s]=byState[s]||[]).push(p);}});
@@ -1320,6 +1327,7 @@ function viewMap(){
   var nst=Object.keys(byState).length;
   var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:280px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Field reps</button></div>'+
    (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>':'')+
+   (mapMode==="reps"?'<button class="btn sm'+(mapSellers?' coral':'')+'" data-act="mapsellers" style="margin:0">'+(mapSellers?"✓ ":"")+'Grainger sellers</button>':'')+
    '<button class="travel" style="width:auto;flex:none;margin:0;padding:10px 14px" data-act="travel">'+svg("plane")+'Traveling soon?</button></div>';
   if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+(DB.demos||[]).length+'</div>'+demoListHTML();}
   var total=Object.values(byState).reduce(function(s,a){return s+a.length;},0);
@@ -2015,6 +2023,44 @@ function promoteMyLead(id){
   if(!p){p={id:uid(),name:l.name,cid:c.id,branch:c.name,role:l.title||"Contact",city:l.city||"",state:l.state||"",email:l.email||"",phone:l.phone||"",last:null,note:"From Leads ("+(l.conf||"manual")+")"};DB.people.unshift(p);}
   l.promoted=true;save();closeSheet();render();toast(l.name+" promoted to CRM");
 }
+/* ---------- GRAINGER SELLER DIRECTORY IMPORT (admin; idempotent by email) ---------- */
+function formImpSellers(){
+  openSheet('<h2>Import Grainger sellers</h2>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">Pick <b>grainger_sellers_import.csv</b> (CRM_Cleanup). Re-running with a new quarter\'s file updates existing sellers by email and adds new ones. Sellers live in their own "Grainger sellers" tier — the Field Map shows them; the working contact views stay clean.</p>'+
+   '<input class="f" type="file" id="gsFile" accept=".csv">'+
+   '<div id="gsStatus" style="font-size:13.5px;color:var(--muted);margin-top:10px"></div>');
+}
+async function importSellers(file){
+  const st=document.getElementById("gsStatus");
+  try{
+    const rows=csvRows(await file.text());
+    const hdr=rows[0].map(h=>String(h).trim().toLowerCase());
+    const col=n=>hdr.indexOf(n);
+    if(col("email")<0||col("name")<0){st.textContent="That doesn't look like the sellers CSV (needs name + email columns).";return;}
+    const gr=DB.companies.find(c=>c.name==="Grainger");
+    const byEmail={};DB.people.forEach(p=>{if(p.email)byEmail[p.email.toLowerCase()]=p;});
+    let added=0,updated=0,skipped=0;
+    const recs=rows.slice(1).filter(r=>r[col("email")]);
+    for(let i=0;i<recs.length;i++){
+      const r=recs[i];const g=k=>{const c=col(k);return c<0?"":String(r[c]||"").trim();};
+      const email=g("email").toLowerCase();
+      const note="Grainger seller (ISI alignment) · Territory: "+g("territory")+" · ISI BDM: "+g("bdm")+" · DSM: "+g("dsm")+(g("district")?" ("+g("district")+")":"")+(g("rsvp")?" · RSVP: "+g("rsvp"):"");
+      const ex=byEmail[email];
+      if(ex){
+        if(ex.tier!=="seller"){skipped++;continue;} // never overwrite a curated contact
+        ex.name=g("name");ex.role=g("role")||ex.role;ex.state=g("state")||ex.state;ex.note=note;updated++;
+      }else{
+        const p={id:uid(),tier:"seller",name:g("name"),role:g("role")||"Grainger seller",cid:gr?gr.id:null,branch:"Grainger",
+          email:email,phone:"",city:"",state:g("state"),last:null,note:note};
+        DB.people.push(p);byEmail[email]=p;added++;
+      }
+      if(i%400===399){save();st.textContent="Importing… "+(i+1)+" / "+recs.length+" (syncing as we go)";await new Promise(x=>setTimeout(x,1800));}
+    }
+    save();
+    st.innerHTML="<b>Done.</b> "+added+" added · "+updated+" updated · "+skipped+" skipped (curated contacts kept). Syncing to the team in the background.";
+    toast("Grainger sellers: "+added+" added, "+updated+" updated");
+  }catch(e){st.textContent="Import failed: "+e.message;}
+}
 function formNewLead(){
   openSheet('<h2>New lead</h2>'+
    '<label class="fl">Name</label><input class="f" id="nlName" placeholder="Person (or company) name">'+
@@ -2641,6 +2687,7 @@ function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="heig
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
  '<button class="hub" data-act="backup">'+svg("dl")+'<b>Back up my data</b></button>'+
  '<button class="hub" data-act="restorepick">'+svg("box")+'<b>Restore from backup</b></button>'+
+ (admin()?'<button class="hub" data-act="impsellers">'+svg("ware")+'<b>Import Grainger sellers (CSV)</b></button>':'')+
  '<button class="hub" data-act="switch">'+svg("users")+'<b>Sign out</b></button>'+
  '<button class="hub" data-act="reset">'+svg("clock")+'<b>Reset local data (reseed)</b></button>');}
 function backupDB(){
@@ -2792,6 +2839,8 @@ document.addEventListener("click",e=>{
       save();render();}
     return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
+  if(a==="mapsellers"){mapSellers=!mapSellers;render();return;}
+  if(a==="impsellers"){closeSheet();formImpSellers();return;}
   if(a==="campnew"){ensureCampaigns();const nid=uid();DB.campaigns.push({id:nid,name:"New campaign — "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],steps:campDefaultSteps()});save();curCampaign=nid;campStep=1;render();return;}
   if(a==="campopen"){curCampaign=id;campStep=1;render();return;}
   if(a==="campback"){curCampaign=null;render();return;}
@@ -2884,6 +2933,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="lvsearch"){listQ=e.target.value;render();refocus("lvsearch");}
   if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
   if(e.target.id==="campFile"){campHandleFile(e.target.files&&e.target.files[0]);return;}
+  if(e.target.id==="gsFile"){if(e.target.files&&e.target.files[0])importSellers(e.target.files[0]);return;}
   if(e.target.id==="oDist"){const sel=document.getElementById("oDistRep");if(sel)sel.innerHTML=distRepOpts(e.target.value||null,null);return;}
   if(e.target.id==="logWho2"){logState.logPid=null;sugRender("logWho2",peopleSugItems(e.target.value,"pickLogWho"));return;}
   if(e.target.id==="oCidQ"){logState.oppCid=null;sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct"));return;}
