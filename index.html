@@ -740,6 +740,7 @@ function render(){
    '</div></div>';
   applyColW();
   topScrollSync();
+  fitZoom();
 }
 function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="reports"&&view==="report");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
@@ -1152,7 +1153,19 @@ function formEditPerson(pid){
    '<label class="fl">City</label><input class="f" id="epCity" value="'+esc(p.city||"")+'">'+
    '<label class="fl">State</label><input class="f" id="epState" value="'+esc(p.state||"")+'" maxlength="2">'+
    '<label class="fl">Note</label><textarea class="f" id="epNote">'+esc(p.note||"")+'</textarea>'+
-   '<button class="btn coral block" data-act="savePerson" style="margin-top:18px">Save contact</button>');
+   '<button class="btn coral block" data-act="savePerson" style="margin-top:18px">Save contact</button>'+
+   '<button class="btn block" data-act="delperson" data-id="'+esc(p.id)+'" style="margin-top:8px;color:var(--dang-t)">Delete contact</button>');
+}
+function deletePerson(pid){
+  const p=person(pid);if(!p)return;
+  const acts=(DB.activities||[]).filter(a=>a.pid===pid).length;
+  if(!confirm('Delete "'+p.name+'"?'+(acts?'\n\n• '+acts+' logged activit'+(acts>1?'ies':'y')+' will be kept (unlinked)':'')+'\n\nThis syncs to the whole team.'))return;
+  (DB.opps||[]).forEach(o=>{o.contacts=(o.contacts||[]).filter(x=>x.pid!==pid);if(o.distRepPid===pid)o.distRepPid=null;if(o.manrepPid===pid)o.manrepPid=null;});
+  (DB.tasks||[]).forEach(t=>{if(t.pid===pid)t.pid=null;});
+  DB.people=DB.people.filter(x=>x.id!==pid);
+  save();closeSheet();
+  if(curPerson===pid){curPerson=null;view="contacts";}
+  render();toast('"'+p.name+'" deleted');
 }
 function savePerson(){
   const p=person(logState.editPid);if(!p)return;
@@ -1294,7 +1307,30 @@ function formEditAccount(cid){
    '<label class="fl">State</label><input class="f" id="eaState" value="'+esc(c.state||"")+'" maxlength="2" placeholder="FL">'+
    '<label class="fl">Industry</label><input class="f" id="eaInd" value="'+esc(c.industry||"")+'">'+
    '<label class="fl">Note</label><textarea class="f" id="eaNote">'+esc(c.note||"")+'</textarea>'+
-   '<button class="btn coral block" data-act="saveAcct" style="margin-top:18px">Save account</button>');
+   '<button class="btn coral block" data-act="saveAcct" style="margin-top:18px">Save account</button>'+
+   '<button class="btn block" data-act="delacct" data-id="'+esc(c.id)+'" style="margin-top:8px;color:var(--dang-t)">Delete account</button>');
+}
+function deleteAccount(cid){
+  const c=company(cid);if(!c)return;
+  const ppl=DB.people.filter(p=>p.cid===cid);
+  const opps=(DB.opps||[]).filter(o=>o.accountId===cid||o.distributorId===cid);
+  const demos=(DB.demos||[]).filter(d=>d.cid===cid);
+  const msg='Delete "'+c.name+'"?'+
+    (ppl.length?'\n\n• '+ppl.length+' contact'+(ppl.length>1?'s':'')+' will be kept but unlinked (they keep "'+c.name+'" as text)':'')+
+    (opps.length?'\n• '+opps.length+' deal'+(opps.length>1?'s':'')+' will keep the account as text':'')+
+    (demos.length?'\n• '+demos.length+' demo record'+(demos.length>1?'s':'')+' will be unlinked':'')+
+    '\n\nThis syncs to the whole team.';
+  if(!confirm(msg))return;
+  ppl.forEach(p=>{p.branch=p.branch||c.name;p.cid=null;});
+  (DB.opps||[]).forEach(o=>{
+    if(o.accountId===cid){o.accountName=o.accountName||c.name;o.accountId=null;}
+    if(o.distributorId===cid){o.distributorName=o.distributorName||c.name;o.distributorId=null;}
+  });
+  (DB.demos||[]).forEach(d=>{if(d.cid===cid)d.cid=null;});
+  DB.companies=DB.companies.filter(x=>x.id!==cid);
+  save();closeSheet();
+  if(curCompany===cid){curCompany=null;view="accounts";}
+  render();toast('"'+c.name+'" deleted');
 }
 function saveAcct(){
   const c=company(logState.editCid);if(!c)return;
@@ -1362,9 +1398,7 @@ function viewMap(){
   h+='<p style="font-size:12.5px;color:var(--hint);text-align:center;margin:10px 0 0">'+(mapMode==="reps"?'Pins count field reps covering that state (distributor reps + man-rep territories) — tap any state for the full drill-down.':'Pins mark demos in the field — tap any state to see who holds them.')+'</p>';
   if(mapState&&byState[mapState]){var list=byState[mapState];
     if(mapMode==="reps"){
-      h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' field rep'+(list.length>1?"s":"")+'</div>';
-      h+=list.slice(0,30).map(function(p){var c=company(p.cid);return '<button class="card" style="width:100%;text-align:left" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p></div>'+lastTag(p.last)+'</div></button>';}).join("");
-      h+='<button class="btn block" data-act="stpop" data-st="'+mapState+'" style="margin-top:8px">'+svg("search")+' Everything in '+mapState+' (man-reps, distributors, demos)</button>';
+      h+=stateZoomHTML(mapState,list);
     }else{
       h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' demo'+(list.length>1?"s":"")+'</div>';
       h+=list.map(function(d){var loc=[d.city,d.state].filter(Boolean).join(", ");var sub=[loc,d.company].filter(Boolean).join(" · ");return '<div class="card"><div class="row"><span class="ic coral">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(d.holder||"—")+'</p><p class="t2" style="white-space:normal">'+esc(sub)+'</p></div>'+(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>')+'</div></div>';}).join("");}
@@ -1465,6 +1499,42 @@ function allStates(){
   DB.people.forEach(function(p){(personStates(p)||[]).forEach(function(x){if(x)s.add(String(x).toUpperCase());});});
   (DB.demos||[]).forEach(function(d){if(d.state)s.add(String(d.state).toUpperCase());});
   return Array.from(s).filter(Boolean).sort();
+}
+/* state zoom: the state's shape scaled up, then its Grainger districts / DSMs / territories
+   (sellers carry territory names, not street addresses — district level is as precise as the data honestly goes) */
+function stateZoomHTML(st,list){
+  var G=window.US_GEO;if(!G)return"";
+  var sellers=list.filter(isSellerTier),cur=list.filter(function(p){return !isSellerTier(p);});
+  var z='<div class="sectlabel" style="margin-top:18px">'+st+' — '+list.length+' field rep'+(list.length===1?"":"s")+' · zoomed</div>';
+  var zp="";for(var ab in G.states){zp+='<path d="'+G.states[ab].d+'" fill="'+(ab===st?"#F0997B":"#f7f5ef")+'" stroke="'+(ab===st?"#D85A30":"#e4e1d7")+'" stroke-width="'+(ab===st?"2.5":"1")+'"'+(ab===st?' data-zoom-target="1"':'')+'/>';}
+  z+='<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:8px"><svg id="zoomsvg" viewBox="0 0 1040 600" style="width:100%;max-height:330px;height:auto;display:block">'+zp+'</svg></div>';
+  if(cur.length){
+    z+='<div class="sectlabel">Our reps & partners in '+st+' · '+cur.length+'</div>';
+    z+=cur.slice(0,20).map(function(p){var c=company(p.cid);return '<button class="card" style="width:100%;text-align:left" data-act="person" data-id="'+p.id+'"><div class="row"><span class="ic info">'+initials(p.name)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(p.name)+'</p><p class="t2">'+esc((c?c.name:p.branch)||"")+(p.city?' · '+esc(p.city):'')+'</p></div>'+lastTag(p.last)+'</div></button>';}).join("");
+  }
+  if(sellers.length){
+    var byDist={};
+    sellers.forEach(function(p){var d=p.district||"(no district on file)";(byDist[d]=byDist[d]||[]).push(p);});
+    var dists=Object.keys(byDist).sort(function(a,b){return byDist[b].length-byDist[a].length;});
+    z+='<div class="sectlabel">Grainger districts in '+st+' · '+sellers.length+' sellers</div>';
+    dists.forEach(function(d){
+      var g=byDist[d];var dsm=g[0].dsm||"";var bdm=g[0].bdm||"";
+      var terrs=[];g.forEach(function(p){if(p.territory&&terrs.indexOf(p.territory)<0)terrs.push(p.territory);});
+      z+='<div class="reccard" style="margin-bottom:10px">'+
+       '<p class="t1" style="font-size:14px;white-space:normal">'+esc(d)+'</p>'+
+       '<p class="t2" style="white-space:normal">'+(dsm?'DSM: '+esc(dsm)+' · ':'')+g.length+' seller'+(g.length===1?'':'s')+(bdm?' · ISI BDM: '+esc(bdm):'')+'</p>'+
+       (terrs.length?'<p class="t2" style="white-space:normal;margin-top:4px;color:var(--hint)">'+esc(terrs.slice(0,8).join(" · "))+(terrs.length>8?' · +'+(terrs.length-8)+' more':'')+'</p>':'')+
+       '<div class="chips" style="margin-top:8px">'+g.slice(0,10).map(function(p){return '<span class="chip" data-act="person" data-id="'+p.id+'">'+esc(p.name)+'</span>';}).join("")+(g.length>10?'<span class="chip" style="opacity:.6">+'+(g.length-10)+' more</span>':'')+'</div></div>';
+    });
+  }
+  z+='<button class="btn block" data-act="stpop" data-st="'+st+'" style="margin-top:8px">'+svg("search")+' Everything in '+st+' (man-reps, distributors, demos)</button>';
+  return z;
+}
+function fitZoom(){
+  var svg=document.getElementById("zoomsvg");if(!svg)return;
+  var p=svg.querySelector("[data-zoom-target]");if(!p)return;
+  try{var b=p.getBBox();var pad=Math.max(b.width,b.height)*0.2;
+    svg.setAttribute("viewBox",(b.x-pad)+" "+(b.y-pad)+" "+(b.width+2*pad)+" "+(b.height+2*pad));}catch(e){}
 }
 function stPop(st){
   st=String(st||"").toUpperCase();
@@ -2048,10 +2118,12 @@ async function importSellers(file){
       const ex=byEmail[email];
       if(ex){
         if(ex.tier!=="seller"){skipped++;continue;} // never overwrite a curated contact
-        ex.name=g("name");ex.role=g("role")||ex.role;ex.state=g("state")||ex.state;ex.note=note;updated++;
+        ex.name=g("name");ex.role=g("role")||ex.role;ex.state=g("state")||ex.state;ex.note=note;
+        ex.territory=g("territory");ex.bdm=g("bdm");ex.dsm=g("dsm");ex.district=g("district");updated++;
       }else{
         const p={id:uid(),tier:"seller",name:g("name"),role:g("role")||"Grainger seller",cid:gr?gr.id:null,branch:"Grainger",
-          email:email,phone:"",city:"",state:g("state"),last:null,note:note};
+          email:email,phone:"",city:"",state:g("state"),last:null,note:note,
+          territory:g("territory"),bdm:g("bdm"),dsm:g("dsm"),district:g("district")};
         DB.people.push(p);byEmail[email]=p;added++;
       }
       if(i%400===399){save();st.textContent="Importing… "+(i+1)+" / "+recs.length+" (syncing as we go)";await new Promise(x=>setTimeout(x,1800));}
@@ -2790,6 +2862,8 @@ document.addEventListener("click",e=>{
   if(a==="repcsv"){reportCSV(t.dataset.id);return;}
   if(a==="editacct"){formEditAccount(id);return;}
   if(a==="saveAcct"){saveAcct();return;}
+  if(a==="delacct"){deleteAccount(id);return;}
+  if(a==="delperson"){deletePerson(id);return;}
   if(a==="editperson"){formEditPerson(id);return;}
   if(a==="savePerson"){savePerson();return;}
   if(a==="logacct"){formLogAcct(id);return;}
