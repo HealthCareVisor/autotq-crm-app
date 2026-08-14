@@ -336,7 +336,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -535,8 +535,8 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1}};
-function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];
+let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
   return b;}
@@ -676,7 +676,7 @@ function render(){
   const me=teamById(USER);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -690,6 +690,7 @@ function render(){
     map:(mapMode==="reps"?"Field reps by state — distributor + man-rep":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
     conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
     camp:((DB.campaigns||[]).length?((DB.campaigns||[]).filter(c=>c.status==="active").length+" active · "+(DB.campaigns||[]).length+" total"):"Email sequences, sent from your own inbox"),
+    leads:((DB.leads||[]).length?(DB.leads||[]).length+" working leads · "+(DB.leads||[]).filter(l=>l.touches&&l.touches.length).length+" touched":"Push the good ones here from the conference lists"),
     confleads:"Conference call list — tap a lead to log the call",
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
@@ -707,6 +708,7 @@ function render(){
   else if(view==="insights")body=viewInsights();
   else if(view==="confleads")body=viewConfLeads();
   else if(view==="camp")body=viewCampaigns();
+  else if(view==="leads")body=viewLeads();
   else if(view==="person")body=viewPerson(curPerson);
   else if(view==="roster")body=viewRoster(curCompany);
   else if(view==="map")body=viewMap();
@@ -715,7 +717,7 @@ function render(){
   else body=viewToday();
   const groups=[
    ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
-   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
+   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"]]],
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
   ];
@@ -1869,6 +1871,7 @@ function formLead(id){
    '<label class="fl">Status / outcome</label><input class="f" id="ldStatus" value="'+esc(l.status||"")+'" placeholder="e.g. Voicemail left · HOT — wants demo">'+
    '<label class="fl">Next step</label><input class="f" id="ldNext" value="'+esc(l.next||"")+'" placeholder="e.g. callback wk of 7/13">'+
    '<button class="btn coral block" data-act="saveLead" style="margin-top:18px">Save lead</button>'+
+   '<button class="btn block" data-act="pushlead" data-id="'+esc(l.id)+'" style="margin-top:8px;border-color:var(--coral);color:var(--coral-tt)">'+svg("spark")+' Log touch &amp; push to Leads</button>'+
    (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ Already in the CRM as a contact</p>'
     :'<button class="btn block" data-act="leadpromote" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("user")+' Promote to CRM (account + contact)</button>'));
   logState.leadC=l.contacted?'Yes':'No';logState.leadT=l.temp;
@@ -1903,6 +1906,132 @@ function saveLead(){
   l.status=val("ldStatus")||l.status;l.next=val("ldNext");
   if(l.contacted&&l.status==="Not contacted")l.status="Contacted";
   save();closeSheet();render();toast(l.name+" updated");
+}
+
+/* ---------- LEADS (working list — pushed from conference call lists) ---------- */
+function ensureLeads(){DB.leads=DB.leads||[];}
+function myLeadById(id){ensureLeads();return DB.leads.find(l=>l.id===id);}
+function leadLastTouch(l){return (l.touches&&l.touches.length)?l.touches[l.touches.length-1]:null;}
+function mlVal(l,k){const t=leadLastTouch(l);
+  if(k==="name")return (l.name||"").toLowerCase();
+  if(k==="company")return (l.company||"~").toLowerCase();
+  if(k==="conf")return l.conf||"~";
+  if(k==="state")return l.state||"~";
+  if(k==="last")return t?t.date:"";
+  if(k==="method")return t?t.method:"~";
+  if(k==="touches")return (l.touches||[]).length;
+  return "";}
+function viewLeads(){
+  ensureLeads();
+  const all=DB.leads.slice();
+  const confs=[...new Set(all.map(l=>l.conf).filter(Boolean))].sort();
+  let pool=all.filter(l=>{
+    if(!leadsF)return true;
+    if(leadsF.indexOf("conf:")===0)return l.conf===leadsF.slice(5);
+    if(leadsF==="untouched")return !(l.touches&&l.touches.length);
+    if(leadsF==="promoted")return !!l.promoted;
+    return true;});
+  const q=listQ.trim().toLowerCase();
+  if(q)pool=pool.filter(l=>((l.name||"")+" "+(l.company||"")+" "+(l.email||"")+" "+(l.title||"")).toLowerCase().includes(q));
+  const s=sortState.myleads;
+  pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
+  const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
+  let h='<div class="banner">'+svg("spark")+'Working leads — pushed from the conference call lists. Log every touch; promote the ones that get real to Accounts &amp; Contacts.</div>';
+  h+='<div class="lvhead"><div class="lvtabs">'+chip("","All",all.length)+
+     confs.map(c=>chip("conf:"+c,c.replace(/ 20\d\d$/,""),all.filter(l=>l.conf===c).length)).join("")+
+     chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+
+     chip("promoted","In CRM",all.filter(l=>l.promoted).length)+'</div>'+
+     '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
+     '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
+  if(!pool.length)return h+'<div class="empty">Nothing here yet — open a conference call list, tap a person, and hit "Log touch &amp; push to Leads".</div>';
+  const th=(k,l)=>thSort("myleads",k,l);
+  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Conference")+th("state","State")+th("last","Last contact")+th("method","Method")+'<th>Conversation details</th>'+th("touches","Touches")+'</tr></thead><tbody>'+
+   pool.map(l=>{const t=leadLastTouch(l);
+    return '<tr data-act="openlead" data-id="'+esc(l.id)+'">'+
+    '<td><div class="lvname">'+esc(l.name)+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
+    '<td>'+esc(l.company||"—")+'</td>'+
+    '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
+    '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
+    '<td>'+(t?esc(t.date):'<span class="muted">never</span>')+'</td>'+
+    '<td>'+(t?'<span class="pill '+(toneFor(t.method)||"gray")+'">'+esc(titlecase(t.method))+'</span>':'<span class="muted">—</span>')+'</td>'+
+    '<td style="max-width:320px;overflow:hidden;text-overflow:ellipsis">'+esc(t?(t.note||""):"")+'</td>'+
+    '<td class="num">'+((l.touches||[]).length)+'</td></tr>';}).join("")+
+  '</tbody></table></div>';
+  return h;
+}
+function pushLeadFromConf(confId){
+  const cl=leadById(confId);if(!cl)return;
+  ensureLeads();
+  let ml=DB.leads.find(x=>x.refId===confId)||(cl.email?DB.leads.find(x=>x.email&&x.email.toLowerCase()===String(cl.email).toLowerCase()):null);
+  if(!ml){
+    ml={id:uid(),refId:confId,name:cl.name,title:cl.title||"",company:cl.company||"",email:cl.email||"",phone:cl.phone||"",
+        city:cl.city||"",state:cl.state||"",conf:cl.conf,segment:cl.segment||"",by:USER,createdAt:new Date().toISOString(),touches:[]};
+    DB.leads.unshift(ml);
+  }
+  formTouch(ml.id,true);
+}
+function formTouch(leadId,fromConf){
+  const l=myLeadById(leadId);if(!l)return;
+  logState.touchLead=leadId;logState.touchMethod="call";
+  const methods=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["note","note","Note"]];
+  openSheet('<h2>'+(fromConf?"Push to Leads — log the touch":"Log a touch")+'</h2>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc(l.name)+(l.company?' · '+esc(l.company):'')+(l.conf?' · '+esc(l.conf):'')+'</p>'+
+   '<label class="fl">Method of contact</label><div class="tiles" id="touchTiles">'+
+   methods.map(m=>'<div class="tile'+(m[0]==="call"?' on':'')+'" data-act="setTouchM" data-v="'+m[0]+'">'+svg(m[1])+m[2]+'</div>').join("")+'</div>'+
+   '<label class="fl">Date of contact</label><input class="f" id="touchDate" type="date" value="'+todayStr()+'">'+
+   '<label class="fl">Conversation details</label><textarea class="f" id="touchNote" rows="3" placeholder="What was said, what they want next…"></textarea>'+
+   '<button class="btn coral block" data-act="touchsave" style="margin-top:18px">'+(fromConf?"Push to Leads":"Save touch")+'</button>');
+}
+function saveTouch(){
+  const l=myLeadById(logState.touchLead);if(!l)return;
+  l.touches=l.touches||[];
+  l.touches.push({date:document.getElementById("touchDate").value||todayStr(),method:logState.touchMethod||"call",note:val("touchNote"),by:USER});
+  const cl=l.refId?leadById(l.refId):null;
+  if(cl){cl.contacted=true;if(cl.status==="Not contacted")cl.status="Contacted";}
+  save();closeSheet();render();toast(l.name+" — in Leads with the touch logged");
+}
+function formLeadRec(id){
+  const l=myLeadById(id);if(!l)return;
+  const touches=(l.touches||[]).slice().reverse();
+  openSheet('<h2>'+esc(l.name)+'</h2>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p>'+
+   '<div class="qa" style="margin:12px 0 4px">'+
+    (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
+    (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
+   '<button class="btn coral block" data-act="addtouch" data-id="'+esc(l.id)+'" style="margin:8px 0">'+svg("phone")+' Log a touch</button>'+
+   '<div class="sectlabel">Touch history · '+touches.length+'</div>'+
+   (touches.length?touches.map(t=>'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:92px;font-size:12.5px">'+esc(t.date)+'</b><span style="font-size:13.5px"><span class="pill '+(toneFor(t.method)||"gray")+'" style="font-size:11px">'+esc(titlecase(t.method))+'</span> '+esc(t.note||"")+' <span style="color:var(--hint)">— '+esc(teamById(t.by).name.split(" ")[0])+'</span></span></div>').join(""):'<p style="color:var(--hint);font-size:13px">No touches logged yet.</p>')+
+   (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ In the CRM as a contact</p>'
+    :'<button class="btn block" data-act="mlpromote" data-id="'+esc(l.id)+'" style="margin-top:10px">'+svg("user")+' Promote to CRM (account + contact)</button>')+
+   '<button class="btn block" data-act="mldelete" data-id="'+esc(l.id)+'" style="margin-top:8px;color:var(--dang-t)">Remove lead</button>');
+}
+function promoteMyLead(id){
+  const l=myLeadById(id);if(!l||l.promoted)return;
+  if(l.refId&&leadById(l.refId)&&!leadById(l.refId).promoted){promoteLead(l.refId);l.promoted=true;save();return;}
+  const cname=(l.company||l.name).trim();const key=cname.toLowerCase().replace(/[^a-z0-9]/g,"");
+  let c=DB.companies.find(x=>x.name.toLowerCase().replace(/[^a-z0-9]/g,"")===key);
+  if(!c){c={id:uid(),name:cname,type:"enduser",territory:regionFromState(l.state),city:l.city||"",state:l.state||"",note:"From Leads ("+(l.conf||"manual")+")",units:0,revenue:0,orders:0,lastOrder:"",demoCount:0};DB.companies.unshift(c);}
+  let p=l.email?DB.people.find(x=>(x.email||"").toLowerCase()===l.email.toLowerCase()):null;
+  if(!p){p={id:uid(),name:l.name,cid:c.id,branch:c.name,role:l.title||"Contact",city:l.city||"",state:l.state||"",email:l.email||"",phone:l.phone||"",last:null,note:"From Leads ("+(l.conf||"manual")+")"};DB.people.unshift(p);}
+  l.promoted=true;save();closeSheet();render();toast(l.name+" promoted to CRM");
+}
+function formNewLead(){
+  openSheet('<h2>New lead</h2>'+
+   '<label class="fl">Name</label><input class="f" id="nlName" placeholder="Person (or company) name">'+
+   '<label class="fl">Company</label><input class="f" id="nlCo">'+
+   '<label class="fl">Title</label><input class="f" id="nlTitle">'+
+   '<label class="fl">Email</label><input class="f" id="nlEmail">'+
+   '<label class="fl">Phone</label><input class="f" id="nlPhone">'+
+   '<label class="fl">State</label><input class="f" id="nlState" maxlength="2" placeholder="FL">'+
+   '<label class="fl">Source</label><input class="f" id="nlConf" placeholder="e.g. NSC 2026, referral, cold list">'+
+   '<button class="btn coral block" data-act="newleadsave" style="margin-top:18px">Add lead</button>');
+}
+function saveNewLead(){
+  const nm=val("nlName");if(!nm){toast("Give the lead a name");return;}
+  ensureLeads();
+  DB.leads.unshift({id:uid(),name:nm,company:val("nlCo"),title:val("nlTitle"),email:val("nlEmail"),phone:val("nlPhone"),
+    state:val("nlState").toUpperCase(),conf:val("nlConf"),by:USER,createdAt:new Date().toISOString(),touches:[]});
+  save();closeSheet();render();toast(nm+" added to Leads");
 }
 
 /* ---------- PIPELINE (Opportunities) ---------- */
@@ -2505,7 +2634,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="height:8px"></div>'+
- [["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
+ [["leads","spark","Leads"],["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b>'+n[2]+'</b></button>').join("")+
  '<div style="height:8px"></div>'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -2548,7 +2677,8 @@ function helpSheet(){
    ["Field Map","US map — flip between demos in the field and distributor reps by state. Tap a state."],
    ["Volume","Distributor volume — units bought, revenue, orders and the demo units they've picked up."],
    ["Conferences","The show calendar; shows with lead lists link straight to the call list."],
-   ["Campaign","Upload a lead list, write a short email sequence, launch — Apollo sends from your own inbox on schedule and tracks opens, clicks and replies."]
+   ["Campaign","Upload a lead list, write a short email sequence, launch — Apollo sends from your own inbox on schedule and tracks opens, clicks and replies."],
+   ["Leads","The working list between conference lists and the CRM — push promising people here, log every touch (date, method, details), promote when they get real."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / West</b> by state — John works West, Jamie works East, Max sees everything.</p>'+
@@ -2711,6 +2841,16 @@ document.addEventListener("click",e=>{
   if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);}return;}
   if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const an=document.getElementById("oAcctName");if(an)an.value="";}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
+  if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
+  if(a==="openlead"){formLeadRec(id);return;}
+  if(a==="pushlead"){pushLeadFromConf(t.dataset.id);return;}
+  if(a==="addtouch"){formTouch(id);return;}
+  if(a==="setTouchM"){logState.touchMethod=t.dataset.v;document.querySelectorAll("#touchTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="touchsave"){saveTouch();return;}
+  if(a==="newlead"){formNewLead();return;}
+  if(a==="newleadsave"){saveNewLead();return;}
+  if(a==="mlpromote"){promoteMyLead(id);return;}
+  if(a==="mldelete"){const ml=myLeadById(id);if(ml&&confirm('Remove "'+ml.name+'" from Leads?')){DB.leads=DB.leads.filter(x=>x.id!==id);save();closeSheet();render();toast("Removed");}return;}
   if(a==="editact"){formActivity(id);return;}
   if(a==="saveact"){saveActivity();return;}
   if(a==="delact"){const ax=(DB.activities||[]).find(x=>x.id===logState.actId);
