@@ -907,7 +907,7 @@ function oppOwnerName(o){return o&&o.owner?teamById(o.owner).name.split(" ")[0]:
 /* rep landing: reps open on their own pipeline */
 function applyRoleDefaults(){if(userRegion(USER)){view="opps";oppFilter="mine";oppView="list";}}
 /* region model — contacts/accounts are East or West (no person owns a contact); Nationwide = multi-region account */
-const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL".split(" "));
+const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" ")); // MI → East per Max 2026-08-14 (John Morrison home state)
 function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":"West";}
 function personStates(p){if(Array.isArray(p.states)&&p.states.length)return p.states;return p.state?[p.state]:[];}
 function regionFromStates(arr){if(!arr||!arr.length)return '';const r=new Set(arr.map(regionFromState).filter(Boolean));if(r.size>1)return 'Nationwide';return [...r][0]||'';}
