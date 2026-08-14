@@ -459,6 +459,9 @@ function since(iso){return iso?Math.floor((Date.now()-new Date(iso))/86400000):n
 function until(iso){return Math.ceil((new Date(iso)-Date.now())/86400000);}
 function ago(iso){if(!iso)return"never";const d=since(iso);if(d<=0)return"today";if(d===1)return"yesterday";return d+" days ago";}
 function fmtDay(iso){if(!iso)return"";const d=new Date(iso);if(isNaN(d))return String(iso).slice(0,10);return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+/* calendar day in the viewer's own timezone (EST for John Morrison, PST for Cornejo, etc.) —
+   never slice ISO timestamps directly: that's the UTC day, which shifts evening entries */
+function localDay(iso){if(!iso)return"";const s=String(iso);if(s.length===10)return s;const d=new Date(s);return isNaN(d)?s.slice(0,10):ymd(d);}
 function ensureActIds(){(DB.activities||[]).forEach(a=>{if(a&&!a.id)a.id=uid();});}
 function money(n){return"$"+Math.round(n).toLocaleString();}
 function initials(s){return s.split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();}
@@ -896,7 +899,7 @@ function oppActivityPool(o){
 }
 function oppTouches(o){return oppActivityPool(o).length+(parseInt(o.touchesExtra,10)||0);}
 function oppLastTouch(o){
-  const ds=oppActivityPool(o).map(a=>String(a.date).slice(0,10));
+  const ds=oppActivityPool(o).map(a=>localDay(a.date));
   if(o.lastContact)ds.push(o.lastContact);
   ds.sort();return ds.length?ds[ds.length-1]:"";
 }
@@ -998,20 +1001,24 @@ function eodRecapHTML(){
   const mineOnly=!admin();
   const t=todayStr(),y=ymd(new Date(Date.now()-86400000));
   const pool=(DB.activities||[]).filter(a=>(!mineOnly||a.by===USER))
-    .filter(a=>{const d=String(a.date||"").slice(0,10);return d===t||d===y;})
+    .filter(a=>{const d=localDay(a.date);return d===t||d===y;})
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const entry=a=>{const p=a.pid?person(a.pid):null;const c=a.cid?company(a.cid):(p?company(p.cid):null);
     return '<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer;padding:10px 14px;margin-bottom:8px"><div class="row"><span class="ic '+toneFor(a.type)+'" style="width:34px;height:34px">'+svg(iconFor(a.type))+'</span>'+
     '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(titlecase(a.type))+(p?' — '+esc(p.name):'')+(c?' <span style="color:var(--hint);font-weight:500">('+esc(c.name)+')</span>':'')+'</p>'+
     '<p class="t2">'+esc(a.note||"")+'</p></div>'+
     (mineOnly?'':'<span class="pill gray" style="flex:none">'+esc(teamById(a.by).name.split(" ")[0])+'</span>')+'</div></div>';};
-  const today=pool.filter(a=>String(a.date).slice(0,10)===t);
-  const yest=pool.filter(a=>String(a.date).slice(0,10)===y);
+  const today=pool.filter(a=>localDay(a.date)===t);
+  const yest=pool.filter(a=>localDay(a.date)===y);
   let h='<div class="kpis" style="margin-bottom:10px"><div class="kpi"><b>Logged today</b><span>'+today.length+'</span><small>'+[...new Set(today.map(a=>a.type))].join(" · ")+'</small></div>'+
      '<div class="kpi"><b>Yesterday</b><span>'+yest.length+'</span><small>'+[...new Set(yest.map(a=>a.type))].join(" · ")+'</small></div></div>';
   h+=today.length?today.slice(0,15).map(entry).join(""):'<div class="empty" style="padding:12px">Nothing logged yet today — every call counts (literally, on the deals).</div>';
   if(yest.length){h+='<div class="sectlabel" style="font-size:11px;margin-top:12px">Yesterday</div>'+yest.slice(0,10).map(entry).join("");}
   return h;
+}
+function eodSectionHTML(){
+  return '<div class="lvhead" style="margin:20px 0 8px"><div class="sectlabel" style="margin:0">End of day — '+(admin()?'team activity':'your activity')+'</div>'+
+   '<button class="btn sm coral" data-act="logfor" style="margin-left:auto">'+svg("phone")+' Log activity</button></div>'+eodRecapHTML();
 }
 function viewToday(){
   ensureTasks();ensureOpps();
@@ -1058,7 +1065,7 @@ function viewToday(){
        '<div class="bar"><i style="width:'+pct+'%"></i></div></button>';
     }).join("");
   }
-  if(!mydist.length){return h+'<div class="empty" style="padding:18px">No distributors in your region yet.</div>';}
+  if(!mydist.length){return h+'<div class="empty" style="padding:18px">No distributors in your region yet.</div>'+eodSectionHTML();}
   h+='<div class="sectlabel">Distributors in my region — '+setup.length+' set-up · '+potN+' potential</div>';
   if(setup.length){
     h+=setup.map(c=>{
@@ -1072,9 +1079,7 @@ function viewToday(){
   } else {
     h+='<div class="empty" style="padding:18px">No set-up distributors yet — work the '+potN+' in your Potential tab to onboard them.</div>';
   }
-  h+='<div class="lvhead" style="margin:20px 0 8px"><div class="sectlabel" style="margin:0">End of day — '+(admin()?'team activity':'your activity')+'</div>'+
-     '<button class="btn sm coral" data-act="logfor" style="margin-left:auto">'+svg("phone")+' Log activity</button></div>';
-  h+=eodRecapHTML();
+  h+=eodSectionHTML();
   if(admin())h+=teamFeed();
   return h;
 }
@@ -1153,8 +1158,8 @@ function savePerson(){
   p.note=val("epNote");
   save();closeSheet();render();toast("Contact updated");
 }
-function iconFor(t){return {call:"phone",email:"mail",training:"school",demo:"box",note:"note",quote:"file"}[t]||"note";}
-function toneFor(t){return {call:"info",email:"info",training:"ok",demo:"coral",note:"",quote:"warn"}[t]||"";}
+function iconFor(t){return {call:"phone",voicemail:"phone",meeting:"cal",email:"mail",training:"school",demo:"box",note:"note",quote:"file"}[t]||"note";}
+function toneFor(t){return {call:"info",voicemail:"warn",meeting:"info",email:"info",training:"ok",demo:"coral",note:"",quote:"warn"}[t]||"";}
 
 function viewRoster(cid){
   const c=company(cid);if(!c)return'<div class="empty">Not found.</div>';
@@ -2240,7 +2245,7 @@ function addHub(){
 }
 function formLogAcct(cid){
   const c=company(cid);if(!c)return;logState.logCid=cid;logState.logType="note";
-  const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   openSheet('<h2>Log on '+esc(c.name)+'</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.logType?' on':'')+'" data-act="setType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
    '<label class="fl">Note</label><textarea class="f" id="logAcctNote" placeholder="What happened?"></textarea>'+
@@ -2430,13 +2435,13 @@ function formActivity(id){
   const a=(DB.activities||[]).find(x=>x.id===id);
   if(!a){toast("Couldn't open that entry");return;}
   logState.actId=id;logState.actType=a.type||"note";
-  const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   if(!types.some(t=>t[0]===logState.actType))types.push([logState.actType,"note",titlecase(logState.actType)]);
   openSheet('<h2>Edit logged activity</h2>'+
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">Logged by '+esc(a.by?teamById(a.by).name:"—")+' · '+esc(fmtDay(a.date))+'</p>'+
    '<label class="fl">Type</label><div class="tiles" id="actTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.actType?' on':'')+'" data-act="setActType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
-   '<label class="fl">Date</label><input class="f" id="actDate" type="date" value="'+esc(String(a.date||"").slice(0,10))+'">'+
+   '<label class="fl">Date</label><input class="f" id="actDate" type="date" value="'+esc(localDay(a.date))+'">'+
    '<label class="fl">Note</label><textarea class="f" id="actNote" rows="3">'+esc(a.note||"")+'</textarea>'+
    '<button class="btn coral block" data-act="saveact" style="margin-top:18px">Save changes</button>'+
    '<button class="btn block" data-act="delact" style="margin-top:8px;color:var(--dang-t)">Delete this entry</button>');
@@ -2446,11 +2451,11 @@ function saveActivity(){
   a.type=logState.actType||a.type;
   a.note=document.getElementById("actNote").value.trim();
   const d=document.getElementById("actDate").value;
-  if(d&&d!==String(a.date||"").slice(0,10))a.date=d+"T12:00:00.000Z";
+  if(d&&d!==localDay(a.date))a.date=d+"T12:00:00.000Z";
   save();closeSheet();render();toast("Activity updated");
 }
 function formLog(prefillPid,prefillType){
-  const types=[["call","phone","Call"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   logState.logType=prefillType||"call";logState.outcome="Interested";
   logState.logPid=prefillPid||null;
   openSheet('<h2>Log activity</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
