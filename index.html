@@ -1880,12 +1880,13 @@ function leadTempTag(t){
   const cls={Hot:"dang",Warm:"warn",Interested:"info","Interested (no budget)":"info",Voicemail:"gray",New:"gray"}[t]||"gray";
   return '<span class="pill '+cls+'">'+esc(t||"New")+'</span>';
 }
+function leadRegion(l){if(l.region==="International"&&!l.state)return "International";return l.state?regionFromState(l.state):(l.region||"");}
 function leadVal(l,key){
   if(key==="name")return (l.name||"").toLowerCase();
   if(key==="company")return (l.company||"").toLowerCase();
   if(key==="title")return (l.title||"").toLowerCase();
   if(key==="state")return l.state||"~";
-  if(key==="region")return l.region||"~";
+  if(key==="region")return leadRegion(l)||"~";
   if(key==="temp")return ["Hot","Warm","Interested","Interested (no budget)","Voicemail","Shared line","New"].indexOf(l.temp);
   if(key==="status")return (l.status||"").toLowerCase();
   return "";
@@ -1927,7 +1928,7 @@ function viewConfLeads(){
     '<td><div class="lvname">'+esc(l.name)+(l.contacted?' <span class="pill ok" style="font-size:10px;padding:1px 6px;vertical-align:middle">✓</span>':'')+(l.promoted?' <span class="pill coral" style="font-size:10px;padding:1px 6px;vertical-align:middle">in CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
     '<td>'+esc(l.company||"—")+'</td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
-    '<td>'+(l.region==="International"?'<span class="pill gray">Intl</span>':regionTag(l.region))+'</td>'+
+    '<td>'+(leadRegion(l)==="International"?'<span class="pill gray">Intl</span>':regionTag(leadRegion(l)))+'</td>'+
     '<td>'+leadTempTag(l.temp)+'</td>'+
     '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+esc(l.status||"")+(l.next?'<div class="lvsub">'+esc(l.next)+'</div>':'')+'</td>'+
     '<td>'+(l.phone?esc(l.phone):'<span class="muted">—</span>')+'</td></tr>').join("")+
@@ -1939,7 +1940,7 @@ function leadFltVal(l,key){
   if(key==="name")return (l.name||"")+" "+(l.title||"");
   if(key==="company")return l.company||"";
   if(key==="state")return l.state||"";
-  if(key==="region")return l.region||"";
+  if(key==="region")return leadRegion(l);
   if(key==="temp")return l.temp||"";
   if(key==="status")return (l.status||"")+" "+(l.next||"");
   return "";
@@ -2006,6 +2007,7 @@ function mlVal(l,k){const t=leadLastTouch(l);
   if(k==="company")return (l.company||"~").toLowerCase();
   if(k==="conf")return l.conf||"~";
   if(k==="state")return l.state||"~";
+  if(k==="region")return l.state?regionFromState(l.state):"~";
   if(k==="last")return t?t.date:"";
   if(k==="method")return t?t.method:"~";
   if(k==="touches")return (l.touches||[]).length;
@@ -2036,13 +2038,14 @@ function viewLeads(){
      '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
   if(!pool.length)return h+'<div class="empty">Nothing here yet — open a conference call list, tap a person, and hit "Log touch &amp; push to Leads".</div>';
   const th=(k,l)=>thSort("myleads",k,l);
-  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Conference")+th("state","State")+th("last","Last contact")+th("method","Method")+'<th>Conversation details</th>'+th("touches","Touches")+'</tr></thead><tbody>'+
+  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Conference")+th("state","State")+th("region","Territory")+th("last","Last contact")+th("method","Method")+'<th>Conversation details</th>'+th("touches","Touches")+'</tr></thead><tbody>'+
    pool.map(l=>{const t=leadLastTouch(l);
     return '<tr data-act="openlead" data-id="'+esc(l.id)+'">'+
     '<td><div class="lvname">'+esc(l.name)+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
     '<td>'+esc(l.company||"—")+'</td>'+
     '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
+    '<td>'+(l.state?regionTag(regionFromState(l.state)):'<span class="muted">—</span>')+'</td>'+
     '<td>'+(t?esc(t.date):'<span class="muted">never</span>')+'</td>'+
     '<td>'+(t?'<span class="pill '+(toneFor(t.method)||"gray")+'">'+esc(titlecase(t.method))+'</span>':'<span class="muted">—</span>')+'</td>'+
     '<td style="max-width:320px;overflow:hidden;text-overflow:ellipsis">'+esc(t?(t.note||""):"")+'</td>'+
