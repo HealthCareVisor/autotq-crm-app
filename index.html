@@ -751,7 +751,7 @@ function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.rol
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function cmpv(a,b){if(typeof a==="number"&&typeof b==="number")return a-b;return String(a).localeCompare(String(b));}
 function contactCountMap(){const m={};DB.people.forEach(p=>{if(p.cid)m[p.cid]=(m[p.cid]||0)+1;});return m;}
-const FLT_TABLES={opps:1};
+const FLT_TABLES={opps:1,leads:1,myleads:1};
 let colFlt={};
 function cfInput(tbl,key){const v=(colFlt[tbl]||{})[key]||"";return '<input class="cf" id="cf_'+tbl+'_'+key+'" data-tbl="'+tbl+'" data-key="'+key+'" value="'+esc(v)+'" placeholder="Filter" autocomplete="off">';}
 function thSort(tbl,key,lbl){const s=sortState[tbl];const on=s.key===key;return '<th class="srt'+(on?" on":"")+'" data-act="sort" data-tbl="'+tbl+'" data-key="'+key+'">'+lbl+(on?(s.dir>0?" ▲":" ▼"):"")+(FLT_TABLES[tbl]?cfInput(tbl,key):'')+'<span class="rz"></span></th>';}
@@ -1907,6 +1907,8 @@ function viewConfLeads(){
   });
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(l=>(l.name+" "+l.company+" "+l.title+" "+l.status+" "+l.notes).toLowerCase().includes(q));
+  const lf=colFlt.leads||{};
+  pool=pool.filter(l=>Object.keys(lf).every(k=>fltMatch(leadFltVal(l,k),lf[k])));
   const s=sortState.leads;
   pool=pool.slice().sort((a,b)=>cmpv(leadVal(a,s.key),leadVal(b,s.key))*s.dir);
   const tab=(v,lbl,n)=>'<button class="'+(leadFilter===v?"on":"")+'" data-act="leadfilter" data-v="'+v+'">'+lbl+' <span class="cnt">'+n+'</span></button>';
@@ -1933,6 +1935,15 @@ function viewConfLeads(){
   return h;
 }
 function leadById(id){return (DB.confLeads||[]).find(l=>l.id===id);}
+function leadFltVal(l,key){
+  if(key==="name")return (l.name||"")+" "+(l.title||"");
+  if(key==="company")return l.company||"";
+  if(key==="state")return l.state||"";
+  if(key==="region")return l.region||"";
+  if(key==="temp")return l.temp||"";
+  if(key==="status")return (l.status||"")+" "+(l.next||"");
+  return "";
+}
 function formLead(id){
   const l=leadById(id);if(!l)return;logState.leadId=id;
   const temps=["New","Voicemail","Interested","Warm","Hot"];
@@ -2011,6 +2022,8 @@ function viewLeads(){
     return true;});
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(l=>((l.name||"")+" "+(l.company||"")+" "+(l.email||"")+" "+(l.title||"")).toLowerCase().includes(q));
+  const mf=colFlt.myleads||{};
+  pool=pool.filter(l=>Object.keys(mf).every(k=>fltMatch(mlVal(l,k),mf[k])));
   const s=sortState.myleads;
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
   const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
