@@ -801,8 +801,11 @@ function accountRow(c,cc){const n=cc[c.id]||0;return '<tr data-act="roster" data
   '<td class="num">'+n+'</td>'+'<td class="num">'+(c.units||0)+'</td>'+
   '<td class="num">'+(c.revenue?money(c.revenue):'<span class="muted">—</span>')+'</td>'+
   '<td class="num">'+(c.demoCount||0)+'</td></tr>';}
-function contactRow(p){const c=company(p.cid);const rb=roleBucket(p.role);return '<tr data-act="person" data-id="'+p.id+'">'+
-  '<td><div class="lvname">'+esc(p.name)+' <span class="pill '+rb[1]+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+rb[0]+'</span></div><div class="lvsub">'+esc(p.role||"")+'</div></td>'+
+function contactRow(p,org){const c=company(p.cid);const rb=roleBucket(p.role);
+  const ind=(org&&p.rank&&p.rank>1)?'style="padding-left:'+((p.rank-1)*20)+'px"':'';
+  const boss=(org&&p.reportsTo&&person(p.reportsTo))?' · ↳ '+esc(person(p.reportsTo).name):'';
+  return '<tr data-act="person" data-id="'+p.id+'">'+
+  '<td><div class="lvname" '+ind+'>'+((org&&p.rank===1)?'<b>':'')+esc(p.name)+((org&&p.rank===1)?'</b>':'')+' <span class="pill '+rb[1]+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+rb[0]+'</span></div><div class="lvsub" '+ind+'>'+esc(p.role||"")+boss+'</div></td>'+
   '<td>'+esc(c?c.name:(p.branch||"—"))+'</td>'+
   '<td>'+(personStates(p).length?personStates(p).map(stateChip).join(" "):'<span class="muted">—</span>')+'</td>'+
   '<td>'+regionTag(personRegion(p))+'</td>'+
@@ -816,7 +819,12 @@ function accountTableHTML(list,sortable){const cc=contactCountMap();
 function contactTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("contacts",k,l):'<th>'+l+'</th>';}
   const head='<tr>'+th("name","Contact")+th("account","Account")+th("state","State")+th("region","Region")+th("email","Email")+th("phone","Phone")+th("last","Last touch")+'</tr>';
-  return '<div class="tablewrap"><table class="lv" data-tbl="contacts"><thead>'+head+'</thead><tbody>'+list.map(contactRow).join("")+'</tbody></table></div>';}
+  return '<div class="tablewrap"><table class="lv" data-tbl="contacts"><thead>'+head+'</thead><tbody>'+list.map(p=>contactRow(p)).join("")+'</tbody></table></div>';}
+function contactTableOrgHTML(list){
+  const anyRank=list.some(p=>p.rank);
+  const sorted=anyRank?list.slice().sort((a,b)=>(a.rank||99)-(b.rank||99)||String(a.name).localeCompare(b.name)):list;
+  const head='<tr><th>Contact</th><th>Account</th><th>State</th><th>Region</th><th>Email</th><th>Phone</th><th>Last</th></tr>';
+  return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+sorted.map(p=>contactRow(p,anyRank)).join("")+'</tbody></table></div>';}
 
 /* ---------- tasks + channel enablement ---------- */
 function pad2(n){return (n<10?"0":"")+n;}
@@ -1220,7 +1228,7 @@ function viewRoster(cid){
     h+=oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false);
   }
   h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div></div>';
-  h+=reps.length?contactTableHTML(reps,false):'<div class="empty">No contacts at this account yet.</div>';
+  h+=reps.length?contactTableOrgHTML(reps):'<div class="empty">No contacts at this account yet.</div>';
   if(sellerN)h+='<div class="banner">'+svg("users")+sellerN+' Grainger sellers are in the directory tier — find them under Contacts → Grainger sellers, or search any name from the top bar.</div>';
   if(demos.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
