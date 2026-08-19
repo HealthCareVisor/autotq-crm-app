@@ -1227,8 +1227,9 @@ function viewRoster(cid){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Opportunities · '+opps.length+'</button></div></div>';
     h+=oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false);
   }
-  h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div></div>';
-  h+=reps.length?contactTableOrgHTML(reps):'<div class="empty">No contacts at this account yet.</div>';
+  h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div>'+
+     '<button class="btn sm coral" data-act="addcontactfor" data-id="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Add contact</button></div>';
+  h+=reps.length?contactTableOrgHTML(reps):'<div class="empty">No contacts at this account yet — add the first one above.</div>';
   if(sellerN)h+='<div class="banner">'+svg("users")+sellerN+' Grainger sellers are in the directory tier — find them under Contacts → Grainger sellers, or search any name from the top bar.</div>';
   if(demos.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
@@ -2680,6 +2681,26 @@ function saveFollowup(){
   DB.tasks.unshift({id:uid(),owner:USER,title:title,type:"followup",due:due,done:false,createdAt:new Date().toISOString(),pid:logState.fuPid||null});
   save();closeSheet();toast("Follow-up scheduled");if(view==="today")render();
 }
+function formNewContactFor(cid){
+  const c=company(cid);if(!c)return;logState.ncCid=cid;
+  openSheet('<h2>Add contact at '+esc(c.name)+'</h2>'+
+   '<label class="fl">Name</label><input class="f" id="ncName" placeholder="e.g. Lisa Stewart" autocomplete="off">'+
+   '<label class="fl">Role / title</label><input class="f" id="ncRole" placeholder="e.g. Safety Administrator">'+
+   '<label class="fl">Email</label><input class="f" id="ncEmail" type="email" placeholder="only if you\'ve seen it — no guessing">'+
+   '<label class="fl">Phone</label><input class="f" id="ncPhone">'+
+   '<label class="fl">City</label><input class="f" id="ncCity" value="'+esc(c.city||"")+'">'+
+   '<label class="fl">State</label><input class="f" id="ncState" value="'+esc(c.state||"")+'" maxlength="2">'+
+   '<button class="btn coral block" data-act="ncsave" style="margin-top:18px">Add contact</button>');
+  setTimeout(()=>{const e=document.getElementById("ncName");if(e)e.focus();},60);
+}
+function saveNewContactFor(){
+  const c=company(logState.ncCid);if(!c)return;
+  const name=val("ncName");if(!name){toast("Give the contact a name");return;}
+  DB.people.unshift({id:uid(),name:name,role:val("ncRole")||"Contact",cid:c.id,branch:c.name,
+    email:val("ncEmail").toLowerCase(),phone:val("ncPhone"),city:val("ncCity"),
+    state:val("ncState").toUpperCase().slice(0,2)||c.state||"",last:null});
+  save();closeSheet();render();toast(name+" added at "+c.name);
+}
 function formRep(){
   const opts=DB.companies.filter(c=>c.type==="distributor"||c.type==="manrep").map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join("");
   openSheet('<h2>Add rep</h2><label class="fl">Name</label><input class="f" id="rName" placeholder="e.g. Chris Walker">'+
@@ -2888,6 +2909,8 @@ document.addEventListener("click",e=>{
   if(a==="saveAcct"){saveAcct();return;}
   if(a==="delacct"){deleteAccount(id);return;}
   if(a==="delperson"){deletePerson(id);return;}
+  if(a==="addcontactfor"){formNewContactFor(id);return;}
+  if(a==="ncsave"){saveNewContactFor();return;}
   if(a==="editperson"){formEditPerson(id);return;}
   if(a==="savePerson"){savePerson();return;}
   if(a==="logacct"){formLogAcct(id);return;}
