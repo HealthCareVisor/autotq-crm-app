@@ -535,7 +535,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -1229,7 +1229,18 @@ function viewRoster(cid){
   }
   h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Contacts · '+reps.length+'</button></div>'+
      '<button class="btn sm coral" data-act="addcontactfor" data-id="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Add contact</button></div>';
-  h+=reps.length?contactTableOrgHTML(reps):'<div class="empty">No contacts at this account yet — add the first one above.</div>';
+  /* branch chips: multi-location books (Ritz, Unifirst…) sift by branch city, like Grainger districts */
+  let repsShown=reps;
+  const brCnt={};reps.forEach(p=>{const b=(p.city||"").trim();brCnt[b||"—"]=(brCnt[b||"—"]||0)+1;});
+  const branches=Object.keys(brCnt).filter(b=>b!=="—").sort((a,b)=>brCnt[b]-brCnt[a]||a.localeCompare(b));
+  if(reps.length>6&&branches.length>1){
+    const bchip=(v,l,n)=>'<button class="'+(rosterBranchF===v?"on":"")+'" data-act="rosterbranch" data-v="'+esc(v)+'">'+esc(l)+' <span class="cnt">'+n+'</span></button>';
+    h+='<div class="lvhead" style="margin:0 0 8px"><div class="lvtabs">'+bchip("","All branches",reps.length)+
+       branches.slice(0,14).map(b=>bchip(b,b,brCnt[b])).join("")+
+       (brCnt["—"]?bchip("—","No branch",brCnt["—"]):"")+'</div></div>';
+    if(rosterBranchF)repsShown=reps.filter(p=>((p.city||"").trim()||"—")===rosterBranchF);
+  }
+  h+=repsShown.length?contactTableOrgHTML(repsShown):'<div class="empty">No contacts at this account yet — add the first one above.</div>';
   if(sellerN)h+='<div class="banner">'+svg("users")+sellerN+' Grainger sellers are in the directory tier — find them under Contacts → Grainger sellers, or search any name from the top bar.</div>';
   if(demos.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
@@ -3005,7 +3016,8 @@ document.addEventListener("click",e=>{
     else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
   if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
-  if(a==="roster"){curCompany=id;view="roster";render();window.scrollTo(0,0);return;}
+  if(a==="roster"){curCompany=id;rosterBranchF="";view="roster";render();window.scrollTo(0,0);return;}
+  if(a==="rosterbranch"){rosterBranchF=t.dataset.v;render();return;}
   if(a==="logfor"){formLog(id,"call");return;}
   if(a==="quicknote"){formLog(id,"note");return;}
   if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);}return;}
