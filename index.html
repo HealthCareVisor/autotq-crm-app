@@ -843,7 +843,33 @@ function ensureTasks(){
     save();
   }
 }
-function myTasks(){return DB.tasks.filter(t=>t.owner===USER);}
+function taskFor(t,u){return t.owner===u||(t.assignees||[]).includes(u);}
+function myTasks(){return DB.tasks.filter(t=>taskFor(t,USER)&&!t.removed);}
+function taskPeopleLabel(t){const a=(t.assignees||[]).filter(x=>x!==t.owner);if(!a.length)return"";if(a.length>=TEAM.length-1)return"Everyone";return a.map(x=>teamById(x).name.split(" ")[0]).join(", ");}
+function assignChipsHTML(){const sel=logState.taskAssign||[];const all=sel.length>=TEAM.filter(x=>x.id!==USER).length;
+  return '<div class="qa-types" id="taskAssign" style="margin-top:6px"><span class="qchip'+(all?" on":"")+'" data-act="assignall" title="Assign to the whole team">Everyone</span>'+
+   TEAM.filter(x=>x.id!==USER).map(x=>'<span class="qchip'+(sel.includes(x.id)?" on":"")+'" data-act="assignone" data-v="'+x.id+'" style="'+(sel.includes(x.id)?'border-color:'+x.c+';color:'+x.c:'')+'">'+esc(x.name.split(" ")[0]+(x.id==="johnm"?" M.":x.id==="john"?" C.":""))+'</span>').join("")+
+   '<span class="t2" style="align-self:center;margin-left:4px">'+(sel.length?'for '+(all?'everyone':sel.map(x=>teamById(x).name.split(" ")[0]).join(", ")):'just me — tap names to assign')+'</span></div>';}
+/* To-dos are never deleted: "×" marks them removed (kept for history). */
+function taskHistoryPool(){ensureTasks();return DB.tasks.filter(t=>admin()||taskFor(t,USER));}
+function taskStatus(t){return t.removed?"removed":t.done?"completed":"open";}
+function fmtStamp(iso){if(!iso)return"";const d=new Date(iso);if(isNaN(d))return String(iso).slice(0,10);return ymd(d)+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());}
+function taskEvents(t){const ev=[];if(t.createdAt)ev.push({kind:"added",date:t.createdAt});if(t.done&&t.completedAt)ev.push({kind:"completed",date:t.completedAt});if(t.removed&&t.removedAt)ev.push({kind:"removed",date:t.removedAt});return ev;}
+function viewTaskHistory(){
+  const pool=taskHistoryPool();
+  const groups=[["open","Open"],["completed","Completed"],["removed","Removed"]];
+  const when=t=>t.removed?t.removedAt:t.done?t.completedAt:t.createdAt;
+  const row=t=>{const m=taskTypeMeta(t.type),st=taskStatus(t);
+    const meta=['added '+fmtStamp(t.createdAt),t.due?'due '+t.due:'',t.completedAt?'completed '+fmtStamp(t.completedAt):'',t.removedAt?'removed '+fmtStamp(t.removedAt):''].filter(Boolean).join(' · ');
+    return '<div class="tk'+(st!=="open"?" done":"")+'"><span class="pill '+m[1]+'" style="flex:none">'+m[2]+'</span>'+
+     '<div class="grow"><p class="t1" style="font-size:14px'+(st==="removed"?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p><p class="t2" style="white-space:normal">'+(admin()||t.owner!==USER?esc(teamById(t.owner).name.split(" ")[0])+(taskPeopleLabel(t)?' → '+esc(taskPeopleLabel(t)):'')+' · ':taskPeopleLabel(t)?'for '+esc(taskPeopleLabel(t))+' · ':'')+meta+'</p></div>'+
+     (st==="removed"?'<button class="btn sm" data-act="restoretask" data-id="'+t.id+'">Restore</button>':'<button class="btn sm" data-act="toggletask" data-id="'+t.id+'">'+(t.done?'Reopen':'Complete')+'</button>')+'</div>';};
+  let h='<h3 style="margin:4px 0 2px">To-do history'+(admin()?' — team':'')+'</h3><p class="t2" style="margin-bottom:10px">Every action ever added. Nothing is deleted — removed items are kept here and can be restored.</p>';
+  if(!pool.length)h+='<div class="empty" style="padding:14px">No to-dos yet.</div>';
+  groups.forEach(g=>{const list=pool.filter(t=>taskStatus(t)===g[0]).sort((a,b)=>String(when(b)||"").localeCompare(String(when(a)||"")));
+    if(!list.length)return;h+='<div class="sectlabel">'+g[1]+' — '+list.length+'</div>'+list.map(row).join("");});
+  openSheet(h);
+}
 function taskTypeMeta(t){return {call:["phone","info","Call"],email:["mail","info","Email"],demo:["box","coral","Demo"],train:["school","ok","Train"],followup:["clock","warn","Follow-up"],todo:["check","gray","To-do"]}[t]||["check","gray","To-do"];}
 function distStatus(c){if(c.dstatus)return c.dstatus;return (((c.units||0)>0)||((c.orders||0)>0)||["set up","active"].includes((c.stage||"").trim().toLowerCase()))?"setup":"potential";}
 const ESTAGES=["Identified","Demoed","Trained","Selling","Scaling"];
@@ -1022,12 +1048,21 @@ function eodRecapHTML(){
     '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(titlecase(a.type))+(p?' — '+esc(p.name):'')+(c?' <span style="color:var(--hint);font-weight:500">('+esc(c.name)+')</span>':'')+'</p>'+
     '<p class="t2">'+esc(a.note||"")+'</p></div>'+
     (mineOnly?'':'<span class="pill gray" style="flex:none">'+esc(teamById(a.by).name.split(" ")[0])+'</span>')+'</div></div>';};
-  const today=pool.filter(a=>localDay(a.date)===t);
-  const yest=pool.filter(a=>localDay(a.date)===y);
+  // To-do events (added / completed / removed) show up in the recap alongside logged activities.
+  const tevents=[];(DB.tasks||[]).filter(tk=>!mineOnly||taskFor(tk,USER)).forEach(tk=>taskEvents(tk).forEach(e=>{const d=localDay(e.date);if(d===t||d===y)tevents.push({isTask:true,task:tk,kind:e.kind,date:e.date,by:e.kind==="removed"?(tk.removedBy||tk.owner):tk.owner,type:"to-do"});}));
+  const tentry=e=>{const m=taskTypeMeta(e.task.type),verb={added:"Added to-do",completed:"Completed to-do",removed:"Removed to-do"}[e.kind];
+    return '<div class="card" data-act="taskhistory" style="cursor:pointer;padding:10px 14px;margin-bottom:8px"><div class="row"><span class="ic '+(e.kind==="completed"?"ok":e.kind==="removed"?"gray":"info")+'" style="width:34px;height:34px">'+svg(e.kind==="completed"?"check":m[0])+'</span>'+
+    '<div class="grow"><p class="t1" style="font-size:13.5px">'+verb+' <span style="color:var(--hint);font-weight:500">('+m[2]+(e.task.due?' · due '+e.task.due.slice(5):'')+(taskPeopleLabel(e.task)?' · for '+esc(taskPeopleLabel(e.task)):'')+')</span></p>'+
+    '<p class="t2">'+esc(e.task.title||"")+'</p></div>'+
+    (mineOnly?'':'<span class="pill gray" style="flex:none">'+esc(teamById(e.by).name.split(" ")[0])+'</span>')+'</div></div>';};
+  const all=pool.concat(tevents).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const today=all.filter(a=>localDay(a.date)===t);
+  const yest=all.filter(a=>localDay(a.date)===y);
+  const render1=a=>a.isTask?tentry(a):entry(a);
   let h='<div class="kpis" style="margin-bottom:10px"><div class="kpi"><b>Logged today</b><span>'+today.length+'</span><small>'+[...new Set(today.map(a=>a.type))].join(" · ")+'</small></div>'+
      '<div class="kpi"><b>Yesterday</b><span>'+yest.length+'</span><small>'+[...new Set(yest.map(a=>a.type))].join(" · ")+'</small></div></div>';
-  h+=today.length?today.slice(0,15).map(entry).join(""):'<div class="empty" style="padding:12px">Nothing logged yet today — every call counts (literally, on the deals).</div>';
-  if(yest.length){h+='<div class="sectlabel" style="font-size:11px;margin-top:12px">Yesterday</div>'+yest.slice(0,10).map(entry).join("");}
+  h+=today.length?today.slice(0,20).map(render1).join(""):'<div class="empty" style="padding:12px">Nothing logged yet today — every call counts (literally, on the deals).</div>';
+  if(yest.length){h+='<div class="sectlabel" style="font-size:11px;margin-top:12px">Yesterday</div>'+yest.slice(0,12).map(render1).join("");}
   return h;
 }
 function eodSectionHTML(){
@@ -1062,9 +1097,10 @@ function viewToday(){
   h+='<div class="planbar" style="margin-bottom:14px"><input class="qa-input" id="taskTitle" placeholder="Add an action for today…" autocomplete="off">'+
    '<div class="qa-types" id="taskTypes">'+[["call","Call"],["email","Email"],["demo","Demo"],["train","Train"],["followup","Follow-up"],["todo","To-do"]].map((t,i)=>'<span class="qchip'+((logState.taskType||"call")===t[0]?" on":"")+'" data-act="settask" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
-   '<button class="btn coral" data-act="addtask">Add</button></div>';
-  if(tasks.length){
-    h+='<div class="sectlabel">My day — '+tasks.filter(t=>!t.done).length+' open</div>';
+   '<button class="btn coral" data-act="addtask">Add</button>'+assignChipsHTML()+'</div>';
+  if(tasks.length||taskHistoryPool().length){
+    h+='<div class="lvhead" style="margin:18px 0 8px"><div class="sectlabel" style="margin:0">My day — '+tasks.filter(t=>!t.done).length+' open</div>'+
+     '<button class="btn sm" data-act="taskhistory" style="margin-left:auto">'+svg("clock")+' History</button></div>';
     h+=tasks.slice(0,12).map(taskRow).join("");
   }
   const confs=confLeadLists();
@@ -1102,7 +1138,8 @@ function taskRow(t){
   const tag=t.done?'<span class="pill gray">done</span>':overdue?'<span class="pill dang">overdue '+t.due.slice(5)+'</span>':(t.due===T?'<span class="pill warn">today</span>':'<span class="pill info">'+t.due.slice(5)+'</span>');
   return '<div class="tk'+(t.done?" done":"")+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button>'+
    '<span class="pill '+m[1]+'" style="flex:none">'+m[2]+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:14px'+(t.done?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p></div>'+
+   '<div class="grow"><p class="t1" style="font-size:14px'+(t.done?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p>'+
+   (t.owner!==USER?'<p class="t2">from '+esc(teamById(t.owner).name.split(" ")[0])+'</p>':taskPeopleLabel(t)?'<p class="t2">for '+esc(taskPeopleLabel(t))+'</p>':'')+'</div>'+
    tag+'<button class="tkdel" data-act="deltask" data-id="'+t.id+'" aria-label="delete">×</button></div>';
 }
 function rtag(region){return admin()&&region?" · "+region:"";}
@@ -2893,10 +2930,14 @@ document.addEventListener("click",e=>{
   if(a==="acctfilter"){acctFilter=t.dataset.v;listQ="";render();return;}
   if(a==="contactfilter"){contactFilter=t.dataset.v;listQ="";contactStateF="";render();return;}
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
+  if(a==="assignone"){const v=t.dataset.v,sel=logState.taskAssign||[];logState.taskAssign=sel.includes(v)?sel.filter(x=>x!==v):sel.concat([v]);document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
+  if(a==="assignall"){const others=TEAM.filter(x=>x.id!==USER).map(x=>x.id);const sel=logState.taskAssign||[];logState.taskAssign=sel.length>=others.length?[]:others;document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
   if(a==="settask"){logState.taskType=t.dataset.v;document.querySelectorAll("#taskTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
-  if(a==="addtask"){const ti=document.getElementById("taskTitle"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,title:title,type:logState.taskType||"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});save();render();refocus("taskTitle");return;}
-  if(a==="toggletask"){const tk=DB.tasks.find(x=>x.id===id);if(tk){tk.done=!tk.done;tk.completedAt=tk.done?new Date().toISOString():null;tk.completedDay=tk.done?todayStr():null;}save();render();return;}
-  if(a==="deltask"){DB.tasks=(DB.tasks||[]).filter(x=>x.id!==id);save();render();return;}
+  if(a==="addtask"){const ti=document.getElementById("taskTitle"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,assignees:(logState.taskAssign||[]).slice(),title:title,type:logState.taskType||"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});logState.taskAssign=[];save();render();refocus("taskTitle");return;}
+  if(a==="toggletask"){const tk=DB.tasks.find(x=>x.id===id);if(tk){tk.done=!tk.done;tk.completedAt=tk.done?new Date().toISOString():null;tk.completedDay=tk.done?todayStr():null;}save();render();if(document.getElementById("scrim").classList.contains("open")&&document.getElementById("sheet").textContent.indexOf("To-do history")===0)viewTaskHistory();return;}
+  if(a==="deltask"){const tk=(DB.tasks||[]).find(x=>x.id===id);if(tk){tk.removed=true;tk.removedAt=new Date().toISOString();tk.removedDay=todayStr();tk.removedBy=USER;}save();render();toast("Moved to history");return;}
+  if(a==="restoretask"){const tk=(DB.tasks||[]).find(x=>x.id===id);if(tk){tk.removed=false;tk.removedAt=null;tk.removedDay=null;tk.removedBy=null;}save();render();viewTaskHistory();return;}
+  if(a==="taskhistory"){viewTaskHistory();return;}
   if(a==="setdstatus"){const c=company(id);if(c){c.dstatus=t.dataset.v;save();render();toast(c.name+" → "+(t.dataset.v==="setup"?"Set-up":"Potential"));}return;}
   if(a==="setestage"){const c=company(id);if(c){c.estage=t.dataset.v;save();render();}return;}
   if(a==="schedfu"){formFollowup(id);return;}
