@@ -336,7 +336,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -536,7 +536,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="board", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
-function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];
+function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
   return b;}
@@ -674,9 +674,10 @@ function render(){
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
   ensureActIds(); // older logged activities may predate ids — editing needs one
   const me=teamById(USER);
+  if(view==="invoicing"&&!invAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -694,7 +695,8 @@ function render(){
     confleads:"Conference call list — tap a lead to log the call",
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
-    search:(searchQ?('Results for “'+esc(searchQ)+'”'):"")
+    search:(searchQ?('Results for “'+esc(searchQ)+'”'):""),
+    invoicing:(function(){const os=ordersAll();const q=os.filter(o=>o.status==="queue");return os.length+" orders · "+q.length+" awaiting invoice"+(q.length?" ("+money(q.reduce((s,o)=>s+(o.amount||0),0))+")":"");})()
   };
   let body="";
   if(view==="today")body=viewToday();
@@ -714,6 +716,7 @@ function render(){
   else if(view==="map")body=viewMap();
   else if(view==="conf")body=viewConf();
   else if(view==="search")body=searchView();
+  else if(view==="invoicing")body=invAccess()?viewInvoicing():viewToday();
   else body=viewToday();
   const groups=[
    ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
@@ -721,6 +724,7 @@ function render(){
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
   ];
+  if(invAccess())groups.push(["Back office",[["invoicing","file","Invoicing"]]]);
   const sideNav=groups.map(g=>'<div class="grp">'+g[0]+'</div>'+
    g[1].map(n=>'<button class="'+(navOn(n[0])?"on":"")+'" data-act="nav" data-view="'+n[0]+'" title="'+n[2]+'">'+svg(n[1])+'<span>'+n[2]+'</span></button>').join("")).join("");
   document.getElementById("screen").innerHTML=
@@ -2906,6 +2910,155 @@ function exportCSV(){
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="autotq_distributor_volume.csv";a.click();toast("Exported");
 }
 
+/* ---------- Invoicing (back office: Max/admin, Jamie, Laresa) ----------
+   PO PDFs live in the shared Supabase `resources` bucket under pos/…;
+   order metadata syncs through the `orders` collection like everything else. */
+function invAccess(){return admin()||USER==="jamie"||USER==="laresa";}
+function ordersAll(){return (DB.orders||[]).slice().sort((a,b)=>String(b.poDate||"").localeCompare(String(a.poDate||"")));}
+function fmtC(n){return "$"+(+(n||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+/* Known POs (2026 reconciliation, 8/24): uploading a matching file auto-fills the record. */
+const PO_SEED={
+ "0166242":{account:"Medique Products",amount:63462.50,qbInv:"1094, 1102",status:"invoiced",notes:"Blanket PO: 150 kits + 8 demo + 50 WB + 50 CC — covers both 75-kit invoices. Medique = UniFirst First Aid & Safety."},
+ "207289":{account:"Ballard Industrial",amount:20896.01,qbInv:"1096, 1101",status:"invoiced",notes:"Blanket PO: 51 kits + 2 demos — covers both Feb invoices."},
+ "208142":{account:"Ballard Industrial",amount:183.76,qbInv:"1105",status:"invoiced",notes:"7 wall mount brackets."},
+ "210510":{account:"Ballard Industrial",amount:107.00,qbInv:"1159",status:"invoiced",notes:"Cuffs + case + bracket."},
+ "210511":{account:"Ballard Industrial",amount:107.00,qbInv:"1160",status:"invoiced",notes:"Cuffs + case + bracket."},
+ "2494683":{account:"Ritz Safety",amount:1926.25,qbInv:"1103, 1106",status:"invoiced",notes:"5 kits + wall bracket (bracket invoiced separately as 1106)."},
+ "2521098":{account:"Ritz Safety",amount:3420.00,qbInv:"1167",status:"invoiced",notes:"9 kits (Toyota Tsusho)."},
+ "494415":{account:"Safety Products Inc",amount:5062.20,qbInv:"1156",status:"invoiced",notes:"11 kits shipped to Terry's Electric, Kissimmee FL."},
+ "497813":{account:"Safety Products Inc",amount:1440.00,qbInv:"1166",status:"invoiced",notes:"3 kits."},
+ "PO-00121342":{account:"Campbell Supply Co.",amount:5440.00,qbInv:"1170",status:"invoiced",notes:"10 kits."},
+ "VENDORPOREPORT":{account:"Fastenal Company Purchasing",amount:1632.00,qbInv:"1113",status:"invoiced",notes:"3 kits, P-card PO (Kourtney Spurgeon), via PMG Safety."},
+ "GMDGHM003":{account:"AED Professionals",amount:700.00,qbInv:"",status:"queue",notes:"2 demo kits."},
+ "87705":{account:"William V. MacGill & Co.",amount:457.00,qbInv:"",status:"queue",notes:""},
+ "US01PSPO0001771":{account:"Safe Life US LLC",amount:5062.20,qbInv:"",status:"queue",notes:""},
+ "651479":{account:"Central Welding Supply",amount:1088.00,qbInv:"",status:"queue",notes:""},
+ "11499":{account:"Rescue One Training For Life",amount:2301.00,qbInv:"",status:"queue",notes:"Federal/FBI training order."},
+ "P11966":{account:"Austin Tool Inc.",amount:570.25,qbInv:"1169",status:"invoiced",notes:"Kit + wall bracket (Justin Vogt)."},
+ "428619":{account:"Hub City Fire & Safety",amount:350.00,qbInv:"",status:"queue",notes:"1 demo unit."},
+ "1315836":{account:"Industrial Supply Inc (ISC Salt Lake)",amount:2176.00,qbInv:"",status:"queue",notes:"4 demo kits. ISC asks PO confirmation within 48h."},
+ "P00405000944":{account:"UniFirst First Aid & Safety",amount:675.00,qbInv:"",status:"queue",notes:"20 cuff packs (7000-LS-P). Invoice to apfirstaid@unifirst.com; truck appt required."},
+ "Y2848867":{account:"Hardware Specialty",amount:0,qbInv:"",status:"supplier",notes:"GHM's own order TO a supplier — kept for records, nothing to invoice."}
+};
+function poSeedFor(poNo){const k=String(poNo||"").toUpperCase();if(PO_SEED[k])return PO_SEED[k];const hit=Object.keys(PO_SEED).find(s=>k.includes(s)||s.includes(k));return hit?PO_SEED[hit]:null;}
+/* filename convention: "Customer MM-DD-YYYY PONUMBER.pdf" */
+function parsePoFname(fn){
+  const base=fn.replace(/\.pdf$/i,"");
+  const m=base.match(/^(.*?)\s+(\d{2})-(\d{2})-(\d{4})\s+(.+)$/);
+  if(m)return {account:m[1].trim(),poDate:m[4]+"-"+m[2]+"-"+m[3],poNo:m[5].trim()};
+  const m2=base.match(/(?:PO[\s#_-]*)?([A-Z0-9][A-Z0-9-]{4,})$/i);
+  return {account:base.replace(/\s*(purchase\s*order|po)\s*[#:]?\s*/i," ").trim(),poDate:todayStr(),poNo:m2?m2[1]:base};
+}
+async function storUpload(path,file){
+  const r=await supa("/storage/v1/object/resources/"+path.split("/").map(encodeURIComponent).join("/"),
+    {method:"POST",headers:{"Content-Type":file.type||"application/pdf","x-upsert":"true"},body:file});
+  return r.ok;
+}
+async function storBlob(path){
+  const r=await supa("/storage/v1/object/authenticated/resources/"+path.split("/").map(encodeURIComponent).join("/"));
+  if(!r.ok)return null;return await r.blob();
+}
+let invFilter="all";
+const INV_STATUS={queue:["Needs invoice","var(--warn-t,#a15c00)","rgba(255,180,0,.14)"],invoiced:["Invoiced","var(--ok-t)","rgba(0,160,90,.12)"],paid:["Paid","var(--ok-t)","rgba(0,160,90,.12)"],supplier:["Supplier PO","var(--hint)","rgba(120,120,120,.12)"]};
+function invChip(st){const c=INV_STATUS[st]||INV_STATUS.queue;return '<span class="pill" style="color:'+c[1]+';background:'+c[2]+';font-weight:600;white-space:nowrap">'+c[0]+'</span>';}
+function viewInvoicing(){
+  const os=ordersAll();
+  const q=os.filter(o=>o.status==="queue"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
+  let h='<div class="banner">'+svg("file")+'Private to Max, Jamie &amp; Laresa. Drop every customer PO here — attach the QB invoice # once Laresa bills it, and mark Paid when the check clears.</div>';
+  h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+
+     '<div class="kpi"><b>Awaiting invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
+     '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
+     '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div>'+
+     '<div class="kpi"><b>Documents</b><span>'+os.filter(o=>o.file).length+'</span></div></div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">'+
+     '<button class="btn coral" data-act="invupload">'+svg("plus")+' Upload PO PDFs</button>'+
+     '<input type="file" id="poFiles" accept="application/pdf" multiple style="display:none">'+
+     '<button class="btn sm ghost" data-act="invadd">Add order without a PDF</button>'+
+     '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
+     [["all","All ("+os.length+")"],["queue","Needs invoice ("+q.length+")"],["invoiced","Invoiced ("+inv.length+")"],["paid","Paid ("+paid.length+")"],["supplier","Supplier"]]
+     .map(f=>'<button class="qchip'+(invFilter===f[0]?" on":"")+'" data-act="invfilter" data-v="'+f[0]+'">'+f[1]+'</button>').join("")+'</div>';
+  const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
+  if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+(os.length?"Nothing in this view.":"No orders yet — tap <b>Upload PO PDFs</b> and select every PO. Files named “Customer MM-DD-YYYY PO#.pdf” fill themselves in.")+'</div>';
+  else{
+    h+='<div class="card" style="padding:0;overflow:hidden">';
+    list.forEach((o,i)=>{
+      h+='<div data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:12px;align-items:center;padding:13px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
+        '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(o.account||"—")+'</p>'+
+        '<p class="t2" style="margin:2px 0 0;white-space:normal">PO <b>'+esc(o.poNo||"—")+'</b> · '+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+(o.amount?' · '+fmtC(o.amount):'')+(o.qbInv?' · QB inv <b>'+esc(o.qbInv)+'</b>':'')+'</p></div>'+
+        invChip(o.status)+
+        (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="View PDF">View</button>'+
+                '<button class="btn sm ghost" data-act="invdl" data-id="'+o.id+'" title="Download PDF">'+svg("file")+'</button>'
+              :'<span style="font-size:12px;color:var(--hint)">no PDF</span>')+
+      '</div>';
+    });
+    h+='</div>';
+  }
+  h+='<p style="font-size:12px;color:var(--hint);margin:12px 2px 0">Tap an order to edit its status, QB invoice # or notes. PDFs are stored once in the shared team library — View/Download works on every device.</p>';
+  return h;
+}
+function formOrder(id){
+  const o=id?(DB.orders||[]).find(x=>x.id===id):null;
+  logState.invStatus=o?o.status:"queue";
+  openSheet('<h2>'+(o?'Order — '+esc(o.account):'Add order')+'</h2>'+
+   (o&&o.file?'<p style="font-size:13px;color:var(--muted);margin:0 0 6px">'+esc(o.fname||o.file)+'</p>':'')+
+   '<label class="fl">Customer / account</label><input class="f" id="ivAcct" value="'+esc(o?o.account:"")+'">'+
+   '<label class="fl">PO number</label><input class="f" id="ivPo" value="'+esc(o?o.poNo:"")+'">'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">PO date</label><input class="f" id="ivDate" type="date" value="'+esc(o?o.poDate:todayStr())+'"></div>'+
+   '<div class="grow"><label class="fl">Amount</label><input class="f" id="ivAmt" inputmode="decimal" value="'+(o&&o.amount?o.amount:"")+'"></div></div>'+
+   '<label class="fl">Status</label><div id="ivStatus" style="display:flex;gap:6px;flex-wrap:wrap">'+
+    Object.keys(INV_STATUS).map(s=>'<button class="qchip'+((o?o.status:"queue")===s?" on":"")+'" data-act="invsetst" data-v="'+s+'">'+INV_STATUS[s][0]+'</button>').join("")+'</div>'+
+   '<label class="fl">QB invoice #(s)</label><input class="f" id="ivQb" value="'+esc(o?o.qbInv:"")+'" placeholder="e.g. 1172">'+
+   '<label class="fl">Notes</label><textarea class="f" id="ivNotes" rows="2">'+esc(o?o.notes:"")+'</textarea>'+
+   '<button class="btn coral block" data-act="invsave" data-id="'+(o?o.id:"")+'" style="margin-top:16px">Save</button>');
+}
+function saveOrder(id){
+  const o=id?(DB.orders||[]).find(x=>x.id===id):null;
+  const rec=o||{id:uid(),addedBy:USER,addedAt:new Date().toISOString(),file:null,fname:null};
+  rec.account=val("ivAcct");rec.poNo=val("ivPo");rec.poDate=val("ivDate");
+  rec.amount=parseFloat(String(val("ivAmt")).replace(/[$,]/g,""))||0;
+  rec.status=logState.invStatus||"queue";rec.qbInv=val("ivQb");rec.notes=val("ivNotes");
+  if(!o){DB.orders=DB.orders||[];DB.orders.push(rec);}
+  save();closeSheet();render();toast("Order saved");
+}
+async function invUploadFiles(files){
+  DB.orders=DB.orders||[];
+  const prog=()=>document.getElementById("invProg");
+  let done=0,fail=0;
+  for(const f of files){
+    if(prog())prog().textContent="Uploading "+(done+fail+1)+" / "+files.length+"…";
+    const meta=parsePoFname(f.name),seedM=poSeedFor(meta.poNo);
+    const path="pos/"+f.name;
+    const ok=await storUpload(path,f);
+    if(!ok){fail++;continue;}
+    const dup=DB.orders.find(x=>x.fname===f.name||(x.poNo&&meta.poNo&&x.poNo.toUpperCase()===meta.poNo.toUpperCase()));
+    const rec=dup||{id:uid(),addedBy:USER,addedAt:new Date().toISOString()};
+    rec.file=path;rec.fname=f.name;
+    if(!dup||!dup.account)rec.account=(seedM&&seedM.account)||meta.account;
+    if(!dup||!dup.poNo)rec.poNo=meta.poNo;
+    if(!dup||!dup.poDate)rec.poDate=meta.poDate;
+    if(seedM){if(!rec.amount)rec.amount=seedM.amount;if(!rec.qbInv)rec.qbInv=seedM.qbInv;if(!rec.status||rec.status==="queue")rec.status=seedM.status;if(!rec.notes)rec.notes=seedM.notes;}
+    else if(!rec.status)rec.status="queue";
+    if(!dup)DB.orders.push(rec);
+    done++;save();
+  }
+  render();
+  toast(done+" uploaded"+(fail?" · "+fail+" failed (check connection)":""));
+}
+async function invOpenFile(id,download){
+  const o=(DB.orders||[]).find(x=>x.id===id);if(!o||!o.file)return;
+  toast(download?"Downloading…":"Opening…");
+  const b=await storBlob(o.file);
+  if(!b){toast("Couldn't fetch the PDF — are you online?");return;}
+  const url=URL.createObjectURL(b);
+  if(download){const a=document.createElement("a");a.href=url;a.download=o.fname||"PO.pdf";document.body.appendChild(a);a.click();a.remove();}
+  else{window.open(url,"_blank");}
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+document.addEventListener("change",e=>{
+  if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invUploadFiles(Array.from(e.target.files));e.target.value="";}
+});
+
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
@@ -2925,6 +3078,14 @@ document.addEventListener("click",e=>{
       .then(r=>{if(r.ok){closeSheet();toast("Password changed");}else toast("Couldn't change it — try again");});
     return;}
   if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
+  if(a==="invupload"){document.getElementById("poFiles").click();return;}
+  if(a==="invadd"){formOrder(null);return;}
+  if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
+  if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
+  if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
+  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"]'))return;formOrder(id);return;}
+  if(a==="invsetst"){logState.invStatus=t.dataset.v;document.querySelectorAll("#ivStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="invsave"){saveOrder(id||null);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
   if(a==="sort"){if(e.target.tagName==="INPUT"||e.target.classList.contains("rz"))return;const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="acctfilter"){acctFilter=t.dataset.v;listQ="";render();return;}
