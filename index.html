@@ -2974,6 +2974,8 @@ function viewInvoicing(){
      '<button class="btn coral" data-act="invupload">'+svg("plus")+' Upload PO PDFs</button>'+
      '<input type="file" id="poFiles" accept="application/pdf" multiple style="display:none">'+
      '<button class="btn sm ghost" data-act="invadd">Add order without a PDF</button>'+
+     (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button>'+
+     '<input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
      [["all","All ("+os.length+")"],["queue","Needs invoice ("+q.length+")"],["invoiced","Invoiced ("+inv.length+")"],["paid","Paid ("+paid.length+")"],["supplier","Supplier"]]
@@ -3055,8 +3057,49 @@ async function invOpenFile(id,download){
   else{window.open(url,"_blank");}
   setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+/* tiny RFC-4180 CSV parser (quoted fields, embedded commas/newlines) */
+function parseCSV(text){
+  const rows=[];let row=[],cur="",inQ=false;
+  for(let i=0;i<text.length;i++){const ch=text[i];
+    if(inQ){if(ch==='"'){if(text[i+1]==='"'){cur+='"';i++;}else inQ=false;}else cur+=ch;}
+    else if(ch==='"')inQ=true;
+    else if(ch===","){row.push(cur);cur="";}
+    else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cur);cur="";if(row.some(c=>c!==""))rows.push(row);row=[];}
+    else cur+=ch;}
+  if(cur!==""||row.length){row.push(cur);if(row.some(c=>c!==""))rows.push(row);}
+  return rows;
+}
+/* expects header: account,poNo,poDate,amount,status,qbInv,notes — dedupes on PO # (or account+date+amount when no PO) */
+function invImportCsv(text){
+  const rows=parseCSV(text);if(rows.length<2){toast("That CSV looks empty");return;}
+  const hd=rows[0].map(s=>s.trim().toLowerCase()),ix=k=>hd.indexOf(k.toLowerCase());
+  const iA=ix("account"),iP=ix("poNo"),iD=ix("poDate"),iM=ix("amount"),iS=ix("status"),iQ=ix("qbInv"),iN=ix("notes");
+  if(iA<0||iP<0){toast("Need at least account + poNo columns");return;}
+  DB.orders=DB.orders||[];
+  let added=0,merged=0;
+  rows.slice(1).forEach(r=>{
+    const po=(r[iP]||"").trim(),acct=(r[iA]||"").trim();
+    if(!acct&&!po)return;
+    const key=po?po.toUpperCase():null;
+    const dup=DB.orders.find(x=>key&&x.poNo&&x.poNo.toUpperCase()===key)||
+              (!key&&DB.orders.find(x=>x.account===acct&&x.poDate===(r[iD]||"").trim()&&+x.amount===+(r[iM]||0)));
+    if(dup){ // enrich, never overwrite what's already set
+      if(!dup.qbInv&&iQ>-1&&r[iQ])dup.qbInv=r[iQ].trim();
+      if(!dup.amount&&iM>-1)dup.amount=parseFloat(String(r[iM]).replace(/[$,]/g,""))||dup.amount;
+      if(!dup.notes&&iN>-1)dup.notes=(r[iN]||"").trim();
+      merged++;return;}
+    DB.orders.push({id:uid(),addedBy:USER,addedAt:new Date().toISOString(),file:null,fname:null,
+      account:acct,poNo:po,poDate:(iD>-1?(r[iD]||"").trim():"")||todayStr(),
+      amount:parseFloat(String(iM>-1?r[iM]:"0").replace(/[$,]/g,""))||0,
+      status:(iS>-1&&INV_STATUS[(r[iS]||"").trim()])?(r[iS]||"").trim():"queue",
+      qbInv:iQ>-1?(r[iQ]||"").trim():"",notes:iN>-1?(r[iN]||"").trim():""});
+    added++;
+  });
+  save();render();toast(added+" orders imported"+(merged?" · "+merged+" merged into existing":""));
+}
 document.addEventListener("change",e=>{
   if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invUploadFiles(Array.from(e.target.files));e.target.value="";}
+  if(e.target&&e.target.id==="poCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(invImportCsv);e.target.value="";}
 });
 
 document.addEventListener("click",e=>{
@@ -3079,6 +3122,7 @@ document.addEventListener("click",e=>{
     return;}
   if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
   if(a==="invupload"){document.getElementById("poFiles").click();return;}
+  if(a==="invcsv"){document.getElementById("poCsv").click();return;}
   if(a==="invadd"){formOrder(null);return;}
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
