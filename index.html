@@ -3006,7 +3006,7 @@ function invChip(st){const c=INV_STATUS[st]||INV_STATUS.queue;return '<span clas
 function viewInvoicing(){
   const os=ordersAll();
   const q=os.filter(o=>o.status==="queue"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
-  let h='<div class="banner">'+svg("file")+'Private to Max, Jamie &amp; Laresa. Drop every customer PO here — attach the QB invoice # once Laresa bills it, and mark Paid when the check clears.</div>';
+  let h='';
   h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+
      '<div class="kpi"><b>Awaiting invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
      '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
