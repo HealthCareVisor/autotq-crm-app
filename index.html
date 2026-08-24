@@ -335,7 +335,7 @@ const KEY="autotq_crm_v16", UKEY="autotq_crm_user", HKEY="autotq_crm_onboarded";
 const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
-const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm"};
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa"};
 const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
@@ -478,7 +478,8 @@ const TEAM=[
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
  {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
  {id:"kellan",name:"Kellan",role:"Admin",c:"#6B4FA3"},
- {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"}
+ {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
+ {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}
 ];
 const ENRICH={
  "grainger":{name:"W.W. Grainger, Inc.",website:"grainger.com",industry:"Industrial MRO",city:"Lake Forest",state:"IL",kind:"National distributor"},
@@ -949,7 +950,7 @@ function oppDistLabel(o){return o.distributorId?((company(o.distributorId)||{}).
 function canEditOpp(o){if(admin())return true;if(!o||!o.owner)return true;return o.owner===USER;}
 function oppOwnerName(o){return o&&o.owner?teamById(o.owner).name.split(" ")[0]:"";}
 /* rep landing: reps open on their own pipeline */
-function applyRoleDefaults(){if(userRegion(USER)){view="opps";oppFilter="mine";oppView="list";}}
+function applyRoleDefaults(){if(USER==="laresa"){view="invoicing";return;}if(userRegion(USER)){view="opps";oppFilter="mine";oppView="list";}}
 /* region model — contacts/accounts are East or West (no person owns a contact); Nationwide = multi-region account */
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" ")); // MI → East per Max 2026-08-14 (John Morrison home state)
 function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":"West";}
@@ -2960,28 +2961,37 @@ function ordersAll(){return (DB.orders||[]).slice().sort((a,b)=>String(b.poDate|
 function fmtC(n){return "$"+(+(n||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
 /* Known POs (2026 reconciliation, 8/24): uploading a matching file auto-fills the record. */
 const PO_SEED={
- "0166242":{account:"Medique Products",amount:63462.50,qbInv:"1094, 1102",status:"invoiced",notes:"Blanket PO: 150 kits + 8 demo + 50 WB + 50 CC — covers both 75-kit invoices. Medique = UniFirst First Aid & Safety."},
- "207289":{account:"Ballard Industrial",amount:20896.01,qbInv:"1096, 1101",status:"invoiced",notes:"Blanket PO: 51 kits + 2 demos — covers both Feb invoices."},
- "208142":{account:"Ballard Industrial",amount:183.76,qbInv:"1105",status:"invoiced",notes:"7 wall mount brackets."},
- "210510":{account:"Ballard Industrial",amount:107.00,qbInv:"1159",status:"invoiced",notes:"Cuffs + case + bracket."},
- "210511":{account:"Ballard Industrial",amount:107.00,qbInv:"1160",status:"invoiced",notes:"Cuffs + case + bracket."},
- "2494683":{account:"Ritz Safety",amount:1926.25,qbInv:"1103, 1106",status:"invoiced",notes:"5 kits + wall bracket (bracket invoiced separately as 1106)."},
- "2521098":{account:"Ritz Safety",amount:3420.00,qbInv:"1167",status:"invoiced",notes:"9 kits (Toyota Tsusho)."},
- "494415":{account:"Safety Products Inc",amount:5062.20,qbInv:"1156",status:"invoiced",notes:"11 kits shipped to Terry's Electric, Kissimmee FL."},
- "497813":{account:"Safety Products Inc",amount:1440.00,qbInv:"1166",status:"invoiced",notes:"3 kits."},
- "PO-00121342":{account:"Campbell Supply Co.",amount:5440.00,qbInv:"1170",status:"invoiced",notes:"10 kits."},
- "VENDORPOREPORT":{account:"Fastenal Company Purchasing",amount:1632.00,qbInv:"1113",status:"invoiced",notes:"3 kits, P-card PO (Kourtney Spurgeon), via PMG Safety."},
- "GMDGHM003":{account:"AED Professionals",amount:700.00,qbInv:"",status:"queue",notes:"2 demo kits."},
+ "0166242":{account:"Medique Products",amount:63462.50,qbInv:"1094, 1102",status:"invoiced",notes:"Blanket PO: 150 kits + 8 demo + 50 WB + 50 CC — covers both 75-kit invoices. Medique = UniFirst First Aid & Safety.",items:[{sku:"1000-0005-TQ",qty:150,unit:380},{sku:"Demo unit",qty:8,unit:350},{sku:"7000-WB",qty:50,unit:26.25},{sku:"7000-CC",qty:50,unit:47}]},
+ "207289":{account:"Ballard Industrial",amount:20896.01,qbInv:"1096, 1101",status:"invoiced",notes:"Blanket PO: 51 kits + 2 demos — covers both Feb invoices.",items:[{sku:"1000-0005-TQ",qty:51,unit:396},{sku:"Demo unit",qty:2,unit:350},{sku:"Freight",qty:1,unit:0.01}]},
+ "208142":{account:"Ballard Industrial",amount:183.76,qbInv:"1105",status:"invoiced",notes:"7 wall mount brackets.",items:[{sku:"7000-WB",qty:7,unit:26.25},{sku:"Freight",qty:1,unit:0.01}]},
+ "210510":{account:"Ballard Industrial",amount:107.00,qbInv:"1159",status:"invoiced",notes:"Cuffs + case + bracket.",items:[{sku:"7000-LS-P",qty:1,unit:33.75},{sku:"7000-CC",qty:1,unit:47},{sku:"7000-WB",qty:1,unit:26.25}]},
+ "210511":{account:"Ballard Industrial",amount:107.00,qbInv:"1160",status:"invoiced",notes:"Cuffs + case + bracket.",items:[{sku:"7000-LS-P",qty:1,unit:33.75},{sku:"7000-CC",qty:1,unit:47},{sku:"7000-WB",qty:1,unit:26.25}]},
+ "2494683":{account:"Ritz Safety",amount:1926.25,qbInv:"1103, 1106",status:"invoiced",notes:"5 kits + wall bracket (bracket invoiced separately as 1106).",items:[{sku:"1000-0005-TQ",qty:5,unit:380},{sku:"7000-WB",qty:1,unit:26.25}]},
+ "2521098":{account:"Ritz Safety",amount:3420.00,qbInv:"1167",status:"invoiced",notes:"9 kits (Toyota Tsusho).",items:[{sku:"1000-0005-TQ",qty:9,unit:380}]},
+ "494415":{account:"Safety Products Inc",amount:5062.20,qbInv:"1156",status:"invoiced",notes:"11 kits shipped to Terry's Electric, Kissimmee FL.",items:[{sku:"1000-0005-TQ",qty:11,unit:460.20}]},
+ "497813":{account:"Safety Products Inc",amount:1440.00,qbInv:"1166",status:"invoiced",notes:"3 kits.",items:[{sku:"1000-0005-TQ",qty:3,unit:480}]},
+ "PO-00121342":{account:"Campbell Supply Co.",amount:5440.00,qbInv:"1170",status:"invoiced",notes:"10 kits.",items:[{sku:"1000-0005-TQ",qty:10,unit:544}]},
+ "VENDORPOREPORT":{account:"Fastenal Company Purchasing",amount:1632.00,qbInv:"1113",status:"invoiced",notes:"3 kits, P-card PO (Kourtney Spurgeon), via PMG Safety.",items:[{sku:"1000-0005-TQ",qty:3,unit:544}]},
+ "GMDGHM003":{account:"AED Professionals",amount:700.00,qbInv:"",status:"queue",notes:"2 demo kits.",items:[{sku:"Demo unit",qty:2,unit:350}]},
  "87705":{account:"William V. MacGill & Co.",amount:457.00,qbInv:"",status:"queue",notes:""},
- "US01PSPO0001771":{account:"Safe Life US LLC",amount:5062.20,qbInv:"",status:"queue",notes:""},
- "651479":{account:"Central Welding Supply",amount:1088.00,qbInv:"",status:"queue",notes:""},
+ "US01PSPO0001771":{account:"Safe Life US LLC",amount:5062.20,qbInv:"",status:"queue",notes:"",items:[{sku:"1000-0005-TQ",qty:11,unit:460.20}]},
+ "651479":{account:"Central Welding Supply",amount:1088.00,qbInv:"",status:"queue",notes:"",items:[{sku:"1000-0005-TQ",qty:2,unit:544}]},
  "11499":{account:"Rescue One Training For Life",amount:2301.00,qbInv:"",status:"queue",notes:"Federal/FBI training order."},
- "P11966":{account:"Austin Tool Inc.",amount:570.25,qbInv:"1169",status:"invoiced",notes:"Kit + wall bracket (Justin Vogt)."},
- "428619":{account:"Hub City Fire & Safety",amount:350.00,qbInv:"",status:"queue",notes:"1 demo unit."},
- "1315836":{account:"Industrial Supply Inc (ISC Salt Lake)",amount:2176.00,qbInv:"",status:"queue",notes:"4 demo kits. ISC asks PO confirmation within 48h."},
- "P00405000944":{account:"UniFirst First Aid & Safety",amount:675.00,qbInv:"",status:"queue",notes:"20 cuff packs (7000-LS-P). Invoice to apfirstaid@unifirst.com; truck appt required."},
+ "P11966":{account:"Austin Tool Inc.",amount:570.25,qbInv:"1169",status:"invoiced",notes:"Kit + wall bracket (Justin Vogt).",items:[{sku:"1000-0005-TQ",qty:1,unit:544},{sku:"7000-WB",qty:1,unit:26.25}]},
+ "428619":{account:"Hub City Fire & Safety",amount:350.00,qbInv:"",status:"queue",notes:"1 demo unit.",items:[{sku:"Demo unit",qty:1,unit:350}]},
+ "1315836":{account:"Industrial Supply Inc (ISC Salt Lake)",amount:2176.00,qbInv:"",status:"queue",notes:"4 demo kits. ISC asks PO confirmation within 48h.",items:[{sku:"Demo unit",qty:4,unit:544}]},
+ "P00405000944":{account:"UniFirst First Aid & Safety",amount:675.00,qbInv:"",status:"queue",notes:"20 cuff packs (7000-LS-P). Invoice to apfirstaid@unifirst.com; truck appt required.",items:[{sku:"7000-LS-P",qty:20,unit:33.75}]},
  "Y2848867":{account:"Hardware Specialty",amount:0,qbInv:"",status:"supplier",notes:"GHM's own order TO a supplier — kept for records, nothing to invoice."}
 };
+function orderItems(o){return Array.isArray(o.items)?o.items:[];}
+function itemsTotal(items){return items.reduce((s,it)=>s+((+it.qty||0)*(+it.unit||0)),0);}
+function skuOptions(){const base=(DB.skus||[]).map(x=>x.mpn);["Demo unit","Freight"].forEach(x=>{if(!base.includes(x))base.push(x);});return base;}
+function skuLabel(m){const k=(DB.skus||[]).find(x=>x.mpn===m);return k?k.name:"";}
+/* one-time backfill: adopt reconciliation line items onto orders that predate the feature */
+function ensureOrderItems(){let ch=false;(DB.orders||[]).forEach(o=>{
+  if(orderItems(o).length)return;const sd=poSeedFor(o.poNo);
+  if(sd&&sd.items){o.items=sd.items.map(x=>({sku:x.sku,qty:x.qty,unit:x.unit}));if(!o.amount)o.amount=Math.round(itemsTotal(o.items)*100)/100;ch=true;}});
+  if(ch)save();}
 function poSeedFor(poNo){const k=String(poNo||"").toUpperCase();if(PO_SEED[k])return PO_SEED[k];const hit=Object.keys(PO_SEED).find(s=>k.includes(s)||s.includes(k));return hit?PO_SEED[hit]:null;}
 /* filename convention: "Customer MM-DD-YYYY PONUMBER.pdf" */
 function parsePoFname(fn){
@@ -3004,6 +3014,7 @@ let invFilter="all";
 const INV_STATUS={queue:["Needs invoice","var(--warn-t,#a15c00)","rgba(255,180,0,.14)"],invoiced:["Invoiced","var(--ok-t)","rgba(0,160,90,.12)"],paid:["Paid","var(--ok-t)","rgba(0,160,90,.12)"],supplier:["Supplier PO","var(--hint)","rgba(120,120,120,.12)"]};
 function invChip(st){const c=INV_STATUS[st]||INV_STATUS.queue;return '<span class="pill" style="color:'+c[1]+';background:'+c[2]+';font-weight:600;white-space:nowrap">'+c[0]+'</span>';}
 function viewInvoicing(){
+  ensureOrderItems();
   const os=ordersAll();
   const q=os.filter(o=>o.status==="queue"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
   let h='';
@@ -3029,7 +3040,8 @@ function viewInvoicing(){
     list.forEach((o,i)=>{
       h+='<div data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:12px;align-items:center;padding:13px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
         '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(o.account||"—")+'</p>'+
-        '<p class="t2" style="margin:2px 0 0;white-space:normal">PO <b>'+esc(o.poNo||"—")+'</b> · '+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+(o.amount?' · '+fmtC(o.amount):'')+(o.qbInv?' · QB inv <b>'+esc(o.qbInv)+'</b>':'')+'</p></div>'+
+        '<p class="t2" style="margin:2px 0 0;white-space:normal">PO <b>'+esc(o.poNo||"—")+'</b> · '+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+(o.amount?' · <b>'+fmtC(o.amount)+'</b>':'')+(o.qbInv?' · QB inv <b>'+esc(o.qbInv)+'</b>':'')+'</p>'+
+        (orderItems(o).length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'+orderItems(o).map(it=>'<span class="pill '+(it.sku==="1000-0005-TQ"?"coral":/demo/i.test(it.sku)?"warn":"gray")+'" title="'+esc(skuLabel(it.sku))+'" style="font-weight:600">'+(+it.qty||0)+'× '+esc(it.sku)+' @ '+fmtC(it.unit)+'</span>').join("")+'</div>':'')+'</div>'+
         invChip(o.status)+
         (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="View PDF">View</button>'+
                 '<button class="btn sm ghost" data-act="invdl" data-id="'+o.id+'" title="Download PDF">'+svg("file")+'</button>'
@@ -3041,15 +3053,39 @@ function viewInvoicing(){
   h+='<p style="font-size:12px;color:var(--hint);margin:12px 2px 0">Tap an order to edit its status, QB invoice # or notes. PDFs are stored once in the shared team library — View/Download works on every device.</p>';
   return h;
 }
-function formOrder(id){
+function invItemsHTML(){
+  const items=logState.invItems||[];
+  let h='<label class="fl">Items on this PO</label>'+
+   '<datalist id="skuDL">'+skuOptions().map(m=>'<option value="'+esc(m)+'">'+esc(skuLabel(m))+'</option>').join("")+'</datalist>';
+  h+=items.map((it,i)=>'<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">'+
+    '<input class="f" style="flex:2.2;margin:0" id="iv_sku_'+i+'" list="skuDL" placeholder="SKU" value="'+esc(it.sku||"")+'">'+
+    '<input class="f" style="flex:.9;margin:0" id="iv_qty_'+i+'" inputmode="numeric" placeholder="Qty" value="'+(it.qty||"")+'">'+
+    '<input class="f" style="flex:1.2;margin:0" id="iv_unit_'+i+'" inputmode="decimal" placeholder="$/unit" value="'+(it.unit||"")+'">'+
+    '<span style="flex:1.1;font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap">'+fmtC((+it.qty||0)*(+it.unit||0))+'</span>'+
+    '<button class="tkdel" data-act="invitemdel" data-i="'+i+'" aria-label="remove">×</button></div>').join("");
+  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><button class="btn sm ghost" data-act="invitemadd">+ Add item</button>'+
+   (items.length?'<span style="margin-left:auto;font-size:13px;font-weight:700">Total '+fmtC(itemsTotal(items))+'</span>':'<span style="font-size:12px;color:var(--hint)">e.g. 1000-0005-TQ ×10 @ $544 — the amount computes itself</span>')+'</div>';
+  return h;
+}
+function collectInvItems(){
+  (logState.invItems||[]).forEach((it,i)=>{
+    const g=id=>{const el=document.getElementById(id);return el?el.value:null;};
+    const sk=g("iv_sku_"+i);if(sk!==null)it.sku=sk.trim();
+    const q=g("iv_qty_"+i);if(q!==null)it.qty=parseFloat(q)||0;
+    const u=g("iv_unit_"+i);if(u!==null)it.unit=parseFloat(String(u).replace(/[$,]/g,""))||0;
+  });
+}
+function formOrder(id,keepItems){
   const o=id?(DB.orders||[]).find(x=>x.id===id):null;
-  logState.invStatus=o?o.status:"queue";
+  logState.invStatus=o?o.status:"queue";logState.invEditId=id||null;
+  if(!keepItems)logState.invItems=(o&&Array.isArray(o.items)?o.items:[]).map(x=>({sku:x.sku,qty:x.qty,unit:x.unit}));
   openSheet('<h2>'+(o?'Order — '+esc(o.account):'Add order')+'</h2>'+
    (o&&o.file?'<p style="font-size:13px;color:var(--muted);margin:0 0 6px">'+esc(o.fname||o.file)+'</p>':'')+
    '<label class="fl">Customer / account</label><input class="f" id="ivAcct" value="'+esc(o?o.account:"")+'">'+
    '<label class="fl">PO number</label><input class="f" id="ivPo" value="'+esc(o?o.poNo:"")+'">'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">PO date</label><input class="f" id="ivDate" type="date" value="'+esc(o?o.poDate:todayStr())+'"></div>'+
-   '<div class="grow"><label class="fl">Amount</label><input class="f" id="ivAmt" inputmode="decimal" value="'+(o&&o.amount?o.amount:"")+'"></div></div>'+
+   '<div class="grow"><label class="fl">Amount'+(logState.invItems&&logState.invItems.length?' (auto from items)':'')+'</label><input class="f" id="ivAmt" inputmode="decimal" value="'+(o&&o.amount?o.amount:"")+'"></div></div>'+
+   invItemsHTML()+
    '<label class="fl">Status</label><div id="ivStatus" style="display:flex;gap:6px;flex-wrap:wrap">'+
     Object.keys(INV_STATUS).map(s=>'<button class="qchip'+((o?o.status:"queue")===s?" on":"")+'" data-act="invsetst" data-v="'+s+'">'+INV_STATUS[s][0]+'</button>').join("")+'</div>'+
    '<label class="fl">QB invoice #(s)</label><input class="f" id="ivQb" value="'+esc(o?o.qbInv:"")+'" placeholder="e.g. 1172">'+
@@ -3060,7 +3096,10 @@ function saveOrder(id){
   const o=id?(DB.orders||[]).find(x=>x.id===id):null;
   const rec=o||{id:uid(),addedBy:USER,addedAt:new Date().toISOString(),file:null,fname:null};
   rec.account=val("ivAcct");rec.poNo=val("ivPo");rec.poDate=val("ivDate");
-  rec.amount=parseFloat(String(val("ivAmt")).replace(/[$,]/g,""))||0;
+  collectInvItems();
+  const items=(logState.invItems||[]).filter(it=>(it.sku&&it.sku.trim())||(+it.qty&&+it.unit));
+  rec.items=items;
+  rec.amount=items.length?Math.round(itemsTotal(items)*100)/100:(parseFloat(String(val("ivAmt")).replace(/[$,]/g,""))||0);
   rec.status=logState.invStatus||"queue";rec.qbInv=val("ivQb");rec.notes=val("ivNotes");
   if(!o){DB.orders=DB.orders||[];DB.orders.push(rec);}
   save();closeSheet();render();toast("Order saved");
@@ -3304,6 +3343,8 @@ document.addEventListener("click",e=>{
     else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
   if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
+  if(a==="invitemadd"){collectInvItems();logState.invItems=logState.invItems||[];logState.invItems.push({sku:"",qty:1,unit:""});formOrder(logState.invEditId||null,true);return;}
+  if(a==="invitemdel"){collectInvItems();logState.invItems.splice(+t.dataset.i,1);formOrder(logState.invEditId||null,true);return;}
   if(a==="roster"){curCompany=id;rosterBranchF="";view="roster";render();window.scrollTo(0,0);return;}
   if(a==="bfadd"){const c=company(id);if(!c)return;const inp=document.getElementById("bfSearch");const q=(inp?inp.value:"").trim();if(!q){toast("Type a distributor name first");return;}
     c.buysFrom=bfList(c);const d=DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase()===q.toLowerCase())||DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase().startsWith(q.toLowerCase()));
