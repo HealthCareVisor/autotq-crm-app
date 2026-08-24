@@ -954,6 +954,46 @@ function applyRoleDefaults(){if(userRegion(USER)){view="opps";oppFilter="mine";o
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" ")); // MI → East per Max 2026-08-14 (John Morrison home state)
 function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":"West";}
 function personStates(p){if(Array.isArray(p.states)&&p.states.length)return p.states;return p.state?[p.state]:[];}
+/* "Who they buy from" — distributor coverage on end-user accounts.
+   Entries link to a CRM distributor (cid) or are free text for ones we're not set up with. */
+function bfList(c){return Array.isArray(c.buysFrom)?c.buysFrom:[];}
+function bfRepsInState(distCid,state){
+  if(!state)return[];const st=String(state).toUpperCase().slice(0,2);
+  return DB.people.filter(p=>p.cid===distCid&&personStates(p).some(x=>String(x||"").toUpperCase().slice(0,2)===st))
+    .sort((a,b)=>(isSellerTier(a)?1:0)-(isSellerTier(b)?1:0)||String(a.name).localeCompare(String(b.name)));
+}
+function buysFromCard(c){
+  const list=bfList(c).slice().sort((a,b)=>(b.first?1:0)-(a.first?1:0));
+  const dists=DB.companies.filter(x=>x.type==="distributor");
+  let h='<div class="reccard"><div class="lvhead" style="margin:0 0 4px"><div class="sectlabel" style="margin:0">Who they buy from — distributor coverage</div></div>'+
+   '<p class="t2" style="white-space:normal;margin:0 0 10px">Where this end-user already buys safety supply. First choice is where we route the order.</p>';
+  if(list.length){
+    h+=list.map(e=>{const i=bfList(c).indexOf(e);const d=e.cid?company(e.cid):null;
+      return '<div class="tk" style="margin-bottom:6px">'+
+       '<span class="ic" style="width:30px;height:30px;background:var(--coral-t);color:var(--coral)">'+svg("ware")+'</span>'+
+       '<div class="grow">'+(d?'<a href="#" class="t1" style="font-size:14px;color:var(--info-t)" data-act="roster" data-id="'+d.id+'">'+esc(d.name)+'</a>':'<p class="t1" style="font-size:14px">'+esc(e.name)+'</p>')+
+        (d?'<p class="t2">'+(distStatus(d)==="setup"?"Set-up distributor":"Potential distributor")+(d.state?' · '+esc([d.city,d.state].filter(Boolean).join(", ")):'')+'</p>':'<p class="t2">Not set up with us yet</p>')+'</div>'+
+       (e.first?'<span class="pill coral" style="flex:none">1st choice</span>':'<button class="btn sm ghost" data-act="bffirst" data-id="'+c.id+'" data-i="'+i+'" title="Make first choice">☆ 1st</button>')+
+       '<button class="tkdel" data-act="bfdel" data-id="'+c.id+'" data-i="'+i+'" aria-label="remove">×</button></div>';}).join("");
+  } else h+='<div class="empty" style="padding:10px">Not captured yet — ask "who do you buy safety supply from today?"</div>';
+  h+='<div class="planbar" style="margin:10px 0 0"><input class="qa-input" id="bfSearch" list="bfDL" placeholder="Search our distributors, or type one we\'re not set up with…" autocomplete="off">'+
+   '<datalist id="bfDL">'+dists.map(d=>'<option value="'+esc(d.name)+'">').join("")+'</datalist>'+
+   '<button class="btn coral" data-act="bfadd" data-id="'+c.id+'">Add</button></div>';
+  /* rep coverage: for each linked distributor, who covers this end-user's state */
+  list.filter(e=>e.cid).forEach(e=>{const d=company(e.cid);if(!d)return;
+    const reps=bfRepsInState(e.cid,c.state);
+    h+='<div class="sectlabel" style="margin-top:14px">'+esc(d.name)+' reps in '+esc(c.state||"—")+(reps.length?' — '+reps.length:'')+'</div>';
+    if(!c.state){h+='<div class="empty" style="padding:8px">Set this account\'s state to see rep coverage.</div>';return;}
+    if(!reps.length){h+='<div class="empty" style="padding:8px">No '+esc(d.name)+' reps with '+esc(c.state)+' coverage in the book yet.</div>';return;}
+    h+=reps.slice(0,8).map(rp=>'<div class="card" data-act="person" data-id="'+rp.id+'" style="cursor:pointer;padding:9px 13px;margin-bottom:6px"><div class="row">'+
+     '<span class="ic info" style="width:32px;height:32px;font-size:12px">'+initials(rp.name)+'</span>'+
+     '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(rp.name)+(isSellerTier(rp)?' <span class="pill gray" style="font-size:10px;padding:1px 7px;vertical-align:middle">seller</span>':'')+'</p>'+
+     '<p class="t2">'+esc(rp.role||"Rep")+(rp.city?' · '+esc(rp.city):'')+' · covers '+esc(personStates(rp).join(", "))+'</p></div>'+
+     '<span style="color:var(--hint);font-size:18px;flex:none">›</span></div></div>').join("");
+    if(reps.length>8)h+='<p class="t2" style="margin:2px 4px">+'+(reps.length-8)+' more on the '+esc(d.name)+' account page.</p>';
+  });
+  return h+'</div>';
+}
 function regionFromStates(arr){if(!arr||!arr.length)return '';const r=new Set(arr.map(regionFromState).filter(Boolean));if(r.size>1)return 'Nationwide';return [...r][0]||'';}
 function personRegion(p){return regionFromStates(personStates(p));}
 function companyRegion(c){return c.territory?c.territory:regionFromState(c.state);}
@@ -1178,7 +1218,8 @@ function viewPerson(id){
    '<button class="btn sm" data-act="coverage" data-id="'+p.id+'" style="margin-top:12px">'+svg("pin")+' Edit coverage states</button>'+
    (isTop(p)?' <span class="pill coral" style="margin-left:8px">'+svg("flame")+' Top seller</span>':'')+'</div>';
   h+='<div class="qa" style="margin-bottom:8px"><button class="btn coral block" data-act="logfor" data-id="'+p.id+'">'+svg("phone")+' Log</button>'+
-     '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button></div>';
+     '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button>'+
+     (contactType(p)!=="distrep"&&contactType(p)!=="manrep"?'<button class="btn block" data-act="pushlead" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px" title="Work them from the Leads tab">'+svg("spark")+' Push to Leads</button>':'')+'</div>';
   const onDeals=(DB.opps||[]).filter(o=>(o.contacts||[]).some(x=>x.pid===p.id));
   if(onDeals.length){h+='<div class="sectlabel">On deals ('+onDeals.length+')</div>';
     h+=onDeals.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)).map(o=>{const role=(o.contacts.find(x=>x.pid===p.id)||{}).role||"";
@@ -1264,6 +1305,7 @@ function viewRoster(cid){
     h+=pnGridHTML(c);
   }
   if(c.note&&c.note.trim())h+='<div class="banner" style="white-space:normal">'+svg("note")+esc(c.note)+'</div>';
+  if(c.type==="enduser")h+=buysFromCard(c);
   if(opps.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Opportunities · '+opps.length+'</button></div></div>';
     h+=oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false);
@@ -3263,6 +3305,22 @@ document.addEventListener("click",e=>{
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
   if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="roster"){curCompany=id;rosterBranchF="";view="roster";render();window.scrollTo(0,0);return;}
+  if(a==="bfadd"){const c=company(id);if(!c)return;const inp=document.getElementById("bfSearch");const q=(inp?inp.value:"").trim();if(!q){toast("Type a distributor name first");return;}
+    c.buysFrom=bfList(c);const d=DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase()===q.toLowerCase())||DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase().startsWith(q.toLowerCase()));
+    const nm=d?d.name:q;
+    if(c.buysFrom.some(e=>(d&&e.cid===d.id)||e.name.toLowerCase()===nm.toLowerCase())){toast(nm+" is already on the list");return;}
+    c.buysFrom.push({cid:d?d.id:null,name:nm,first:!c.buysFrom.length});
+    save();render();toast(nm+(d?"":" (not set up)")+" added");return;}
+  if(a==="bfdel"){const c=company(id);if(!c)return;const i=+t.dataset.i;const e=bfList(c)[i];if(!e)return;
+    c.buysFrom.splice(i,1);if(e.first&&c.buysFrom.length)c.buysFrom[0].first=true;save();render();return;}
+  if(a==="bffirst"){const c=company(id);if(!c)return;const i=+t.dataset.i;
+    bfList(c).forEach((e,j)=>e.first=j===i);save();render();return;}
+  if(a==="pushlead"){const p=person(id);if(!p)return;ensureLeads();const co=company(p.cid);
+    const dup=DB.leads.find(l=>(p.email&&l.email&&l.email.toLowerCase()===p.email.toLowerCase())||(l.refPid===p.id)||(l.name.toLowerCase()===p.name.toLowerCase()&&(l.company||"").toLowerCase()===((co&&co.name)||"").toLowerCase()));
+    if(dup){toast(p.name+" is already in Leads");return;}
+    DB.leads.unshift({id:uid(),name:p.name,company:co?co.name:(p.branch||""),title:p.role||"",email:p.email||"",phone:p.phone||"",
+      state:(personStates(p)[0]||(co?co.state:"")||"").toUpperCase(),conf:"CRM",by:USER,createdAt:new Date().toISOString(),touches:[],promoted:true,refPid:p.id});
+    save();render();toast(p.name+" pushed to Leads");return;}
   if(a==="rosterbranch"){rosterBranchF=t.dataset.v;render();return;}
   if(a==="logfor"){formLog(id,"call");return;}
   if(a==="quicknote"){formLog(id,"note");return;}
