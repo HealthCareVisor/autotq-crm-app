@@ -977,8 +977,7 @@ function buysFromCard(c){
        (e.first?'<span class="pill coral" style="flex:none">1st choice</span>':'<button class="btn sm ghost" data-act="bffirst" data-id="'+c.id+'" data-i="'+i+'" title="Make first choice">☆ 1st</button>')+
        '<button class="tkdel" data-act="bfdel" data-id="'+c.id+'" data-i="'+i+'" aria-label="remove">×</button></div>';}).join("");
   } else h+='<div class="empty" style="padding:10px">Not captured yet — ask "who do you buy safety supply from today?"</div>';
-  h+='<div class="planbar" style="margin:10px 0 0"><input class="qa-input" id="bfSearch" list="bfDL" placeholder="Search our distributors, or type one we\'re not set up with…" autocomplete="off">'+
-   '<datalist id="bfDL">'+dists.map(d=>'<option value="'+esc(d.name)+'">').join("")+'</datalist>'+
+  h+='<div class="planbar" style="margin:10px 0 0"><div style="position:relative;flex:1;min-width:0"><input class="qa-input" id="bfSearch" style="width:100%" placeholder="Type a distributor — ours pop up, free text for ones we\'re not set up with" autocomplete="off"><div class="sug" id="bfSearch_sug"></div></div>'+
    '<button class="btn coral" data-act="bfadd" data-id="'+c.id+'">Add</button></div>';
   /* rep coverage: for each linked distributor, who covers this end-user's state */
   list.filter(e=>e.cid).forEach(e=>{const d=company(e.cid);if(!d)return;
@@ -2684,6 +2683,9 @@ function formOpp(id,prefillCid){
   logState.oppContacts=(o&&o.contacts?o.contacts.slice():[]).filter(c=>person(c.pid));
   const selCid=o?(o.accountId||""):(prefillCid||"");
   logState.oppCid=selCid||null;logState.oppConPid=null;
+  logState.oppDistCid=o?(o.distributorId||null):null;
+  logState.oppDistRepPid=o?(o.distRepPid||null):null;
+  logState.oppManrepPid=o?(o.manrepPid||null):null;
   const dtypes=["End User Order","Stocking Order","Training / Demo","Other"];
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
    '<label class="fl">Opportunity name</label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Fastenal — Tahlequah stocking order" autocomplete="off">'+
@@ -2703,12 +2705,9 @@ function formOpp(id,prefillCid){
    '<input class="f" id="oTouchX" inputmode="numeric" value="'+(o&&o.touchesExtra?o.touchesExtra:"")+'" placeholder="0">'+
    '<label class="fl">Last contact <span style="font-weight:400;color:var(--hint)">(auto from activity'+(o&&oppLastTouch(o)?': '+esc(oppLastTouch(o)):'')+' — set manually if newer)</span></label>'+
    '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'">'+
-   '<label class="fl">Distributor on the deal</label><select class="f" id="oDist">'+
-     '<option value="">'+(o&&o.distributorName&&!o.distributorId?'— keep "'+esc(o.distributorName)+'" —':'— none —')+'</option>'+
-     DB.companies.filter(c=>c.type==="distributor").sort((a,b)=>a.name.localeCompare(b.name)).map(c=>'<option value="'+c.id+'"'+((o&&o.distributorId)===c.id?' selected':'')+'>'+esc(c.name)+'</option>').join("")+'</select>'+
-   '<label class="fl">Distributor rep</label><select class="f" id="oDistRep">'+distRepOpts(o?o.distributorId:null,o?o.distRepPid:null)+'</select>'+
-   '<label class="fl">Man-rep / channel rep <span style="font-weight:400;color:var(--hint)">(who\'s helping generate this — attribution)</span></label><select class="f" id="oManrep">'+
-     '<option value="">— none —</option>'+DB.people.filter(p=>contactType(p)==="manrep").sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<option value="'+p.id+'"'+((o&&o.manrepPid)===p.id?' selected':'')+'>'+esc(p.name)+' — '+esc((company(p.cid)||{}).name||"")+'</option>').join("")+'</select>'+
+   '<label class="fl">Distributor on the deal</label>'+comboField("oDistQ","Type a distributor…",(o&&o.distributorId?((company(o.distributorId)||{}).name||""):(o?o.distributorName||"":""))+"")+
+   '<label class="fl">Distributor rep</label>'+comboField("oDistRepQ","Type their rep on this deal…",(o&&o.distRepPid&&person(o.distRepPid)?person(o.distRepPid).name:""))+
+   '<label class="fl">Man-rep / channel rep <span style="font-weight:400;color:var(--hint)">(who\'s helping generate this — attribution)</span></label>'+comboField("oManrepQ","Type a man-rep…",(o&&o.manrepPid&&person(o.manrepPid)?personLabel(person(o.manrepPid)):""))+
    '<label class="fl">Channel rep (free text — shows on cards)</label><input class="f" id="oRep" value="'+(o?esc(o.rep||""):"")+'" placeholder="man-rep / distributor rep">'+
    (admin()?'<label class="fl">Owner</label><select class="f" id="oOwner">'+TEAM.map(t=>'<option value="'+t.id+'"'+((o?o.owner:USER)===t.id?' selected':'')+'>'+esc(t.name)+'</option>').join("")+'</select>':'')+
    '<label class="fl">People on this deal</label><div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
@@ -2726,8 +2725,9 @@ function saveOpp(){
   const c=cid?company(cid):null;
   const existing=logState.oppId?DB.opps.find(x=>x.id===logState.oppId):null;
   if(existing&&!canEditOpp(existing)){toast("View only — "+oppOwnerName(existing)+" owns this deal");return;}
-  const distSel=document.getElementById("oDist").value;
-  const manrepSel=document.getElementById("oManrep").value;
+  const distSel=logState.oppDistCid||"";
+  const distTxt=(document.getElementById("oDistQ")||{value:""}).value.trim();
+  const manrepSel=logState.oppManrepPid||"";
   let repTxt=val("oRep");
   if(!repTxt&&manrepSel&&person(manrepSel))repTxt=person(manrepSel).name;
   const data={name:name,accountId:cid||null,accountName:c?c.name:val("oAcctName"),
@@ -2738,8 +2738,8 @@ function saveOpp(){
     probReason:val("oProbWhy"),nextAction:val("oNextA"),nextActionDate:document.getElementById("oNextAD").value||"",
     touchesExtra:parseInt(val("oTouchX"),10)||0,lastContact:document.getElementById("oLastC").value||"",
     distributorId:distSel||null,
-    distributorName:distSel?((company(distSel)||{}).name||""):(existing?(existing.distributorName||""):""),
-    distRepPid:document.getElementById("oDistRep").value||null,
+    distributorName:distSel?((company(distSel)||{}).name||""):distTxt,
+    distRepPid:logState.oppDistRepPid||null,
     manrepPid:manrepSel||null,
     probability:OPP_PROB[logState.oppStage||"Prospecting"]};
   const ownerSel=document.getElementById("oOwner");
@@ -2797,15 +2797,19 @@ function saveNewContactFor(){
   save();closeSheet();render();toast(name+" added at "+c.name);
 }
 function formRep(){
-  const opts=DB.companies.filter(c=>c.type==="distributor"||c.type==="manrep").map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join("");
+  logState.repCid=null;
   openSheet('<h2>Add rep</h2><label class="fl">Name</label><input class="f" id="rName" placeholder="e.g. Chris Walker">'+
-   '<label class="fl">Works at</label><select class="f" id="rCid">'+opts+'</select>'+
+   '<label class="fl">Works at</label>'+comboField("rCidQ","Type the company — e.g. Gra… → Grainger","")+
    '<label class="fl">City</label><input class="f" id="rCity" placeholder="Orlando"><label class="fl">State</label><input class="f" id="rState" placeholder="FL" maxlength="2">'+
    '<button class="btn coral block" data-act="saveRep" style="margin-top:18px">Add rep</button>'+
    '<p style="text-align:center;color:var(--hint);font-size:13px;margin-top:9px">City + state powers the map &amp; travel planner.</p>');
 }
-function saveRep(){const name=document.getElementById("rName").value.trim(),cid=document.getElementById("rCid").value;
-  if(!name||!cid){toast("Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
+function saveRep(){const name=document.getElementById("rName").value.trim();
+  let cid=logState.repCid;
+  if(!cid){const q=(document.getElementById("rCidQ")||{value:""}).value.trim().toLowerCase();
+    const hit=q&&DB.companies.find(c=>c.name.toLowerCase()===q)||q&&DB.companies.find(c=>c.name.toLowerCase().startsWith(q));
+    if(hit)cid=hit.id;}
+  if(!name||!cid){toast(name?"Pick the company from the suggestions":"Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
   DB.people.unshift({id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null});
   save();closeSheet();view="contacts";render();toast(name+" added");}
 /* searchable pickers — type a few letters, tap a match (like the global search) */
@@ -2815,9 +2819,12 @@ function personLabel(p){return p?p.name+" — "+((company(p.cid)||{}).name||p.br
 function peopleSugItems(q,act){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
   return DB.people.filter(p=>(p.name+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(q)).slice(0,8)
    .map(p=>'<button type="button" data-act="'+act+'" data-id="'+p.id+'">'+esc(p.name)+' <span style="color:var(--hint)">— '+esc((company(p.cid)||{}).name||p.branch||"")+'</span></button>');}
-function acctSugItems(q,act){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
-  return DB.companies.filter(c=>(c.name||"").toLowerCase().includes(q)).slice(0,8)
+function acctSugItems(q,act,types){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  return DB.companies.filter(c=>(!types||types.includes(c.type))&&(c.name||"").toLowerCase().includes(q)).slice(0,8)
    .map(c=>'<button type="button" data-act="'+act+'" data-id="'+c.id+'">'+esc(c.name)+' <span style="color:var(--hint)">— '+typeLabel(c.type)+(c.state?' · '+esc(c.state):'')+'</span></button>');}
+function peopleSugItemsF(q,act,filter){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  return DB.people.filter(p=>filter(p)&&(p.name+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(q)).slice(0,8)
+   .map(p=>'<button type="button" data-act="'+act+'" data-id="'+p.id+'">'+esc(p.name)+' <span style="color:var(--hint)">— '+esc((company(p.cid)||{}).name||p.branch||"")+'</span></button>');}
 function formActivity(id){
   const a=(DB.activities||[]).find(x=>x.id===id);
   if(!a){toast("Couldn't open that entry");return;}
@@ -3081,7 +3088,7 @@ function formOrder(id,keepItems){
   if(!keepItems)logState.invItems=(o&&Array.isArray(o.items)?o.items:[]).map(x=>({sku:x.sku,qty:x.qty,unit:x.unit}));
   openSheet('<h2>'+(o?'Order — '+esc(o.account):'Add order')+'</h2>'+
    (o&&o.file?'<p style="font-size:13px;color:var(--muted);margin:0 0 6px">'+esc(o.fname||o.file)+'</p>':'')+
-   '<label class="fl">Customer / account</label><input class="f" id="ivAcct" value="'+esc(o?o.account:"")+'">'+
+   '<label class="fl">Customer / account</label>'+comboField("ivAcct","Type the customer — matches our accounts, free text ok",o?o.account:"")+
    '<label class="fl">PO number</label><input class="f" id="ivPo" value="'+esc(o?o.poNo:"")+'">'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">PO date</label><input class="f" id="ivDate" type="date" value="'+esc(o?o.poDate:todayStr())+'"></div>'+
    '<div class="grow"><label class="fl">Amount'+(logState.invItems&&logState.invItems.length?' (auto from items)':'')+'</label><input class="f" id="ivAmt" inputmode="decimal" value="'+(o&&o.amount?o.amount:"")+'"></div></div>'+
@@ -3366,6 +3373,12 @@ document.addEventListener("click",e=>{
   if(a==="logfor"){formLog(id,"call");return;}
   if(a==="quicknote"){formLog(id,"note");return;}
   if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);}return;}
+  if(a==="pickRepCo"){const c=company(t.dataset.id);if(c){logState.repCid=c.id;const i=document.getElementById("rCidQ");if(i)i.value=c.name;sugRender("rCidQ",[]);}return;}
+  if(a==="pickOppDist"){const c=company(t.dataset.id);if(c){logState.oppDistCid=c.id;const i=document.getElementById("oDistQ");if(i)i.value=c.name;sugRender("oDistQ",[]);logState.oppDistRepPid=null;const r=document.getElementById("oDistRepQ");if(r)r.value="";}return;}
+  if(a==="pickOppDistRep"){const p=person(t.dataset.id);if(p){logState.oppDistRepPid=p.id;const i=document.getElementById("oDistRepQ");if(i)i.value=p.name;sugRender("oDistRepQ",[]);}return;}
+  if(a==="pickOppManrep"){const p=person(t.dataset.id);if(p){logState.oppManrepPid=p.id;const i=document.getElementById("oManrepQ");if(i)i.value=personLabel(p);sugRender("oManrepQ",[]);}return;}
+  if(a==="pickIvAcct"){const c=company(t.dataset.id);if(c){const i=document.getElementById("ivAcct");if(i)i.value=c.name;sugRender("ivAcct",[]);}return;}
+  if(a==="pickBf"){const c=company(t.dataset.id);if(c){const i=document.getElementById("bfSearch");if(i)i.value=c.name;sugRender("bfSearch",[]);}return;}
   if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const an=document.getElementById("oAcctName");if(an)an.value="";}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
@@ -3412,9 +3425,14 @@ document.addEventListener("input",e=>{
   if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
   if(e.target.id==="campFile"){campHandleFile(e.target.files&&e.target.files[0]);return;}
   if(e.target.id==="gsFile"){if(e.target.files&&e.target.files[0])importSellers(e.target.files[0]);return;}
-  if(e.target.id==="oDist"){const sel=document.getElementById("oDistRep");if(sel)sel.innerHTML=distRepOpts(e.target.value||null,null);return;}
   if(e.target.id==="logWho2"){logState.logPid=null;sugRender("logWho2",peopleSugItems(e.target.value,"pickLogWho"));return;}
   if(e.target.id==="oCidQ"){logState.oppCid=null;sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct"));return;}
+  if(e.target.id==="rCidQ"){logState.repCid=null;sugRender("rCidQ",acctSugItems(e.target.value,"pickRepCo",["distributor","manrep","partner"]));return;}
+  if(e.target.id==="oDistQ"){logState.oppDistCid=null;sugRender("oDistQ",acctSugItems(e.target.value,"pickOppDist",["distributor"]));return;}
+  if(e.target.id==="oDistRepQ"){logState.oppDistRepPid=null;sugRender("oDistRepQ",peopleSugItemsF(e.target.value,"pickOppDistRep",logState.oppDistCid?(p=>p.cid===logState.oppDistCid):(p=>contactType(p)==="distrep")));return;}
+  if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
+  if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
+  if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
   if(e.target.id==="oConQ"){logState.oppConPid=null;sugRender("oConQ",peopleSugItems(e.target.value,"pickOppCon"));return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
