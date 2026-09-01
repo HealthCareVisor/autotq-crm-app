@@ -2144,8 +2144,8 @@ function viewLeads(){
   h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Conference")+th("state","State")+th("region","Territory")+th("last","Last contact")+th("method","Method")+'<th>Conversation details</th>'+th("touches","Touches")+'</tr></thead><tbody>'+
    pool.map(l=>{const t=leadLastTouch(l);
     return '<tr data-act="openlead" data-id="'+esc(l.id)+'">'+
-    '<td><div class="lvname">'+esc(l.name)+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
-    '<td>'+esc(l.company||"—")+'</td>'+
+    '<td><div class="lvname">'+esc(l.name)+(l.kind?' <span class="pill '+(l.kind==="distributor"?"coral":"info")+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+(l.kind==="distributor"?"Dist":"End-user")+'</span>':'')+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||(l.dstStage||""))+'</div></td>'+
+    '<td>'+esc(l.company||"—")+(l.buysThrough?'<div class="lvsub">buys via '+esc(l.buysThrough.name)+'</div>':'')+'</td>'+
     '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
     '<td>'+(l.state?regionTag(regionFromState(l.state)):'<span class="muted">—</span>')+'</td>'+
@@ -2207,7 +2207,10 @@ function promoteMyLead(id){
   if(l.refId&&leadById(l.refId)&&!leadById(l.refId).promoted){promoteLead(l.refId);l.promoted=true;save();return;}
   const cname=(l.company||l.name).trim();const key=cname.toLowerCase().replace(/[^a-z0-9]/g,"");
   let c=DB.companies.find(x=>x.name.toLowerCase().replace(/[^a-z0-9]/g,"")===key);
-  if(!c){c={id:uid(),name:cname,type:"enduser",territory:regionFromState(l.state),city:l.city||"",state:l.state||"",note:"From Leads ("+(l.conf||"manual")+")",units:0,revenue:0,orders:0,lastOrder:"",demoCount:0};DB.companies.unshift(c);}
+  if(!c){c={id:uid(),name:cname,type:(l.kind==="distributor"?"distributor":"enduser"),territory:regionFromState(l.state),city:l.city||"",state:l.state||"",note:"From Leads ("+(l.conf||"manual")+")"+(l.dstStage?" — "+l.dstStage:""),units:0,revenue:0,orders:0,lastOrder:"",demoCount:0};
+    if(l.kind==="distributor")c.dstatus=(l.dstStage&&l.dstStage!=="Potential")?"setup":"potential";
+    DB.companies.unshift(c);}
+  if(l.kind!=="distributor"&&l.buysThrough&&l.buysThrough.name&&!(c.buysFrom||[]).length)c.buysFrom=[{cid:l.buysThrough.cid||null,name:l.buysThrough.name,first:true}];
   let p=l.email?DB.people.find(x=>(x.email||"").toLowerCase()===l.email.toLowerCase()):null;
   if(!p){p={id:uid(),name:l.name,cid:c.id,branch:c.name,role:l.title||"Contact",city:l.city||"",state:l.state||"",email:l.email||"",phone:l.phone||"",last:null,note:"From Leads ("+(l.conf||"manual")+")"};DB.people.unshift(p);}
   l.promoted=true;save();closeSheet();render();toast(l.name+" promoted to CRM");
@@ -2252,22 +2255,34 @@ async function importSellers(file){
     toast("Grainger sellers: "+added+" added, "+updated+" updated");
   }catch(e){st.textContent="Import failed: "+e.message;}
 }
-function formNewLead(){
+function collectNl(){["nlName","nlCo","nlEmail","nlPhone","nlState","nlBuyQ"].forEach(id=>{const el=document.getElementById(id);if(el)logState[id]=el.value;});}
+function formNewLead(fresh){
+  if(fresh!==false){logState.nlKind="enduser";logState.nlDstStage=null;logState.nlBuyCid=null;
+    ["nlName","nlCo","nlEmail","nlPhone","nlState","nlBuyQ"].forEach(k=>logState[k]="");}
+  const k=logState.nlKind,v=id=>esc(logState[id]||"");
   openSheet('<h2>New lead</h2>'+
-   '<label class="fl">Name</label><input class="f" id="nlName" placeholder="Person (or company) name">'+
-   '<label class="fl">Company</label><input class="f" id="nlCo">'+
-   '<label class="fl">Title</label><input class="f" id="nlTitle">'+
-   '<label class="fl">Email</label><input class="f" id="nlEmail">'+
-   '<label class="fl">Phone</label><input class="f" id="nlPhone">'+
-   '<label class="fl">State</label><input class="f" id="nlState" maxlength="2" placeholder="FL">'+
-   '<label class="fl">Source</label><input class="f" id="nlConf" placeholder="e.g. NSC 2026, referral, cold list">'+
-   '<button class="btn coral block" data-act="newleadsave" style="margin-top:18px">Add lead</button>');
+   '<div class="seg" style="margin:2px 0 12px"><button class="'+(k==="enduser"?"on":"")+'" data-act="nlkind" data-v="enduser">End-user</button>'+
+   '<button class="'+(k==="distributor"?"on":"")+'" data-act="nlkind" data-v="distributor">Distributor</button></div>'+
+   '<label class="fl">Contact name</label><input class="f" id="nlName" value="'+v("nlName")+'" placeholder="e.g. Chris Walker">'+
+   '<label class="fl">Company</label><input class="f" id="nlCo" value="'+v("nlCo")+'">'+
+   (k==="enduser"
+    ?'<label class="fl">Distributor they buy through <span style="font-weight:400;color:var(--hint)">(if applicable)</span></label>'+comboField("nlBuyQ","Type — ours pop up, free text ok",logState.nlBuyQ||"")
+    :'<label class="fl">Where are they with us?</label><div class="qa-types" style="margin-bottom:4px">'+["Potential","Set up","Stocking"].map(x=>'<span class="qchip'+(logState.nlDstStage===x?" on":"")+'" data-act="nldst" data-v="'+x+'">'+x+'</span>').join("")+'</div>')+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Phone</label><input class="f" id="nlPhone" value="'+v("nlPhone")+'"></div>'+
+   '<div style="width:90px"><label class="fl">State</label><input class="f" id="nlState" maxlength="2" value="'+v("nlState")+'" placeholder="FL"></div></div>'+
+   '<label class="fl">Email</label><input class="f" id="nlEmail" value="'+v("nlEmail")+'">'+
+   '<button class="btn coral block" data-act="newleadsave" style="margin-top:16px">Add '+(k==="enduser"?"end-user":"distributor")+' lead</button>');
 }
 function saveNewLead(){
   const nm=val("nlName");if(!nm){toast("Give the lead a name");return;}
   ensureLeads();
-  DB.leads.unshift({id:uid(),name:nm,company:val("nlCo"),title:val("nlTitle"),email:val("nlEmail"),phone:val("nlPhone"),
-    state:val("nlState").toUpperCase(),conf:val("nlConf"),by:USER,createdAt:new Date().toISOString(),touches:[]});
+  const kind=logState.nlKind||"enduser";
+  const buyTxt=(document.getElementById("nlBuyQ")||{value:""}).value.trim();
+  const buyC=logState.nlBuyCid?company(logState.nlBuyCid):(buyTxt?DB.companies.find(c=>c.type==="distributor"&&c.name.toLowerCase()===buyTxt.toLowerCase()):null);
+  DB.leads.unshift({id:uid(),name:nm,company:val("nlCo"),title:"",email:val("nlEmail"),phone:val("nlPhone"),
+    state:val("nlState").toUpperCase(),conf:"",by:USER,createdAt:new Date().toISOString(),touches:[],
+    kind:kind,buysThrough:kind==="enduser"&&buyTxt?{cid:buyC?buyC.id:null,name:buyC?buyC.name:buyTxt}:null,
+    dstStage:kind==="distributor"?(logState.nlDstStage||"Potential"):null});
   save();closeSheet();render();toast(nm+" added to Leads");
 }
 
@@ -3389,6 +3404,9 @@ document.addEventListener("click",e=>{
   if(a==="touchsave"){saveTouch();return;}
   if(a==="newlead"){formNewLead();return;}
   if(a==="newleadsave"){saveNewLead();return;}
+  if(a==="nlkind"){collectNl();logState.nlKind=t.dataset.v;formNewLead(false);return;}
+  if(a==="nldst"){logState.nlDstStage=t.dataset.v;document.querySelectorAll('[data-act="nldst"]').forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="pickNlBuy"){const c=company(t.dataset.id);if(c){logState.nlBuyCid=c.id;logState.nlBuyQ=c.name;const i=document.getElementById("nlBuyQ");if(i)i.value=c.name;sugRender("nlBuyQ",[]);}return;}
   if(a==="mlpromote"){promoteMyLead(id);return;}
   if(a==="mldelete"){const ml=myLeadById(id);if(ml&&confirm('Remove "'+ml.name+'" from Leads?')){DB.leads=DB.leads.filter(x=>x.id!==id);save();closeSheet();render();toast("Removed");}return;}
   if(a==="editact"){formActivity(id);return;}
@@ -3433,6 +3451,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
   if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
   if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
+  if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
   if(e.target.id==="oConQ"){logState.oppConPid=null;sugRender("oConQ",peopleSugItems(e.target.value,"pickOppCon"));return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
