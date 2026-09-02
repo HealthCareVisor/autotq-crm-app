@@ -2996,6 +2996,32 @@ function expRows(){
 const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",california:"CA",colorado:"CO",connecticut:"CT",delaware:"DE",florida:"FL",georgia:"GA",hawaii:"HI",idaho:"ID",illinois:"IL",indiana:"IN",iowa:"IA",kansas:"KS",kentucky:"KY",louisiana:"LA",maine:"ME",maryland:"MD",massachusetts:"MA",michigan:"MI",minnesota:"MN",mississippi:"MS",missouri:"MO",montana:"MT",nebraska:"NE",nevada:"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND",ohio:"OH",oklahoma:"OK",oregon:"OR",pennsylvania:"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD",tennessee:"TN",texas:"TX",utah:"UT",vermont:"VT",virginia:"VA",washington:"WA","west virginia":"WV",wisconsin:"WI",wyoming:"WY"};
 function ensureLists(){DB.lists=DB.lists||[];}
 function shortName(id){const n=teamById(id).name.split(" ")[0];return n+(id==="johnm"?" M.":id==="john"?" C.":"");}
+function mdStamp(iso){if(!iso)return"";const d=new Date(iso);return (d.getMonth()+1)+"/"+d.getDate();}
+function listLog(l,it,type,note){const pr=it.pid?person(it.pid):null;if(!pr)return;
+  DB.activities.unshift({id:uid(),pid:pr.id,type:type,note:note+" · list: "+l.name,date:new Date().toISOString(),by:USER});
+  pr.last=new Date().toISOString();}
+function personSheetHTML(pid){
+  const p=person(pid);if(!p)return'<div class="empty">Not found.</div>';
+  const c=company(p.cid);
+  const acts=DB.activities.filter(a=>a.pid===pid).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  let h='<div class="row" style="margin-bottom:12px"><span class="ic info" style="width:46px;height:46px;font-size:15px">'+initials(p.name)+'</span>'+
+   '<div class="grow"><p class="t1" style="font-size:17px">'+esc(p.name)+'</p><p class="t2">'+esc(p.role||"")+(c?' · '+esc(c.name):(p.branch?' · '+esc(p.branch):''))+'</p></div>'+regionTag(personRegion(p))+'</div>';
+  h+='<div class="facts">'+
+   '<div><b>Email</b><span>'+(p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--info-t)">'+esc(p.email)+'</a>':"—")+'</span></div>'+
+   '<div><b>Phone</b><span>'+(p.phone?'<a href="tel:'+esc(p.phone.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.phone)+'</a>':"—")+'</span></div>'+
+   '<div><b>Location</b><span>'+esc([p.city,personStates(p)[0]].filter(Boolean).join(", ")||"—")+'</span></div>'+
+   '<div><b>Territory</b><span>'+(personStates(p).length?esc(personStates(p).join(", ")):"—")+'</span></div>'+
+   '<div><b>Last contact</b><span>'+ago(p.last)+'</span></div>'+
+   '<div><b>Units (YTD)</b><span>'+(p.units||0)+'</span></div></div>'+
+   (p.note?'<p class="t2" style="white-space:normal;margin-top:10px">'+esc(p.note)+'</p>':'');
+  h+='<div class="qa" style="margin:14px 0 8px"><button class="btn coral block" data-act="logfor" data-id="'+p.id+'">'+svg("phone")+' Log</button>'+
+   '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button>'+
+   '<button class="btn block" data-act="personfull" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("user")+' Full page</button></div>';
+  if(acts.length){h+='<div class="sectlabel">History</div>'+acts.map(a=>'<div class="card" style="padding:9px 13px;margin-bottom:6px"><div class="row"><span class="ic '+toneFor(a.type)+'" style="width:30px;height:30px">'+svg(iconFor(a.type))+'</span>'+
+   '<div class="grow"><p class="t1" style="font-size:13px">'+esc(titlecase(a.type))+' · '+fmtDay(a.date)+(a.by?' <span style="color:var(--hint);font-weight:500">('+esc(teamById(a.by).name.split(" ")[0])+')</span>':'')+'</p>'+
+   '<p class="t2" style="white-space:normal">'+esc(a.note||"")+'</p></div></div></div>').join("");}
+  return h;
+}
 function myLists(){ensureLists();return DB.lists.filter(l=>!l.removed&&(admin()||l.by===USER||l.assignee===USER));}
 /* one box in, filters out: "All Grainger reps in Arkansas" / "set-up distributors TX" */
 function parseListQuery(q){
@@ -3085,13 +3111,21 @@ function viewList(id){
     if(F.has("role")&&it.role)bits.push(esc(it.role));
     if(F.has("city")&&it.city)bits.push(esc(it.city));
     if(F.has("state")&&it.state)bits.push(esc(it.state));
+    const noPhone=F.has("phone")&&!it.phone;
     if(F.has("phone")&&it.phone)bits.push('<a href="tel:'+esc(String(it.phone).replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(it.phone)+'</a>');
+    if(noPhone)bits.push('<span style="color:var(--dang-t)">(no number found)</span>');
     if(F.has("email")&&it.email)bits.push('<a href="mailto:'+esc(it.email)+'" style="color:var(--info-t)">'+esc(it.email)+'</a>');
     return '<div class="card" style="padding:11px 14px;margin-bottom:8px'+(it.done?';opacity:.6':'')+'"><div class="row" style="align-items:flex-start">'+
      '<button class="chk'+(it.done?" on":"")+'" data-act="listdone" data-id="'+l.id+'" data-i="'+i+'" style="margin-top:2px">'+(it.done?svg("check"):"")+'</button>'+
-     '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px'+(it.done?';text-decoration:line-through':'')+'">'+(it.pid?'<a href="#" data-act="person" data-id="'+esc(it.pid)+'" style="color:inherit">'+esc(it.name)+'</a>':esc(it.name))+'</p>'+
+     '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px'+(it.done?';text-decoration:line-through':'')+'">'+(it.pid?'<a href="#" data-act="personpeek" data-id="'+esc(it.pid)+'" style="color:inherit">'+esc(it.name)+'</a>':esc(it.name))+'</p>'+
      (bits.length?'<p class="t2" style="white-space:normal">'+bits.join(" · ")+'</p>':'')+
-     '<input class="f" id="lnote_'+l.id+'_'+i+'" value="'+esc(it.note||"")+'" placeholder="Note after the call…" autocomplete="off" style="margin-top:8px;padding:9px 12px;font-size:13.5px">'+
+     '<div style="display:flex;gap:8px;margin-top:8px">'+
+      (noPhone?'<input class="f" id="lphone_'+l.id+'_'+i+'" inputmode="tel" placeholder="Enter number…" autocomplete="off" style="margin:0;padding:9px 12px;font-size:13.5px;width:150px;flex:none">':'')+
+      '<input class="f" id="lnote_'+l.id+'_'+i+'" value="'+esc(it.note||"")+'" placeholder="Note after the call…" autocomplete="off" style="margin:0;padding:9px 12px;font-size:13.5px;flex:1;min-width:0">'+
+     '</div></div>'+
+     '<div style="flex:none;display:flex;flex-direction:column;gap:6px;align-items:flex-end;margin-left:4px">'+
+      '<span class="qchip'+(it.vmAt?" on":"")+'" data-act="listvm" data-id="'+l.id+'" data-i="'+i+'">Left VM'+(it.vmAt?' · '+mdStamp(it.vmAt):'')+'</span>'+
+      '<span class="qchip'+(it.spokeAt?" on":"")+'" data-act="listspoke" data-id="'+l.id+'" data-i="'+i+'">Spoke'+(it.spokeAt?' · '+mdStamp(it.spokeAt):'')+'</span>'+
      '</div></div></div>';}).join("");
   return h;
 }
@@ -3574,6 +3608,12 @@ document.addEventListener("click",e=>{
   if(a==="listback"){curList=null;render();return;}
   if(a==="listdone"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
     if(it){it.done=!it.done;it.calledAt=it.done?new Date().toISOString():null;save();render();}return;}
+  if(a==="listvm"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
+    if(it){if(!it.vmAt){it.vmAt=new Date().toISOString();listLog(l,it,"voicemail","Left voicemail");}else it.vmAt=null;save();render();}return;}
+  if(a==="listspoke"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
+    if(it){if(!it.spokeAt){it.spokeAt=new Date().toISOString();it.done=true;it.calledAt=it.calledAt||it.spokeAt;listLog(l,it,"call",it.note?("Spoke — "+it.note):"Spoke with them");}else{it.spokeAt=null;}save();render();}return;}
+  if(a==="personpeek"){openSheet(personSheetHTML(t.dataset.id));return;}
+  if(a==="personfull"){closeSheet();curPerson=t.dataset.id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="listpush"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
     if(l){l.assignee=l.assignee===t.dataset.v?null:t.dataset.v;save();render();toast(l.assignee?("Pushed to "+teamById(l.assignee).name):"Unassigned");}return;}
   if(a==="listdel"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
@@ -3606,7 +3646,11 @@ document.addEventListener("input",e=>{
   if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
   if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
   if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
-    if(it){it.note=e.target.value;clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
+    if(it){it.note=e.target.value;it.noteAt=new Date().toISOString();clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
+  if(/^lphone_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
+    if(it){it.phone=e.target.value.trim();it.phoneAt=new Date().toISOString();
+      const pr=it.pid?person(it.pid):null;if(pr&&!pr.phone&&it.phone)pr.phone=it.phone;
+      clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
   if(e.target.id==="oConQ"){logState.oppConPid=null;sugRender("oConQ",peopleSugItems(e.target.value,"pickOppCon"));return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
