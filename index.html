@@ -870,7 +870,7 @@ function viewTaskHistory(){
     return '<div class="tk'+(st!=="open"?" done":"")+'"><span class="pill '+m[1]+'" style="flex:none">'+m[2]+'</span>'+
      '<div class="grow"><p class="t1" style="font-size:14px'+(st==="removed"?";text-decoration:line-through;color:var(--hint)":"")+'">'+esc(t.title)+'</p><p class="t2" style="white-space:normal">'+(admin()||t.owner!==USER?esc(teamById(t.owner).name.split(" ")[0])+(taskPeopleLabel(t)?' → '+esc(taskPeopleLabel(t)):'')+' · ':taskPeopleLabel(t)?'for '+esc(taskPeopleLabel(t))+' · ':'')+meta+'</p></div>'+
      (st==="removed"?'<button class="btn sm" data-act="restoretask" data-id="'+t.id+'">Restore</button>':'<button class="btn sm" data-act="toggletask" data-id="'+t.id+'">'+(t.done?'Reopen':'Complete')+'</button>')+'</div>';};
-  let h='<h3 style="margin:4px 0 2px">To-do history'+(admin()?' — team':'')+'</h3><p class="t2" style="margin-bottom:10px">Every action ever added. Nothing is deleted — removed items are kept here and can be restored.</p>';
+  let h='<h3 style="margin:4px 0 2px">To-do history'+(admin()?' — team':'')+'</h3>';
   if(!pool.length)h+='<div class="empty" style="padding:14px">No to-dos yet.</div>';
   groups.forEach(g=>{const list=pool.filter(t=>taskStatus(t)===g[0]).sort((a,b)=>String(when(b)||"").localeCompare(String(when(a)||"")));
     if(!list.length)return;h+='<div class="sectlabel">'+g[1]+' — '+list.length+'</div>'+list.map(row).join("");});
@@ -968,7 +968,7 @@ function buysFromCard(c){
   const list=bfList(c).slice().sort((a,b)=>(b.first?1:0)-(a.first?1:0));
   const dists=DB.companies.filter(x=>x.type==="distributor");
   let h='<div class="reccard"><div class="lvhead" style="margin:0 0 4px"><div class="sectlabel" style="margin:0">Who they buy from — distributor coverage</div></div>'+
-   '<p class="t2" style="white-space:normal;margin:0 0 10px">Where this end-user already buys safety supply. First choice is where we route the order.</p>';
+   '';
   if(list.length){
     h+=list.map(e=>{const i=bfList(c).indexOf(e);const d=e.cid?company(e.cid):null;
       return '<div class="tk" style="margin-bottom:6px">'+
@@ -977,7 +977,7 @@ function buysFromCard(c){
         (d?'<p class="t2">'+(distStatus(d)==="setup"?"Set-up distributor":"Potential distributor")+(d.state?' · '+esc([d.city,d.state].filter(Boolean).join(", ")):'')+'</p>':'<p class="t2">Not set up with us yet</p>')+'</div>'+
        (e.first?'<span class="pill coral" style="flex:none">1st choice</span>':'<button class="btn sm ghost" data-act="bffirst" data-id="'+c.id+'" data-i="'+i+'" title="Make first choice">☆ 1st</button>')+
        '<button class="tkdel" data-act="bfdel" data-id="'+c.id+'" data-i="'+i+'" aria-label="remove">×</button></div>';}).join("");
-  } else h+='<div class="empty" style="padding:10px">Not captured yet — ask "who do you buy safety supply from today?"</div>';
+  } else h+='<div class="empty" style="padding:10px">No distributors added yet.</div>';
   h+='<div class="planbar" style="margin:10px 0 0"><div style="position:relative;flex:1;min-width:0"><input class="qa-input" id="bfSearch" style="width:100%" placeholder="Type a distributor — ours pop up, free text for ones we\'re not set up with" autocomplete="off"><div class="sug" id="bfSearch_sug"></div></div>'+
    '<button class="btn coral" data-act="bfadd" data-id="'+c.id+'">Add</button></div>';
   /* rep coverage: for each linked distributor, who covers this end-user's state */
@@ -1106,7 +1106,7 @@ function eodRecapHTML(){
   const render1=a=>a.isTask?tentry(a):entry(a);
   let h='<div class="kpis" style="margin-bottom:10px"><div class="kpi"><b>Logged today</b><span>'+today.length+'</span><small>'+[...new Set(today.map(a=>a.type))].join(" · ")+'</small></div>'+
      '<div class="kpi"><b>Yesterday</b><span>'+yest.length+'</span><small>'+[...new Set(yest.map(a=>a.type))].join(" · ")+'</small></div></div>';
-  h+=today.length?today.slice(0,20).map(render1).join(""):'<div class="empty" style="padding:12px">Nothing logged yet today — every call counts (literally, on the deals).</div>';
+  h+=today.length?today.slice(0,20).map(render1).join(""):'<div class="empty" style="padding:12px">Nothing logged yet today.</div>';
   if(yest.length){h+='<div class="sectlabel" style="font-size:11px;margin-top:12px">Yesterday</div>'+yest.slice(0,12).map(render1).join("");}
   return h;
 }
@@ -1125,14 +1125,6 @@ function viewToday(){
   const tasks=myTasks().filter(t=>!t.done||t.completedDay===T).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||String(a.due).localeCompare(String(b.due)));
   const dueToday=tasks.filter(t=>!t.done&&t.due<=T).length;
   let h='';
-  if(!localStorage.getItem(HKEY)){
-    h+='<div class="onboard"><button class="x" data-act="dismissonboard" title="Dismiss">×</button>'+
-     '<h3>Welcome to the AutoTQ CRM 👋</h3><ol>'+
-     '<li><b>Pipeline</b> is where deals live — drag them through stages with ‹ ›, and <b>Forecasts</b> rolls them up by quarter.</li>'+
-     '<li><b>Accounts</b> are distributors &amp; end-users; <b>Contacts</b> are the reps we enable. Everything is East/West by state.</li>'+
-     '<li>Log every call from the record you\'re on — and work your <b>conference call lists</b> right from Home.</li></ol>'+
-     '<p style="margin:10px 0 0;font-size:12.5px;color:var(--muted)">Tap the <b>?</b> up top any time for the full guide.</p></div>';
-  }
   h+='<div class="kpis">'+
    '<div class="kpi"><b>My pipeline</b><span>'+fmtK(open.reduce((s,o)=>s+(o.amount||0),0))+'</span><small>'+open.length+' open'+(overdue?' · '+overdue+' past due':'')+'</small></div>'+
    '<div class="kpi"><b>Tasks due</b><span>'+dueToday+'</span><small>today or overdue</small></div>'+
@@ -1296,7 +1288,7 @@ function viewRoster(cid){
    '</div></div>';
   if(c.type==="distributor"){
     const st=distStatus(c),es=enableStage(c);
-    h+='<div class="reccard"><div class="sectlabel" style="margin:0 0 12px">Channel status — set as you onboard them</div>'+
+    h+='<div class="reccard"><div class="sectlabel" style="margin:0 0 12px">Channel status</div>'+
       '<div class="enrow"><span class="enlbl">Account</span>'+
        ["potential","setup"].map(v=>'<button class="segchip'+(st===v?" on":"")+'" data-act="setdstatus" data-id="'+c.id+'" data-v="'+v+'">'+(v==="setup"?"Set-up distributor":"Potential")+'</button>').join("")+'</div>'+
       '<div class="enrow" style="margin-top:12px"><span class="enlbl">Enablement</span>'+
@@ -1325,7 +1317,6 @@ function viewRoster(cid){
     if(rosterBranchF)repsShown=reps.filter(p=>((p.city||"").trim()||"—")===rosterBranchF);
   }
   h+=repsShown.length?contactTableOrgHTML(repsShown):'<div class="empty">No contacts at this account yet — add the first one above.</div>';
-  if(sellerN)h+='<div class="banner">'+svg("users")+sellerN+' Grainger sellers are in the directory tier — find them under Contacts → Grainger sellers, or search any name from the top bar.</div>';
   if(demos.length){
     h+='<div class="lvhead" style="margin-top:18px"><div class="lvtabs"><button class="on">Demo units · '+demos.length+'</button></div></div>';
     h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Holder</th><th>City</th><th>State</th><th>Status</th><th>Source</th></tr></thead><tbody>'+
@@ -1720,7 +1711,7 @@ function viewConf(){
   var up=list.filter(function(c){return (c.start||"")>=today;});
   var past=list.filter(function(c){return (c.start||"")<today;});
   var last=past.length?past[past.length-1].name:"";
-  var h='<div class="banner">'+svg("spark")+'Conferences are assigned by location — East → Jamie, West → John. Leads from shows respond well to calling.</div>';
+  var h='';
   h+='<div class="sectlabel">Upcoming · '+up.length+'</div>';
   h+= up.length? up.map(function(c){return confCard(c,false,last);}).join("") : '<div class="empty">No upcoming conferences.</div>';
   if(past.length){h+='<div class="sectlabel" style="margin-top:20px">Past · '+past.length+'</div>';
@@ -1842,7 +1833,7 @@ function viewCampaigns(){
   const c=curCampaign?campaignById(curCampaign):null;
   if(c)return c.status==="active"?campDashboard(c):campWizard(c);
   const list=DB.campaigns.slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
-  let h='<div class="banner">'+svg("spark")+'Three steps: upload a lead list, write the emails, hit launch. Apollo sends them from your own inbox on schedule and stops the moment someone replies.</div>';
+  let h='';
   h+='<button class="btn coral" data-act="campnew" style="margin-bottom:16px">'+svg("plus")+' New campaign</button>';
   if(!list.length)return h+'<div class="empty">No campaigns yet — start your first one above.</div>';
   h+='<div class="sectlabel">All campaigns · '+list.length+'</div>';
@@ -1886,7 +1877,7 @@ function campLeadsUI(c){
 function campEmailsUI(c){
   if(!c.steps||!c.steps.length){c.steps=campDefaultSteps();save();}
   const first=(c.leads||[]).find(l=>l.flag==="ok");
-  let h='<div class="banner">'+svg("note")+'Short and human wins. The starter emails below are editable — tap a token chip to drop {{first_name}}-style fills at your cursor. Day numbers control the wait between emails.</div>';
+  let h='';
   c.steps.forEach((s,i)=>{
     h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="margin-bottom:8px;align-items:center"><b style="font-size:14px">Email '+(i+1)+'</b>'+
      '<span style="margin-left:12px;font-size:13px;color:var(--muted)">sends on day</span><input class="f" data-cfield="day" data-ci="'+i+'" value="'+(s.day||1)+'" inputmode="numeric" style="width:56px;text-align:center;padding:6px;margin-left:6px">'+
@@ -1908,7 +1899,6 @@ function campLaunchUI(c){
    '<div class="tk" style="align-items:flex-start"><b style="width:86px;flex:none">Who</b><span style="font-size:13.5px">'+ok.length+' contacts with valid emails'+(((c.leads||[]).length-ok.length)?' · '+((c.leads||[]).length-ok.length)+' left out (missing/bad/duplicate)':'')+'</span></div>'+
    sorted.map(s=>'<div class="tk" style="align-items:flex-start"><b style="width:86px;flex:none">Day '+(s.day||1)+'</b><span style="font-size:13.5px">'+esc(s.subject||"(no subject)")+'</span></div>').join("")+
    '<div class="tk" style="align-items:flex-start"><b style="width:86px;flex:none">From</b><span style="font-size:13.5px" id="campMailbox">Checking your connected inbox…</span></div></div>';
-  h+='<div class="banner">'+svg("spark")+'Apollo sends on schedule from your own inbox, personalizes every email, and stops a thread the moment someone replies.</div>';
   h+='<button class="btn coral block" data-act="camplaunch" style="font-size:15.5px;padding:14px">Launch — email '+ok.length+' people</button>';
   setTimeout(campMailboxCheck,80);
   return h;
@@ -2133,14 +2123,14 @@ function viewLeads(){
   const s=sortState.myleads;
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
   const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
-  let h='<div class="banner">'+svg("spark")+'Working leads — pushed from the conference call lists. Log every touch; promote the ones that get real to Accounts &amp; Contacts.</div>';
+  let h='';
   h+='<div class="lvhead"><div class="lvtabs">'+chip("","All",all.length)+
      confs.map(c=>chip("conf:"+c,c.replace(/ 20\d\d$/,""),all.filter(l=>l.conf===c).length)).join("")+
      chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+
      chip("promoted","In CRM",all.filter(l=>l.promoted).length)+'</div>'+
      '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
      '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
-  if(!pool.length)return h+'<div class="empty">Nothing here yet — open a conference call list, tap a person, and hit "Log touch &amp; push to Leads".</div>';
+  if(!pool.length)return h+'<div class="empty">No leads yet.</div>';
   const th=(k,l)=>thSort("myleads",k,l);
   h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Conference")+th("state","State")+th("region","Territory")+th("last","Last contact")+th("method","Method")+'<th>Conversation details</th>'+th("touches","Touches")+'</tr></thead><tbody>'+
    pool.map(l=>{const t=leadLastTouch(l);
@@ -2219,7 +2209,7 @@ function promoteMyLead(id){
 /* ---------- GRAINGER SELLER DIRECTORY IMPORT (admin; idempotent by email) ---------- */
 function formImpSellers(){
   openSheet('<h2>Import Grainger sellers</h2>'+
-   '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">Pick <b>grainger_sellers_import.csv</b> (CRM_Cleanup). Re-running with a new quarter\'s file updates existing sellers by email and adds new ones. Sellers live in their own "Grainger sellers" tier — the Field Map shows them; the working contact views stay clean.</p>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">grainger_sellers_import.csv — re-runs update by email.</p>'+
    '<input class="f" type="file" id="gsFile" accept=".csv">'+
    '<div id="gsStatus" style="font-size:13.5px;color:var(--muted);margin-top:10px"></div>');
 }
@@ -2713,17 +2703,17 @@ function formOpp(id,prefillCid){
    '<label class="fl">Expected close date</label><input class="f" id="oClose" type="date" value="'+(o&&o.closeDate?esc(o.closeDate):"")+'">'+
    '<label class="fl">Deal type</label><select class="f" id="oType">'+dtypes.map(t=>'<option'+(o&&o.dealType===t?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
    '<label class="fl">State</label><input class="f" id="oLoc" value="'+(o?esc(o.state||""):"")+'" placeholder="TN" maxlength="2">'+
-   '<label class="fl">Probability reason <span style="font-weight:400;color:var(--hint)">(why is it at '+(o?oppProb(o):OPP_PROB["Prospecting"])+'%? — keep it one line)</span></label>'+
+   '<label class="fl">Probability reason <span style="font-weight:400;color:var(--hint)">('+(o?oppProb(o):OPP_PROB["Prospecting"])+'%)</span></label>'+
    '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, distributor involved, reviewing 50-unit rollout for Q4" autocomplete="off">'+
    '<label class="fl">Next action</label><input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing manager" autocomplete="off">'+
    '<label class="fl">Next action date</label><input class="f" id="oNextAD" type="date" value="'+(o?esc(o.nextActionDate||""):"")+'">'+
-   '<label class="fl">Touches <span style="font-weight:400;color:var(--hint)">('+(o?oppTouches(o):0)+' total — '+(o?oppActivityPool(o).length:0)+' auto-counted from logged activity; add offline touches below)</span></label>'+
+   '<label class="fl">Extra touches <span style="font-weight:400;color:var(--hint)">('+(o?oppActivityPool(o).length:0)+' logged · '+(o?oppTouches(o):0)+' total)</span></label>'+
    '<input class="f" id="oTouchX" inputmode="numeric" value="'+(o&&o.touchesExtra?o.touchesExtra:"")+'" placeholder="0">'+
-   '<label class="fl">Last contact <span style="font-weight:400;color:var(--hint)">(auto from activity'+(o&&oppLastTouch(o)?': '+esc(oppLastTouch(o)):'')+' — set manually if newer)</span></label>'+
+   '<label class="fl">Last contact'+(o&&oppLastTouch(o)?' <span style="font-weight:400;color:var(--hint)">(auto: '+esc(oppLastTouch(o))+')</span>':'')+'</label>'+
    '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'">'+
    '<label class="fl">Distributor on the deal</label>'+comboField("oDistQ","Type a distributor…",(o&&o.distributorId?((company(o.distributorId)||{}).name||""):(o?o.distributorName||"":""))+"")+
    '<label class="fl">Distributor rep</label>'+comboField("oDistRepQ","Type their rep on this deal…",(o&&o.distRepPid&&person(o.distRepPid)?person(o.distRepPid).name:""))+
-   '<label class="fl">Man-rep / channel rep <span style="font-weight:400;color:var(--hint)">(who\'s helping generate this — attribution)</span></label>'+comboField("oManrepQ","Type a man-rep…",(o&&o.manrepPid&&person(o.manrepPid)?personLabel(person(o.manrepPid)):""))+
+   '<label class="fl">Man-rep / channel rep</label>'+comboField("oManrepQ","Type a man-rep…",(o&&o.manrepPid&&person(o.manrepPid)?personLabel(person(o.manrepPid)):""))+
    '<label class="fl">Channel rep (free text — shows on cards)</label><input class="f" id="oRep" value="'+(o?esc(o.rep||""):"")+'" placeholder="man-rep / distributor rep">'+
    (admin()?'<label class="fl">Owner</label><select class="f" id="oOwner">'+TEAM.map(t=>'<option value="'+t.id+'"'+((o?o.owner:USER)===t.id?' selected':'')+'>'+esc(t.name)+'</option>').join("")+'</select>':'')+
    '<label class="fl">People on this deal</label><div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
@@ -2766,7 +2756,7 @@ function saveOpp(){
 }
 function formCoverage(pid){
   const p=person(pid);if(!p)return;logState.covPid=pid;
-  openSheet('<h2>Coverage states</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">Which states does '+esc(p.name)+' cover? Enter 2-letter codes, comma-separated. Multi-state reps spanning East+West become Nationwide.</p>'+
+  openSheet('<h2>'+esc(p.name)+' — coverage states</h2>'+
    '<label class="fl">States</label><input class="f" id="covStates" value="'+esc(personStates(p).join(", "))+'" placeholder="e.g. TN, GA, AL" autocomplete="off">'+
    '<button class="btn coral block" data-act="saveCov" style="margin-top:18px">Save coverage</button>');
 }
@@ -2817,8 +2807,7 @@ function formRep(){
   openSheet('<h2>Add rep</h2><label class="fl">Name</label><input class="f" id="rName" placeholder="e.g. Chris Walker">'+
    '<label class="fl">Works at</label>'+comboField("rCidQ","Type the company — e.g. Gra… → Grainger","")+
    '<label class="fl">City</label><input class="f" id="rCity" placeholder="Orlando"><label class="fl">State</label><input class="f" id="rState" placeholder="FL" maxlength="2">'+
-   '<button class="btn coral block" data-act="saveRep" style="margin-top:18px">Add rep</button>'+
-   '<p style="text-align:center;color:var(--hint);font-size:13px;margin-top:9px">City + state powers the map &amp; travel planner.</p>');
+   '<button class="btn coral block" data-act="saveRep" style="margin-top:18px">Add rep</button>');
 }
 function saveRep(){const name=document.getElementById("rName").value.trim();
   let cid=logState.repCid;
@@ -3004,7 +2993,7 @@ function expTableHTML(){
    '<div style="margin-left:auto;display:flex;gap:8px">'+
    (expF.mode==="contacts"?'<button class="btn sm" data-act="expcopy">Copy emails</button>':'')+
    '<button class="btn sm coral" data-act="expcsv">'+svg("dl")+' Export CSV</button></div></div>';
-  if(!d.rows.length)return h+'<div class="empty" style="padding:16px">No matches — loosen a rule above.</div>';
+  if(!d.rows.length)return h+'<div class="empty" style="padding:16px">No matches.</div>';
   h+='<div class="tablewrap"><table class="lv"><thead><tr>'+d.headers.map(x=>'<th>'+x+'</th>').join("")+'</tr></thead><tbody>'+
    d.rows.slice(0,cap).map((r,i)=>'<tr data-act="'+(expF.mode==="accounts"?"roster":"person")+'" data-id="'+d.objs[i].id+'">'+r.map((x,j)=>'<td'+(j===0?' class="lvname"':'')+'>'+esc(String(x))+'</td>').join("")+'</tr>').join("")+
    '</tbody></table></div>'+(d.rows.length>cap?'<p class="t2" style="margin:6px 2px">Showing first '+cap+' — the CSV export includes all '+d.rows.length+'.</p>':'');
@@ -3012,13 +3001,13 @@ function expTableHTML(){
 }
 function viewExport(){
   const chip=(on,act,v,label)=>'<span class="qchip'+(on?" on":"")+'" data-act="'+act+'" data-v="'+esc(v)+'">'+label+'</span>';
-  let h='<div class="banner">'+svg("dl")+'Build a call or email list with rules, then export it. Example: set-up distributors in TX, or Grainger reps in MS AR SD.</div>';
+  let h='';
   h+='<div class="reccard">'+
    '<div class="seg" style="max-width:260px;margin:0 0 12px"><button class="'+(expF.mode==="contacts"?"on":"")+'" data-act="expmode" data-v="contacts">Contacts</button><button class="'+(expF.mode==="accounts"?"on":"")+'" data-act="expmode" data-v="accounts">Accounts</button></div>'+
-   '<label class="fl">Account <span style="font-weight:400;color:var(--hint)">(e.g. Grainger — leave blank for all)</span></label>'+comboField("expAcct","Type an account…",expF.acctTxt)+
+   '<label class="fl">Account</label>'+comboField("expAcct","All accounts — type to pick one",expF.acctTxt)+
    '<label class="fl">Account type</label><div class="qa-types">'+[["enduser","End-user"],["distributor","Distributor"],["manrep","Man-rep"]].map(t=>chip(expF.types.includes(t[0]),"exptype",t[0],t[1])).join("")+'</div>'+
    '<label class="fl">Distributor status</label><div class="qa-types">'+[["","Any"],["setup","Set-up"],["potential","Potential"]].map(t=>chip(expF.dstatus===t[0],"expdst",t[0],t[1])).join("")+'</div>'+
-   '<label class="fl">States <span style="font-weight:400;color:var(--hint)">(comma or space separated — matches rep coverage)</span></label><input class="f" id="expStates" value="'+esc(expF.states)+'" placeholder="e.g. MS, AR, SD" autocomplete="off">'+
+   '<label class="fl">States</label><input class="f" id="expStates" value="'+esc(expF.states)+'" placeholder="Any — e.g. MS, AR, SD" autocomplete="off">'+
    '<label class="fl">Region</label><div class="qa-types">'+[["","Any"],["East","East"],["West","West"],["Nationwide","Nationwide"]].map(t=>chip(expF.region===t[0],"expregion",t[0],t[1])).join("")+'</div>'+
    (expF.mode==="contacts"?'<div class="qa-types" style="margin-top:10px">'+chip(expF.needEmail,"expemail","","Has email")+chip(expF.needPhone,"expphone","","Has phone")+'</div>':'')+
   '</div>';
@@ -3135,7 +3124,7 @@ function viewInvoicing(){
      [["all","All ("+os.length+")"],["queue","Needs invoice ("+q.length+")"],["invoiced","Invoiced ("+inv.length+")"],["paid","Paid ("+paid.length+")"],["supplier","Supplier"]]
      .map(f=>'<button class="qchip'+(invFilter===f[0]?" on":"")+'" data-act="invfilter" data-v="'+f[0]+'">'+f[1]+'</button>').join("")+'</div>';
   const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
-  if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+(os.length?"Nothing in this view.":"No orders yet — tap <b>Upload PO PDFs</b> and select every PO. Files named “Customer MM-DD-YYYY PO#.pdf” fill themselves in.")+'</div>';
+  if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+(os.length?"Nothing in this view.":"No orders yet.")+'</div>';
   else{
     h+='<div class="card" style="padding:0;overflow:hidden">';
     list.forEach((o,i)=>{
@@ -3151,7 +3140,6 @@ function viewInvoicing(){
     });
     h+='</div>';
   }
-  h+='<p style="font-size:12px;color:var(--hint);margin:12px 2px 0">Tap an order to edit its status, QB invoice # or notes. PDFs are stored once in the shared team library — View/Download works on every device.</p>';
   return h;
 }
 function invItemsHTML(){
@@ -3165,7 +3153,7 @@ function invItemsHTML(){
     '<span style="flex:1.1;font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap">'+fmtC((+it.qty||0)*(+it.unit||0))+'</span>'+
     '<button class="tkdel" data-act="invitemdel" data-i="'+i+'" aria-label="remove">×</button></div>').join("");
   h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><button class="btn sm ghost" data-act="invitemadd">+ Add item</button>'+
-   (items.length?'<span style="margin-left:auto;font-size:13px;font-weight:700">Total '+fmtC(itemsTotal(items))+'</span>':'<span style="font-size:12px;color:var(--hint)">e.g. 1000-0005-TQ ×10 @ $544 — the amount computes itself</span>')+'</div>';
+   (items.length?'<span style="margin-left:auto;font-size:13px;font-weight:700">Total '+fmtC(itemsTotal(items))+'</span>':'')+'</div>';
   return h;
 }
 function collectInvItems(){
