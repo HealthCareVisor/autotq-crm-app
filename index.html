@@ -170,6 +170,11 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .cf::placeholder{color:#c9c5b9}
 .cf:focus{outline:none;border-color:var(--coral)}
 /* type-to-search picker (replaces long dropdowns) */
+.spinwheel{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--coral);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.genbar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:16px}
+.genbar i{display:block;height:100%;background:var(--coral);width:0;animation:fillbar 1.3s ease-out forwards}
+@keyframes fillbar{20%{width:31%}55%{width:64%}100%{width:100%}}
 .sug{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.10);max-height:230px;overflow:auto;z-index:80;display:none}
 .sug button{display:block;width:100%;text-align:left;padding:9px 13px;border:none;background:none;font-size:13.5px;border-bottom:1px solid #f4f2ec}
 .sug button:last-child{border-bottom:none}
@@ -336,7 +341,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -536,7 +541,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let curList=null, acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -678,7 +683,7 @@ function render(){
   if(view==="invoicing"&&!invAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:"Export lists",person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -712,7 +717,7 @@ function render(){
   else if(view==="confleads")body=viewConfLeads();
   else if(view==="camp")body=viewCampaigns();
   else if(view==="leads")body=viewLeads();
-  else if(view==="export")body=viewExport();
+  else if(view==="export")body=curList?viewList(curList):viewLists();
   else if(view==="person")body=viewPerson(curPerson);
   else if(view==="roster")body=viewRoster(curCompany);
   else if(view==="map")body=viewMap();
@@ -722,7 +727,7 @@ function render(){
   else body=viewToday();
   const groups=[
    ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
-   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"],["export","dl","Export"]]],
+   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"],["export","dl","Lists"]]],
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
   ];
@@ -2904,7 +2909,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div style="height:8px"></div>'+
- [["leads","spark","Leads"],["export","dl","Export"],["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
+ [["leads","spark","Leads"],["export","dl","Lists"],["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b>'+n[2]+'</b></button>').join("")+
  '<div style="height:8px"></div>'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -2980,6 +2985,7 @@ function expRows(){
   if(expF.dstatus)ps=ps.filter(p=>{const c=company(p.cid);return c&&c.type==="distributor"&&distStatus(c)===expF.dstatus;});
   if(stl.length)ps=ps.filter(p=>personStates(p).some(x=>stl.includes(String(x).toUpperCase().slice(0,2))));
   if(expF.region)ps=ps.filter(p=>personRegion(p)===expF.region);
+  if(expF.q)ps=ps.filter(p=>((p.name||"")+" "+(p.role||"")+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(expF.q));
   if(expF.needEmail)ps=ps.filter(p=>p.email);
   if(expF.needPhone)ps=ps.filter(p=>p.phone);
   ps.sort((a,b)=>a.name.localeCompare(b.name));
@@ -2987,52 +2993,107 @@ function expRows(){
     rows:ps.map(p=>[p.name,p.role||"",(company(p.cid)||{}).name||p.branch||"",p.city||"",personStates(p).join(" "),personRegion(p)||"",p.email||"",p.phone||"",p.last?String(p.last).slice(0,10):""]),
     objs:ps};
 }
-function expTableHTML(){
-  const d=expRows(),cap=250;
-  let h='<div class="lvhead" style="margin:14px 0 8px"><div class="sectlabel" style="margin:0">'+d.rows.length+' '+(expF.mode==="accounts"?"accounts":"contacts")+' match</div>'+
-   '<div style="margin-left:auto;display:flex;gap:8px">'+
-   (expF.mode==="contacts"?'<button class="btn sm" data-act="expcopy">Copy emails</button>':'')+
-   '<button class="btn sm coral" data-act="expcsv">'+svg("dl")+' Export CSV</button></div></div>';
-  if(!d.rows.length)return h+'<div class="empty" style="padding:16px">No matches.</div>';
-  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+d.headers.map(x=>'<th>'+x+'</th>').join("")+'</tr></thead><tbody>'+
-   d.rows.slice(0,cap).map((r,i)=>'<tr data-act="'+(expF.mode==="accounts"?"roster":"person")+'" data-id="'+d.objs[i].id+'">'+r.map((x,j)=>'<td'+(j===0?' class="lvname"':'')+'>'+esc(String(x))+'</td>').join("")+'</tr>').join("")+
-   '</tbody></table></div>'+(d.rows.length>cap?'<p class="t2" style="margin:6px 2px">Showing first '+cap+' — the CSV export includes all '+d.rows.length+'.</p>':'');
+const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",california:"CA",colorado:"CO",connecticut:"CT",delaware:"DE",florida:"FL",georgia:"GA",hawaii:"HI",idaho:"ID",illinois:"IL",indiana:"IN",iowa:"IA",kansas:"KS",kentucky:"KY",louisiana:"LA",maine:"ME",maryland:"MD",massachusetts:"MA",michigan:"MI",minnesota:"MN",mississippi:"MS",missouri:"MO",montana:"MT",nebraska:"NE",nevada:"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND",ohio:"OH",oklahoma:"OK",oregon:"OR",pennsylvania:"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD",tennessee:"TN",texas:"TX",utah:"UT",vermont:"VT",virginia:"VA",washington:"WA","west virginia":"WV",wisconsin:"WI",wyoming:"WY"};
+function ensureLists(){DB.lists=DB.lists||[];}
+function shortName(id){const n=teamById(id).name.split(" ")[0];return n+(id==="johnm"?" M.":id==="john"?" C.":"");}
+function myLists(){ensureLists();return DB.lists.filter(l=>!l.removed&&(admin()||l.by===USER||l.assignee===USER));}
+/* one box in, filters out: "All Grainger reps in Arkansas" / "set-up distributors TX" */
+function parseListQuery(q){
+  const orig=q;let txt=" "+q.toLowerCase().replace(/[,;]+/g," ")+" ";
+  const f={mode:"contacts",acctCid:null,acctTxt:"",types:[],dstatus:"",states:"",region:"",needEmail:false,needPhone:false,q:""};
+  const sts=new Set();
+  for(const nm in STATE_NAMES){const k=" "+nm+" ";while(txt.includes(k)){sts.add(STATE_NAMES[nm]);txt=txt.replace(k," ");}}
+  const CODES=new Set(Object.values(STATE_NAMES));
+  (orig.match(/\b[A-Z]{2}\b/g)||[]).forEach(c=>{if(CODES.has(c)){sts.add(c);txt=txt.replace(new RegExp("\\b"+c.toLowerCase()+"\\b")," ");}});
+  if(/\beast\b/.test(txt)){f.region="East";txt=txt.replace(/\beast\b/," ");}
+  else if(/\bwest\b/.test(txt)){f.region="West";txt=txt.replace(/\bwest\b/," ");}
+  if(/\bset[- ]?up\b|\bstocking\b/.test(txt)){f.dstatus="setup";txt=txt.replace(/\bset[- ]?up\b|\bstocking\b/g," ");}
+  else if(/\bpotential\b/.test(txt)){f.dstatus="potential";txt=txt.replace(/\bpotential\b/," ");}
+  if(/\bdistributors?\b/.test(txt)){f.types.push("distrep");txt=txt.replace(/\bdistributors?\b/g," ");}
+  if(/\bend[- ]?users?\b/.test(txt)){f.types.push("enduser");txt=txt.replace(/\bend[- ]?users?\b/g," ");}
+  if(/\bman[- ]?reps?\b/.test(txt)){f.types.push("manrep");txt=txt.replace(/\bman[- ]?reps?\b/g," ");}
+  let best=null;
+  DB.companies.forEach(c=>{const n=" "+(c.name||"").toLowerCase()+" ";if(n.trim().length>=3&&txt.includes(n.trim())&&(!best||n.length>best.n.length))best={c,n};});
+  if(best){f.acctCid=best.c.id;f.acctTxt=best.c.name;txt=txt.replace(best.n.trim()," ");}
+  f.states=[...sts].join(", ");
+  f.q=txt.replace(/\b(all|reps?|of|the|in|at|and|list|call|contacts?|everyone|every|our|with)\b/g," ").replace(/\s+/g," ").trim();
+  return f;
+}
+function listAutoName(f){
+  const bits=[];
+  if(f.acctTxt)bits.push(f.acctTxt);
+  if(f.dstatus)bits.push(f.dstatus==="setup"?"Set-up":"Potential");
+  if(f.types.length)bits.push(f.types.map(t=>({distrep:"distributor",enduser:"end-user",manrep:"man-rep"})[t]).join("/"));
+  if(f.q)bits.push('"'+f.q+'"');
+  let n=bits.join(" ")||"All contacts";
+  if(f.states)n+=" — "+f.states;
+  if(f.region)n+=" — "+f.region;
+  const d=new Date();
+  return n+" · "+d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+}
+const LIST_FIELDS=[["company","Company"],["role","Role"],["phone","Phone"],["email","Email"],["city","City"],["state","State"]];
+function viewLists(){
+  let h='<div class="reccard"><label class="fl">Who should be on the list?</label>'+
+   '<div style="display:flex;gap:8px"><input class="f" id="listQ" style="margin:0" value="'+esc(logState.listQ||"")+'" placeholder="e.g. All Grainger reps in Arkansas" autocomplete="off">'+
+   '<button class="btn coral" data-act="listbuild" style="flex:none">Build</button></div>';
+  if(logState.listGen){
+    h+='<div style="padding:26px 0 4px;text-align:center"><div class="spinwheel"></div><p class="t2">Building your list…</p><div class="genbar"><i></i></div></div>';
+  }
+  const R=logState.listResults;
+  if(R){
+    h+='<div class="lvhead" style="margin:16px 0 8px"><div class="sectlabel" style="margin:0">'+R.objs.filter((o,i)=>!R.excluded.has(i)).length+' of '+R.objs.length+' picked</div>'+
+     (R.chips.length?'<div class="qa-types" style="margin-left:10px">'+R.chips.map(c=>'<span class="qchip on" style="pointer-events:none">'+esc(c)+'</span>').join("")+'</div>':'')+'</div>';
+    if(!R.objs.length){h+='<div class="empty" style="padding:14px">No matches for that.</div></div>';return h+savedListsHTML();}
+    h+='<div class="card" style="padding:6px 4px;max-height:330px;overflow:auto">'+R.objs.map((p,i)=>{const on=!R.excluded.has(i);
+      return '<div class="tk" style="margin:2px 8px;padding:8px 10px'+(on?'':';opacity:.45')+'"><button class="chk'+(on?" on":"")+'" data-act="listrow" data-i="'+i+'">'+(on?svg("check"):"")+'</button>'+
+      '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(p.name)+'</p><p class="t2">'+esc((company(p.cid)||{}).name||p.branch||"")+(personStates(p).length?' · '+esc(personStates(p).join(" ")):'')+'</p></div></div>';}).join("")+'</div>';
+    h+='<label class="fl" style="margin-top:12px">Include on each row</label><div class="qa-types">'+LIST_FIELDS.map(f=>'<span class="qchip'+(R.fields.has(f[0])?" on":"")+'" data-act="listfield" data-v="'+f[0]+'">'+f[1]+'</span>').join("")+'</div>'+
+     '<label class="fl">List name</label><input class="f" id="listName" value="'+esc(R.name)+'" autocomplete="off">'+
+     '<button class="btn coral block" data-act="listsave" style="margin-top:12px">Save list</button>';
+  }
+  h+='</div>';
+  return h+savedListsHTML();
+}
+function savedListsHTML(){
+  const ls=myLists();
+  if(!ls.length)return '';
+  let h='<div class="sectlabel">Saved lists</div>';
+  h+=ls.map(l=>{const done=l.items.filter(x=>x.done).length,pct=l.items.length?Math.round(done/l.items.length*100):0;
+    return '<button class="card" style="width:100%;text-align:left" data-act="listopen" data-id="'+l.id+'">'+
+     '<div class="row" style="margin-bottom:8px"><span class="ic coral">'+svg("phone")+'</span>'+
+     '<div class="grow"><p class="t1">'+esc(l.name)+'</p><p class="t2">'+l.items.length+' people · '+done+' called · '+esc(shortName(l.by))+(l.assignee?' → '+esc(shortName(l.assignee)):'')+'</p></div>'+
+     '<span class="pill '+(pct===100?"ok":"coral")+'">'+pct+'%</span></div>'+
+     '<div class="bar"><i style="width:'+pct+'%"></i></div></button>';}).join("");
   return h;
 }
-function viewExport(){
-  const chip=(on,act,v,label)=>'<span class="qchip'+(on?" on":"")+'" data-act="'+act+'" data-v="'+esc(v)+'">'+label+'</span>';
-  let h='';
-  h+='<div class="reccard">'+
-   '<div class="seg" style="max-width:260px;margin:0 0 12px"><button class="'+(expF.mode==="contacts"?"on":"")+'" data-act="expmode" data-v="contacts">Contacts</button><button class="'+(expF.mode==="accounts"?"on":"")+'" data-act="expmode" data-v="accounts">Accounts</button></div>'+
-   '<label class="fl">Account</label>'+comboField("expAcct","All accounts — type to pick one",expF.acctTxt)+
-   '<label class="fl">Account type</label><div class="qa-types">'+[["enduser","End-user"],["distributor","Distributor"],["manrep","Man-rep"]].map(t=>chip(expF.types.includes(t[0]),"exptype",t[0],t[1])).join("")+'</div>'+
-   '<label class="fl">Distributor status</label><div class="qa-types">'+[["","Any"],["setup","Set-up"],["potential","Potential"]].map(t=>chip(expF.dstatus===t[0],"expdst",t[0],t[1])).join("")+'</div>'+
-   '<label class="fl">States</label><input class="f" id="expStates" value="'+esc(expF.states)+'" placeholder="Any — e.g. MS, AR, SD" autocomplete="off">'+
-   '<label class="fl">Region</label><div class="qa-types">'+[["","Any"],["East","East"],["West","West"],["Nationwide","Nationwide"]].map(t=>chip(expF.region===t[0],"expregion",t[0],t[1])).join("")+'</div>'+
-   (expF.mode==="contacts"?'<div class="qa-types" style="margin-top:10px">'+chip(expF.needEmail,"expemail","","Has email")+chip(expF.needPhone,"expphone","","Has phone")+'</div>':'')+
-  '</div>';
-  h+='<div id="expTbl">'+expTableHTML()+'</div>';
+function viewList(id){
+  ensureLists();const l=DB.lists.find(x=>x.id===id&&!x.removed);
+  if(!l){curList=null;return viewLists();}
+  const done=l.items.filter(x=>x.done).length,pct=l.items.length?Math.round(done/l.items.length*100):0;
+  const F=new Set(l.fields);
+  let h='<button class="btn sm ghost" data-act="listback" style="margin:0 0 14px">'+svg("back")+' Lists</button>';
+  h+='<div class="reccard"><div class="row"><div class="grow"><p class="t1" style="font-size:18px">'+esc(l.name)+'</p>'+
+   '<p class="t2">'+done+' / '+l.items.length+' called · by '+esc(shortName(l.by))+'</p></div>'+
+   '<button class="tkdel" data-act="listdel" data-id="'+l.id+'" style="font-size:22px">×</button></div>'+
+   '<div class="bar" style="margin-top:10px"><i style="width:'+pct+'%"></i></div>'+
+   '<div class="qa-types" style="margin-top:12px"><span class="t2" style="align-self:center">Push to</span>'+
+    TEAM.filter(t=>t.id!==USER&&t.id!=="laresa").map(t=>{const r=userRegion(t.id);
+     return '<span class="qchip'+(l.assignee===t.id?" on":"")+'" data-act="listpush" data-id="'+l.id+'" data-v="'+t.id+'">'+esc(t.name.split(" ")[0]+(t.id==="johnm"?" M.":t.id==="john"?" C.":""))+(r?' ('+r+')':'')+'</span>';}).join("")+'</div></div>';
+  h+=l.items.map((it,i)=>{
+    const bits=[];
+    if(F.has("company")&&it.company)bits.push(esc(it.company));
+    if(F.has("role")&&it.role)bits.push(esc(it.role));
+    if(F.has("city")&&it.city)bits.push(esc(it.city));
+    if(F.has("state")&&it.state)bits.push(esc(it.state));
+    if(F.has("phone")&&it.phone)bits.push('<a href="tel:'+esc(String(it.phone).replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(it.phone)+'</a>');
+    if(F.has("email")&&it.email)bits.push('<a href="mailto:'+esc(it.email)+'" style="color:var(--info-t)">'+esc(it.email)+'</a>');
+    return '<div class="card" style="padding:11px 14px;margin-bottom:8px'+(it.done?';opacity:.6':'')+'"><div class="row" style="align-items:flex-start">'+
+     '<button class="chk'+(it.done?" on":"")+'" data-act="listdone" data-id="'+l.id+'" data-i="'+i+'" style="margin-top:2px">'+(it.done?svg("check"):"")+'</button>'+
+     '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px'+(it.done?';text-decoration:line-through':'')+'">'+(it.pid?'<a href="#" data-act="person" data-id="'+esc(it.pid)+'" style="color:inherit">'+esc(it.name)+'</a>':esc(it.name))+'</p>'+
+     (bits.length?'<p class="t2" style="white-space:normal">'+bits.join(" · ")+'</p>':'')+
+     '<input class="f" id="lnote_'+l.id+'_'+i+'" value="'+esc(it.note||"")+'" placeholder="Note after the call…" autocomplete="off" style="margin-top:8px;padding:9px 12px;font-size:13.5px">'+
+     '</div></div></div>';}).join("");
   return h;
-}
-function expFileName(ext){
-  const bits=["autotq",expF.mode];
-  if(expF.acctCid)bits.push(((company(expF.acctCid)||{}).name||"").toLowerCase().replace(/[^a-z0-9]+/g,"_"));
-  if(expF.types.length)bits.push(expF.types.join("-"));
-  if(expF.dstatus)bits.push(expF.dstatus);
-  if(expStatesList().length)bits.push(expStatesList().join("-"));
-  if(expF.region)bits.push(expF.region.toLowerCase());
-  return bits.filter(Boolean).join("_")+"."+ext;
-}
-function expDoCSV(){
-  const d=expRows();if(!d.rows.length){toast("Nothing to export");return;}
-  const csv=[d.headers].concat(d.rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")).join("\n");
-  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=expFileName("csv");a.click();
-  toast(d.rows.length+" rows exported");
-}
-function expDoCopy(){
-  const d=expRows();const emails=d.objs.map(p=>p.email).filter(Boolean);
-  if(!emails.length){toast("No emails in this list");return;}
-  navigator.clipboard.writeText([...new Set(emails)].join("; ")).then(()=>toast(emails.length+" emails copied"),()=>toast("Couldn't copy"));
 }
 function exportCSV(){
   const rows=[["Distributor","Region","State","Units","Revenue","Orders","Last order","Demo units out"]];
@@ -3492,15 +3553,31 @@ document.addEventListener("click",e=>{
   if(a==="saveRep"){saveRep();return;}
   if(a==="saveLog"){saveLog();return;}
   if(a==="export"){exportCSV();return;}
-  if(a==="expmode"){expF.mode=t.dataset.v;render();return;}
-  if(a==="exptype"){const v=t.dataset.v;expF.types=expF.types.includes(v)?expF.types.filter(x=>x!==v):expF.types.concat([v]);render();return;}
-  if(a==="expdst"){expF.dstatus=t.dataset.v;render();return;}
-  if(a==="expregion"){expF.region=t.dataset.v;render();return;}
-  if(a==="expemail"){expF.needEmail=!expF.needEmail;render();return;}
-  if(a==="expphone"){expF.needPhone=!expF.needPhone;render();return;}
-  if(a==="expcsv"){expDoCSV();return;}
-  if(a==="expcopy"){expDoCopy();return;}
-  if(a==="pickExpAcct"){const c=company(t.dataset.id);if(c){expF.acctCid=c.id;expF.acctTxt=c.name;const i=document.getElementById("expAcct");if(i)i.value=c.name;sugRender("expAcct",[]);const tb=document.getElementById("expTbl");if(tb)tb.innerHTML=expTableHTML();}return;}
+  if(a==="listbuild"){const q=(document.getElementById("listQ")||{value:""}).value.trim();if(!q){toast("Describe the list first");return;}
+    logState.listQ=q;logState.listGen=true;logState.listResults=null;render();
+    setTimeout(()=>{const f=parseListQuery(q);expF=f;const d=expRows();
+      logState.listGen=false;
+      logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:listAutoName(f),
+        chips:[f.acctTxt,f.dstatus?(f.dstatus==="setup"?"Set-up":"Potential"):"",f.types.map(t=>({distrep:"Distributors",enduser:"End-users",manrep:"Man-reps"})[t]).join(" "),f.states,f.region,f.q?'"'+f.q+'"':""].filter(Boolean)};
+      render();},1400);return;}
+  if(a==="listrow"){const R=logState.listResults;const i=+t.dataset.i;if(R){R.excluded.has(i)?R.excluded.delete(i):R.excluded.add(i);render();}return;}
+  if(a==="listfield"){const R=logState.listResults;const v=t.dataset.v;if(R){R.fields.has(v)?R.fields.delete(v):R.fields.add(v);render();}return;}
+  if(a==="listsave"){const R=logState.listResults;if(!R)return;
+    const picked=R.objs.filter((o,i)=>!R.excluded.has(i));
+    if(!picked.length){toast("Nothing picked");return;}
+    ensureLists();
+    const nm=(document.getElementById("listName")||{value:""}).value.trim()||R.name;
+    const nl={id:uid(),name:nm,by:USER,assignee:null,createdAt:new Date().toISOString(),query:logState.listQ||"",fields:[...R.fields],
+      items:picked.map(p=>({pid:p.id,name:p.name,company:(company(p.cid)||{}).name||p.branch||"",role:p.role||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""}))};
+    DB.lists.unshift(nl);logState.listResults=null;logState.listQ="";save();curList=nl.id;render();window.scrollTo(0,0);toast('"'+nm+'" saved — '+nl.items.length+' people');return;}
+  if(a==="listopen"){curList=t.dataset.id;render();window.scrollTo(0,0);return;}
+  if(a==="listback"){curList=null;render();return;}
+  if(a==="listdone"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
+    if(it){it.done=!it.done;it.calledAt=it.done?new Date().toISOString():null;save();render();}return;}
+  if(a==="listpush"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
+    if(l){l.assignee=l.assignee===t.dataset.v?null:t.dataset.v;save();render();toast(l.assignee?("Pushed to "+teamById(l.assignee).name):"Unassigned");}return;}
+  if(a==="listdel"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
+    if(l&&confirm('Delete list "'+l.name+'"?')){l.removed=true;save();curList=null;render();}return;}
 });
 document.addEventListener("input",e=>{
   if(e.target.classList&&e.target.classList.contains("pncell")){
@@ -3528,8 +3605,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
   if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
   if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
-  if(e.target.id==="expAcct"){expF.acctTxt=e.target.value;if(!e.target.value.trim())expF.acctCid=null;sugRender("expAcct",acctSugItems(e.target.value,"pickExpAcct"));const tb=document.getElementById("expTbl");if(tb&&!e.target.value.trim())tb.innerHTML=expTableHTML();return;}
-  if(e.target.id==="expStates"){expF.states=e.target.value;const tb=document.getElementById("expTbl");if(tb)tb.innerHTML=expTableHTML();return;}
+  if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
+    if(it){it.note=e.target.value;clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
   if(e.target.id==="oConQ"){logState.oppConPid=null;sugRender("oConQ",peopleSugItems(e.target.value,"pickOppCon"));return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
