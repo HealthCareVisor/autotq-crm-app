@@ -1049,7 +1049,7 @@ function viewAccounts(){
     tab("potential","Potential distributors",cnt.potential)+
     tab("setup","Set-up distributors",cnt.setup)+
     tab("enduser","End-user accounts",cnt.enduser)+
-    tab("manrep","Man-reps",cnt.manrep)+'</div>'+regionSeg()+
+    tab("manrep","Man-Rep Groups",cnt.manrep)+'</div>'+regionSeg()+
     '<div class="lvsearch"><input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?accountTableHTML(pool,true):'<div class="empty">No accounts here yet.</div>';
   return h;
@@ -3132,7 +3132,8 @@ function viewList(id){
    '<div class="bar" style="margin-top:10px"><i style="width:'+pct+'%"></i></div>'+
    '<div class="qa-types" style="margin-top:12px"><span class="t2" style="align-self:center">Push to</span>'+
     TEAM.filter(t=>t.id!==USER&&t.id!=="laresa").map(t=>{const r=userRegion(t.id);
-     return '<span class="qchip'+(l.assignee===t.id?" on":"")+'" data-act="listpush" data-id="'+l.id+'" data-v="'+t.id+'">'+esc(t.name.split(" ")[0]+(t.id==="johnm"?" M.":t.id==="john"?" C.":""))+(r?' ('+r+')':'')+'</span>';}).join("")+'</div></div>';
+     return '<span class="qchip'+(l.assignee===t.id?" on":"")+'" data-act="listpush" data-id="'+l.id+'" data-v="'+t.id+'">'+esc(t.name.split(" ")[0]+(t.id==="johnm"?" M.":t.id==="john"?" C.":""))+(r?' ('+r+')':'')+'</span>';}).join("")+'</div>'+
+   '<button class="btn sm coral" data-act="listtocamp" data-id="'+l.id+'" style="margin-top:12px">'+svg("plane")+' Push to Campaign — email everyone on this list</button></div>';
   h+=l.items.map((it,i)=>{
     const bits=[];
     if(F.has("company")&&it.company)bits.push(esc(it.company));
@@ -3647,6 +3648,23 @@ document.addEventListener("click",e=>{
   if(a==="personfull"){pushNav();closeSheet();curPerson=t.dataset.id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="listpush"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
     if(l){l.assignee=l.assignee===t.dataset.v?null:t.dataset.v;save();render();toast(l.assignee?("Pushed to "+teamById(l.assignee).name):"Unassigned");}return;}
+  if(a==="listtocamp"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);if(!l)return;
+    ensureCampaigns();
+    const seen=new Set();
+    const leads=l.items.map(it=>{
+      const parts=String(it.name||"").trim().split(/\s+/);
+      const email=String(it.email||"").trim();
+      const lead={first:parts[0]||"",last:parts.slice(1).join(" "),company:it.company||"",title:it.role||"",email:email};
+      const valid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      lead.flag=!email?"missing":(!valid?"bad":(seen.has(email.toLowerCase())?"dupe":"ok"));
+      if(lead.flag==="ok")seen.add(email.toLowerCase());
+      return lead;});
+    const ok=leads.filter(x=>x.flag==="ok").length;
+    if(!ok){toast("Nobody on this list has an email");return;}
+    const nid=uid();
+    DB.campaigns.push({id:nid,name:l.name,createdAt:new Date().toISOString(),by:USER,status:"draft",leads:leads,listName:"Call list: "+l.name,steps:campDefaultSteps()});
+    save();pushNav();curCampaign=nid;campStep=1;view="camp";render();window.scrollTo(0,0);
+    toast(ok+" of "+l.items.length+" ready to email");return;}
   if(a==="listdel"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
     if(l&&confirm('Delete list "'+l.name+'"?')){l.removed=true;save();curList=null;render();}return;}
 });
