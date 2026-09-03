@@ -541,7 +541,7 @@ function demoSeed(){
   return {companies:C,people:P,activities:A,quotes:Q,events:E,manrep:MR,wifiSubs:140};
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
-let curList=null, acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let curList=null, regionF="", acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -1004,12 +1004,14 @@ function regionFromStates(arr){if(!arr||!arr.length)return '';const r=new Set(ar
 function personRegion(p){return regionFromStates(personStates(p));}
 function companyRegion(c){return c.territory?c.territory:regionFromState(c.state);}
 function userRegion(u){return u==="john"?"West":(u==="jamie"||u==="johnm"?"East":null);}
-function inRegion(region){if(admin())return true;const ur=userRegion(USER);if(!ur)return true;return region===ur||region==="Nationwide";}
+function inRegion(region){return true;} /* all reps see all records — filter by region chips instead */
+function regionMatch(r){return !regionF||r===regionF||r==="Nationwide";}
+function regionSeg(){return '<div class="seg" style="max-width:230px;margin:0">'+[["","All"],["East","East"],["West","West"]].map(x=>'<button class="'+(regionF===x[0]?"on":"")+'" data-act="regionf" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';}
 function regionTag(region){if(!region)return '<span class="muted">—</span>';const cls={East:"info",West:"ok",Nationwide:"coral"}[region]||"gray";return '<span class="pill '+cls+'">'+region+'</span>';}
 
 /* ---------- ACCOUNTS (list view) ---------- */
 function viewAccounts(){
-  const base=DB.companies.filter(c=>admin()||inRegion(companyRegion(c)));
+  const base=DB.companies.filter(c=>regionMatch(companyRegion(c)));
   const cnt={potential:0,setup:0,enduser:0,manrep:0};
   base.forEach(c=>{
     if(c.type==="distributor")cnt[distStatus(c)]++;
@@ -1033,16 +1035,15 @@ function viewAccounts(){
     tab("potential","Potential distributors",cnt.potential)+
     tab("setup","Set-up distributors",cnt.setup)+
     tab("enduser","End-user accounts",cnt.enduser)+
-    tab("manrep","Man-reps",cnt.manrep)+'</div>'+
+    tab("manrep","Man-reps",cnt.manrep)+'</div>'+regionSeg()+
     '<div class="lvsearch"><input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
-  if(acctFilter==="potential")h+='<div class="hint-line">'+svg("spark")+'Distributors you\'re working to onboard — move one to Set-up from its record once it\'s active.</div>';
   h+=pool.length?accountTableHTML(pool,true):'<div class="empty">No accounts here yet.</div>';
   return h;
 }
 /* ---------- CONTACTS (list view) ---------- */
 function isSellerTier(p){return p.tier==="seller";}
 function viewContacts(){
-  const scoped=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
+  const scoped=DB.people.filter(p=>regionMatch(personRegion(p)));
   const cnt={manrep:0,distrep:0,enduser:0,sellers:0};
   scoped.forEach(p=>{if(isSellerTier(p)){cnt.sellers++;return;}const t=contactType(p);if(cnt[t]!=null)cnt[t]++;});
   let pool=contactFilter==="sellers"?scoped.filter(isSellerTier)
@@ -1056,7 +1057,7 @@ function viewContacts(){
   pool=pool.slice().sort((a,b)=>cmpv(contactVal(a,s.key),contactVal(b,s.key))*s.dir);
   const tab=(v,l,n)=>'<button class="'+(contactFilter===v?"on":"")+'" data-act="contactfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   let h='<div class="lvhead"><div class="lvtabs">'+
-    tab("all","All",scoped.length-cnt.sellers)+tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+(cnt.sellers?tab("sellers","Grainger sellers",cnt.sellers):"")+'</div>'+
+    tab("all","All",scoped.length-cnt.sellers)+tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+(cnt.sellers?tab("sellers","Grainger sellers",cnt.sellers):"")+'</div>'+regionSeg()+
     '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
@@ -1158,7 +1159,7 @@ function viewToday(){
     }).join("");
   }
   if(!mydist.length){return h+'<div class="empty" style="padding:18px">No distributors in your region yet.</div>'+eodSectionHTML();}
-  h+='<div class="sectlabel">Distributors in my region — '+setup.length+' set-up · '+potN+' potential</div>';
+  h+='<div class="sectlabel">Distributors — '+setup.length+' set-up · '+potN+' potential</div>';
   if(setup.length){
     h+=setup.map(c=>{
       var bits=[(c.demoCount?c.demoCount+" demo":""),companyRegion(c)];
@@ -3410,6 +3411,7 @@ document.addEventListener("click",e=>{
   if(a==="invsave"){saveOrder(id||null);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
   if(a==="sort"){if(e.target.tagName==="INPUT"||e.target.classList.contains("rz"))return;const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
+  if(a==="regionf"){regionF=t.dataset.v;render();return;}
   if(a==="acctfilter"){acctFilter=t.dataset.v;listQ="";render();return;}
   if(a==="contactfilter"){contactFilter=t.dataset.v;listQ="";contactStateF="";render();return;}
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
