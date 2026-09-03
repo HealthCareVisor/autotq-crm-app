@@ -3364,9 +3364,66 @@ function orderSheet(id){
    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
      (o.status==="queue"?'<button class="btn coral" data-act="invmark" data-id="'+o.id+'">Resolve — mark invoiced</button>':'')+
      (o.status==="loaner"?'<button class="btn coral" data-act="invups" data-id="'+o.id+'">'+(o.upsCost?'Update UPS cost':'Add UPS cost')+'</button>':'')+
+     (o.status!=="loaner"&&o.status!=="supplier"?'<button class="btn" data-act="invpdf" data-id="'+o.id+'">Create invoice PDF</button>':'')+
      (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'">View PO PDF</button>':'')+
      '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
    '</div>');
+}
+/* branded invoice, styled after AutoTQ_Packing_Slip — opens print-ready, blocks are click-to-edit */
+function invoiceHTML(o){
+  const items=orderItems(o).length?orderItems(o):[{sku:"",qty:"",unit:o.amount||0}];
+  const c=DB.companies.find(x=>x.name&&shortAcct(x.name).toLowerCase()===shortAcct(o.account||"").toLowerCase())||
+          DB.companies.find(x=>x.name&&(o.account||"").toLowerCase().includes(shortAcct(x.name).toLowerCase()));
+  const cityLine=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
+  const invNo=(o.qbInv||"").split(",")[0].trim()||"____";
+  const d=o.invoicedAt||todayStr();
+  const due=(function(){const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+30);return x.toISOString().slice(0,10);})();
+  const us=x=>{const p=String(x||"").split("-");return p.length===3?(p[1]+"/"+p[2]+"/"+p[0]):x;};
+  const rows=items.map(it=>'<tr><td contenteditable><b>'+esc(skuNice(it.sku)||"")+'</b></td><td contenteditable>'+esc(it.sku&&SKU_NICE[it.sku]?it.sku:"")+'</td><td class="qty" contenteditable>'+(+it.qty||"")+'</td><td class="qty" contenteditable>'+fmtC(it.unit)+'</td><td class="qty" contenteditable><b>'+fmtC((+it.qty||0)*(+it.unit||0))+'</b></td></tr>').join("");
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Invoice '+esc(invNo)+' — '+esc(shortAcct(o.account)||"")+'</title><style>'+
+  ':root{--ink:#1a1a1a;--gray:#555;--line:#d4d4d4;--blue:#2e74b5;--red:#e8402e}'+
+  '*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+  '.sheet{width:8.5in;min-height:11in;margin:0 auto;padding:.55in .6in}'+
+  '.top{display:flex;justify-content:space-between;align-items:flex-start}.title{font-size:34px;font-weight:800;letter-spacing:.5px;margin:0}'+
+  '.brand{font-size:26px;font-weight:800;color:var(--red)}.company{font-size:13px;font-weight:700;margin-top:14px}'+
+  '.addr{font-size:11px;color:var(--gray);margin-top:4px;line-height:1.5}.addr .lnk{color:var(--blue)}'+
+  '.info{display:flex;border:1px solid var(--line);margin-top:26px}.info .cell{flex:1;padding:14px 16px;border-right:1px solid var(--line)}.info .cell:last-child{border-right:none}'+
+  '.info h3{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.6px;margin:0 0 8px}.info p{font-size:11px;line-height:1.55;margin:0}.info .kv{font-size:11px;line-height:1.7;margin:0}'+
+  '.section{margin-top:34px}table{width:100%;border-collapse:collapse}'+
+  'thead th{font-size:11px;font-weight:700;color:var(--blue);text-align:left;letter-spacing:.5px;padding:10px 4px;border-bottom:1px solid var(--blue)}'+
+  'thead th.qty{text-align:right}tbody td{font-size:12px;padding:12px 4px;border-bottom:1px solid var(--line)}td.qty,th.qty{text-align:right}'+
+  '.total td{border-bottom:none;font-size:14px;padding-top:14px}'+
+  '.foot{margin-top:44px;font-size:10.5px;color:var(--gray);line-height:1.6}'+
+  '[contenteditable]:hover{outline:1px dashed var(--blue);outline-offset:2px}'+
+  '.bar{position:fixed;top:10px;right:12px;display:flex;gap:8px}.bar button{font:600 13px/1 Arial;padding:9px 16px;border:0;border-radius:8px;cursor:pointer}.bar .p{background:var(--red);color:#fff}.bar .h{background:#eee}'+
+  '@media print{@page{size:Letter;margin:0}.sheet{margin:0}.bar{display:none}}'+
+  '</style></head><body>'+
+  '<div class="bar"><button class="h" onclick="document.designMode=document.designMode===\'on\'?\'off\':\'on\'">Edit all</button><button class="p" onclick="window.print()">Print / Save PDF</button></div>'+
+  '<div class="sheet">'+
+   '<div class="top"><div><h1 class="title">INVOICE</h1>'+
+    '<div class="company" contenteditable>Golden Hour Medical, Inc.</div>'+
+    '<div class="addr" contenteditable>6590 W Rogers Cir Ste 4, Boca Raton, FL 33487-2739<br><span class="lnk">billing@goldenhourmedical.com</span><br><span class="lnk">+1 (561) 866-9697</span></div>'+
+   '</div><div class="brand">AutoTQ</div></div>'+
+   '<div class="info">'+
+    '<div class="cell"><h3>BILL TO</h3><p contenteditable>'+esc(o.account||"")+'<br>'+(cityLine?esc(cityLine)+'<br>':'')+'Street address…</p></div>'+
+    '<div class="cell"><h3>SHIP TO</h3><p contenteditable>'+esc(o.account||"")+'<br>'+(cityLine?esc(cityLine)+'<br>':'')+'Street address…</p></div>'+
+    '<div class="cell"><h3>INVOICE DETAILS</h3>'+
+      '<p class="kv"><b>Invoice No :</b> <span contenteditable>'+esc(invNo)+'</span></p>'+
+      '<p class="kv"><b>PO# :</b> <span contenteditable>'+esc(o.poNo||"")+'</span></p>'+
+      '<p class="kv"><b>Date :</b> <span contenteditable>'+esc(us(d))+'</span></p>'+
+      '<p class="kv"><b>Terms :</b> <span contenteditable>Net 30</span></p>'+
+      '<p class="kv"><b>Due :</b> <span contenteditable>'+esc(us(due))+'</span></p></div>'+
+   '</div>'+
+   '<div class="section"><table><thead><tr><th style="width:32%">ITEM</th><th style="width:24%">SKU</th><th class="qty" style="width:10%">QTY</th><th class="qty" style="width:16%">RATE</th><th class="qty" style="width:18%">AMOUNT</th></tr></thead>'+
+   '<tbody>'+rows+'<tr class="total"><td></td><td></td><td></td><td class="qty" style="font-weight:700">Total</td><td class="qty" style="font-weight:800" contenteditable>'+fmtC(o.amount||itemsTotal(orderItems(o)))+'</td></tr></tbody></table></div>'+
+   '<div class="foot" contenteditable>Thank you for your business! Please remit within terms to Golden Hour Medical, Inc.<br>This invoice is subject to our Terms and Conditions (theautotq.com/termsofservice) and Privacy Policy (theautotq.com/privacypolicy).</div>'+
+  '</div></body></html>';
+}
+function invoicePdf(id){
+  const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
+  const w=window.open("","_blank");
+  if(!w){toast("Allow pop-ups to open the invoice");return;}
+  w.document.write(invoiceHTML(o));w.document.close();
 }
 function formMarkInv(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
@@ -3609,6 +3666,7 @@ document.addEventListener("click",e=>{
       inp.addEventListener("change",()=>{if(inp.files.length)attachPoFile(logState.attachId,inp.files[0]);inp.value="";});}
     inp.click();return;}
   if(a==="invform"){formOrder(id);return;}
+  if(a==="invpdf"){invoicePdf(id);return;}
   if(a==="invmark"){e.stopPropagation();formMarkInv(id);return;}
   if(a==="invups"){e.stopPropagation();formUpsCost(id);return;}
   if(a==="invupssave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.upsCost=parseFloat(String(val("upsAmt")).replace(/[$,]/g,""))||0;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+(o.upsCost?" · UPS "+fmtC(o.upsCost):"");save();closeSheet();render();toast("UPS cost saved");}return;}
