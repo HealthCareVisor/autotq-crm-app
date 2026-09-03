@@ -3360,6 +3360,7 @@ function orderSheet(id){
      fact("Invoice date",o.invoicedAt?esc(usDate(o.invoicedAt)):(o.status==="invoiced"?'<span style="color:var(--warn-t,#a15c00)">not set — add it (drives Net 30)</span>':""))+
      (dd?fact("Terms",'Net 30 — '+(dd.over?'<span style="color:var(--dang-t,#b3261e)">OVERDUE since '+dd.label+'</span>':'due '+dd.label)):'')+
      fact("Invoices go to",invPortalFor(o)?esc(invPortalFor(o))+' (portal)':bill?'<a href="mailto:'+esc(bill)+'" style="color:var(--coral,#e8543f)">'+esc(bill)+'</a>':"")+
+     fact("Pay link",o.payUrl?'<a href="'+esc(o.payUrl)+'" target="_blank" style="color:var(--coral,#e8543f)">QuickBooks pay page ↗</a>':"")+
      (o.status==="loaner"?fact("UPS cost",o.upsCost?fmtC(o.upsCost):'<span style="color:var(--warn-t,#a15c00)">not entered</span>'):"")+
      fact("Notes",o.notes?esc(o.notes):"")+
      fact("PO document",o.fname?esc(o.fname):"")+
@@ -3441,6 +3442,7 @@ function formInvoiceEmail(id){
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Invoice #</label><input class="f" id="ieInv" value="'+esc(invNo)+'" placeholder="e.g. 1177"></div>'+
    '<div class="grow"><label class="fl">To (AP email)</label><input class="f" id="ieTo" value="'+esc(billToFor(o)||"")+'" placeholder="ap@customer.com"></div></div>'+
    '<label class="fl">Cc</label><input class="f" id="ieCc" value="hannah@goldenhourmedical.com, max@goldenhourmedical.com">'+
+   '<label class="fl">QuickBooks payment link <span style="font-weight:400;color:var(--hint)">(optional — becomes a PAY ONLINE button on the PDF; copy it from the invoice in QB via Share link)</span></label><input class="f" id="iePay" value="'+esc(o.payUrl||"")+'" placeholder="https://connect.intuit.com/t/…">'+
    '<label class="fl">Subject</label><input class="f" id="ieSub" value="'+esc("Invoice "+(invNo||"____")+" — PO "+(o.poNo||""))+'">'+
    '<label class="fl">Message</label><textarea class="f" id="ieBody" rows="4">Please find attached our invoice for PO #'+(o.poNo||"")+'.\n\nLaresa McIntyre\nChief Financial Officer | Golden Hour Medical, Inc.\nbilling@goldenhourmedical.com · +1 (561) 866-9697</textarea>'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Bill to (on the PDF)</label><textarea class="f" id="ieBill" rows="3">'+esc((o.account||"")+"\n"+(cityLine?cityLine+"\n":""))+'</textarea></div>'+
@@ -3457,7 +3459,7 @@ function invPayload(o){
   const cityLine=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
   const addr=(o.account||"")+(cityLine?"\n"+cityLine:"");
   return {invNo:g("ieInv",(o.qbInv||"").split(",")[0].trim()),poNo:o.poNo||"",date:usDate(d),due:usDate(due),
-    account:o.account||"",contact:o.contactName||"",
+    account:o.account||"",contact:o.contactName||"",payUrl:g("iePay",o.payUrl||""),
     billTo:g("ieBill",addr),shipTo:g("ieShip",addr),items:items,
     total:o.amount||itemsTotal(orderItems(o))};
 }
@@ -3487,7 +3489,7 @@ async function sendInvoiceEmail(id){
         invoice:invPayload(o)})});
     const b=await r.json().catch(()=>({}));
     if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
-    o.billEmail=to;if(val("ieInv"))o.qbInv=o.qbInv||val("ieInv");
+    o.billEmail=to;if(val("ieInv"))o.qbInv=o.qbInv||val("ieInv");if(val("iePay"))o.payUrl=val("iePay");
     if(o.status==="queue"){o.status="invoiced";o.invoicedAt=todayStr();}
     o.notes=((o.notes||"")+" Invoice emailed to "+to+" on "+todayStr()+".").trim();
     save();closeSheet();render();toast("Invoice sent to "+to+" ✓");
