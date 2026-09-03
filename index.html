@@ -3445,23 +3445,46 @@ function formInvoiceEmail(id){
    '<label class="fl">Message</label><textarea class="f" id="ieBody" rows="4">Please find attached our invoice for PO #'+(o.poNo||"")+'.\n\nLaresa McIntyre\nChief Financial Officer | Golden Hour Medical, Inc.\nbilling@goldenhourmedical.com · +1 (561) 866-9697</textarea>'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Bill to (on the PDF)</label><textarea class="f" id="ieBill" rows="3">'+esc((o.account||"")+"\n"+(cityLine?cityLine+"\n":""))+'</textarea></div>'+
    '<div class="grow"><label class="fl">Ship to</label><textarea class="f" id="ieShip" rows="3">'+esc((o.account||"")+"\n"+(cityLine?cityLine+"\n":""))+'</textarea></div></div>'+
-   '<button class="btn coral block" data-act="invemailsend" data-id="'+o.id+'" id="ieSend" style="margin-top:14px">Send invoice</button>');
+   '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn grow" data-act="invpreviewpdf" data-id="'+o.id+'" style="flex:1">Preview the PDF</button>'+
+   '<button class="btn coral" data-act="invemailsend" data-id="'+o.id+'" id="ieSend" style="flex:1.6">Send invoice</button></div>');
+}
+function invPayload(o){
+  const d=o.invoicedAt||todayStr();
+  const due=(function(){const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+30);return x.toISOString().slice(0,10);})();
+  const items=orderItems(o).filter(x=>!/freight/i.test(x.sku)).map(it=>({name:skuNice(it.sku),sku:SKU_NICE[it.sku]?it.sku:"",qty:+it.qty||0,unit:+it.unit||0}));
+  const g=(id,fb)=>{const el=document.getElementById(id);return el?el.value:fb;};
+  const c=DB.companies.find(x=>x.name&&shortAcct(x.name).toLowerCase()===shortAcct(o.account||"").toLowerCase());
+  const cityLine=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
+  const addr=(o.account||"")+(cityLine?"\n"+cityLine:"");
+  return {invNo:g("ieInv",(o.qbInv||"").split(",")[0].trim()),poNo:o.poNo||"",date:usDate(d),due:usDate(due),
+    account:o.account||"",contact:o.contactName||"",
+    billTo:g("ieBill",addr),shipTo:g("ieShip",addr),items:items,
+    total:o.amount||itemsTotal(orderItems(o))};
+}
+async function previewInvoicePdf(id){
+  const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
+  toast("Building the PDF…");
+  try{
+    const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
+      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
+      body:JSON.stringify({action:"pdf",invoice:invPayload(o)})});
+    const b=await r.json();
+    if(!b.ok||!b.pdfBase64)throw new Error(b.error||"no PDF returned");
+    const bytes=Uint8Array.from(atob(b.pdfBase64),c=>c.charCodeAt(0));
+    const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+    window.open(url,"_blank");
+  }catch(e){toast("Preview failed: "+String(e.message||e).slice(0,100)+" — using the print version");invoicePdf(id);}
 }
 async function sendInvoiceEmail(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
   const to=val("ieTo").trim();if(!/@/.test(to)){toast("Enter the customer's AP email");return;}
   const btn=document.getElementById("ieSend");btn.disabled=true;btn.textContent="Sending…";
-  const d=o.invoicedAt||todayStr();
-  const due=(function(){const x=new Date(d+"T12:00:00");x.setDate(x.getDate()+30);return x.toISOString().slice(0,10);})();
-  const items=orderItems(o).filter(x=>!/freight/i.test(x.sku)).map(it=>({name:skuNice(it.sku),sku:SKU_NICE[it.sku]?it.sku:"",qty:+it.qty||0,unit:+it.unit||0}));
   try{
     const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
       headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
       body:JSON.stringify({to:to,cc:val("ieCc").split(/[,;]/).map(s=>s.trim()).filter(Boolean),
         subject:val("ieSub"),body:val("ieBody"),
-        invoice:{invNo:val("ieInv"),poNo:o.poNo||"",date:usDate(d),due:usDate(due),account:o.account||"",
-          billTo:val("ieBill"),shipTo:val("ieShip"),items:items,
-          total:o.amount||itemsTotal(orderItems(o))}})});
+        invoice:invPayload(o)})});
     const b=await r.json().catch(()=>({}));
     if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
     o.billEmail=to;if(val("ieInv"))o.qbInv=o.qbInv||val("ieInv");
@@ -3720,6 +3743,7 @@ document.addEventListener("click",e=>{
   if(a==="invpdf"){invoicePdf(id);return;}
   if(a==="invemail"){formInvoiceEmail(id);return;}
   if(a==="invemailsend"){sendInvoiceEmail(id);return;}
+  if(a==="invpreviewpdf"){previewInvoicePdf(id);return;}
   if(a==="invmark"){e.stopPropagation();formMarkInv(id);return;}
   if(a==="invups"){e.stopPropagation();formUpsCost(id);return;}
   if(a==="invupssave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.upsCost=parseFloat(String(val("upsAmt")).replace(/[$,]/g,""))||0;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+(o.upsCost?" · UPS "+fmtC(o.upsCost):"");save();closeSheet();render();toast("UPS cost saved");}return;}
