@@ -3272,8 +3272,8 @@ function invRowHTML(o,i){
       :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+'</div>'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
     invChip(o.status)+
-    (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'" style="white-space:nowrap">Invoiced ✓</button>':'')+
-    (o.status==="loaner"?'<button class="btn sm'+(o.upsCost?' ghost':' coral')+'" data-act="invups" data-id="'+o.id+'" style="white-space:nowrap">UPS cost</button>':'')+
+    (o.status==="queue"?'<button class="pill" data-act="invmark" data-id="'+o.id+'" style="color:var(--ok-t);background:rgba(0,160,90,.12);font-weight:600;white-space:nowrap;border:0;cursor:pointer;font-size:inherit;font-family:inherit">Resolve</button>':'')+
+    (o.status==="loaner"?'<button class="pill" data-act="invups" data-id="'+o.id+'" style="color:'+(o.upsCost?'var(--hint)':'var(--ok-t)')+';background:'+(o.upsCost?'rgba(120,120,120,.12)':'rgba(0,160,90,.12)')+';font-weight:600;white-space:nowrap;border:0;cursor:pointer;font-size:inherit;font-family:inherit">'+(o.upsCost?'UPS cost':'Resolve')+'</button>':'')+
     (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="View the PO PDF">PO</button>':'')+
   '</div>';
 }
