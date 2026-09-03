@@ -3234,10 +3234,16 @@ function invChip(st){const c=INV_STATUS[st]||INV_STATUS.queue;return '<span clas
 /* AP/billing emails seen on POs — a per-order billEmail (editable) overrides this seed */
 const BILL_TO={"UniFirst":"apfirstaid@unifirst.com"};
 function billToFor(o){if(o&&o.billEmail)return o.billEmail;const a=String((o&&o.account)||"").toLowerCase();const k=Object.keys(BILL_TO).find(n=>a.includes(n.toLowerCase()));return k?BILL_TO[k]:"";}
+/* Grainger + Fastenal invoice through the SPS Commerce portal (Max, 2026-09-03); everyone else email */
+const INV_PORTAL={"Grainger":"SPS Commerce","Fastenal":"SPS Commerce"};
+function invPortalFor(o){const a=String((o&&o.account)||"").toLowerCase();const k=Object.keys(INV_PORTAL).find(n=>a.includes(n.toLowerCase()));return k?INV_PORTAL[k]:"";}
 /* display name without the corporate tail — "Fastenal Company Purchasing" → "Fastenal" */
 function shortAcct(n){const s=String(n||"").replace(/(\s+(purchasing|company|co\.?|inc\.?|llc|corp\.?|corporation|incorporated|&\s*co\.?))+[.,\s]*$/i,"").trim();return s||String(n||"");}
 const SKU_SHORT={"1000-0005-TQ":"kit","7000-WB":"wall bracket","7000-CC":"carry case","7000-LS-P":"cuff pack","Demo unit":"demo","Freight":"freight"};
 function itemsSummary(o){const it=orderItems(o);if(!it.length)return "";return it.filter(x=>!/freight/i.test(x.sku)).map(x=>(+x.qty||0)+"× "+(SKU_SHORT[x.sku]||x.sku)).join(" + ");}
+function itemsLine(o){const it=orderItems(o).filter(x=>!/freight/i.test(x.sku));if(!it.length)return "";
+  return it.map(x=>{const q=+x.qty||0;return q+" "+(q===1?"unit":"units")+" of "+(SKU_SHORT[x.sku]||x.sku)+" @ "+fmtC(x.unit);}).join("  +  ");}
+function poChip(po){return '<span style="background:rgba(232,84,63,.10);color:var(--coral,#e8543f);font-weight:800;padding:1px 8px;border-radius:6px;white-space:nowrap">PO '+esc(po||"—")+'</span>';}
 /* loaner detection — CLAUDE.md rule: LNR- PO / "AutoTQ Demo" product / [LOANER ORDER] note, $0 */
 function isLoanerOrder(o){return /^LNR/i.test(String(o.poNo||""))||/loaner/i.test(String(o.notes||""))||(orderItems(o).some(it=>/autotq demo/i.test(String(it.sku||"")))&&!(+o.amount));}
 /* normalize the order book: loaners leave the invoice queue + every loaner feeds the Demo Map */
@@ -3261,14 +3267,17 @@ function ensureLoanerBook(){
 }
 /* one clean row, shared by the Invoicing tab and Laresa's Home */
 function invRowHTML(o,i){
-  const bill=billToFor(o),sum=itemsSummary(o);
+  const bill=billToFor(o),line=itemsLine(o);
   return '<div data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:12px;align-items:center;padding:12px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
     '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(shortAcct(o.account)||"—")+'</p>'+
-    '<p class="t2" style="margin:2px 0 0;white-space:normal">PO <b>'+esc(o.poNo||"—")+'</b> · '+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+(sum?' · '+esc(sum):'')+'</p>'+
+    '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span></p>'+
+    (line?'<p style="margin:4px 0 0;font-size:14.5px;font-weight:700">'+esc(line)+'</p>':'')+
     (o.status==="queue"
-      ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Next: create the QB invoice'+(bill?' → email it to <b>'+esc(bill)+'</b>':'')+'</p>'
+      ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Next: create the QB invoice'+(invPortalFor(o)?' → submit via <b>'+esc(invPortalFor(o))+'</b> (portal)':bill?' → email it to <b>'+esc(bill)+'</b>':'')+'</p>'
       :o.status==="loaner"
       ?'<p style="margin:3px 0 0;font-size:12.5px;color:'+(o.upsCost?'var(--hint)':'#3b6fb5')+'">'+(o.upsCost?'UPS cost '+fmtC(o.upsCost)+' · on the Demo Map':'Demo unit out — no invoice. Next: add the UPS shipping cost')+'</p>'
+      :o.status==="invoiced"
+      ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'')+(bill?' → '+esc(bill):'')+'</p>';})()
       :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+'</div>'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
     invChip(o.status)+
@@ -3281,8 +3290,54 @@ function formUpsCost(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
   openSheet('<h2>UPS cost — '+esc(shortAcct(o.account))+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">Loaner '+esc(o.poNo||"—")+' · demo unit out (no invoice needed)</p>'+
+   '<p style="font-size:12.5px;color:var(--warn-t,#a15c00);margin:0 0 6px">Distributors cover UPS on everything — recover this charge from the distributor.</p>'+
    '<label class="fl">UPS shipping cost</label><input class="f" id="upsAmt" inputmode="decimal" value="'+(o.upsCost||"")+'" placeholder="e.g. 30.66">'+
    '<button class="btn coral block" data-act="invupssave" data-id="'+o.id+'" style="margin-top:16px">Save UPS cost</button>');
+}
+/* everything is Net 30 (Max, 2026-09-03): due = invoiced date + 30 (falls back to PO date) */
+function netDue(o){
+  const base=o.invoicedAt||o.poDate;if(!base)return null;
+  const d=new Date(base.slice(0,10)+"T12:00:00");if(isNaN(d))return null;
+  d.setDate(d.getDate()+30);
+  return {label:d.toLocaleDateString(undefined,{month:"short",day:"numeric"}),over:d<new Date()};
+}
+/* clean record sheet — the row click lands here; Edit is a button inside */
+function orderSheet(id){
+  const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
+  const items=orderItems(o),bill=billToFor(o),dd=o.status==="invoiced"?netDue(o):null;
+  const cell='padding:8px 10px;border:1px solid var(--line);';
+  let tbl='';
+  if(items.length){
+    tbl='<table style="width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px">'+
+     '<tr>'+["Item","Qty","Unit price","Total"].map((x,i)=>'<th style="'+cell+'text-align:'+(i?"right":"left")+';background:rgba(0,0,0,.035);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">'+x+'</th>').join("")+'</tr>'+
+     items.map(it=>{const nm=SKU_SHORT[it.sku]?titlecase(SKU_SHORT[it.sku]):(skuLabel(it.sku)||it.sku);
+      return '<tr><td style="'+cell+'"><b>'+esc(nm)+'</b>'+(nm!==it.sku?'<span style="color:var(--hint);font-size:12px"> · '+esc(it.sku)+'</span>':'')+'</td>'+
+       '<td style="'+cell+'text-align:right">'+(+it.qty||0)+'</td>'+
+       '<td style="'+cell+'text-align:right">'+fmtC(it.unit)+'</td>'+
+       '<td style="'+cell+'text-align:right;font-weight:700">'+fmtC((+it.qty||0)*(+it.unit||0))+'</td></tr>';}).join("")+
+     '<tr><td colspan="3" style="'+cell+'text-align:right;color:var(--muted)">Order total</td><td style="'+cell+'text-align:right;font-weight:800">'+fmtC(o.amount||itemsTotal(items))+'</td></tr>'+
+    '</table>';
+  }
+  const fact=(k,v)=>v?'<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--muted)">'+k+'</span><b style="text-align:right">'+v+'</b></div>':'';
+  openSheet('<h2 style="margin-bottom:2px">'+esc(shortAcct(o.account)||o.account||"Order")+'</h2>'+
+   '<p style="margin:4px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)">'+
+     poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+invChip(o.status)+'</p>'+
+   (!items.length?'<p style="font-size:20px;font-weight:800;margin:6px 0 2px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"?"Demo loaner — $0":"—"))+'</p>':'')+
+   tbl+
+   '<div style="margin:10px 0 6px">'+
+     fact("QB invoice #",o.qbInv?esc(o.qbInv):"")+
+     (dd?fact("Terms",'Net 30 — '+(dd.over?'<span style="color:var(--dang-t,#b3261e)">OVERDUE since '+dd.label+'</span>':'due '+dd.label)):'')+
+     fact("Invoices go to",invPortalFor(o)?esc(invPortalFor(o))+' (portal)':bill?'<a href="mailto:'+esc(bill)+'" style="color:var(--coral,#e8543f)">'+esc(bill)+'</a>':"")+
+     (o.status==="loaner"?fact("UPS cost",o.upsCost?fmtC(o.upsCost):'<span style="color:var(--warn-t,#a15c00)">not entered</span>'):"")+
+     fact("Notes",o.notes?esc(o.notes):"")+
+     fact("PO document",o.fname?esc(o.fname):"")+
+   '</div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
+     (o.status==="queue"?'<button class="btn coral" data-act="invmark" data-id="'+o.id+'">Resolve — mark invoiced</button>':'')+
+     (o.status==="loaner"?'<button class="btn coral" data-act="invups" data-id="'+o.id+'">'+(o.upsCost?'Update UPS cost':'Add UPS cost')+'</button>':'')+
+     (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'">View PO PDF</button>':'')+
+     '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
+   '</div>');
 }
 function formMarkInv(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
@@ -3321,11 +3376,14 @@ function billingHome(){
     h+='<div class="sectlabel" style="margin-top:16px">Recently invoiced</div><div class="card" style="padding:0;overflow:hidden">'+recent.map((o,i)=>invRowHTML(o,i)).join("")+'</div>';
   }
   const seen={},dirs=[];
-  os.forEach(o=>{const b=billToFor(o);const k=shortAcct(o.account);if(b&&k&&!seen[k]){seen[k]=1;dirs.push({a:k,b:b});}});
+  os.forEach(o=>{const k=shortAcct(o.account);if(!k||seen[k])return;
+    const pt=invPortalFor(o),b=billToFor(o);
+    if(pt){seen[k]=1;dirs.push({a:k,b:pt+" (portal)",portal:true});}
+    else if(b){seen[k]=1;dirs.push({a:k,b:b});}});
   if(dirs.length){
     h+='<div class="sectlabel" style="margin-top:16px">Where invoices go</div><div class="card" style="padding:8px 16px">'+
-      dirs.map(d=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:13.5px;flex-wrap:wrap"><b>'+esc(d.a)+'</b><a href="mailto:'+esc(d.b)+'" style="color:var(--coral,#e8543f)">'+esc(d.b)+'</a></div>').join("")+
-      '<p style="margin:6px 0 4px;font-size:12px;color:var(--hint)">Add more via "Invoiced ✓" on any order — the email saves to that customer\'s orders.</p></div>';
+      dirs.map(d=>'<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:13.5px;flex-wrap:wrap"><b>'+esc(d.a)+'</b>'+(d.portal?'<b style="color:var(--muted)">'+esc(d.b)+'</b>':'<a href="mailto:'+esc(d.b)+'" style="color:var(--coral,#e8543f)">'+esc(d.b)+'</a>')+'</div>').join("")+
+      '<p style="margin:6px 0 4px;font-size:12px;color:var(--hint)">Everything is Net 30. Grainger + Fastenal go through SPS Commerce; the rest prefer email — tap "Resolve" on any order to save its AP email.</p></div>';
   }
   h+='<button class="btn block" data-act="nav" data-view="invoicing" style="margin-top:16px">Open the full Invoicing tab</button>';
   return h;
@@ -3516,11 +3574,12 @@ document.addEventListener("click",e=>{
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
   if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
-  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"]'))return;formOrder(id);return;}
+  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"]'))return;orderSheet(id);return;}
+  if(a==="invform"){formOrder(id);return;}
   if(a==="invmark"){e.stopPropagation();formMarkInv(id);return;}
   if(a==="invups"){e.stopPropagation();formUpsCost(id);return;}
   if(a==="invupssave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.upsCost=parseFloat(String(val("upsAmt")).replace(/[$,]/g,""))||0;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+(o.upsCost?" · UPS "+fmtC(o.upsCost):"");save();closeSheet();render();toast("UPS cost saved");}return;}
-  if(a==="invmarksave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.qbInv=val("miQb");o.billEmail=val("miBill");o.status="invoiced";save();closeSheet();render();toast(shortAcct(o.account)+" marked invoiced");}return;}
+  if(a==="invmarksave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.qbInv=val("miQb");o.billEmail=val("miBill");o.status="invoiced";o.invoicedAt=todayStr();save();closeSheet();render();toast(shortAcct(o.account)+" marked invoiced");}return;}
   if(a==="invsetst"){logState.invStatus=t.dataset.v;document.querySelectorAll("#ivStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="invsave"){saveOrder(id||null);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
