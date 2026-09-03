@@ -3260,7 +3260,7 @@ function ensureLoanerBook(){
     if(!isLoanerOrder(o))return;
     if(o.status!=="loaner"&&!o.qbInv){o.status="loaner";ch=true;}
     if(!DB.demos.find(d=>d.srcOrder===o.id||(o.poNo&&d.note&&d.note.includes(o.poNo)))){
-      const nm=String(o.account||"").trim(),lo=nm.toLowerCase();
+      const nm=String(o.contactName||o.account||"").trim(),lo=nm.toLowerCase();
       const p=DB.people.find(x=>x.name&&x.name.toLowerCase()===lo);
       const c=DB.companies.find(x=>x.name&&x.name.toLowerCase()===lo)||(p&&p.cid?company(p.cid):null);
       DB.demos.push({id:uid(),srcOrder:o.id,holder:nm,email:p?(p.email||""):"",
@@ -3286,14 +3286,14 @@ function invRowHTML(o,i){
     :'<p style="margin:0;text-align:center;color:var(--hint);font-size:12.5px;padding:4px 0">no line items</p>';
   return '<div data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
     '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(shortAcct(o.account)||"—")+'</p>'+
-    '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span></p>'+
+    '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+(o.contactName?'<span style="color:var(--hint)">· '+esc(o.contactName)+'</span>':'')+'</p>'+
     (line?'<p class="invline" style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(line)+'</p>':'')+
     (o.status==="queue"
       ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Next: create the QB invoice'+(invPortalFor(o)?' → submit via <b>'+esc(invPortalFor(o))+'</b> (portal)':bill?' → email it to <b>'+esc(bill)+'</b>':'')+'</p>'
       :o.status==="loaner"
       ?'<p style="margin:3px 0 0;font-size:12.5px;color:'+(o.upsCost?'var(--hint)':'#3b6fb5')+'">'+(o.upsCost?'UPS cost '+fmtC(o.upsCost)+' · on the Demo Map':'Demo unit out — no invoice. Next: add the UPS shipping cost')+'</p>'
       :o.status==="invoiced"
-      ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'')+(bill?' → '+esc(bill):'')+'</p>';})()
+      ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'add the invoice date for Net-30 tracking')+(bill?' → '+esc(bill):'')+'</p>';})()
       :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+'</div>'+
     '<div class="invmid">'+midRows+'</div>'+
     '<div class="invright">'+
@@ -3323,10 +3323,11 @@ function formUpsCost(id){
    '<label class="fl">UPS shipping cost</label><input class="f" id="upsAmt" inputmode="decimal" value="'+(o.upsCost||"")+'" placeholder="e.g. 30.66">'+
    '<button class="btn coral block" data-act="invupssave" data-id="'+o.id+'" style="margin-top:16px">Save UPS cost</button>');
 }
-/* everything is Net 30 (Max, 2026-09-03): due = invoiced date + 30 (falls back to PO date) */
+/* everything is Net 30 (Max, 2026-09-03). Due date comes ONLY from the invoice date —
+   never the PO date (Laresa, 2026-09-03: PO ≈ invoice is not a safe assumption). */
 function netDue(o){
-  const base=o.invoicedAt||o.poDate;if(!base)return null;
-  const d=new Date(base.slice(0,10)+"T12:00:00");if(isNaN(d))return null;
+  if(!o.invoicedAt)return null;
+  const d=new Date(String(o.invoicedAt).slice(0,10)+"T12:00:00");if(isNaN(d))return null;
   d.setDate(d.getDate()+30);
   return {label:d.toLocaleDateString(undefined,{month:"short",day:"numeric"}),over:d<new Date()};
 }
@@ -3354,7 +3355,9 @@ function orderSheet(id){
    (!items.length?'<p style="font-size:20px;font-weight:800;margin:6px 0 2px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"?"Demo loaner — $0":"—"))+'</p>':'')+
    tbl+
    '<div style="margin:10px 0 6px">'+
+     fact("Contact",o.contactName?esc(o.contactName):"")+
      fact("QB invoice #",o.qbInv?esc(o.qbInv):"")+
+     fact("Invoice date",o.invoicedAt?esc(usDate(o.invoicedAt)):(o.status==="invoiced"?'<span style="color:var(--warn-t,#a15c00)">not set — add it (drives Net 30)</span>':""))+
      (dd?fact("Terms",'Net 30 — '+(dd.over?'<span style="color:var(--dang-t,#b3261e)">OVERDUE since '+dd.label+'</span>':'due '+dd.label)):'')+
      fact("Invoices go to",invPortalFor(o)?esc(invPortalFor(o))+' (portal)':bill?'<a href="mailto:'+esc(bill)+'" style="color:var(--coral,#e8543f)">'+esc(bill)+'</a>':"")+
      (o.status==="loaner"?fact("UPS cost",o.upsCost?fmtC(o.upsCost):'<span style="color:var(--warn-t,#a15c00)">not entered</span>'):"")+
@@ -3474,7 +3477,8 @@ function formMarkInv(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
   openSheet('<h2>Mark invoiced — '+esc(shortAcct(o.account))+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">PO '+esc(o.poNo||"—")+' · '+fmtC(o.amount)+'</p>'+
-   '<label class="fl">QB invoice #</label><input class="f" id="miQb" value="'+esc(o.qbInv||"")+'" placeholder="e.g. 1175">'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">QB invoice #</label><input class="f" id="miQb" value="'+esc(o.qbInv||"")+'" placeholder="e.g. 1175"></div>'+
+   '<div class="grow"><label class="fl">Invoice date <span style="font-weight:400;color:var(--hint)">(drives Net 30)</span></label><input class="f" id="miDate" type="date" value="'+esc(o.invoicedAt||todayStr())+'"></div></div>'+
    '<label class="fl">Bill-to email (AP) <span style="font-weight:400;color:var(--hint)">— saves for next time</span></label><input class="f" id="miBill" value="'+esc(o.billEmail||billToFor(o)||"")+'" placeholder="ap@customer.com">'+
    '<button class="btn coral block" data-act="invmarksave" data-id="'+o.id+'" style="margin-top:16px">Mark invoiced</button>');
 }
@@ -3576,9 +3580,11 @@ function formOrder(id,keepItems){
   if(!keepItems)logState.invItems=(o&&Array.isArray(o.items)?o.items:[]).map(x=>({sku:x.sku,qty:x.qty,unit:x.unit}));
   openSheet('<h2>'+(o?'Order — '+esc(o.account):'Add order')+'</h2>'+
    (o&&o.file?'<p style="font-size:13px;color:var(--muted);margin:0 0 6px">'+esc(o.fname||o.file)+'</p>':'')+
-   '<label class="fl">Customer / account</label>'+comboField("ivAcct","Type the customer — matches our accounts, free text ok",o?o.account:"")+
+   '<label class="fl">Company / account <span style="font-weight:400;color:var(--hint)">— the business, not the person</span></label>'+comboField("ivAcct","Type the customer — matches our accounts, free text ok",o?o.account:"")+
+   '<label class="fl">Contact (person on the order)</label><input class="f" id="ivContact" value="'+esc(o&&o.contactName?o.contactName:"")+'" placeholder="e.g. Jessica Theisen">'+
    '<label class="fl">PO number</label><input class="f" id="ivPo" value="'+esc(o?o.poNo:"")+'">'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">PO date</label><input class="f" id="ivDate" type="date" value="'+esc(o?o.poDate:todayStr())+'"></div>'+
+   '<div class="grow"><label class="fl">Invoice date <span style="font-weight:400;color:var(--hint)">(drives Net 30)</span></label><input class="f" id="ivInvDate" type="date" value="'+esc(o&&o.invoicedAt?o.invoicedAt:"")+'"></div>'+
    '<div class="grow"><label class="fl">Amount'+(logState.invItems&&logState.invItems.length?' (auto from items)':'')+'</label><input class="f" id="ivAmt" inputmode="decimal" value="'+(o&&o.amount?o.amount:"")+'"></div></div>'+
    invItemsHTML()+
    '<label class="fl">Status</label><div id="ivStatus" style="display:flex;gap:6px;flex-wrap:wrap">'+
@@ -3591,7 +3597,7 @@ function formOrder(id,keepItems){
 function saveOrder(id){
   const o=id?(DB.orders||[]).find(x=>x.id===id):null;
   const rec=o||{id:uid(),addedBy:USER,addedAt:new Date().toISOString(),file:null,fname:null};
-  rec.account=val("ivAcct");rec.poNo=val("ivPo");rec.poDate=val("ivDate");
+  rec.account=val("ivAcct");rec.contactName=val("ivContact");rec.poNo=val("ivPo");rec.poDate=val("ivDate");rec.invoicedAt=val("ivInvDate")||rec.invoicedAt||null;
   collectInvItems();
   const items=(logState.invItems||[]).filter(it=>(it.sku&&it.sku.trim())||(+it.qty&&+it.unit));
   rec.items=items;
@@ -3717,7 +3723,7 @@ document.addEventListener("click",e=>{
   if(a==="invmark"){e.stopPropagation();formMarkInv(id);return;}
   if(a==="invups"){e.stopPropagation();formUpsCost(id);return;}
   if(a==="invupssave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.upsCost=parseFloat(String(val("upsAmt")).replace(/[$,]/g,""))||0;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+(o.upsCost?" · UPS "+fmtC(o.upsCost):"");save();closeSheet();render();toast("UPS cost saved");}return;}
-  if(a==="invmarksave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.qbInv=val("miQb");o.billEmail=val("miBill");o.status="invoiced";o.invoicedAt=todayStr();save();closeSheet();render();toast(shortAcct(o.account)+" marked invoiced");}return;}
+  if(a==="invmarksave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.qbInv=val("miQb");o.billEmail=val("miBill");o.status="invoiced";o.invoicedAt=val("miDate")||todayStr();save();closeSheet();render();toast(shortAcct(o.account)+" marked invoiced");}return;}
   if(a==="invsetst"){logState.invStatus=t.dataset.v;document.querySelectorAll("#ivStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="invsave"){saveOrder(id||null);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
