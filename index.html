@@ -2968,7 +2968,7 @@ function expStatesList(){return expF.states.split(/[,\s]+/).map(x=>x.trim().toUp
 function expRows(){
   const stl=expStatesList();
   if(expF.mode==="accounts"){
-    let cs=DB.companies.filter(c=>admin()||inRegion(companyRegion(c)));
+    let cs=DB.companies.slice();
     if(expF.acctCid)cs=cs.filter(c=>c.id===expF.acctCid);
     if(expF.types.length)cs=cs.filter(c=>expF.types.includes(c.type));
     if(expF.dstatus)cs=cs.filter(c=>c.type==="distributor"&&distStatus(c)===expF.dstatus);
@@ -2979,7 +2979,7 @@ function expRows(){
       rows:cs.map(c=>[c.name,typeLabel(c.type),c.type==="distributor"?(distStatus(c)==="setup"?"Set-up":"Potential"):(c.stage||""),c.city||"",c.state||"",companyRegion(c)||"",c.units||0,c.orders||0,c.demoCount||0]),
       objs:cs};
   }
-  let ps=DB.people.filter(p=>admin()||inRegion(personRegion(p)));
+  let ps=DB.people.slice();
   if(expF.acctCid)ps=ps.filter(p=>p.cid===expF.acctCid);
   if(expF.types.length)ps=ps.filter(p=>expF.types.includes(contactType(p)||"enduser"));
   if(expF.dstatus)ps=ps.filter(p=>{const c=company(p.cid);return c&&c.type==="distributor"&&distStatus(c)===expF.dstatus;});
@@ -3022,7 +3022,7 @@ function personSheetHTML(pid){
    '<p class="t2" style="white-space:normal">'+esc(a.note||"")+'</p></div></div></div>').join("");}
   return h;
 }
-function myLists(){ensureLists();return DB.lists.filter(l=>!l.removed&&(admin()||l.by===USER||l.assignee===USER));}
+function myLists(){ensureLists();return DB.lists.filter(l=>!l.removed);}
 /* one box in, filters out: "All Grainger reps in Arkansas" / "set-up distributors TX" */
 function parseListQuery(q){
   const orig=q;let txt=" "+q.toLowerCase().replace(/[,;]+/g," ")+" ";
@@ -3058,10 +3058,23 @@ function listAutoName(f){
   return n+" · "+d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
 }
 const LIST_FIELDS=[["company","Company"],["role","Role"],["phone","Phone"],["email","Email"],["city","City"],["state","State"]];
+function runListBuild(q){
+  logState.listQ=q;logState.listGen=true;logState.listResults=null;render();
+  setTimeout(()=>{const f=parseListQuery(q);expF=f;const d=expRows();
+    logState.listGen=false;
+    logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:listAutoName(f),
+      chips:[f.acctTxt,f.dstatus?(f.dstatus==="setup"?"Set-up":"Potential"):"",f.types.map(t=>({distrep:"Distributors",enduser:"End-users",manrep:"Man-reps"})[t]).join(" "),f.states,f.region,f.q?'"'+f.q+'"':""].filter(Boolean)};
+    render();},1400);
+}
 function viewLists(){
+  const setups=DB.companies.filter(c=>c.type==="distributor"&&distStatus(c)==="setup").sort((a,b)=>a.name.localeCompare(b.name));
   let h='<div class="reccard"><label class="fl">Who should be on the list?</label>'+
    '<div style="display:flex;gap:8px"><input class="f" id="listQ" style="margin:0" value="'+esc(logState.listQ||"")+'" placeholder="e.g. All Grainger reps in Arkansas" autocomplete="off">'+
-   '<button class="btn coral" data-act="listbuild" style="flex:none">Build</button></div>';
+   '<button class="btn coral" data-act="listbuild" style="flex:none">Build</button></div>'+
+   '<label class="fl">Set-up distributors</label><div class="qa-types">'+
+    setups.map(c=>'<span class="qchip'+(logState.listDist===c.id?" on":"")+'" data-act="listdist" data-id="'+c.id+'">'+esc(c.name)+'</span>').join("")+'</div>'+
+   '<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><input class="f" id="listSt" style="margin:0;width:190px;flex:none" value="'+esc(logState.listSt||"")+'" placeholder="State — e.g. TX or TX, OK" autocomplete="off">'+
+   (logState.listDist?'<span class="t2">'+esc((company(logState.listDist)||{}).name||"")+(logState.listSt?' · '+esc(logState.listSt.toUpperCase()):' · all states')+'</span>':'')+'</div>';
   if(logState.listGen){
     h+='<div style="padding:26px 0 4px;text-align:center"><div class="spinwheel"></div><p class="t2">Building your list…</p><div class="genbar"><i></i></div></div>';
   }
@@ -3588,12 +3601,13 @@ document.addEventListener("click",e=>{
   if(a==="saveLog"){saveLog();return;}
   if(a==="export"){exportCSV();return;}
   if(a==="listbuild"){const q=(document.getElementById("listQ")||{value:""}).value.trim();if(!q){toast("Describe the list first");return;}
-    logState.listQ=q;logState.listGen=true;logState.listResults=null;render();
-    setTimeout(()=>{const f=parseListQuery(q);expF=f;const d=expRows();
-      logState.listGen=false;
-      logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:listAutoName(f),
-        chips:[f.acctTxt,f.dstatus?(f.dstatus==="setup"?"Set-up":"Potential"):"",f.types.map(t=>({distrep:"Distributors",enduser:"End-users",manrep:"Man-reps"})[t]).join(" "),f.states,f.region,f.q?'"'+f.q+'"':""].filter(Boolean)};
-      render();},1400);return;}
+    logState.listDist=null;runListBuild(q);return;}
+  if(a==="listdist"){const st=(document.getElementById("listSt")||{value:logState.listSt||""}).value.trim();
+    logState.listSt=st;
+    if(logState.listDist===t.dataset.id){logState.listDist=null;logState.listResults=null;render();return;}
+    logState.listDist=t.dataset.id;
+    const c=company(t.dataset.id);
+    runListBuild(c.name+" reps"+(st?" "+st.toUpperCase():""));return;}
   if(a==="listrow"){const R=logState.listResults;const i=+t.dataset.i;if(R){R.excluded.has(i)?R.excluded.delete(i):R.excluded.add(i);render();}return;}
   if(a==="listfield"){const R=logState.listResults;const v=t.dataset.v;if(R){R.fields.has(v)?R.fields.delete(v):R.fields.add(v);render();}return;}
   if(a==="listsave"){const R=logState.listResults;if(!R)return;
@@ -3647,6 +3661,9 @@ document.addEventListener("input",e=>{
   if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
   if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.note=e.target.value;it.noteAt=new Date().toISOString();clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
+  if(e.target.id==="listSt"){logState.listSt=e.target.value;
+    if(logState.listDist){clearTimeout(window.__lsT);window.__lsT=setTimeout(()=>{const c=company(logState.listDist);if(c)runListBuild(c.name+" reps"+(logState.listSt.trim()?" "+logState.listSt.trim().toUpperCase():""));},600);}
+    return;}
   if(/^lphone_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.phone=e.target.value.trim();it.phoneAt=new Date().toISOString();
       const pr=it.pid?person(it.pid):null;if(pr&&!pr.phone&&it.phone)pr.phone=it.phone;
