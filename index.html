@@ -3228,8 +3228,8 @@ async function storBlob(path){
   const r=await supa("/storage/v1/object/authenticated/resources/"+path.split("/").map(encodeURIComponent).join("/"));
   if(!r.ok)return null;return await r.blob();
 }
-let invFilter="all";
-const INV_STATUS={queue:["Needs invoice","var(--warn-t,#a15c00)","rgba(255,180,0,.14)"],invoiced:["Invoiced","var(--ok-t)","rgba(0,160,90,.12)"],paid:["Paid","var(--ok-t)","rgba(0,160,90,.12)"],supplier:["Supplier PO","var(--hint)","rgba(120,120,120,.12)"]};
+let invFilter="queue";
+const INV_STATUS={queue:["Needs invoice","var(--warn-t,#a15c00)","rgba(255,180,0,.14)"],loaner:["Loaner — demo out","#3b6fb5","rgba(60,110,180,.12)"],invoiced:["Invoiced","var(--ok-t)","rgba(0,160,90,.12)"],paid:["Paid","var(--ok-t)","rgba(0,160,90,.12)"],supplier:["Supplier PO","var(--hint)","rgba(120,120,120,.12)"]};
 function invChip(st){const c=INV_STATUS[st]||INV_STATUS.queue;return '<span class="pill" style="color:'+c[1]+';background:'+c[2]+';font-weight:600;white-space:nowrap">'+c[0]+'</span>';}
 /* AP/billing emails seen on POs — a per-order billEmail (editable) overrides this seed */
 const BILL_TO={"UniFirst":"apfirstaid@unifirst.com"};
@@ -3238,6 +3238,27 @@ function billToFor(o){if(o&&o.billEmail)return o.billEmail;const a=String((o&&o.
 function shortAcct(n){const s=String(n||"").replace(/(\s+(purchasing|company|co\.?|inc\.?|llc|corp\.?|corporation|incorporated|&\s*co\.?))+[.,\s]*$/i,"").trim();return s||String(n||"");}
 const SKU_SHORT={"1000-0005-TQ":"kit","7000-WB":"wall bracket","7000-CC":"carry case","7000-LS-P":"cuff pack","Demo unit":"demo","Freight":"freight"};
 function itemsSummary(o){const it=orderItems(o);if(!it.length)return "";return it.filter(x=>!/freight/i.test(x.sku)).map(x=>(+x.qty||0)+"× "+(SKU_SHORT[x.sku]||x.sku)).join(" + ");}
+/* loaner detection — CLAUDE.md rule: LNR- PO / "AutoTQ Demo" product / [LOANER ORDER] note, $0 */
+function isLoanerOrder(o){return /^LNR/i.test(String(o.poNo||""))||/loaner/i.test(String(o.notes||""))||(orderItems(o).some(it=>/autotq demo/i.test(String(it.sku||"")))&&!(+o.amount));}
+/* normalize the order book: loaners leave the invoice queue + every loaner feeds the Demo Map */
+function ensureLoanerBook(){
+  let ch=false;DB.demos=DB.demos||[];
+  (DB.orders||[]).forEach(o=>{
+    if(!isLoanerOrder(o))return;
+    if(o.status!=="loaner"&&!o.qbInv){o.status="loaner";ch=true;}
+    if(!DB.demos.find(d=>d.srcOrder===o.id||(o.poNo&&d.note&&d.note.includes(o.poNo)))){
+      const nm=String(o.account||"").trim(),lo=nm.toLowerCase();
+      const p=DB.people.find(x=>x.name&&x.name.toLowerCase()===lo);
+      const c=DB.companies.find(x=>x.name&&x.name.toLowerCase()===lo)||(p&&p.cid?company(p.cid):null);
+      DB.demos.push({id:uid(),srcOrder:o.id,holder:nm,email:p?(p.email||""):"",
+        company:c?c.name:(p?(p.branch||""):nm),cid:c?c.id:(p?p.cid:null),
+        city:(p&&p.city)||(c&&c.city)||"",state:(p&&p.state)||(c&&c.state)||"",
+        date:o.poDate||"",status:"out",note:"Loaner order "+(o.poNo||""),source:"order-book"});
+      ch=true;
+    }
+  });
+  if(ch)save();
+}
 /* one clean row, shared by the Invoicing tab and Laresa's Home */
 function invRowHTML(o,i){
   const bill=billToFor(o),sum=itemsSummary(o);
@@ -3246,12 +3267,22 @@ function invRowHTML(o,i){
     '<p class="t2" style="margin:2px 0 0;white-space:normal">PO <b>'+esc(o.poNo||"—")+'</b> · '+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+(sum?' · '+esc(sum):'')+'</p>'+
     (o.status==="queue"
       ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Next: create the QB invoice'+(bill?' → email it to <b>'+esc(bill)+'</b>':'')+'</p>'
+      :o.status==="loaner"
+      ?'<p style="margin:3px 0 0;font-size:12.5px;color:'+(o.upsCost?'var(--hint)':'#3b6fb5')+'">'+(o.upsCost?'UPS cost '+fmtC(o.upsCost)+' · on the Demo Map':'Demo unit out — no invoice. Next: add the UPS shipping cost')+'</p>'
       :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+'</div>'+
-    '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):"—")+'</b>'+
+    '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
     invChip(o.status)+
     (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'" style="white-space:nowrap">Invoiced ✓</button>':'')+
+    (o.status==="loaner"?'<button class="btn sm'+(o.upsCost?' ghost':' coral')+'" data-act="invups" data-id="'+o.id+'" style="white-space:nowrap">UPS cost</button>':'')+
     (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="View the PO PDF">PO</button>':'')+
   '</div>';
+}
+function formUpsCost(id){
+  const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
+  openSheet('<h2>UPS cost — '+esc(shortAcct(o.account))+'</h2>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">Loaner '+esc(o.poNo||"—")+' · demo unit out (no invoice needed)</p>'+
+   '<label class="fl">UPS shipping cost</label><input class="f" id="upsAmt" inputmode="decimal" value="'+(o.upsCost||"")+'" placeholder="e.g. 30.66">'+
+   '<button class="btn coral block" data-act="invupssave" data-id="'+o.id+'" style="margin-top:16px">Save UPS cost</button>');
 }
 function formMarkInv(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
@@ -3263,21 +3294,27 @@ function formMarkInv(id){
 }
 /* ---------- Laresa's Home: the billing picture, nothing else ---------- */
 function billingHome(){
-  ensureOrderItems();
+  ensureOrderItems();ensureLoanerBook();
   const os=ordersAll();
   const q=os.filter(o=>o.status==="queue").slice().sort((a,b)=>String(a.poDate||"").localeCompare(String(b.poDate||"")));
   const inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
+  const ln=os.filter(o=>o.status==="loaner"),lnNeed=ln.filter(o=>!o.upsCost).slice().sort((a,b)=>String(a.poDate||"").localeCompare(String(b.poDate||"")));
   const owed=q.reduce((s,o)=>s+(o.amount||0),0),billed=inv.concat(paid).reduce((s,o)=>s+(o.amount||0),0);
   let h='<div class="card" style="padding:16px 18px;margin-bottom:14px"><h3 style="margin:0 0 4px">'+greeting()+'</h3>'+
    '<p style="margin:0;color:var(--muted);font-size:14.5px">'+
-   (q.length?'<b>'+q.length+' order'+(q.length>1?'s':'')+'</b> waiting on an invoice — <b>'+fmtC(owed)+'</b> to bill.':'Nothing waiting — every order is invoiced. ✓')+'</p></div>';
+   (q.length?'<b>'+q.length+' order'+(q.length>1?'s':'')+'</b> waiting on an invoice — <b>'+fmtC(owed)+'</b> to bill.':'Nothing waiting on an invoice. ✓')+
+   (lnNeed.length?' <b>'+lnNeed.length+' loaner'+(lnNeed.length>1?'s':'')+'</b> need'+(lnNeed.length>1?'':'s')+' a UPS cost.':'')+'</p></div>';
   h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px">'+
    '<div class="kpi"><b>Needs invoice</b><span>'+q.length+(q.length?' · '+money(owed):'')+'</span></div>'+
+   '<div class="kpi"><b>Loaners out</b><span>'+ln.length+(lnNeed.length?' · '+lnNeed.length+' need UPS':'')+'</span></div>'+
    '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
    '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div>'+
    '<div class="kpi"><b>Billed to date</b><span>'+money(billed)+'</span></div></div>';
   if(q.length){
     h+='<div class="sectlabel">To invoice — oldest first</div><div class="card" style="padding:0;overflow:hidden">'+q.map((o,i)=>invRowHTML(o,i)).join("")+'</div>';
+  }
+  if(lnNeed.length){
+    h+='<div class="sectlabel" style="margin-top:16px">Loaners — add the UPS cost</div><div class="card" style="padding:0;overflow:hidden">'+lnNeed.map((o,i)=>invRowHTML(o,i)).join("")+'</div>';
   }
   const recent=inv.slice(0,5);
   if(recent.length){
@@ -3294,15 +3331,16 @@ function billingHome(){
   return h;
 }
 function viewInvoicing(){
-  ensureOrderItems();
+  ensureOrderItems();ensureLoanerBook();
   const os=ordersAll();
-  const q=os.filter(o=>o.status==="queue"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
+  const q=os.filter(o=>o.status==="queue"),ln=os.filter(o=>o.status==="loaner"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
+  const lnNeed=ln.filter(o=>!o.upsCost);
   let h='';
   h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+
-     '<div class="kpi"><b>Awaiting invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
+     '<div class="kpi"><b>Needs invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
+     '<div class="kpi"><b>Loaners out</b><span>'+ln.length+(lnNeed.length?' · '+lnNeed.length+' need UPS':'')+'</span></div>'+
      '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
-     '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div>'+
-     '<div class="kpi"><b>Documents</b><span>'+os.filter(o=>o.file).length+'</span></div></div>';
+     '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div></div>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">'+
      '<button class="btn coral" data-act="invupload">'+svg("plus")+' Upload PO PDFs</button>'+
      '<input type="file" id="poFiles" accept="application/pdf" multiple style="display:none">'+
@@ -3311,10 +3349,11 @@ function viewInvoicing(){
      '<input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
-     [["all","All ("+os.length+")"],["queue","Needs invoice ("+q.length+")"],["invoiced","Invoiced ("+inv.length+")"],["paid","Paid ("+paid.length+")"],["supplier","Supplier"]]
+     [["queue","Needs invoice ("+q.length+")"],["loaner","Loaners ("+ln.length+")"],["invoiced","Invoiced ("+inv.length+")"],["paid","Paid ("+paid.length+")"],["all","All ("+os.length+")"],["supplier","Supplier"]]
      .map(f=>'<button class="qchip'+(invFilter===f[0]?" on":"")+'" data-act="invfilter" data-v="'+f[0]+'">'+f[1]+'</button>').join("")+'</div>';
   const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
-  if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+(os.length?"Nothing in this view.":"No orders yet.")+'</div>';
+  if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+
+    (invFilter==="queue"&&os.length?"Nothing waiting on an invoice. ✓":os.length?"Nothing in this view.":"No orders yet.")+'</div>';
   else{
     h+='<div class="card" style="padding:0;overflow:hidden">'+list.map((o,i)=>invRowHTML(o,i)).join("")+'</div>';
   }
@@ -3477,8 +3516,10 @@ document.addEventListener("click",e=>{
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
   if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
-  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"]'))return;formOrder(id);return;}
+  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"]'))return;formOrder(id);return;}
   if(a==="invmark"){e.stopPropagation();formMarkInv(id);return;}
+  if(a==="invups"){e.stopPropagation();formUpsCost(id);return;}
+  if(a==="invupssave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.upsCost=parseFloat(String(val("upsAmt")).replace(/[$,]/g,""))||0;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+(o.upsCost?" · UPS "+fmtC(o.upsCost):"");save();closeSheet();render();toast("UPS cost saved");}return;}
   if(a==="invmarksave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.qbInv=val("miQb");o.billEmail=val("miBill");o.status="invoiced";save();closeSheet();render();toast(shortAcct(o.account)+" marked invoiced");}return;}
   if(a==="invsetst"){logState.invStatus=t.dataset.v;document.querySelectorAll("#ivStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="invsave"){saveOrder(id||null);return;}
