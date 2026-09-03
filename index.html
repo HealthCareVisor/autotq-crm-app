@@ -753,6 +753,20 @@ function render(){
   topScrollSync();
   fitZoom();
 }
+/* real navigation history — the back button returns to wherever you actually came from */
+let navStack=[];
+function pushNav(){
+  const st={view:view,curPerson:curPerson,curCompany:curCompany,curReport:curReport,curConf:curConf,curList:curList,scroll:window.scrollY||0};
+  const top=navStack[navStack.length-1];
+  if(top&&top.view===st.view&&top.curPerson===st.curPerson&&top.curCompany===st.curCompany&&top.curReport===st.curReport&&top.curConf===st.curConf&&top.curList===st.curList)return;
+  navStack.push(st);if(navStack.length>40)navStack.shift();
+}
+function goBack(fb){
+  const st=navStack.pop();
+  if(!st){view=fb||"today";render();window.scrollTo(0,0);return;}
+  view=st.view;curPerson=st.curPerson;curCompany=st.curCompany;curReport=st.curReport;curConf=st.curConf;curList=st.curList;
+  render();window.scrollTo(0,st.scroll||0);
+}
 function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="reports"&&view==="report");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
 function typeLabel(t){return {distributor:"Distributor",manrep:"Man-rep",partner:"Partner",enduser:"End-user"}[t]||"Account";}
@@ -1202,7 +1216,7 @@ function viewPerson(id){
   const surfaced=DB.companies.filter(c=>c.type==="enduser"&&c.sourcedBy===p.name);
   const c=company(p.cid);
   const acctOpps=(DB.opps||[]).filter(o=>p.cid&&(o.accountId===p.cid||o.distributorId===p.cid));
-  let h='<button class="btn sm ghost" data-act="nav" data-view="contacts" style="margin:2px 0 14px">'+svg("back")+' Contacts</button>';
+  let h='<button class="btn sm ghost" data-act="goback" data-fb="contacts" style="margin:2px 0 14px">'+svg("back")+' Back</button>';
   h+='<div class="card"><div class="row"><span class="ic info" style="width:52px;height:52px;font-size:17px">'+initials(p.name)+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:18px">'+esc(p.name)+'</p><p class="t2">'+esc(p.role)+(c?' · <a style="color:var(--info-t)" href="#" data-act="roster" data-id="'+c.id+'">'+esc(c.name)+'</a>':(p.branch?' · '+esc(p.branch):''))+(personStates(p).length>1?' · covers '+esc(personStates(p).join(", ")):'')+'</p></div>'+regionTag(personRegion(p))+
    '<button class="btn sm" data-act="editperson" data-id="'+p.id+'">Edit</button></div>'+
@@ -1277,7 +1291,7 @@ function viewRoster(cid){
   const demos=(DB.demos||[]).filter(d=>d.cid===cid);
   const pidSet=new Set(reps.map(p=>p.id));
   const acts=DB.activities.filter(a=>a.cid===cid||pidSet.has(a.pid)).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  let h='<button class="btn sm ghost" data-act="nav" data-view="accounts" style="margin:0 0 14px">'+svg("back")+' Accounts</button>';
+  let h='<button class="btn sm ghost" data-act="goback" data-fb="accounts" style="margin:0 0 14px">'+svg("back")+' Back</button>';
   h+='<div class="reccard"><div class="rechead"><span class="ic" style="width:52px;height:52px;background:var(--coral-t);color:var(--coral)">'+svg(c.type==="distributor"?"ware":c.type==="enduser"?"build":"pin")+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:20px">'+esc(c.name)+'</p><p class="t2">'+typeTag(c.type)+(c.website?' &nbsp; <a href="'+esc(c.website)+'" target="_blank" rel="noopener" style="color:var(--info-t)">'+esc(c.website.replace(/^https:\/\//,""))+'</a>':'')+'</p></div>'+
    '<div class="qa"><button class="btn sm coral" data-act="newoppfor" data-id="'+c.id+'">'+svg("plus")+' Opportunity</button>'+
@@ -2013,7 +2027,7 @@ function viewConfLeads(){
   const s=sortState.leads;
   pool=pool.slice().sort((a,b)=>cmpv(leadVal(a,s.key),leadVal(b,s.key))*s.dir);
   const tab=(v,lbl,n)=>'<button class="'+(leadFilter===v?"on":"")+'" data-act="leadfilter" data-v="'+v+'">'+lbl+' <span class="cnt">'+n+'</span></button>';
-  let h='<button class="btn sm ghost" data-act="nav" data-view="today" style="margin:0 0 12px">'+svg("back")+' Home</button>';
+  let h='<button class="btn sm ghost" data-act="goback" data-fb="today" style="margin:0 0 12px">'+svg("back")+' Back</button>';
   h+='<div class="kpis">'+
    '<div class="kpi"><b>Leads</b><span>'+cnt.all+'</span><small>'+esc(curConf)+'</small></div>'+
    '<div class="kpi"><b>To call</b><span>'+cnt.tocall+'</span></div>'+
@@ -2574,7 +2588,7 @@ function viewReport(id){
   const data=rep.run();
   const s=sortState.report;
   const rows=data.rows.slice().sort((a,b)=>cmpv(a[s.key],b[s.key])*s.dir);
-  let h='<button class="btn sm ghost" data-act="nav" data-view="reports" style="margin:0 0 12px">'+svg("back")+' Reports</button>';
+  let h='<button class="btn sm ghost" data-act="goback" data-fb="reports" style="margin:0 0 12px">'+svg("back")+' Back</button>';
   h+='<div class="lvhead"><div class="lvtabs"><button class="on">'+rows.length+' rows</button></div>'+
      '<button class="btn sm" data-act="repcsv" data-id="'+rep.id+'" style="margin-left:auto">'+svg("dl")+' Export CSV</button></div>';
   const head='<tr>'+data.cols.map((c,i)=>'<th class="srt'+(s.key===i?" on":"")+'" data-act="repsort" data-key="'+i+'">'+esc(c)+(s.key===i?(s.dir>0?" ▲":" ▼"):"")+'</th>').join("")+'</tr>';
@@ -3111,7 +3125,7 @@ function viewList(id){
   if(!l){curList=null;return viewLists();}
   const done=l.items.filter(x=>x.done).length,pct=l.items.length?Math.round(done/l.items.length*100):0;
   const F=new Set(l.fields);
-  let h='<button class="btn sm ghost" data-act="listback" style="margin:0 0 14px">'+svg("back")+' Lists</button>';
+  let h='<button class="btn sm ghost" data-act="goback" data-fb="export" style="margin:0 0 14px">'+svg("back")+' Back</button>';
   h+='<div class="reccard"><div class="row"><div class="grow"><p class="t1" style="font-size:18px">'+esc(l.name)+'</p>'+
    '<p class="t2">'+done+' / '+l.items.length+' called · by '+esc(shortName(l.by))+'</p></div>'+
    '<button class="tkdel" data-act="listdel" data-id="'+l.id+'" style="font-size:22px">×</button></div>'+
@@ -3399,7 +3413,8 @@ document.addEventListener("click",e=>{
     supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:pw})})
       .then(r=>{if(r.ok){closeSheet();toast("Password changed");}else toast("Couldn't change it — try again");});
     return;}
-  if(a==="nav"){view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
+  if(a==="goback"){goBack(t.dataset.fb);return;}
+  if(a==="nav"){pushNav();view=t.dataset.view;listQ="";if(view==="map")mapState=null;render();window.scrollTo(0,0);return;}
   if(a==="invupload"){document.getElementById("poFiles").click();return;}
   if(a==="invcsv"){document.getElementById("poCsv").click();return;}
   if(a==="invadd"){formOrder(null);return;}
@@ -3439,7 +3454,7 @@ document.addEventListener("click",e=>{
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
   if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
-  if(a==="openreport"){curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
+  if(a==="openreport"){pushNav();curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
   if(a==="repsort"){const k=parseInt(t.dataset.key,10);const s=sortState.report;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="repcsv"){reportCSV(t.dataset.id);return;}
   if(a==="editacct"){formEditAccount(id);return;}
@@ -3452,7 +3467,7 @@ document.addEventListener("click",e=>{
   if(a==="savePerson"){savePerson();return;}
   if(a==="logacct"){formLogAcct(id);return;}
   if(a==="saveLogAcct"){saveLogAcct();return;}
-  if(a==="confleads"){curConf=t.dataset.conf;leadFilter="tocall";listQ="";view="confleads";render();window.scrollTo(0,0);return;}
+  if(a==="confleads"){pushNav();curConf=t.dataset.conf;leadFilter="tocall";listQ="";view="confleads";render();window.scrollTo(0,0);return;}
   if(a==="leadfilter"){leadFilter=t.dataset.v;render();return;}
   if(a==="leadopen"){formLead(id);return;}
   if(a==="setLeadC"){logState.leadC=t.dataset.v;document.querySelectorAll("#ldC .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
@@ -3541,10 +3556,10 @@ document.addEventListener("click",e=>{
     if(f==="opportunity")formOpp(null);
     else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
-  if(a==="person"){curPerson=id;view="person";render();window.scrollTo(0,0);return;}
+  if(a==="person"){pushNav();curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="invitemadd"){collectInvItems();logState.invItems=logState.invItems||[];logState.invItems.push({sku:"",qty:1,unit:""});formOrder(logState.invEditId||null,true);return;}
   if(a==="invitemdel"){collectInvItems();logState.invItems.splice(+t.dataset.i,1);formOrder(logState.invEditId||null,true);return;}
-  if(a==="roster"){curCompany=id;rosterBranchF="";view="roster";render();window.scrollTo(0,0);return;}
+  if(a==="roster"){pushNav();curCompany=id;rosterBranchF="";view="roster";render();window.scrollTo(0,0);return;}
   if(a==="bfadd"){const c=company(id);if(!c)return;const inp=document.getElementById("bfSearch");const q=(inp?inp.value:"").trim();if(!q){toast("Type a distributor name first");return;}
     c.buysFrom=bfList(c);const d=DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase()===q.toLowerCase())||DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase().startsWith(q.toLowerCase()));
     const nm=d?d.name:q;
@@ -3594,7 +3609,7 @@ document.addEventListener("click",e=>{
   if(a==="setType"){logState.logType=t.dataset.v;document.querySelectorAll("#logTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="setActType"){logState.actType=t.dataset.v;document.querySelectorAll("#actTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="setOut"){logState.outcome=t.dataset.v;document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
-  if(a==="map"){mapState=null;view="map";render();window.scrollTo(0,0);return;}
+  if(a==="map"){pushNav();mapState=null;view="map";render();window.scrollTo(0,0);return;}
   if(a==="mapstate"){mapState=t.dataset.st;render();return;}
   if(a==="noop"){return;}
   if(a==="saveDist"){saveDist();return;}
@@ -3620,7 +3635,7 @@ document.addEventListener("click",e=>{
     const nl={id:uid(),name:nm,by:USER,assignee:null,createdAt:new Date().toISOString(),query:logState.listQ||"",fields:[...R.fields],
       items:picked.map(p=>({pid:p.id,name:p.name,company:(company(p.cid)||{}).name||p.branch||"",role:p.role||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""}))};
     DB.lists.unshift(nl);logState.listResults=null;logState.listQ="";save();curList=nl.id;render();window.scrollTo(0,0);toast('"'+nm+'" saved — '+nl.items.length+' people');return;}
-  if(a==="listopen"){curList=t.dataset.id;render();window.scrollTo(0,0);return;}
+  if(a==="listopen"){pushNav();curList=t.dataset.id;render();window.scrollTo(0,0);return;}
   if(a==="listback"){curList=null;render();return;}
   if(a==="listdone"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
     if(it){it.done=!it.done;it.calledAt=it.done?new Date().toISOString():null;save();render();}return;}
@@ -3629,7 +3644,7 @@ document.addEventListener("click",e=>{
   if(a==="listspoke"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
     if(it){if(!it.spokeAt){it.spokeAt=new Date().toISOString();it.done=true;it.calledAt=it.calledAt||it.spokeAt;listLog(l,it,"call",it.note?("Spoke — "+it.note):"Spoke with them");}else{it.spokeAt=null;}save();render();}return;}
   if(a==="personpeek"){openSheet(personSheetHTML(t.dataset.id));return;}
-  if(a==="personfull"){closeSheet();curPerson=t.dataset.id;view="person";render();window.scrollTo(0,0);return;}
+  if(a==="personfull"){pushNav();closeSheet();curPerson=t.dataset.id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="listpush"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
     if(l){l.assignee=l.assignee===t.dataset.v?null:t.dataset.v;save();render();toast(l.assignee?("Pushed to "+teamById(l.assignee).name):"Unassigned");}return;}
   if(a==="listdel"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);
