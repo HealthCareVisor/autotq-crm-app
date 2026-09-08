@@ -346,7 +346,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -568,6 +568,7 @@ const SVG={
  user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/>',
  file:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
  school:'<path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11v4.5c0 1.2 2.8 2.5 5 2.5s5-1.3 5-2.5V11"/>',
+ truck:'<path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
  box:'<path d="M4 8l8-4 8 4v8l-8 4-8-4z"/><path d="M4 8l8 4 8-4"/><line x1="12" y1="12" x2="12" y2="20"/>',
  phone:'<path d="M6 4h3l2 5-2.5 1.5a11 11 0 005 5L14 13l5 2v3a2 2 0 01-2 2A15 15 0 014 6a2 2 0 012-2"/>',
  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
@@ -688,7 +689,7 @@ function render(){
   if(view==="invoicing"&&!invAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -707,7 +708,8 @@ function render(){
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
     search:(searchQ?('Results for “'+esc(searchQ)+'”'):""),
-    invoicing:(function(){const os=ordersAll();const q=os.filter(o=>o.status==="queue");return os.length+" orders · "+q.length+" awaiting invoice"+(q.length?" ("+money(q.reduce((s,o)=>s+(o.amount||0),0))+")":"");})()
+    invoicing:(function(){const os=ordersAll();const q=os.filter(o=>o.status==="queue");return os.length+" orders · "+q.length+" awaiting invoice"+(q.length?" ("+money(q.reduce((s,o)=>s+(o.amount||0),0))+")":"");})(),
+    shipping:(function(){const t=ordersToShip().length,tr=(DB.shipments||[]).filter(s=>s.status==="shipped").length;return (t?t+" to ship":"Nothing waiting to ship")+" · "+tr+" in transit";})()
   };
   let body="";
   if(view==="today")body=viewToday();
@@ -729,9 +731,10 @@ function render(){
   else if(view==="conf")body=viewConf();
   else if(view==="search")body=searchView();
   else if(view==="invoicing")body=invAccess()?viewInvoicing():viewToday();
+  else if(view==="shipping")body=shipAccess()?viewShipping():viewToday();
   else body=viewToday();
   const groups=USER==="laresa"
-   ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["opps","chart","Pipeline"]]],
+   ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["shipping","truck","Shipping"],["opps","chart","Pipeline"]]],
      ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
    :[
    ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
@@ -739,7 +742,7 @@ function render(){
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
   ];
-  if(invAccess()&&USER!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]);
+  if(invAccess()&&USER!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"],["shipping","truck","Shipping"]]]);
   const sideNav=groups.map(g=>'<div class="grp">'+g[0]+'</div>'+
    g[1].map(n=>'<button class="'+(navOn(n[0])?"on":"")+'" data-act="nav" data-view="'+n[0]+'" title="'+n[2]+'">'+svg(n[1])+'<span>'+n[2]+'</span></button>').join("")).join("");
   document.getElementById("screen").innerHTML=
@@ -2978,6 +2981,7 @@ function helpSheet(){
    ["Volume","Distributor volume — units bought, revenue, orders and the demo units they've picked up."],
    ["Conferences","The show calendar; shows with lead lists link straight to the call list."],
    ["Campaign","Upload a lead list, write a short email sequence, launch — Apollo sends from your own inbox on schedule and tracks opens, clicks and replies."],
+   ["Shipping","Back office: what still has to go out the door, one record per box (ship-to, carrier, tracking, freight). Prints the packing slip; billable freight lands on the order so Invoicing sees it."],
    ["Leads","The working list between conference lists and the CRM — push promising people here, log every touch (date, method, details), promote when they get real."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
@@ -3294,7 +3298,7 @@ function invRowHTML(o,i){
       ?'<p style="margin:3px 0 0;font-size:12.5px;color:'+(o.upsCost?'var(--hint)':'#3b6fb5')+'">'+(o.upsCost?'UPS cost '+fmtC(o.upsCost)+' · on the Demo Map':'Demo unit out — no invoice. Next: add the UPS shipping cost')+'</p>'
       :o.status==="invoiced"
       ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'add the invoice date for Net-30 tracking')+(bill?' → '+esc(bill):'')+'</p>';})()
-      :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+'</div>'+
+      :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+shipLineHTML(o)+'</div>'+
     '<div class="invmid">'+midRows+'</div>'+
     '<div class="invright">'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
@@ -3364,6 +3368,7 @@ function orderSheet(id){
      (o.status==="loaner"?fact("UPS cost",o.upsCost?fmtC(o.upsCost):'<span style="color:var(--warn-t,#a15c00)">not entered</span>'):"")+
      fact("Notes",o.notes?esc(o.notes):"")+
      fact("PO document",o.fname?esc(o.fname):"")+
+     (shipAccess()?fact("Shipping",shipFactHTML(o)||(orderNeedsShip(o)?'<span style="color:#3b6fb5">not shipped yet</span>':"")):"")+
    '</div>'+
    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
      (o.status==="queue"?'<button class="btn coral" data-act="invmark" data-id="'+o.id+'">Resolve — mark invoiced</button>':'')+
@@ -3371,6 +3376,7 @@ function orderSheet(id){
      (o.status!=="loaner"&&o.status!=="supplier"?'<button class="btn coral" data-act="invemail" data-id="'+o.id+'">Review email & send</button>'+
        '<button class="btn" data-act="invpdf" data-id="'+o.id+'">Invoice PDF only</button>':'')+
      (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'">View PO PDF</button>':'')+
+     (shipAccess()&&o.status!=="supplier"?'<button class="btn" data-act="shipfor" data-id="'+o.id+'">'+(shipmentsFor(o.id).length?'Ship more':'Ship it')+'</button>':'')+
      '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
    '</div>');
 }
@@ -3437,6 +3443,8 @@ function formInvoiceEmail(id){
   const c=DB.companies.find(x=>x.name&&shortAcct(x.name).toLowerCase()===shortAcct(o.account||"").toLowerCase());
   const cityLine=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
   const invNo=(o.qbInv||"").split(",")[0].trim();
+  const lastSh=lastShipmentFor(o),shipTxt=lastSh&&shipToLines(lastSh.shipTo).length?shipToLines(lastSh.shipTo).join("\n"):((o.account||"")+"\n"+(cityLine?cityLine+"\n":""));
+  const shipNote=lastSh&&lastSh.status!=="packed"?"\n\nShipped via "+(lastSh.carrier||"")+(lastSh.service?" "+lastSh.service:"")+(lastSh.shipDate?" on "+usDate(lastSh.shipDate):"")+(lastSh.tracking?" — tracking "+lastSh.tracking:"")+".":"";
   openSheet('<h2>Review email — '+esc(shortAcct(o.account))+'</h2>'+
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 8px">Sends from <b>billing@goldenhourmedical.com</b> with the branded invoice PDF attached.</p>'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Invoice #</label><input class="f" id="ieInv" value="'+esc(invNo)+'" placeholder="e.g. 1177"></div>'+
@@ -3444,9 +3452,9 @@ function formInvoiceEmail(id){
    '<label class="fl">Cc</label><input class="f" id="ieCc" value="hannah@goldenhourmedical.com, max@goldenhourmedical.com">'+
    '<label class="fl">QuickBooks payment link <span style="font-weight:400;color:var(--hint)">(optional — becomes a PAY ONLINE button on the PDF; copy it from the invoice in QB via Share link)</span></label><input class="f" id="iePay" value="'+esc(o.payUrl||"")+'" placeholder="https://connect.intuit.com/t/…">'+
    '<label class="fl">Subject</label><input class="f" id="ieSub" value="'+esc("Invoice "+(invNo||"____")+" — PO "+(o.poNo||""))+'">'+
-   '<label class="fl">Message</label><textarea class="f" id="ieBody" rows="4">Please find attached our invoice for PO #'+(o.poNo||"")+'.\n\nLaresa McIntyre\nChief Financial Officer | Golden Hour Medical, Inc.\nbilling@goldenhourmedical.com · +1 (561) 866-9697</textarea>'+
+   '<label class="fl">Message</label><textarea class="f" id="ieBody" rows="4">Please find attached our invoice for PO #'+(o.poNo||"")+'.'+esc(shipNote)+'\n\nLaresa McIntyre\nChief Financial Officer | Golden Hour Medical, Inc.\nbilling@goldenhourmedical.com · +1 (561) 866-9697</textarea>'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Bill to (on the PDF)</label><textarea class="f" id="ieBill" rows="3">'+esc((o.account||"")+"\n"+(cityLine?cityLine+"\n":""))+'</textarea></div>'+
-   '<div class="grow"><label class="fl">Ship to</label><textarea class="f" id="ieShip" rows="3">'+esc((o.account||"")+"\n"+(cityLine?cityLine+"\n":""))+'</textarea></div></div>'+
+   '<div class="grow"><label class="fl">Ship to</label><textarea class="f" id="ieShip" rows="3">'+esc(shipTxt)+'</textarea></div></div>'+
    '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn grow" data-act="invpreviewpdf" data-id="'+o.id+'" style="flex:1">Preview the PDF</button>'+
    '<button class="btn coral" data-act="invemailsend" data-id="'+o.id+'" id="ieSend" style="flex:1.6">Send invoice</button></div>');
 }
@@ -3506,6 +3514,406 @@ function formMarkInv(id){
    '<div class="grow"><label class="fl">Invoice date <span style="font-weight:400;color:var(--hint)">(drives Net 30)</span></label><input class="f" id="miDate" type="date" value="'+esc(o.invoicedAt||todayStr())+'"></div></div>'+
    '<label class="fl">Bill-to email (AP) <span style="font-weight:400;color:var(--hint)">— saves for next time</span></label><input class="f" id="miBill" value="'+esc(o.billEmail||billToFor(o)||"")+'" placeholder="ap@customer.com">'+
    '<button class="btn coral block" data-act="invmarksave" data-id="'+o.id+'" style="margin-top:16px">Mark invoiced</button>');
+}
+/* ---------- SHIPPING (Kellan, 2026-09-08) — one record per box that goes out the door; feeds Invoicing ----------
+   Rules: distributors cover freight → a billable shipment cost becomes the Freight line on the order
+   (loaners: the cost lands in o.upsCost → Demo Map). Ship-to is remembered per account (c.shipTo). */
+function shipAccess(){return invAccess();}
+const SHIP_STATUS={packed:["Packed — not picked up","#3b6fb5","rgba(60,110,180,.12)"],shipped:["In transit","var(--warn-t,#a15c00)","rgba(255,180,0,.14)"],delivered:["Delivered","var(--ok-t)","rgba(0,160,90,.12)"]};
+function shipChip(st){const c=SHIP_STATUS[st]||SHIP_STATUS.packed;return '<span class="pill" style="color:'+c[1]+';background:'+c[2]+';font-weight:600;white-space:nowrap">'+c[0]+'</span>';}
+const CARRIERS=["UPS","FedEx","USPS","LTL freight","Pickup"];
+const SERVICES={UPS:["Ground","3 Day Select","2nd Day Air","Next Day Air"],FedEx:["Ground","Home Delivery","2Day","Priority Overnight"],USPS:["Ground Advantage","Priority Mail","Priority Express"],"LTL freight":["Standard LTL"],Pickup:["Customer pickup"]};
+function trackUrl(car,tn){tn=String(tn||"").replace(/\s+/g,"");if(!tn)return "";
+  if(/^1Z/i.test(tn)||car==="UPS")return "https://www.ups.com/track?loc=en_US&tracknum="+encodeURIComponent(tn);
+  if(car==="FedEx")return "https://www.fedex.com/fedextrack/?trknbr="+encodeURIComponent(tn);
+  if(car==="USPS")return "https://tools.usps.com/go/TrackConfirmAction?tLabels="+encodeURIComponent(tn);
+  return "";}
+function trackLink(s){if(!s||!s.tracking)return "";const u=trackUrl(s.carrier,s.tracking);
+  return u?'<a href="'+esc(u)+'" target="_blank" rel="noopener" data-stop="1" style="color:var(--coral,#e8543f);font-weight:600">'+esc(s.tracking)+' ↗</a>':'<b>'+esc(s.tracking)+'</b>';}
+function shipmentsAll(){return (DB.shipments||[]).slice().sort((a,b)=>String(b.shipDate||b.addedAt||"").localeCompare(String(a.shipDate||a.addedAt||"")));}
+function shipmentsFor(oid){return oid?(DB.shipments||[]).filter(s=>s.orderId===oid):[];}
+function orderById(id){return (DB.orders||[]).find(x=>x.id===id)||null;}
+function acctForOrder(o){const k=shortAcct((o&&o.account)||"").toLowerCase();if(!k)return null;
+  return DB.companies.find(x=>x.name&&shortAcct(x.name).toLowerCase()===k)||DB.companies.find(x=>x.name&&k.includes(shortAcct(x.name).toLowerCase()))||null;}
+function shipItems(o){return orderItems(o).filter(x=>!/freight/i.test(String(x.sku||"")));}
+function shipItemsSummary(items){return (items||[]).filter(x=>+x.qty>0).map(x=>(+x.qty||0)+"× "+(SKU_SHORT[x.sku]||x.sku)).join(" + ");}
+/* what's still in the warehouse for an order, per SKU */
+function orderShipState(o){
+  const ss=shipmentsFor(o.id),want=shipItems(o),sent={};
+  ss.forEach(s=>(s.items||[]).forEach(it=>{sent[it.sku]=(sent[it.sku]||0)+(+it.qty||0);}));
+  const remaining=want.map(it=>({sku:it.sku,qty:Math.max(0,(+it.qty||0)-(sent[it.sku]||0))})).filter(x=>x.qty>0);
+  const covered=want.length?!remaining.length:!!ss.length;
+  const status=!ss.length?"none":!covered?"partial":ss.every(s=>s.status==="delivered")?"delivered":ss.some(s=>s.status!=="packed")?"shipped":"packed";
+  return {shipments:ss,remaining:remaining,covered:covered,status:status};
+}
+function orderNeedsShip(o){return !o.noShip&&o.status!=="supplier"&&(o.status==="queue"||(o.status==="loaner"&&!o.upsCost));}
+/* orders that still have to go out. Older invoiced/paid orders with no shipment record are assumed shipped
+   (the feature is new) — only the queue, un-costed loaners and partially shipped orders show up. */
+function ordersToShip(){
+  return ordersAll().filter(o=>{
+    if(o.noShip||o.status==="supplier")return false;
+    if(!orderNeedsShip(o)&&!shipmentsFor(o.id).length)return false;
+    return !orderShipState(o).covered;
+  }).sort((a,b)=>String(a.poDate||"").localeCompare(String(b.poDate||"")));
+}
+function shipToFor(o){
+  const c=acctForOrder(o);
+  const last=shipmentsAll().find(s=>s.shipTo&&s.account&&o.account&&shortAcct(s.account).toLowerCase()===shortAcct(o.account).toLowerCase());
+  if(last)return Object.assign({},last.shipTo);
+  if(c&&c.shipTo)return Object.assign({},c.shipTo);
+  return {name:o.account||"",attn:o.contactName||"",street:"",city:(c&&c.city)||"",state:(c&&c.state)||"",zip:"",phone:""};
+}
+function shipToLines(t){if(!t)return [];return [t.name,t.attn?"Attn: "+t.attn:"",t.street,[t.city,t.state].filter(Boolean).join(", ")+(t.zip?" "+t.zip:""),t.phone].map(x=>String(x||"").trim()).filter(Boolean);}
+function lastShipmentFor(o){return shipmentsFor(o.id).slice().sort((a,b)=>String(b.shipDate||"").localeCompare(String(a.shipDate||"")))[0]||null;}
+function daysSince(d){if(!d)return 0;const a=new Date(String(d).slice(0,10)+"T12:00:00");return isNaN(a)?0:Math.max(0,Math.round((Date.now()-a)/864e5));}
+/* freight feeds the order: billable shipment cost → Freight line (non-loaner) or o.upsCost (loaner) */
+function syncFreightToOrder(oid){
+  const o=orderById(oid);if(!o)return;
+  const ss=shipmentsFor(oid);
+  const all=ss.reduce((t,s)=>t+(+s.cost||0),0),bill=ss.filter(s=>s.billFreight).reduce((t,s)=>t+(+s.cost||0),0);
+  if(isLoanerOrder(o)||o.status==="loaner"){
+    if(all>0){o.upsCost=Math.round(all*100)/100;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+" · UPS "+fmtC(o.upsCost);}
+    return;}
+  const items=orderItems(o).slice();
+  const i=items.findIndex(it=>/freight/i.test(String(it.sku||"")));
+  if(bill>0){const line={sku:"Freight",qty:1,unit:Math.round(bill*100)/100,fromShip:true};
+    if(i>-1){if(items[i].fromShip||!(+items[i].unit>0.05))items[i]=line;}else items.push(line);}
+  else if(i>-1&&items[i].fromShip)items.splice(i,1);
+  o.items=items;
+  if(items.length)o.amount=Math.round(itemsTotal(items)*100)/100;
+}
+/* one-line shipping status under an invoicing row / on the order sheet */
+function shipLineHTML(o){
+  if(!shipAccess()||o.status==="supplier")return "";
+  const st=orderShipState(o);
+  if(st.status==="none")return orderNeedsShip(o)?'<p style="margin:3px 0 0;font-size:12.5px;color:#3b6fb5">Not shipped yet · <button class="pill" data-act="shipfor" data-id="'+o.id+'" style="color:#3b6fb5;background:rgba(60,110,180,.12)">Ship it</button></p>':"";
+  const last=lastShipmentFor(o);
+  const lbl=st.status==="partial"?"Partially shipped — "+shipItemsSummary(st.remaining)+" still to go":st.status==="delivered"?"Delivered":st.status==="shipped"?"Shipped":"Packed, not picked up";
+  return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(st.status==="partial"?'var(--warn-t,#a15c00)':'var(--hint)')+'">'+lbl+(last&&last.shipDate?' '+fmtDay(last.shipDate+"T12:00:00"):'')+(last?' · '+esc(last.carrier||"")+(last.service?' '+esc(last.service):'')+(last.tracking?' · '+trackLink(last):''):'')+'</p>';
+}
+function shipFactHTML(o){
+  const ss=shipmentsFor(o.id);if(!ss.length)return "";
+  return ss.map(s=>'<button class="pill" data-act="shipopen" data-id="'+s.id+'" style="color:var(--ink);background:rgba(120,120,120,.10);margin:2px 0 2px 4px">'+(s.shipDate?fmtDay(s.shipDate+"T12:00:00"):"—")+' · '+esc(s.carrier||"")+(s.tracking?' '+esc(s.tracking):'')+' · '+SHIP_STATUS[s.status||"packed"][0]+'</button>').join("");
+}
+let shipFilter="toship";
+function kpiBox(l,v){return '<div class="kpi"><b>'+l+'</b><span>'+v+'</span></div>';}
+function viewShipping(){
+  ensureOrderItems();ensureLoanerBook();
+  const ss=shipmentsAll(),todo=ordersToShip();
+  const packed=ss.filter(s=>s.status==="packed"),transit=ss.filter(s=>s.status==="shipped"),deliv=ss.filter(s=>s.status==="delivered");
+  const mon=todayStr().slice(0,7),freightMon=ss.filter(s=>String(s.shipDate||"").slice(0,7)===mon).reduce((t,s)=>t+(+s.cost||0),0);
+  const toBill=ss.filter(s=>s.billFreight&&+s.cost>0&&(orderById(s.orderId)||{}).status==="queue").reduce((t,s)=>t+(+s.cost||0),0);
+  let h='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+kpiBox("To ship",todo.length)+kpiBox("Packed",packed.length)+kpiBox("In transit",transit.length)+kpiBox("Delivered",deliv.length)+kpiBox("Freight this month",fmtC(freightMon))+kpiBox("Freight to invoice",fmtC(toBill))+'</div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px"><button class="btn coral" data-act="shipnew">'+svg("plus")+' New shipment</button>'+
+     '<span style="font-size:13px;color:var(--hint)">Ship it → packing slip → paste the tracking # → the freight lands on the invoice.</span></div>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+[["toship","To ship ("+todo.length+")"],["packed","Packed ("+packed.length+")"],["shipped","In transit ("+transit.length+")"],["delivered","Delivered ("+deliv.length+")"],["all","All shipments ("+ss.length+")"]]
+     .map(f=>'<button class="qchip'+(shipFilter===f[0]?" on":"")+'" data-act="shipfilter" data-v="'+f[0]+'">'+f[1]+'</button>').join("")+'</div>';
+  if(shipFilter==="toship"){
+    h+=todo.length?'<div class="card" style="padding:0;overflow:hidden">'+todo.map((o,i)=>toShipRowHTML(o,i)).join("")+'</div>'
+      :'<div class="card" style="padding:26px;text-align:center;color:var(--hint)">Everything has gone out. ✓</div>';
+  }else{
+    const list=ss.filter(s=>shipFilter==="all"||s.status===shipFilter);
+    h+=list.length?'<div class="card" style="padding:0;overflow:hidden">'+list.map((s,i)=>shipRowHTML(s,i)).join("")+'</div>'
+      :'<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+(ss.length?"Nothing in this view.":"No shipments logged yet — start from the To ship list.")+'</div>';
+  }
+  return h;
+}
+function toShipRowHTML(o,i){
+  const st=orderShipState(o),rem=st.remaining.length?st.remaining:shipItems(o),wait=daysSince(o.poDate);
+  const loaner=o.status==="loaner"||isLoanerOrder(o);
+  return '<div data-act="shipopenorder" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
+   '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(shortAcct(o.account)||"—")+(loaner?' <span class="pill" style="color:#3b6fb5;background:rgba(60,110,180,.12)">Demo loaner</span>':'')+'</p>'+
+   '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+(o.contactName?'<span style="color:var(--hint)">· '+esc(o.contactName)+'</span>':'')+'</p>'+
+   (rem.length?'<p style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(shipItemsSummary(rem))+(st.status==="partial"?' <span style="font-weight:500;color:var(--hint)">still to go</span>':'')+'</p>':'<p style="margin:4px 0 0;font-size:12.5px;color:var(--hint)">No line items on the order — add what\'s in the box on the shipment</p>')+
+   '<p style="margin:3px 0 0;font-size:12.5px;color:'+(wait>5?'var(--warn-t,#a15c00)':'var(--hint)')+'">'+(wait?'Waiting '+wait+' day'+(wait>1?'s':'')+' since the PO':'PO came in today')+'</p></div>'+
+   '<div class="invright">'+
+   '<button class="btn coral sm" data-act="shipfor" data-id="'+o.id+'">Ship it</button>'+
+   '<button class="pill" data-act="shipquick" data-id="'+o.id+'" title="Log it as shipped today — add the tracking later" style="color:var(--muted);background:rgba(120,120,120,.12);white-space:nowrap">Already went out</button>'+
+   '<button class="pill" data-act="shipnone" data-id="'+o.id+'" title="Nothing physical ships on this PO" style="color:var(--hint);background:transparent;border:1px solid var(--line);white-space:nowrap">Nothing to ship</button>'+
+   '</div></div>';
+}
+function shipRowHTML(s,i){
+  const o=orderById(s.orderId),t=s.shipTo||{};
+  const where=[t.city,t.state].filter(Boolean).join(", ");
+  const next=s.status==="packed"?'Next: create the label, paste the tracking #':s.status==="shipped"?('Next: mark delivered when it lands'+(o&&o.status==="queue"?' · order still needs an invoice':'')):(o&&o.status==="queue"?'Order still needs an invoice':'');
+  const cells=[["Boxes",s.boxes||"—"],["Weight",s.weight?s.weight+" lb":"—"],["Freight",s.cost?fmtC(s.cost)+(s.billFreight?"":" · not billed"):"—"]];
+  return '<div data-act="shipopen" data-id="'+s.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
+   '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(shortAcct(s.account)||"—")+(t.name&&shortAcct(t.name).toLowerCase()!==shortAcct(s.account||"").toLowerCase()?' <span style="font-weight:500;color:var(--muted)">→ '+esc(t.name)+'</span>':'')+'</p>'+
+   '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(s.poNo)+'<span>'+(s.shipDate?fmtDay(s.shipDate+"T12:00:00"):"no ship date")+'</span>'+(where?'<span style="color:var(--hint)">· '+esc(where)+'</span>':'')+'</p>'+
+   (s.items&&s.items.length?'<p class="invline" style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(shipItemsSummary(s.items))+'</p>':'')+
+   '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">'+esc(s.carrier||"")+(s.service?' '+esc(s.service):'')+(s.tracking?' · '+trackLink(s):'')+(next?' · '+next:'')+'</p></div>'+
+   '<div class="invmid"><table style="width:100%;border-collapse:collapse;font-size:13px">'+
+    cells.map((r,j)=>'<tr><td style="padding:3px 8px 3px 0;'+(j?'border-top:1px solid var(--line);':'')+'color:var(--muted)">'+r[0]+'</td><td style="padding:3px 0;'+(j?'border-top:1px solid var(--line);':'')+'text-align:right;font-weight:700;white-space:nowrap">'+esc(String(r[1]))+'</td></tr>').join("")+'</table></div>'+
+   '<div class="invright">'+shipChip(s.status)+
+   (s.status==="packed"?'<button class="pill" data-act="shipadv" data-id="'+s.id+'" data-v="shipped" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Picked up?</button>':'')+
+   (s.status==="shipped"?'<button class="pill" data-act="shipadv" data-id="'+s.id+'" data-v="delivered" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Delivered?</button>':'')+
+   (s.status!=="packed"?(s.notifiedAt?'<span class="pill" title="Shipping notice sent to '+esc(s.notifiedTo||"")+'" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Notified ✓</span>':'<button class="pill" data-act="shipnotice" data-id="'+s.id+'" style="color:var(--coral,#e8543f);background:rgba(232,84,63,.10);white-space:nowrap">Email end user</button>'):'')+
+   '<button class="btn sm ghost" data-act="shipslip" data-id="'+s.id+'" title="Print the packing slip">Slip</button>'+
+   '</div></div>';
+}
+function shipmentSheet(id){
+  const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
+  const o=orderById(s.orderId);
+  const fact=(k,v)=>v?'<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--muted);flex:none">'+k+'</span><b style="text-align:right">'+v+'</b></div>':'';
+  const cell='padding:8px 10px;border:1px solid var(--line);';
+  const th=t=>'<th style="'+cell+'background:rgba(0,0,0,.035);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);text-align:'+t+'">';
+  const tbl=s.items&&s.items.length?'<table style="width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px"><tr>'+th("left")+'In the box</th>'+th("right")+'Qty</th></tr>'+
+    s.items.map(it=>'<tr><td style="'+cell+'"><b>'+esc(skuNice(it.sku))+'</b>'+(SKU_NICE[it.sku]?'<span style="color:var(--hint);font-size:12px"> · '+esc(it.sku)+'</span>':'')+'</td><td style="'+cell+'text-align:right">'+(+it.qty||0)+'</td></tr>').join("")+'</table>':'';
+  openSheet('<h2 style="margin-bottom:2px">'+esc(shortAcct(s.account)||"Shipment")+'</h2>'+
+   '<p style="margin:4px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)">'+poChip(s.poNo)+'<span>'+(s.shipDate?fmtDay(s.shipDate+"T12:00:00"):"no ship date")+'</span>'+shipChip(s.status)+'</p>'+
+   tbl+
+   '<div style="margin:10px 0 6px">'+
+    fact("Ship to",shipToLines(s.shipTo).map(esc).join("<br>"))+
+    fact("Carrier",esc((s.carrier||"")+(s.service?" · "+s.service:"")))+
+    fact("Tracking",trackLink(s))+
+    fact("Boxes / weight",(s.boxes?s.boxes+(s.boxes>1?" boxes":" box"):"")+(s.weight?(s.boxes?" · ":"")+s.weight+" lb":""))+
+    fact("Freight",s.cost?fmtC(s.cost)+(o&&(o.status==="loaner"||isLoanerOrder(o))?' <span style="color:var(--hint);font-weight:500">→ UPS cost on the Demo Map</span>':s.billFreight?' <span style="color:var(--ok-t);font-weight:600">→ Freight line on the invoice</span>':' <span style="color:var(--hint);font-weight:500">not billed</span>'):"")+
+    (s.status==="delivered"?fact("Delivered",s.deliveredAt?esc(usDate(s.deliveredAt)):"yes"):"")+
+    fact("Order",o?esc(shortAcct(o.account))+' '+invChip(o.status):"")+
+    fact("Notes",s.notes?esc(s.notes):"")+
+    fact("End user notified",s.notifiedAt?esc(s.notifiedTo||"")+' · '+esc(usDate(s.notifiedAt)):(s.status!=="packed"?'<span style="color:var(--coral,#e8543f)">not yet</span>':""))+
+    fact("Logged by",esc(teamById(s.addedBy).name||""))+
+   '</div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
+    (s.status==="packed"?'<button class="btn coral" data-act="shipadv" data-id="'+s.id+'" data-v="shipped">Picked up — in transit</button>':'')+
+    (s.status==="shipped"?'<button class="btn coral" data-act="shipadv" data-id="'+s.id+'" data-v="delivered">Mark delivered</button>':'')+
+    (s.status!=="packed"?'<button class="btn'+(s.notifiedAt?'':' coral')+'" data-act="shipnotice" data-id="'+s.id+'">'+(s.notifiedAt?'Email end user again':'Email end user — it shipped')+'</button>':'')+
+    '<button class="btn" data-act="shipslip" data-id="'+s.id+'">Packing slip</button>'+
+    (o?'<button class="btn" data-act="invedit" data-id="'+o.id+'">Open the order</button>':'')+
+    '<button class="btn ghost" data-act="shipform" data-id="'+s.id+'">Edit</button>'+
+    '<button class="btn ghost" data-act="shipdel" data-id="'+s.id+'" style="color:var(--dang-t)">Delete</button>'+
+   '</div>');
+}
+function orderSugItems(q,act){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  return ordersAll().filter(o=>o.status!=="supplier"&&((o.account||"")+" "+(o.poNo||"")).toLowerCase().includes(q)).slice(0,8)
+   .map(o=>'<button type="button" data-act="'+act+'" data-id="'+o.id+'">'+esc(shortAcct(o.account))+' <span style="color:var(--hint)">— PO '+esc(o.poNo||"—")+' · '+esc(itemsSummary(o)||fmtC(o.amount))+'</span></button>');}
+function shipItemsHTML(){
+  const items=logState.shipItems||[];
+  let h='<div id="shItemsWrap"><label class="fl">In the box</label><datalist id="skuDL">'+skuOptions().map(m=>'<option value="'+esc(m)+'">'+esc(skuLabel(m))+'</option>').join("")+'</datalist>';
+  h+=items.map((it,i)=>'<div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">'+
+    '<input class="f" style="flex:2.4;margin:0" id="sh_sku_'+i+'" list="skuDL" placeholder="SKU" value="'+esc(it.sku||"")+'">'+
+    '<input class="f" style="flex:.8;margin:0" id="sh_qty_'+i+'" inputmode="numeric" placeholder="Qty" value="'+(it.qty||"")+'">'+
+    (it.max?'<span style="flex:1;font-size:12px;color:var(--hint);white-space:nowrap">of '+it.max+' to go</span>':'<span style="flex:1"></span>')+
+    '<button class="tkdel" data-act="shipitemdel" data-i="'+i+'" aria-label="remove">×</button></div>').join("");
+  h+='<div style="margin-bottom:4px"><button class="btn sm ghost" data-act="shipitemadd">+ Add item</button></div></div>';
+  return h;
+}
+function collectShipItems(){(logState.shipItems||[]).forEach((it,i)=>{const g=id=>{const el=document.getElementById(id);return el?el.value:null;};const sk=g("sh_sku_"+i);if(sk!==null)it.sku=sk.trim();const q=g("sh_qty_"+i);if(q!==null)it.qty=parseFloat(q)||0;});}
+function formShipment(id,orderId){
+  const s=id?(DB.shipments||[]).find(x=>x.id===id):null;
+  const o=orderById(s?s.orderId:orderId);
+  logState.shipEditId=id||null;logState.shipOrderId=o?o.id:null;
+  logState.shipStatus=s?s.status:"shipped";logState.shipCarrier=s?(s.carrier||"UPS"):"UPS";
+  const t=s?(s.shipTo||{}):(o?shipToFor(o):{});
+  if(s)logState.shipItems=(s.items||[]).map(x=>({sku:x.sku,qty:x.qty}));
+  else{const st=o?orderShipState(o):null;logState.shipItems=st?(st.remaining.length?st.remaining:shipItems(o)).map(x=>({sku:x.sku,qty:x.qty,max:x.qty})):[];}
+  const loaner=!!(o&&(o.status==="loaner"||isLoanerOrder(o)));
+  const bill=s?!!s.billFreight:!loaner;
+  openSheet('<h2>'+(s?'Shipment — '+esc(shortAcct(s.account)):'New shipment')+'</h2>'+
+   (o?'<p style="font-size:13.5px;color:var(--muted);margin:0 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>'+esc(shortAcct(o.account))+'</b>'+poChip(o.poNo)+invChip(o.status)+(s?'':'<button class="pill" data-act="shipunlink" style="color:var(--muted);background:rgba(120,120,120,.12)">change order</button>')+'</p>'
+     :'<label class="fl">Order <span style="font-weight:400;color:var(--hint)">— which PO is this box for?</span></label>'+comboField("shOrderQ","Type the customer or PO number",""))+
+   '<label class="fl">Ship to</label>'+
+   '<div style="display:flex;gap:8px"><input class="f grow" id="shName" placeholder="Company / recipient" value="'+esc(t.name||"")+'"><input class="f grow" id="shAttn" placeholder="Attn (person)" value="'+esc(t.attn||"")+'"></div>'+
+   '<input class="f" id="shStreet" placeholder="Street address" value="'+esc(t.street||"")+'">'+
+   '<div style="display:flex;gap:8px"><input class="f" id="shCity" style="flex:2" placeholder="City" value="'+esc(t.city||"")+'"><input class="f" id="shState" style="flex:.7" maxlength="2" placeholder="ST" value="'+esc(t.state||"")+'"><input class="f" id="shZip" style="flex:1" inputmode="numeric" placeholder="ZIP" value="'+esc(t.zip||"")+'"><input class="f" id="shPhone" style="flex:1.4" inputmode="tel" placeholder="Phone (label)" value="'+esc(t.phone||"")+'"></div>'+
+   shipItemsHTML()+
+   '<label class="fl">Carrier</label><div id="shCarrier" style="display:flex;gap:6px;flex-wrap:wrap">'+CARRIERS.map(c=>'<button class="qchip'+(logState.shipCarrier===c?" on":"")+'" data-act="shipsetcar" data-v="'+c+'">'+c+'</button>').join("")+'</div>'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Service</label><input class="f" id="shService" list="shSvcDL" value="'+esc(s?(s.service||""):((SERVICES[logState.shipCarrier]||[])[0]||""))+'" placeholder="Ground" autocomplete="off"><datalist id="shSvcDL">'+(SERVICES[logState.shipCarrier]||[]).map(x=>'<option value="'+esc(x)+'">').join("")+'</datalist></div>'+
+   '<div class="grow"><label class="fl">Ship date</label><input class="f" id="shDate" type="date" value="'+esc(s?(s.shipDate||""):todayStr())+'"></div></div>'+
+   '<label class="fl">Tracking #</label><input class="f" id="shTrack" placeholder="1Z… — paste it from the label" value="'+esc(s?(s.tracking||""):"")+'" autocomplete="off">'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Boxes</label><input class="f" id="shBoxes" inputmode="numeric" value="'+esc(s&&s.boxes?s.boxes:"")+'" placeholder="1"></div>'+
+   '<div class="grow"><label class="fl">Weight (lb)</label><input class="f" id="shWeight" inputmode="decimal" value="'+esc(s&&s.weight?s.weight:"")+'"></div>'+
+   '<div class="grow"><label class="fl">Freight cost</label><input class="f" id="shCost" inputmode="decimal" value="'+esc(s&&s.cost?s.cost:"")+'" placeholder="e.g. 30.66"></div></div>'+
+   '<label class="tk" style="cursor:pointer;margin-top:8px"><input type="checkbox" id="shBill"'+(bill?' checked':'')+'><span style="font-size:13.5px"><b>Bill the freight to the customer</b><span style="color:var(--muted)"> — '+(loaner?'loaner: the cost becomes the UPS cost on the Demo Map either way':'adds a Freight line to the order, so it lands on the invoice')+'</span></span></label>'+
+   '<label class="fl">Status</label><div id="shStatus" style="display:flex;gap:6px;flex-wrap:wrap">'+Object.keys(SHIP_STATUS).map(k=>'<button class="qchip'+(logState.shipStatus===k?" on":"")+'" data-act="shipsetst" data-v="'+k+'">'+SHIP_STATUS[k][0]+'</button>').join("")+'</div>'+
+   '<label class="fl">Notes</label><textarea class="f" id="shNotes" rows="2" placeholder="Lift gate, residential, hold at UPS Store…">'+esc(s?(s.notes||""):"")+'</textarea>'+
+   '<button class="btn coral block" data-act="shipsave" data-id="'+(s?s.id:"")+'" style="margin-top:16px">Save shipment</button>');
+}
+function saveShipment(id){
+  const s=id?(DB.shipments||[]).find(x=>x.id===id):null;
+  const o=orderById(s?s.orderId:logState.shipOrderId);
+  if(!s&&!o){toast("Pick the order first");return;}
+  collectShipItems();
+  const items=(logState.shipItems||[]).filter(it=>it.sku&&it.sku.trim()&&+it.qty>0).map(it=>({sku:it.sku.trim(),qty:+it.qty}));
+  const rec=s||{id:uid(),addedBy:USER,addedAt:new Date().toISOString()};
+  if(o){rec.orderId=o.id;rec.account=o.account;rec.poNo=o.poNo;}
+  rec.shipTo={name:val("shName"),attn:val("shAttn"),street:val("shStreet"),city:val("shCity"),state:val("shState").toUpperCase(),zip:val("shZip"),phone:val("shPhone")};
+  rec.items=items;rec.carrier=logState.shipCarrier||"UPS";rec.service=val("shService");rec.shipDate=val("shDate")||todayStr();
+  rec.tracking=val("shTrack").replace(/\s+/g,"");rec.boxes=parseInt(val("shBoxes"),10)||0;rec.weight=parseFloat(val("shWeight"))||0;
+  rec.cost=parseFloat(val("shCost").replace(/[$,]/g,""))||0;
+  const cb=document.getElementById("shBill");rec.billFreight=cb?cb.checked:true;
+  rec.status=logState.shipStatus||"shipped";if(rec.status==="delivered"&&!rec.deliveredAt)rec.deliveredAt=todayStr();
+  rec.notes=val("shNotes");rec.updatedAt=new Date().toISOString();rec.updatedBy=USER;
+  if(!s){DB.shipments=DB.shipments||[];DB.shipments.push(rec);}
+  const c=o?acctForOrder(o):null;
+  if(c&&rec.shipTo.street)c.shipTo=Object.assign({},rec.shipTo);
+  if(o){o.noShip=false;syncFreightToOrder(o.id);
+    if(!s&&c)DB.activities.unshift({id:uid(),type:"note",pid:null,cid:c.id,note:"Shipped PO "+(o.poNo||"")+(items.length?" — "+shipItemsSummary(items):"")+" via "+rec.carrier+(rec.tracking?" · "+rec.tracking:""),date:new Date().toISOString(),by:USER});}
+  const loaner=!!(o&&(o.status==="loaner"||isLoanerOrder(o)));
+  save();closeSheet();render();
+  toast(s?"Shipment saved":"Shipped — "+shortAcct(rec.account)+(rec.cost?(loaner?" · UPS cost on the Demo Map":rec.billFreight?" · freight added to the order":""):""));
+}
+function quickShip(oid){
+  const o=orderById(oid);if(!o)return;
+  const st=orderShipState(o),items=(st.remaining.length?st.remaining:shipItems(o)).map(x=>({sku:x.sku,qty:x.qty}));
+  DB.shipments=DB.shipments||[];
+  const rec={id:uid(),addedBy:USER,addedAt:new Date().toISOString(),orderId:o.id,account:o.account,poNo:o.poNo,shipTo:shipToFor(o),items:items,carrier:"UPS",service:"Ground",shipDate:todayStr(),tracking:"",boxes:0,weight:0,cost:0,billFreight:!(o.status==="loaner"||isLoanerOrder(o)),status:"shipped",notes:""};
+  DB.shipments.push(rec);o.noShip=false;
+  save();render();toast("Logged as shipped — tap it under In transit to add the tracking");
+}
+function deleteShipment(id){
+  const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
+  if(!confirm("Delete this shipment record? The order goes back to the To ship list."))return;
+  DB.shipments=(DB.shipments||[]).filter(x=>x.id!==id);
+  syncFreightToOrder(s.orderId);
+  save();closeSheet();render();toast("Shipment removed");
+}
+/* branded packing slip — same sheet as the invoice, print-ready, click-to-edit */
+function packingSlipHTML(s){
+  const o=orderById(s.orderId)||{account:s.account,poNo:s.poNo};
+  const c=acctForOrder(o),cityLine=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
+  const bill=[o.account||s.account||"",cityLine].filter(Boolean),ship=shipToLines(s.shipTo);
+  const d=s.shipDate||todayStr(),svc=(s.carrier||"")+(s.service?" "+s.service:"");
+  const rows=(s.items||[]).length?(s.items||[]).map(it=>'<tr><td contenteditable>'+esc(usDate(d))+'</td><td contenteditable>'+esc(svc)+'</td><td contenteditable><b>'+esc(skuNice(it.sku))+'</b>'+(SKU_NICE[it.sku]?' <span style="color:#555">'+esc(it.sku)+'</span>':'')+'</td><td class="qty" contenteditable>'+(+it.qty||"")+'</td></tr>').join("")
+    :'<tr><td contenteditable>'+esc(usDate(d))+'</td><td contenteditable>'+esc(svc)+'</td><td contenteditable>AutoTQ Kit</td><td class="qty" contenteditable></td></tr>';
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Packing Slip — PO '+esc(s.poNo||"")+' — '+esc(shortAcct(s.account)||"")+'</title><style>'+
+  ':root{--ink:#1a1a1a;--gray:#555;--line:#d4d4d4;--blue:#2e74b5;--red:#e8402e}'+
+  '*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+  '.sheet{width:8.5in;min-height:11in;margin:0 auto;padding:.55in .6in}'+
+  '.top{display:flex;justify-content:space-between;align-items:flex-start}.title{font-size:34px;font-weight:800;letter-spacing:.5px;margin:0}'+
+  '.brand{font-size:26px;font-weight:800;color:var(--red)}.company{font-size:13px;font-weight:700;margin-top:14px}'+
+  '.addr{font-size:11px;color:var(--gray);margin-top:4px;line-height:1.5}.addr .lnk{color:var(--blue)}'+
+  '.info{display:flex;border:1px solid var(--line);margin-top:26px}.info .cell{flex:1;padding:14px 16px;border-right:1px solid var(--line)}.info .cell:last-child{border-right:none}'+
+  '.info h3{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.6px;margin:0 0 8px}.info p{font-size:11px;line-height:1.55;margin:0}.info .kv{font-size:11px;line-height:1.7;margin:0}'+
+  '.section{margin-top:34px}.section h2{font-size:18px;font-weight:800;margin:0 0 6px}table{width:100%;border-collapse:collapse}'+
+  'thead th{font-size:11px;font-weight:700;color:var(--blue);text-align:left;letter-spacing:.5px;padding:10px 4px;border-bottom:1px solid var(--blue)}'+
+  'thead th.qty{text-align:right}tbody td{font-size:12px;padding:12px 4px;border-bottom:1px solid var(--line)}td.qty,th.qty{text-align:right}'+
+  '.foot{margin-top:44px;font-size:10.5px;color:var(--gray);line-height:1.6}'+
+  '[contenteditable]:hover{outline:1px dashed var(--blue);outline-offset:2px}'+
+  '.bar{position:fixed;top:10px;right:12px;display:flex;gap:8px}.bar button{font:600 13px/1 Arial;padding:9px 16px;border:0;border-radius:8px;cursor:pointer}.bar .p{background:var(--red);color:#fff}.bar .h{background:#eee}'+
+  '@media print{@page{size:Letter;margin:0}.sheet{margin:0}.bar{display:none}}'+
+  '</style></head><body>'+
+  '<div class="bar"><button class="h" onclick="document.designMode=document.designMode===\'on\'?\'off\':\'on\'">Edit all</button><button class="p" onclick="window.print()">Print / Save PDF</button></div>'+
+  '<div class="sheet">'+
+   '<div class="top"><div><h1 class="title">PACKING SLIP</h1>'+
+    '<div class="company" contenteditable>Golden Hour Medical, Inc.</div>'+
+    '<div class="addr" contenteditable>6590 W Rogers Cir Ste 4, Boca Raton, FL 33487-2739<br><span class="lnk">billing@goldenhourmedical.com</span><br><span class="lnk">+1 (561) 866-9697</span></div>'+
+   '</div><div class="brand">AutoTQ</div></div>'+
+   '<div class="info">'+
+    '<div class="cell"><h3>BILL TO</h3><p contenteditable>'+(bill.length?bill.map(esc).join("<br>"):"—")+'</p></div>'+
+    '<div class="cell"><h3>SHIP TO</h3><p contenteditable>'+(ship.length?ship.map(esc).join("<br>"):esc(o.account||"")+'<br>Street address…')+'</p></div>'+
+    '<div class="cell"><h3>SHIPMENT DETAILS</h3>'+
+      '<p class="kv"><b>PO# :</b> <span contenteditable>'+esc(s.poNo||o.poNo||"")+'</span></p>'+
+      '<p class="kv"><b>Ship date :</b> <span contenteditable>'+esc(usDate(d))+'</span></p>'+
+      '<p class="kv"><b>Carrier :</b> <span contenteditable>'+esc(svc||"—")+'</span></p>'+
+      '<p class="kv"><b>Tracking :</b> <span contenteditable>'+esc(s.tracking||"—")+'</span></p>'+
+      '<p class="kv"><b>Boxes / wt :</b> <span contenteditable>'+esc((s.boxes||"—")+(s.weight?" / "+s.weight+" lb":""))+'</span></p></div>'+
+   '</div>'+
+   '<div class="section"><h2>SHIPMENT</h2><table><thead><tr><th style="width:16%">DATE</th><th style="width:22%">SERVICE</th><th>DESCRIPTION</th><th class="qty" style="width:10%">QTY</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+   '<div class="foot" contenteditable>Please check the contents against this slip on arrival and keep it with the goods. Questions about this shipment: billing@goldenhourmedical.com · +1 (561) 866-9697.<br>This shipment is subject to our Terms and Conditions (theautotq.com/termsofservice).</div>'+
+  '</div></body></html>';
+}
+function packingSlip(id){
+  const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
+  const w=window.open("","_blank");
+  if(!w){toast("Allow pop-ups to open the packing slip");return;}
+  w.document.write(packingSlipHTML(s));w.document.close();
+}
+/* ---------- "Your AutoTQ order has shipped" — the end-user notice Kellan used to hand-edit and upload.
+   Built here with the tracking link filled in; sends via the send-invoice function (action:"notify"),
+   falls back to an open-and-copy window if that function hasn't been redeployed yet. ---------- */
+function shipNoticeHTML(s,opts){
+  opts=opts||{};
+  const url=trackUrl(s.carrier,s.tracking),o=orderById(s.orderId);
+  const items=(s.items||[]).filter(x=>+x.qty>0).map(x=>(+x.qty)+" × "+skuNice(x.sku)).join(", ");
+  const meta=[s.tracking?(esc(s.carrier||"")+(s.service?" "+esc(s.service):"")+" · tracking <b>"+esc(s.tracking)+"</b>"):"",
+              o&&o.poNo?"PO "+esc(o.poNo):"",items?esc(items):""].filter(Boolean).join("<br>");
+  const f='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Your AutoTQ order has shipped</title></head>'+
+  '<body style="margin:0;padding:0;background:#f3f3f3;'+f+'">'+
+  '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f3f3"><tr><td align="center" style="padding:28px 12px">'+
+   '<table role="presentation" width="404" cellpadding="0" cellspacing="0" style="width:404px;max-width:100%;background:#ffffff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)">'+
+    '<tr><td style="padding:30px 32px 26px;border-bottom:1px solid #eeeeee"><span style="'+f+'font-size:26px;font-weight:800;letter-spacing:-.5px;color:#111111">AutoTQ<sup style="font-size:10px;font-weight:600;vertical-align:top">&reg;</sup></span></td></tr>'+
+    '<tr><td style="padding:26px 32px 8px">'+
+     '<p style="margin:0 0 10px;'+f+'font-size:9px;letter-spacing:1.6px;font-weight:700;color:#C8102E">ORDER UPDATE</p>'+
+     '<h1 style="margin:0 0 22px;'+f+'font-size:18px;font-weight:700;color:#111111;line-height:1.3">Your AutoTQ order has shipped.</h1>'+
+     '<p style="margin:0 0 18px;'+f+'font-size:11px;line-height:1.7;color:#333333">Your AutoTQ shipment is on the way. You can track the shipment using the button below.</p>'+
+     (url?'<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#C8102E;border-radius:3px"><a href="'+esc(url)+'" style="display:inline-block;padding:10px 22px;'+f+'font-size:11px;font-weight:700;color:#ffffff;text-decoration:none">Track Shipment &rarr;</a></td></tr></table>':'')+
+     (meta?'<p style="margin:16px 0 0;'+f+'font-size:10.5px;line-height:1.7;color:#666666">'+meta+'</p>':'')+
+    '</td></tr>'+
+    '<tr><td style="padding:34px 32px 8px">'+
+     '<p style="margin:0 0 6px;'+f+'font-size:10px;letter-spacing:.8px;font-weight:700;color:#111111">VISIT OUR WEBSITE</p>'+
+     '<p style="margin:0 0 16px;'+f+'font-size:10.5px;line-height:1.7;color:#333333">Learn more about AutoTQ, explore resources, and discover how we&rsquo;re redefining tourniquet technology.</p>'+
+     '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border:1px solid #C8102E;border-radius:3px"><a href="https://theautotq.com" style="display:inline-block;padding:8px 20px;'+f+'font-size:11px;font-weight:700;color:#C8102E;text-decoration:none">TheAutoTQ.com</a></td></tr></table>'+
+    '</td></tr>'+
+    '<tr><td style="padding:36px 32px 30px">'+
+     '<p style="margin:0 0 8px;'+f+'font-size:10.5px;color:#333333">Please let us know if you have any questions after receiving the unit.</p>'+
+     '<p style="margin:0;'+f+'font-size:10.5px;color:#888888">&mdash; The AutoTQ Team &nbsp;|&nbsp; Golden Hour Medical, Inc.</p>'+
+    '</td></tr>'+
+   '</table>'+
+   '<p style="margin:16px 0 0;'+f+'font-size:9px;color:#999999">&copy; '+new Date().getFullYear()+' Golden Hour Medical, Inc. &nbsp;|&nbsp; Boca Raton, FL</p>'+
+  '</td></tr></table></body></html>';
+}
+/* best guess at who to notify: the ship-to attn person if we know them, else the order contact */
+function shipNoticeTo(s){
+  if(s.notifyEmail)return s.notifyEmail;
+  const o=orderById(s.orderId),t=s.shipTo||{};
+  const names=[t.attn,o&&o.contactName].map(x=>String(x||"").trim().toLowerCase()).filter(Boolean);
+  for(const n of names){const p=DB.people.find(x=>x.name&&x.name.toLowerCase()===n&&x.email);if(p)return p.email;}
+  return "";
+}
+function formShipNotice(id){
+  const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
+  const t=s.shipTo||{};
+  openSheet('<h2>Email the end user — '+esc(t.name||shortAcct(s.account))+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 8px">The branded &ldquo;Your AutoTQ order has shipped&rdquo; note, with the '+esc(s.carrier||"")+' tracking link already in the button. Sends from <b>billing@goldenhourmedical.com</b>.</p>'+
+   (s.tracking?'':'<p style="font-size:12.5px;color:var(--warn-t,#a15c00);margin:0 0 8px">No tracking # on this shipment yet — the Track button will be left out. Add it under Edit first if you have it.</p>')+
+   (s.notifiedAt?'<p style="font-size:12.5px;color:var(--ok-t);margin:0 0 8px">Already sent to '+esc(s.notifiedTo||"")+' on '+esc(usDate(s.notifiedAt))+' — sending again is fine.</p>':'')+
+   '<label class="fl">To (end user) <span style="font-weight:400;color:var(--hint)">— type a name to pick from contacts, or paste an email</span></label>'+comboField("snTo","name or email",shipNoticeTo(s))+
+   '<label class="fl">Cc</label><input class="f" id="snCc" value="'+esc(s.notifyCc||"")+'" placeholder="optional — the distributor rep, for example">'+
+   '<label class="fl">Subject</label><input class="f" id="snSub" value="'+esc("Your AutoTQ order has shipped"+(s.poNo?" — PO "+s.poNo:""))+'">'+
+   '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn grow" data-act="shipnoticeview" data-id="'+s.id+'" style="flex:1">Preview</button>'+
+   '<button class="btn coral" data-act="shipnoticesend" data-id="'+s.id+'" id="snSend" style="flex:1.6">Send</button></div>');
+}
+function shipNoticePreview(id){
+  const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
+  const w=window.open("","_blank");if(!w){toast("Allow pop-ups to preview");return;}
+  w.document.write(shipNoticeHTML(s));w.document.close();
+}
+/* fallback when the function can't send: open the HTML with a copy button, exactly what she used to upload by hand */
+function shipNoticeCopyWindow(s,to,sub){
+  const html=shipNoticeHTML(s);
+  const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the email");return;}
+  const bar='<div style="position:fixed;top:0;left:0;right:0;background:#111;color:#fff;font:13px/1.4 Arial;padding:10px 14px;display:flex;gap:10px;align-items:center;z-index:9">'+
+   '<b>Not sent automatically.</b> Copy the email below, paste it into a new message to <b>'+esc(to)+'</b>'+(sub?' · subject: '+esc(sub):'')+
+   '<button id="cp" style="margin-left:auto;padding:7px 14px;border:0;border-radius:6px;background:#C8102E;color:#fff;font-weight:700;cursor:pointer">Copy email</button></div><div style="height:46px"></div>';
+  w.document.write(html.replace('<body style="','<body data-src="1" style="').replace(/<body([^>]*)>/,'<body$1>'+bar));
+  w.document.close();
+  const btn=w.document.getElementById("cp");
+  if(btn)btn.onclick=function(){const r=w.document.createRange();const tbl=w.document.querySelector("table");r.selectNode(tbl);const sel=w.getSelection();sel.removeAllRanges();sel.addRange(r);
+    try{w.document.execCommand("copy");btn.textContent="Copied ✓ — paste into the email";}catch(e){btn.textContent="Select-all + copy by hand";}};
+}
+async function sendShipNotice(id){
+  const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
+  const to=val("snTo").replace(/^.*<|>.*$/g,"").trim(),sub=val("snSub"),cc=val("snCc").split(/[,;]/).map(x=>x.trim()).filter(Boolean);
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter the end user's email");return;}
+  const btn=document.getElementById("snSend");if(btn){btn.disabled=true;btn.textContent="Sending…";}
+  try{
+    const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
+      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
+      body:JSON.stringify({action:"notify",to:to,cc:cc,subject:sub,html:shipNoticeHTML(s)})});
+    const b=await r.json().catch(()=>({}));
+    if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+    s.notifiedAt=todayStr();s.notifiedTo=to;s.notifyEmail=to;s.notifyCc=cc.join(", ");s.updatedAt=new Date().toISOString();s.updatedBy=USER;
+    const o=orderById(s.orderId),c=o?acctForOrder(o):null;
+    if(c)DB.activities.unshift({id:uid(),type:"email",pid:null,cid:c.id,note:"Shipping notice emailed to "+to+(s.tracking?" · "+s.tracking:""),date:new Date().toISOString(),by:USER});
+    save();closeSheet();render();toast("Shipping notice sent to "+to+" ✓");
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent="Send";}
+    s.notifyEmail=to;save();
+    toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
+    shipNoticeCopyWindow(s,to,sub);
+  }
 }
 /* ---------- Laresa's Home: the billing picture, nothing else ---------- */
 function billingHome(){
@@ -3736,7 +4144,7 @@ document.addEventListener("click",e=>{
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
   if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
-  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"]'))return;orderSheet(id);return;}
+  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"],[data-act="shipfor"],[data-stop]'))return;orderSheet(id);return;}
   if(a==="invattach"){e.stopPropagation();logState.attachId=id;let inp=document.getElementById("poFileOne");
     if(!inp){inp=document.createElement("input");inp.type="file";inp.accept="application/pdf";inp.id="poFileOne";inp.style.display="none";document.body.appendChild(inp);
       inp.addEventListener("change",()=>{if(inp.files.length)attachPoFile(logState.attachId,inp.files[0]);inp.value="";});}
@@ -3750,6 +4158,29 @@ document.addEventListener("click",e=>{
   if(a==="invups"){e.stopPropagation();formUpsCost(id);return;}
   if(a==="invupssave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.upsCost=parseFloat(String(val("upsAmt")).replace(/[$,]/g,""))||0;const d=(DB.demos||[]).find(x=>x.srcOrder===o.id);if(d)d.note="Loaner order "+(o.poNo||"")+(o.upsCost?" · UPS "+fmtC(o.upsCost):"");save();closeSheet();render();toast("UPS cost saved");}return;}
   if(a==="invmarksave"){const o=(DB.orders||[]).find(x=>x.id===id);if(o){o.qbInv=val("miQb");o.billEmail=val("miBill");o.status="invoiced";o.invoicedAt=val("miDate")||todayStr();save();closeSheet();render();toast(shortAcct(o.account)+" marked invoiced");}return;}
+  if(a==="shipfilter"){shipFilter=t.dataset.v;render();return;}
+  if(a==="shipnew"){formShipment(null,null);return;}
+  if(a==="shipfor"){e.stopPropagation();formShipment(null,id);return;}
+  if(a==="shipform"){formShipment(id,null);return;}
+  if(a==="shipsave"){saveShipment(id||null);return;}
+  if(a==="shipopen"){e.stopPropagation();if(e.target.closest('[data-act="shipadv"],[data-act="shipslip"],[data-act="shipnotice"],[data-stop]'))return;shipmentSheet(id);return;}
+  if(a==="shipnotice"){e.stopPropagation();formShipNotice(id);return;}
+  if(a==="shipnoticeview"){shipNoticePreview(id);return;}
+  if(a==="shipnoticesend"){sendShipNotice(id);return;}
+  if(a==="pickSnTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("snTo");if(p&&i)i.value=p.email||"";sugRender("snTo",[]);return;}
+  if(a==="shipopenorder"){if(e.target.closest('[data-act="shipfor"],[data-act="shipquick"],[data-act="shipnone"],[data-stop]'))return;orderSheet(id);return;}
+  if(a==="shipquick"){e.stopPropagation();quickShip(id);return;}
+  if(a==="shipnone"){e.stopPropagation();const o=orderById(id);if(o){o.noShip=true;save();render();toast("Marked — nothing ships on "+shortAcct(o.account)+" PO "+(o.poNo||""));}return;}
+  if(a==="shipadv"){e.stopPropagation();const s=(DB.shipments||[]).find(x=>x.id===id);if(s){s.status=t.dataset.v;if(s.status==="delivered"&&!s.deliveredAt)s.deliveredAt=todayStr();s.updatedAt=new Date().toISOString();s.updatedBy=USER;save();const open=document.getElementById("scrim").classList.contains("open");render();if(open)shipmentSheet(id);toast(shortAcct(s.account)+" → "+SHIP_STATUS[s.status][0]);}return;}
+  if(a==="shipdel"){deleteShipment(id);return;}
+  if(a==="shipslip"){e.stopPropagation();packingSlip(id);return;}
+  if(a==="shipsetst"){logState.shipStatus=t.dataset.v;document.querySelectorAll("#shStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="shipsetcar"){logState.shipCarrier=t.dataset.v;document.querySelectorAll("#shCarrier .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));
+    const dl=document.getElementById("shSvcDL"),sv=document.getElementById("shService");if(dl)dl.innerHTML=(SERVICES[t.dataset.v]||[]).map(x=>'<option value="'+esc(x)+'">').join("");if(sv)sv.value=(SERVICES[t.dataset.v]||[])[0]||"";return;}
+  if(a==="shipitemadd"){collectShipItems();(logState.shipItems=logState.shipItems||[]).push({sku:"",qty:1});const w=document.getElementById("shItemsWrap");if(w)w.outerHTML=shipItemsHTML();return;}
+  if(a==="shipitemdel"){collectShipItems();(logState.shipItems||[]).splice(parseInt(t.dataset.i,10),1);const w=document.getElementById("shItemsWrap");if(w)w.outerHTML=shipItemsHTML();return;}
+  if(a==="shipunlink"){logState.shipOrderId=null;formShipment(null,null);return;}
+  if(a==="pickShOrder"){formShipment(null,t.dataset.id);return;}
   if(a==="invsetst"){logState.invStatus=t.dataset.v;document.querySelectorAll("#ivStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="invsave"){saveOrder(id||null);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
@@ -4019,6 +4450,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oDistRepQ"){logState.oppDistRepPid=null;sugRender("oDistRepQ",peopleSugItemsF(e.target.value,"pickOppDistRep",logState.oppDistCid?(p=>p.cid===logState.oppDistCid):(p=>contactType(p)==="distrep")));return;}
   if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
   if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
+  if(e.target.id==="shOrderQ"){sugRender("shOrderQ",orderSugItems(e.target.value,"pickShOrder"));return;}
+  if(e.target.id==="snTo"){sugRender("snTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickSnTo",p=>!!p.email));return;}
   if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
   if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
   if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
