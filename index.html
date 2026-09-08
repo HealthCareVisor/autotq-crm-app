@@ -3359,7 +3359,8 @@ function orderSheet(id){
    (!items.length?'<p style="font-size:20px;font-weight:800;margin:6px 0 2px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"?"Demo loaner — $0":"—"))+'</p>':'')+
    tbl+
    '<div style="margin:10px 0 6px">'+
-     fact("Contact",o.contactName?esc(o.contactName):"")+
+     fact("Contact",o.contactName||o.contactEmail?esc(o.contactName||"")+(o.contactEmail?(o.contactName?' · ':'')+'<a href="mailto:'+esc(o.contactEmail)+'" style="color:var(--coral,#e8543f)">'+esc(o.contactEmail)+'</a>':''):"")+
+     (shipAccess()&&o.status!=="supplier"?fact("Order confirmation",o.confirmedAt?'sent to '+esc(o.confirmedTo||"")+' · '+esc(usDate(o.confirmedAt)):'<span style="color:var(--coral,#e8543f)">not sent</span>'):"")+
      fact("QB invoice #",o.qbInv?esc(o.qbInv):"")+
      fact("Invoice date",o.invoicedAt?esc(usDate(o.invoicedAt)):(o.status==="invoiced"?'<span style="color:var(--warn-t,#a15c00)">not set — add it (drives Net 30)</span>':""))+
      (dd?fact("Terms",'Net 30 — '+(dd.over?'<span style="color:var(--dang-t,#b3261e)">OVERDUE since '+dd.label+'</span>':'due '+dd.label)):'')+
@@ -3376,6 +3377,7 @@ function orderSheet(id){
      (o.status!=="loaner"&&o.status!=="supplier"?'<button class="btn coral" data-act="invemail" data-id="'+o.id+'">Review email & send</button>'+
        '<button class="btn" data-act="invpdf" data-id="'+o.id+'">Invoice PDF only</button>':'')+
      (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'">View PO PDF</button>':'')+
+     (shipAccess()&&o.status!=="supplier"?'<button class="btn'+(o.confirmedAt?'':' coral')+'" data-act="oconfirm" data-id="'+o.id+'">'+(o.confirmedAt?'Send confirmation again':'Send order confirmation')+'</button>':'')+
      (shipAccess()&&o.status!=="supplier"?'<button class="btn" data-act="shipfor" data-id="'+o.id+'">'+(shipmentsFor(o.id).length?'Ship more':'Ship it')+'</button>'+
        (orderNeedsShip(o)&&!orderShipState(o).covered?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Packing slip</button>':''):'')+
      '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
@@ -3603,7 +3605,7 @@ function viewShipping(){
   const cut=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
   const recent=shipShowAll?ss:ss.filter(x=>x.status!=="delivered"||String(x.shipDate||"")>=cut);
   let h='<div class="lvhead" style="margin:10px 0 8px"><div class="sectlabel" style="margin:0">New orders to send out — '+todo.length+'</div>'+
-   '<span style="margin-left:auto;font-size:12.5px;color:var(--hint)">Pulled straight from the order book. Packing slip → Ship it → paste the tracking #.</span></div>';
+   '<span style="margin-left:auto;font-size:12.5px;color:var(--hint)">Pulled straight from the uploaded PO. Confirm order → packing slip → Ship it → paste the tracking #.</span></div>';
   h+=todo.length?'<div class="card" style="padding:0;overflow:hidden">'+todo.map((o,i)=>toShipRowHTML(o,i)).join("")+'</div>'
     :'<div class="card" style="padding:26px;text-align:center;color:var(--hint)">No orders or demos waiting to go out. ✓<br><span style="font-size:12.5px">New POs land here the moment they are added under Invoicing.</span></div>';
   h+='<div class="lvhead" style="margin:22px 0 8px"><div class="sectlabel" style="margin:0">'+(shipShowAll?'All shipments — '+ss.length:'Shipped — in transit + last 30 days')+'</div>'+
@@ -3624,6 +3626,10 @@ function toShipRowHTML(o,i){
    (rem.length?'<p style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(shipItemsSummary(rem))+(st.status==="partial"?' <span style="font-weight:500;color:var(--hint)">still to go</span>':'')+'</p>':'<p style="margin:4px 0 0;font-size:12.5px;color:var(--hint)">No line items on the order — add what\'s in the box on the shipment</p>')+
    '<p style="margin:3px 0 0;font-size:12.5px;color:'+(wait>5?'var(--warn-t,#a15c00)':'var(--hint)')+'">'+(wait?'Waiting '+wait+' day'+(wait>1?'s':'')+' since the PO':'PO came in today')+'</p></div>'+
    '<div class="invright">'+
+   (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="Open the uploaded PO PDF">PO</button>'
+          :'<button class="pill" data-act="invattach" data-id="'+o.id+'" title="Attach the PO PDF" style="color:var(--muted);background:rgba(120,120,120,.12);white-space:nowrap">+ PO PDF</button>')+
+   (o.confirmedAt?'<span class="pill" title="Order confirmation sent to '+esc(o.confirmedTo||"")+'" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Confirmed ✓</span>'
+                 :'<button class="pill" data-act="oconfirm" data-id="'+o.id+'" title="Email the order confirmation to the PO contact" style="color:var(--coral,#e8543f);background:rgba(232,84,63,.10);white-space:nowrap">Confirm order</button>')+
    '<button class="btn sm" data-act="shipsliporder" data-id="'+o.id+'" title="Packing slip built from the PO">Packing slip</button>'+
    '<button class="btn coral sm" data-act="shipfor" data-id="'+o.id+'">Ship it</button>'+
    '<button class="pill" data-act="shipquick" data-id="'+o.id+'" title="Log it as shipped today — add the tracking later" style="color:var(--muted);background:rgba(120,120,120,.12);white-space:nowrap">Already went out</button>'+
@@ -3766,50 +3772,171 @@ function deleteShipment(id){
   syncFreightToOrder(s.orderId);
   save();closeSheet();render();toast("Shipment removed");
 }
-/* branded packing slip — same sheet as the invoice, print-ready, click-to-edit */
+/* branded packing slip — same design as the invoice (topbar, crest, warm-gray cards, dark TOTAL UNITS block,
+   ring watermark, lockup footer). Works from a shipment record OR straight from the PO (orderSlipObj). */
+function assetUrl(n){return new URL("AutoTQ_CRM_assets/"+n,location.href).href;}
+const THUMB_FILE={"1000-0005-TQ":"thumb_1000_0005_TQ.jpg","Demo unit":"thumb_Demo_unit.jpg","7000-WB":"thumb_7000_WB.jpg","7000-CC":"thumb_7000_CC.jpg","7000-LS-P":"thumb_7000_LS_P.jpg"};
+const SKU_DESC={"1000-0005-TQ":"Includes: 1× Reusable Inflator · 1× USB-C Cable · 2× Disposable Cuffs (Arm & Leg)","Demo unit":"AutoTQ demo kit — loaner unit","7000-WB":"Wall mount bracket for the AutoTQ Kit","7000-CC":"Hard carry case","7000-LS-P":"Disposable cuff pack (arm & leg)"};
+const SLIP_CONTACT={name:"Max Herbst",email:"max@goldenhourmedical.com",phone:"561-609-5411"};
+function billToLines(o){const c=acctForOrder(o);const city=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
+  return [o.account||"",o.contactName?"Attn: "+o.contactName:"",city].filter(Boolean);}
 function packingSlipHTML(s){
   const o=orderById(s.orderId)||{account:s.account,poNo:s.poNo};
-  const c=acctForOrder(o),cityLine=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
-  const bill=[o.account||s.account||"",cityLine].filter(Boolean),ship=shipToLines(s.shipTo);
+  const loaner=!!(o.id&&(o.status==="loaner"||isLoanerOrder(o)));
+  const bill=billToLines(o),ship=shipToLines(s.shipTo);
   const d=s.shipDate||todayStr(),svc=(s.carrier||"")+(s.service?" "+s.service:"");
-  const rows=(s.items||[]).length?(s.items||[]).map(it=>'<tr><td contenteditable>'+esc(usDate(d))+'</td><td contenteditable>'+esc(svc)+'</td><td contenteditable><b>'+esc(skuNice(it.sku))+'</b>'+(SKU_NICE[it.sku]?' <span style="color:#555">'+esc(it.sku)+'</span>':'')+'</td><td class="qty" contenteditable>'+(+it.qty||"")+'</td></tr>').join("")
-    :'<tr><td contenteditable>'+esc(usDate(d))+'</td><td contenteditable>'+esc(svc)+'</td><td contenteditable>AutoTQ Kit</td><td class="qty" contenteditable></td></tr>';
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Packing Slip — PO '+esc(s.poNo||"")+' — '+esc(shortAcct(s.account)||"")+'</title><style>'+
-  ':root{--ink:#1a1a1a;--gray:#555;--line:#d4d4d4;--blue:#2e74b5;--red:#e8402e}'+
-  '*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-  '.sheet{width:8.5in;min-height:11in;margin:0 auto;padding:.55in .6in}'+
-  '.top{display:flex;justify-content:space-between;align-items:flex-start}.title{font-size:34px;font-weight:800;letter-spacing:.5px;margin:0}'+
-  '.brand{font-size:26px;font-weight:800;color:var(--red)}.company{font-size:13px;font-weight:700;margin-top:14px}'+
-  '.addr{font-size:11px;color:var(--gray);margin-top:4px;line-height:1.5}.addr .lnk{color:var(--blue)}'+
-  '.info{display:flex;border:1px solid var(--line);margin-top:26px}.info .cell{flex:1;padding:14px 16px;border-right:1px solid var(--line)}.info .cell:last-child{border-right:none}'+
-  '.info h3{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.6px;margin:0 0 8px}.info p{font-size:11px;line-height:1.55;margin:0}.info .kv{font-size:11px;line-height:1.7;margin:0}'+
-  '.section{margin-top:34px}.section h2{font-size:18px;font-weight:800;margin:0 0 6px}table{width:100%;border-collapse:collapse}'+
-  'thead th{font-size:11px;font-weight:700;color:var(--blue);text-align:left;letter-spacing:.5px;padding:10px 4px;border-bottom:1px solid var(--blue)}'+
-  'thead th.qty{text-align:right}tbody td{font-size:12px;padding:12px 4px;border-bottom:1px solid var(--line)}td.qty,th.qty{text-align:right}'+
-  '.foot{margin-top:44px;font-size:10.5px;color:var(--gray);line-height:1.6}'+
-  '[contenteditable]:hover{outline:1px dashed var(--blue);outline-offset:2px}'+
-  '.bar{position:fixed;top:10px;right:12px;display:flex;gap:8px}.bar button{font:600 13px/1 Arial;padding:9px 16px;border:0;border-radius:8px;cursor:pointer}.bar .p{background:var(--red);color:#fff}.bar .h{background:#eee}'+
-  '@media print{@page{size:Letter;margin:0}.sheet{margin:0}.bar{display:none}}'+
+  const items=(s.items||[]).filter(x=>+x.qty>0),units=items.reduce((t,x)=>t+(+x.qty||0),0);
+  const ref=s.tracking?"":(loaner?"Demo loaner":(o.contactName||""));
+  const pill=s.status==="delivered"?"DELIVERED":s.status==="shipped"?"SHIPPED "+usDate(d):"READY TO SHIP";
+  const rows=(items.length?items:[{sku:"1000-0005-TQ",qty:""}]).map(it=>{const th=THUMB_FILE[it.sku];
+    return '<tr><td><div class="pn">'+(th?'<img src="'+assetUrl(th)+'" alt="">':'<span class="ph"></span>')+'<span><b contenteditable>'+esc(skuNice(it.sku))+'</b><small contenteditable>'+esc(SKU_NICE[it.sku]?it.sku:(it.sku||""))+'</small></span></div></td>'+
+      '<td class="desc" contenteditable>'+esc(SKU_DESC[it.sku]||skuLabel(it.sku)||"")+'</td><td class="r qty" contenteditable>'+(+it.qty||"")+'</td></tr>';}).join("");
+  const note=loaner?"Demo unit — loaner provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Packing Slip — PO '+esc(s.poNo||o.poNo||"")+' — '+esc(shortAcct(s.account||o.account)||"")+'</title><style>'+
+  ':root{--ink:#14181c;--gray:#5c6670;--faint:#9aa3ab;--line:#e7e3dd;--card:#f7f5f2;--coral:#e8402e}'+
+  '*{box-sizing:border-box;margin:0}body{background:#777;font-family:"Segoe UI",Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:var(--ink)}'+
+  '.page{position:relative;width:816px;height:1056px;margin:20px auto;background:#fff;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,.35);padding:0 64px}'+
+  '.topbar{position:absolute;top:0;left:0;right:0;height:7px;background:var(--coral)}'+
+  '.crest{display:flex;align-items:center;gap:18px;justify-content:center;margin-top:34px}.crest img{height:46px}.crest .rule{flex:1;height:1px;background:var(--line)}'+
+  '.head{display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px}'+
+  '.co b{font-size:15px;letter-spacing:.2px}.co p{font-size:11px;color:var(--gray);line-height:1.65;margin-top:5px}.co .em{color:var(--coral);font-weight:600}'+
+  '.inv{text-align:right}.inv .word{font-size:30px;font-weight:200;letter-spacing:7px;color:var(--faint);white-space:nowrap}.inv .no{font-size:22px;font-weight:800;margin-top:2px}'+
+  '.inv .pill{display:inline-block;margin-top:10px;background:var(--coral);color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.6px;padding:6px 14px;border-radius:999px}'+
+  '.cards{display:flex;gap:14px;margin-top:30px}.card{flex:1;background:var(--card);border-radius:12px;padding:16px 18px}'+
+  '.card h4{font-size:10px;letter-spacing:1.4px;color:var(--coral);margin-bottom:9px}.card p{font-size:12px;line-height:1.65}'+
+  '.card .kv{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;line-height:1.9}.card .kv span{color:var(--gray)}.card .kv b{text-align:right}'+
+  'table{width:100%;border-collapse:collapse;margin-top:34px}th{font-size:10px;letter-spacing:1.4px;color:var(--coral);text-align:left;padding:0 8px 9px;border-bottom:2px solid var(--coral)}th.r{text-align:right}'+
+  'td{padding:12px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}td.r{text-align:right}td.desc{font-size:11.5px;color:var(--gray);line-height:1.5}td.qty{font-size:15px;font-weight:800}'+
+  '.pn{display:flex;align-items:center;gap:14px}.pn img,.pn .ph{width:54px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none;display:block;background:var(--card)}'+
+  '.pn b{font-size:13.5px;display:block}.pn small{display:block;color:var(--faint);font-size:10.5px;margin-top:2px}'+
+  '.totwrap{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-top:22px}'+
+  '.note{flex:1;background:var(--card);border-radius:12px;padding:14px 18px;min-height:52px}.note h4{font-size:10px;letter-spacing:1.4px;color:var(--coral);margin-bottom:6px}.note p{font-size:11.5px;color:var(--gray);line-height:1.6}'+
+  '.tot{width:260px;flex:none}.tot .due{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;border-radius:12px;padding:14px 18px}'+
+  '.tot .due b{font-size:13px;letter-spacing:1px}.tot .due .amt{font-size:22px;font-weight:800;color:#ff6a58}'+
+  '.sig{display:flex;gap:40px;margin-top:44px}.sig div{flex:1}.sig .ln{height:1px;background:var(--ink);margin-bottom:6px}.sig small{font-size:9.5px;letter-spacing:1.2px;color:var(--gray)}'+
+  '.watermark{position:absolute;right:-60px;bottom:110px;width:360px;opacity:.045}'+
+  '.foot{position:absolute;left:64px;right:64px;bottom:44px}.foot .rule{height:1px;background:var(--line);margin-bottom:18px}'+
+  '.frow{display:flex;justify-content:space-between;align-items:center}.frow img{height:34px}.frow p{font-size:10px;color:var(--gray);text-align:right;line-height:1.7}.frow p b{color:var(--ink);letter-spacing:1.2px;font-size:9.5px}'+
+  '.legal{font-size:8.5px;color:var(--faint);margin-top:12px;text-align:center}'+
+  '[contenteditable]:hover{outline:1px dashed var(--coral);outline-offset:2px}'+
+  '.bar{position:fixed;top:10px;right:12px;display:flex;gap:8px;z-index:5}.bar button{font:600 13px/1 Arial;padding:9px 16px;border:0;border-radius:8px;cursor:pointer}.bar .p{background:var(--coral);color:#fff}.bar .h{background:#eee}'+
+  '@media print{@page{size:Letter;margin:0}body{background:#fff}.page{margin:0;box-shadow:none;width:8.5in;height:11in}.bar{display:none}}'+
   '</style></head><body>'+
   '<div class="bar"><button class="h" onclick="document.designMode=document.designMode===\'on\'?\'off\':\'on\'">Edit all</button><button class="p" onclick="window.print()">Print / Save PDF</button></div>'+
-  '<div class="sheet">'+
-   '<div class="top"><div><h1 class="title">PACKING SLIP</h1>'+
-    '<div class="company" contenteditable>Golden Hour Medical, Inc.</div>'+
-    '<div class="addr" contenteditable>6590 W Rogers Cir Ste 4, Boca Raton, FL 33487-2739<br><span class="lnk">billing@goldenhourmedical.com</span><br><span class="lnk">+1 (561) 866-9697</span></div>'+
-   '</div><div class="brand">AutoTQ</div></div>'+
-   '<div class="info">'+
-    '<div class="cell"><h3>BILL TO</h3><p contenteditable>'+(bill.length?bill.map(esc).join("<br>"):"—")+'</p></div>'+
-    '<div class="cell"><h3>SHIP TO</h3><p contenteditable>'+(ship.length?ship.map(esc).join("<br>"):esc(o.account||"")+'<br>Street address…')+'</p></div>'+
-    '<div class="cell"><h3>SHIPMENT DETAILS</h3>'+
-      '<p class="kv"><b>PO# :</b> <span contenteditable>'+esc(s.poNo||o.poNo||"")+'</span></p>'+
-      '<p class="kv"><b>Ship date :</b> <span contenteditable>'+esc(usDate(d))+'</span></p>'+
-      '<p class="kv"><b>Carrier :</b> <span contenteditable>'+esc(svc||"—")+'</span></p>'+
-      '<p class="kv"><b>Tracking :</b> <span contenteditable>'+esc(s.tracking||"—")+'</span></p>'+
-      '<p class="kv"><b>Boxes / wt :</b> <span contenteditable>'+esc((s.boxes||"—")+(s.weight?" / "+s.weight+" lb":""))+'</span></p></div>'+
-   '</div>'+
-   '<div class="section"><h2>SHIPMENT</h2><table><thead><tr><th style="width:16%">DATE</th><th style="width:22%">SERVICE</th><th>DESCRIPTION</th><th class="qty" style="width:10%">QTY</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-   '<div class="foot" contenteditable>Please check the contents against this slip on arrival and keep it with the goods. Questions about this shipment: billing@goldenhourmedical.com · +1 (561) 866-9697.<br>This shipment is subject to our Terms and Conditions (theautotq.com/termsofservice).</div>'+
+  '<div class="page"><div class="topbar"></div>'+
+  '<div class="crest"><div class="rule"></div><img src="'+assetUrl("ring.png")+'" alt=""><div class="rule"></div></div>'+
+  '<div class="head"><div class="co"><b contenteditable>Golden Hour Medical, Inc.</b>'+
+   '<p contenteditable>6590 W Rogers Cir Ste 4, Boca Raton, FL 33487<br><span class="em">salessupport@goldenhourmedical.com</span> · +1 (561) 866-9697</p></div>'+
+   '<div class="inv"><div class="word">PACKING SLIP</div><div class="no" contenteditable>PO '+esc(s.poNo||o.poNo||"—")+'</div><div class="pill" contenteditable>'+pill+'</div></div></div>'+
+  '<div class="cards">'+
+   '<div class="card"><h4>BILL TO</h4><p contenteditable>'+(bill.length?'<b>'+esc(bill[0])+'</b>'+(bill.length>1?'<br>'+bill.slice(1).map(esc).join("<br>"):''):'—')+'</p></div>'+
+   '<div class="card"><h4>SHIP TO</h4><p contenteditable>'+(ship.length?'<b>'+esc(ship[0])+'</b>'+(ship.length>1?'<br>'+ship.slice(1).map(esc).join("<br>"):''):'<b>'+esc(o.account||"")+'</b><br>Street address…')+'</p></div>'+
+   '<div class="card"><h4>DETAILS</h4>'+
+    '<div class="kv"><span>Order no.</span><b contenteditable>'+esc(s.poNo||o.poNo||"—")+'</b></div>'+
+    '<div class="kv"><span>Date</span><b contenteditable>'+esc(usDate(d))+'</b></div>'+
+    '<div class="kv"><span>Ship via</span><b contenteditable>'+esc(svc||"UPS")+'</b></div>'+
+    (s.tracking?'<div class="kv"><span>Tracking</span><b contenteditable>'+esc(s.tracking)+'</b></div>':'')+
+    (ref?'<div class="kv"><span>Reference</span><b contenteditable>'+esc(ref)+'</b></div>':'')+
+    (s.boxes||s.weight?'<div class="kv"><span>Boxes / wt</span><b contenteditable>'+esc((s.boxes||"—")+(s.weight?" / "+s.weight+" lb":""))+'</b></div>':'')+
+   '</div></div>'+
+  '<table><thead><tr><th style="width:38%">ITEM</th><th>DESCRIPTION</th><th class="r" style="width:10%">QTY</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+  '<div class="totwrap"><div class="note"><h4>NOTE</h4><p contenteditable>'+(note?esc(note):'Please check the contents against this slip on arrival and keep it with the goods.')+'</p></div>'+
+   '<div class="tot"><div class="due"><b>TOTAL UNITS</b><span class="amt" contenteditable>'+(units||"")+'</span></div></div></div>'+
+  '<div class="sig"><div><div class="ln"></div><small>RECEIVED BY</small></div><div><div class="ln"></div><small>DATE</small></div></div>'+
+  '<img class="watermark" src="'+assetUrl("ring.png")+'" alt="">'+
+  '<div class="foot"><div class="rule"></div><div class="frow"><img src="'+assetUrl("lockup.png")+'" alt="AutoTQ">'+
+   '<p contenteditable><b>CONTACT FOR ANY QUESTIONS</b><br>'+esc(SLIP_CONTACT.name)+' · '+esc(SLIP_CONTACT.email)+' · '+esc(SLIP_CONTACT.phone)+'</p></div>'+
+   '<div class="legal">'+(o.fname?'Source: '+esc(o.fname)+' · ':'')+'Golden Hour Medical, Inc. · 6590 W Rogers Cir Ste 4, Boca Raton, FL 33487 · theautotq.com</div></div>'+
   '</div></body></html>';
+}
+/* ---------- Order confirmation — "We've received your order", from Sales Support to the PO's point of contact ---------- */
+const SALES_FROM="salessupport@goldenhourmedical.com";
+function orderConfirmHTML(o){
+  const c=acctForOrder(o),t=shipToFor(o),ship=shipToLines(t);
+  const items=shipItems(o).filter(x=>+x.qty>0).map(x=>'<tr><td style="padding:6px 0;border-bottom:1px solid #eeeeee;font-size:11px;color:#333333">'+esc(skuNice(x.sku))+(SKU_NICE[x.sku]?' <span style="color:#999999">· '+esc(x.sku)+'</span>':'')+'</td><td align="right" style="padding:6px 0;border-bottom:1px solid #eeeeee;font-size:11px;color:#111111;font-weight:700;white-space:nowrap">'+(+x.qty)+'</td></tr>').join("");
+  const f='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;';
+  const kv=(k,v)=>v?'<tr><td style="padding:3px 12px 3px 0;font-size:10.5px;color:#888888;white-space:nowrap;vertical-align:top">'+k+'</td><td style="padding:3px 0;font-size:10.5px;color:#111111;font-weight:700">'+v+'</td></tr>':'';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>We received your AutoTQ order</title></head>'+
+  '<body style="margin:0;padding:0;background:#f3f3f3;'+f+'">'+
+  '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f3f3"><tr><td align="center" style="padding:28px 12px">'+
+   '<table role="presentation" width="404" cellpadding="0" cellspacing="0" style="width:404px;max-width:100%;background:#ffffff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)">'+
+    '<tr><td style="padding:30px 32px 26px;border-bottom:1px solid #eeeeee"><span style="'+f+'font-size:26px;font-weight:800;letter-spacing:-.5px;color:#111111">AutoTQ<sup style="font-size:10px;font-weight:600;vertical-align:top">&reg;</sup></span></td></tr>'+
+    '<tr><td style="padding:26px 32px 8px">'+
+     '<p style="margin:0 0 10px;'+f+'font-size:9px;letter-spacing:1.6px;font-weight:700;color:#C8102E">ORDER CONFIRMATION</p>'+
+     '<h1 style="margin:0 0 22px;'+f+'font-size:18px;font-weight:700;color:#111111;line-height:1.3">We&rsquo;ve received your AutoTQ order.</h1>'+
+     '<p style="margin:0 0 18px;'+f+'font-size:11px;line-height:1.7;color:#333333">Thank you for your purchase order'+(o.contactName?', '+esc(o.contactName.split(" ")[0]):'')+'. Here is what we have on file &mdash; reply to this email if anything needs to change. You&rsquo;ll get a second email with tracking the moment it ships.</p>'+
+     '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 14px">'+kv("PO number",esc(o.poNo||""))+kv("Order date",esc(usDate(o.poDate||todayStr())))+kv("Ship to",ship.map(esc).join("<br>"))+'</table>'+
+     (items?'<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 6px"><tr><td style="padding:0 0 4px;font-size:9px;letter-spacing:1.2px;font-weight:700;color:#888888">ITEM</td><td align="right" style="padding:0 0 4px;font-size:9px;letter-spacing:1.2px;font-weight:700;color:#888888">QTY</td></tr>'+items+'</table>':'')+
+    '</td></tr>'+
+    '<tr><td style="padding:26px 32px 8px">'+
+     '<p style="margin:0 0 6px;'+f+'font-size:10px;letter-spacing:.8px;font-weight:700;color:#111111">VISIT OUR WEBSITE</p>'+
+     '<p style="margin:0 0 16px;'+f+'font-size:10.5px;line-height:1.7;color:#333333">Learn more about AutoTQ, explore resources, and discover how we&rsquo;re redefining tourniquet technology.</p>'+
+     '<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border:1px solid #C8102E;border-radius:3px"><a href="https://theautotq.com" style="display:inline-block;padding:8px 20px;'+f+'font-size:11px;font-weight:700;color:#C8102E;text-decoration:none">TheAutoTQ.com</a></td></tr></table>'+
+    '</td></tr>'+
+    '<tr><td style="padding:36px 32px 30px">'+
+     '<p style="margin:0 0 8px;'+f+'font-size:10.5px;color:#333333">Questions about this order? Just reply, or email '+SALES_FROM+'.</p>'+
+     '<p style="margin:0;'+f+'font-size:10.5px;color:#888888">&mdash; AutoTQ Sales Support &nbsp;|&nbsp; Golden Hour Medical, Inc.</p>'+
+    '</td></tr>'+
+   '</table>'+
+   '<p style="margin:16px 0 0;'+f+'font-size:9px;color:#999999">&copy; '+new Date().getFullYear()+' Golden Hour Medical, Inc. &nbsp;|&nbsp; Boca Raton, FL</p>'+
+  '</td></tr></table></body></html>';
+}
+/* who the PO says to confirm to — saved on the order once typed */
+function orderContactEmail(o){
+  if(o.contactEmail)return o.contactEmail;
+  const n=String(o.contactName||"").trim().toLowerCase();
+  if(n){const p=DB.people.find(x=>x.name&&x.name.toLowerCase()===n&&x.email);if(p)return p.email;}
+  return "";
+}
+function formOrderConfirm(oid){
+  const o=orderById(oid);if(!o)return;
+  openSheet('<h2>Order confirmation — '+esc(shortAcct(o.account))+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 8px">&ldquo;We&rsquo;ve received your AutoTQ order&rdquo; with the PO, ship-to and items on file. Sends from <b>'+SALES_FROM+'</b> to the point of contact on the PO.</p>'+
+   (!shipItems(o).length?'<p style="font-size:12.5px;color:var(--warn-t,#a15c00);margin:0 0 8px">No line items on this order yet — add them under Edit order so the email lists what was ordered.</p>':'')+
+   (o.confirmedAt?'<p style="font-size:12.5px;color:var(--ok-t);margin:0 0 8px">Already sent to '+esc(o.confirmedTo||"")+' on '+esc(usDate(o.confirmedAt))+' — sending again is fine.</p>':'')+
+   '<label class="fl">To (point of contact on the PO) <span style="font-weight:400;color:var(--hint)">— type a name to pick from contacts, or paste the email</span></label>'+comboField("ocTo","name or email",orderContactEmail(o))+
+   '<label class="fl">Cc</label><input class="f" id="ocCc" value="" placeholder="optional">'+
+   '<label class="fl">Subject</label><input class="f" id="ocSub" value="'+esc("Order confirmation — PO "+(o.poNo||"")+" — AutoTQ")+'">'+
+   '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn grow" data-act="ocview" data-id="'+o.id+'" style="flex:1">Preview</button>'+
+   '<button class="btn coral" data-act="ocsend" data-id="'+o.id+'" id="ocSend" style="flex:1.6">Send confirmation</button></div>');
+}
+function orderConfirmPreview(oid){const o=orderById(oid);if(!o)return;const w=window.open("","_blank");if(!w){toast("Allow pop-ups to preview");return;}w.document.write(orderConfirmHTML(o));w.document.close();}
+/* shared HTML sender — send-invoice action:"notify" (from = billing@ or salessupport@) */
+async function sendHtmlMail(p){
+  const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
+    headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
+    body:JSON.stringify({action:"notify",from:p.from||"",to:p.to,cc:p.cc||[],subject:p.subject,html:p.html})});
+  const b=await r.json().catch(()=>({}));
+  if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+  return b;
+}
+function htmlCopyWindow(html,to,sub,from){
+  const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the email");return;}
+  const bar='<div style="position:fixed;top:0;left:0;right:0;background:#111;color:#fff;font:13px/1.4 Arial;padding:10px 14px;display:flex;gap:10px;align-items:center;z-index:9;flex-wrap:wrap">'+
+   '<b>Not sent automatically.</b> Copy the email below and paste it into a new message'+(from?' from <b>'+esc(from)+'</b>':'')+' to <b>'+esc(to)+'</b>'+(sub?' · subject: '+esc(sub):'')+
+   '<button id="cp" style="margin-left:auto;padding:7px 14px;border:0;border-radius:6px;background:#C8102E;color:#fff;font-weight:700;cursor:pointer">Copy email</button></div><div style="height:46px"></div>';
+  w.document.write(html.replace(/<body([^>]*)>/,'<body$1>'+bar));w.document.close();
+  const btn=w.document.getElementById("cp");
+  if(btn)btn.onclick=function(){const r=w.document.createRange();r.selectNode(w.document.querySelector("table"));const sel=w.getSelection();sel.removeAllRanges();sel.addRange(r);
+    try{w.document.execCommand("copy");btn.textContent="Copied ✓ — paste into the email";}catch(e){btn.textContent="Select-all + copy by hand";}};
+}
+async function sendOrderConfirm(oid){
+  const o=orderById(oid);if(!o)return;
+  const to=val("ocTo").replace(/^.*<|>.*$/g,"").trim(),sub=val("ocSub"),cc=val("ocCc").split(/[,;]/).map(x=>x.trim()).filter(Boolean);
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter the point of contact's email");return;}
+  const btn=document.getElementById("ocSend");if(btn){btn.disabled=true;btn.textContent="Sending…";}
+  o.contactEmail=to;
+  try{
+    await sendHtmlMail({from:SALES_FROM,to:to,cc:cc,subject:sub,html:orderConfirmHTML(o)});
+    o.confirmedAt=todayStr();o.confirmedTo=to;
+    const c=acctForOrder(o);
+    if(c)DB.activities.unshift({id:uid(),type:"email",pid:null,cid:c.id,note:"Order confirmation for PO "+(o.poNo||"")+" emailed to "+to,date:new Date().toISOString(),by:USER});
+    save();closeSheet();render();toast("Confirmation sent to "+to+" ✓");
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent="Send confirmation";}
+    save();toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
+    htmlCopyWindow(orderConfirmHTML(o),to,sub,SALES_FROM);
+  }
 }
 /* packing slip straight from the PO — no shipment record needed yet */
 function orderSlipObj(o){const st=orderShipState(o);
@@ -3887,30 +4014,13 @@ function shipNoticePreview(id){
   const w=window.open("","_blank");if(!w){toast("Allow pop-ups to preview");return;}
   w.document.write(shipNoticeHTML(s));w.document.close();
 }
-/* fallback when the function can't send: open the HTML with a copy button, exactly what she used to upload by hand */
-function shipNoticeCopyWindow(s,to,sub){
-  const html=shipNoticeHTML(s);
-  const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the email");return;}
-  const bar='<div style="position:fixed;top:0;left:0;right:0;background:#111;color:#fff;font:13px/1.4 Arial;padding:10px 14px;display:flex;gap:10px;align-items:center;z-index:9">'+
-   '<b>Not sent automatically.</b> Copy the email below, paste it into a new message to <b>'+esc(to)+'</b>'+(sub?' · subject: '+esc(sub):'')+
-   '<button id="cp" style="margin-left:auto;padding:7px 14px;border:0;border-radius:6px;background:#C8102E;color:#fff;font-weight:700;cursor:pointer">Copy email</button></div><div style="height:46px"></div>';
-  w.document.write(html.replace('<body style="','<body data-src="1" style="').replace(/<body([^>]*)>/,'<body$1>'+bar));
-  w.document.close();
-  const btn=w.document.getElementById("cp");
-  if(btn)btn.onclick=function(){const r=w.document.createRange();const tbl=w.document.querySelector("table");r.selectNode(tbl);const sel=w.getSelection();sel.removeAllRanges();sel.addRange(r);
-    try{w.document.execCommand("copy");btn.textContent="Copied ✓ — paste into the email";}catch(e){btn.textContent="Select-all + copy by hand";}};
-}
 async function sendShipNotice(id){
   const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
   const to=val("snTo").replace(/^.*<|>.*$/g,"").trim(),sub=val("snSub"),cc=val("snCc").split(/[,;]/).map(x=>x.trim()).filter(Boolean);
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter the end user's email");return;}
   const btn=document.getElementById("snSend");if(btn){btn.disabled=true;btn.textContent="Sending…";}
   try{
-    const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
-      headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
-      body:JSON.stringify({action:"notify",to:to,cc:cc,subject:sub,html:shipNoticeHTML(s)})});
-    const b=await r.json().catch(()=>({}));
-    if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+    await sendHtmlMail({to:to,cc:cc,subject:sub,html:shipNoticeHTML(s)});
     s.notifiedAt=todayStr();s.notifiedTo=to;s.notifyEmail=to;s.notifyCc=cc.join(", ");s.updatedAt=new Date().toISOString();s.updatedBy=USER;
     const o=orderById(s.orderId),c=o?acctForOrder(o):null;
     if(c)DB.activities.unshift({id:uid(),type:"email",pid:null,cid:c.id,note:"Shipping notice emailed to "+to+(s.tracking?" · "+s.tracking:""),date:new Date().toISOString(),by:USER});
@@ -3919,7 +4029,7 @@ async function sendShipNotice(id){
     if(btn){btn.disabled=false;btn.textContent="Send";}
     s.notifyEmail=to;save();
     toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
-    shipNoticeCopyWindow(s,to,sub);
+    htmlCopyWindow(shipNoticeHTML(s),to,sub,"billing@goldenhourmedical.com");
   }
 }
 /* UPS Billing Center import (the cleaned CSV from UPS Shipping Data/build_ups_db.py, or any CSV with
@@ -4043,7 +4153,8 @@ function formOrder(id,keepItems){
   openSheet('<h2>'+(o?'Order — '+esc(o.account):'Add order')+'</h2>'+
    (o&&o.file?'<p style="font-size:13px;color:var(--muted);margin:0 0 6px">'+esc(o.fname||o.file)+'</p>':'')+
    '<label class="fl">Company / account <span style="font-weight:400;color:var(--hint)">— the business, not the person</span></label>'+comboField("ivAcct","Type the customer — matches our accounts, free text ok",o?o.account:"")+
-   '<label class="fl">Contact (person on the order)</label><input class="f" id="ivContact" value="'+esc(o&&o.contactName?o.contactName:"")+'" placeholder="e.g. Jessica Theisen">'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Contact (person on the order)</label><input class="f" id="ivContact" value="'+esc(o&&o.contactName?o.contactName:"")+'" placeholder="e.g. Jessica Theisen"></div>'+
+   '<div class="grow"><label class="fl">Contact email <span style="font-weight:400;color:var(--hint)">— "confirm to" on the PO</span></label><input class="f" id="ivEmail" value="'+esc(o&&o.contactEmail?o.contactEmail:"")+'" placeholder="gets the order confirmation"></div></div>'+
    '<label class="fl">PO number</label><input class="f" id="ivPo" value="'+esc(o?o.poNo:"")+'">'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">PO date</label><input class="f" id="ivDate" type="date" value="'+esc(o?o.poDate:todayStr())+'"></div>'+
    '<div class="grow"><label class="fl">Invoice date <span style="font-weight:400;color:var(--hint)">(drives Net 30)</span></label><input class="f" id="ivInvDate" type="date" value="'+esc(o&&o.invoicedAt?o.invoicedAt:"")+'"></div>'+
@@ -4059,7 +4170,7 @@ function formOrder(id,keepItems){
 function saveOrder(id){
   const o=id?(DB.orders||[]).find(x=>x.id===id):null;
   const rec=o||{id:uid(),addedBy:USER,addedAt:new Date().toISOString(),file:null,fname:null};
-  rec.account=val("ivAcct");rec.contactName=val("ivContact");rec.poNo=val("ivPo");rec.poDate=val("ivDate");rec.invoicedAt=val("ivInvDate")||rec.invoicedAt||null;
+  rec.account=val("ivAcct");rec.contactName=val("ivContact");rec.contactEmail=val("ivEmail");rec.poNo=val("ivPo");rec.poDate=val("ivDate");rec.invoicedAt=val("ivInvDate")||rec.invoicedAt||null;
   collectInvItems();
   const items=(logState.invItems||[]).filter(it=>(it.sku&&it.sku.trim())||(+it.qty&&+it.unit));
   rec.items=items;
@@ -4174,7 +4285,7 @@ document.addEventListener("click",e=>{
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
   if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
-  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"],[data-act="shipfor"],[data-stop]'))return;orderSheet(id);return;}
+  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"],[data-act="shipfor"],[data-act="oconfirm"],[data-stop]'))return;orderSheet(id);return;}
   if(a==="invattach"){e.stopPropagation();logState.attachId=id;let inp=document.getElementById("poFileOne");
     if(!inp){inp=document.createElement("input");inp.type="file";inp.accept="application/pdf";inp.id="poFileOne";inp.style.display="none";document.body.appendChild(inp);
       inp.addEventListener("change",()=>{if(inp.files.length)attachPoFile(logState.attachId,inp.files[0]);inp.value="";});}
@@ -4197,7 +4308,11 @@ document.addEventListener("click",e=>{
   if(a==="shipnoticeview"){shipNoticePreview(id);return;}
   if(a==="shipnoticesend"){sendShipNotice(id);return;}
   if(a==="pickSnTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("snTo");if(p&&i)i.value=p.email||"";sugRender("snTo",[]);return;}
-  if(a==="shipopenorder"){if(e.target.closest('[data-act="shipfor"],[data-act="shipquick"],[data-act="shipnone"],[data-act="shipsliporder"],[data-stop]'))return;orderSheet(id);return;}
+  if(a==="shipopenorder"){if(e.target.closest('[data-act="shipfor"],[data-act="shipquick"],[data-act="shipnone"],[data-act="shipsliporder"],[data-act="invview"],[data-act="invattach"],[data-act="oconfirm"],[data-stop]'))return;orderSheet(id);return;}
+  if(a==="oconfirm"){e.stopPropagation();formOrderConfirm(id);return;}
+  if(a==="ocview"){orderConfirmPreview(id);return;}
+  if(a==="ocsend"){sendOrderConfirm(id);return;}
+  if(a==="pickOcTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("ocTo");if(p&&i)i.value=p.email||"";sugRender("ocTo",[]);return;}
   if(a==="shipsliporder"){e.stopPropagation();packingSlipOrder(id);return;}
   if(a==="shipshowall"){shipShowAll=!shipShowAll;render();return;}
   if(a==="shipupscsv"){const i=document.getElementById("upsCsv");if(i)i.click();return;}
@@ -4483,6 +4598,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
   if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
   if(e.target.id==="shOrderQ"){sugRender("shOrderQ",orderSugItems(e.target.value,"pickShOrder"));return;}
+  if(e.target.id==="ocTo"){sugRender("ocTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickOcTo",p=>!!p.email));return;}
   if(e.target.id==="snTo"){sugRender("snTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickSnTo",p=>!!p.email));return;}
   if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
   if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
