@@ -3549,7 +3549,9 @@ function orderShipState(o){
   const status=!ss.length?"none":!covered?"partial":ss.every(s=>s.status==="delivered")?"delivered":ss.some(s=>s.status!=="packed")?"shipped":"packed";
   return {shipments:ss,remaining:remaining,covered:covered,status:status};
 }
-function orderNeedsShip(o){return !o.noShip&&o.status!=="supplier"&&(o.status==="queue"||(o.status==="loaner"&&!o.upsCost));}
+/* invoiced ≠ shipped: since 9/1 Laresa invoices same-day, so recent invoiced/paid orders
+   stay in the ship queue until a shipment covers them (history before that is assumed shipped) */
+function orderNeedsShip(o){return !o.noShip&&o.status!=="supplier"&&(o.status==="queue"||(o.status==="loaner"&&!o.upsCost)||((o.status==="invoiced"||o.status==="paid")&&String(o.poDate||"")>="2026-09-01"));}
 /* orders that still have to go out. Older invoiced/paid orders with no shipment record are assumed shipped
    (the feature is new) — only the queue, un-costed loaners and partially shipped orders show up. */
 function ordersToShip(){
