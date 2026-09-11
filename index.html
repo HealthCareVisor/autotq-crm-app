@@ -1825,15 +1825,24 @@ function confCard(c,isPast,last){
     (leads?'<button class="btn sm coral" data-act="confleads" data-conf="'+esc(leads.conf)+'" style="margin:10px 0 0 52px">'+svg("users")+' '+leads.total+' leads · '+leads.tocall+' to call</button>':"")+
     '</div>';
 }
+/* Bleeding Control Challenge — the booth kiosk (AutoTQ_Challenge.html next to this file; /challenge/ when hosted) */
+function challengeUrl(){return location.protocol==="https:"?new URL("challenge/",location.href).href:new URL("AutoTQ_Challenge.html",location.href).href;}
+function openChallenge(){var w=window.open(challengeUrl(),"autotq_challenge");if(!w)toast("Allow pop-ups to open the challenge");}
+function challengeCard(){
+  return '<div class="card"><div class="row"><span class="ic coral">'+svg("clock")+'</span>'+
+    '<div class="grow"><p class="t1">Bleeding Control Challenge</p>'+
+    '<p class="t2">Booth game for the monitor — attendees scan the QR, you run the clock, the leaderboard ranks the fastest hands.</p></div>'+
+    '<button class="btn coral" data-act="openchallenge" style="white-space:nowrap;align-self:center">Open challenge</button></div></div>';
+}
 function viewConf(){
   /* only conferences we hold a lead list for (Max, 2026-08-10) — the rest of the calendar stays in CONF_SCHEDULE but doesn't render */
   var list=confSchedule().filter(function(c){return !!confLeadsFor(c.name);});
-  if(!list.length)return '<div class="empty">No conferences with lead lists yet — import a show\'s lead list and it will appear here.</div>';
+  if(!list.length)return challengeCard()+'<div class="empty">No conferences with lead lists yet — import a show\'s lead list and it will appear here.</div>';
   var today=todayStr();
   var up=list.filter(function(c){return (c.start||"")>=today;});
   var past=list.filter(function(c){return (c.start||"")<today;});
   var last=past.length?past[past.length-1].name:"";
-  var h='';
+  var h=challengeCard();
   h+='<div class="sectlabel">Upcoming · '+up.length+'</div>';
   h+= up.length? up.map(function(c){return confCard(c,false,last);}).join("") : '<div class="empty">No upcoming conferences.</div>';
   if(past.length){h+='<div class="sectlabel" style="margin-top:20px">Past · '+past.length+'</div>';
@@ -4475,6 +4484,7 @@ document.addEventListener("click",e=>{
   if(a==="savePerson"){savePerson();return;}
   if(a==="logacct"){formLogAcct(id);return;}
   if(a==="saveLogAcct"){saveLogAcct();return;}
+  if(a==="openchallenge"){openChallenge();return;}
   if(a==="confleads"){pushNav();curConf=t.dataset.conf;leadFilter="tocall";listQ="";view="confleads";render();window.scrollTo(0,0);return;}
   if(a==="leadfilter"){leadFilter=t.dataset.v;render();return;}
   if(a==="leadopen"){formLead(id);return;}
