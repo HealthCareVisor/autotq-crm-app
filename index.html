@@ -1504,11 +1504,44 @@ function demoEngageList(){
     return true;
   }).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
 }
+function splitHolder(d){
+  const CO_HINT=/\b(inc|llc|corp|co|company|supply|supplies|safety|medical|products?|solutions?|group|international|industries|industrial|rescue|health|first\s*aid|welding|equipment|enterprises|services|distributing|distribution)\b/i;
+  const RANK=/^(msgt|ssgt|tsgt|sgt|capt|cpt|lt|col|maj|cpl|pvt|chief|officer|dep|dr|mr|mrs|ms)\.?$/i;
+  const ncx=x=>String(x||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+  const isKnownCo=seg=>{const k=ncx(seg);if(k.length<4)return false;
+    return DB.companies.some(c=>{const ck=ncx(c.name);return ck===k||(k.length>=6&&ck.length>=6&&(ck.startsWith(k)||k.startsWith(ck)));});};
+  const looksPerson=seg=>{
+    let ws=seg.trim().split(/\s+/);
+    if(ws.length&&RANK.test(ws[0]))ws=ws.slice(1);
+    if(ws.length<2||ws.length>3)return false;
+    return ws.every(w=>/^[A-Za-z][A-Za-z.'-]*$/.test(w))&&!CO_HINT.test(seg)&&!/\d/.test(seg);
+  };
+  const segs=String(d.holder||"").split(/\s*[;|,\/]\s*|\s+[—–]\s+/).map(x=>x.trim()).filter(Boolean);
+  let person="",comp="";
+  for(const seg of segs){
+    if(!person&&looksPerson(seg)){person=seg;continue;}
+    // merged "CompanyName First Last" — try the split BEFORE whole-segment company classification
+    if(!person){
+      const ws=seg.split(/\s+/);
+      let hit=false;
+      for(let k=1;k<=ws.length-2;k++){
+        const head=ws.slice(0,k).join(" "),tail=ws.slice(k).join(" ");
+        if((isKnownCo(head)||CO_HINT.test(head)||/\d/.test(head))&&looksPerson(tail)&&!isKnownCo(tail)){comp=comp||head;person=tail;hit=true;break;}
+      }
+      if(hit)continue;
+    }
+    if(!comp&&(isKnownCo(seg)||CO_HINT.test(seg)||/\d/.test(seg))){comp=seg;continue;}
+    if(!person&&!comp)comp=seg;
+  }
+  if(!comp&&d.company&&ncx(d.company)!==ncx(d.holder))comp=d.company;
+  return {person:person,company:comp};
+}
 function demoPerson(d){
   const nn=x=>String(x||"").toLowerCase().replace(/[^a-z]/g,"");
   if(d.email){const p=DB.people.find(p=>(p.email||"").toLowerCase()===d.email.toLowerCase());if(p)return p;}
   const h=String(d.holder||"");
-  const cand=[h].concat(h.split(/[;|,\/]+/)).map(x=>x.trim()).filter(x=>x.split(/\s+/).length>=2);
+  const parsed=splitHolder(d);
+  const cand=[parsed.person,h].concat(h.split(/[;|,\/]+/)).map(x=>x&&x.trim()).filter(x=>x&&x.split(/\s+/).length>=2);
   for(const c of cand){const k=nn(c);if(!k)continue;
     const p=DB.people.find(p=>nn(p.name)===k);if(p)return p;}
   for(const c of cand){const k=nn(c);if(k.length<6)continue;
@@ -1520,8 +1553,9 @@ function demoEngageHTML(){
   const graded=list.filter(d=>d.engage),ungraded=list.filter(d=>!d.engage);
   const row=d=>{
     const pr=demoPerson(d);
-    const nm=pr?pr.name:d.holder;
-    const co=pr?(((company(pr.cid)||{}).name)||pr.branch||d.company||""):(d.company||"");
+    const parsed=splitHolder(d);
+    const nm=pr?pr.name:(parsed.person||parsed.company||d.holder);
+    const co=pr?(((company(pr.cid)||{}).name)||pr.branch||parsed.company||""):(parsed.company&&parsed.person?parsed.company:(parsed.company?"":(d.company&&d.company!==d.holder?d.company:"")));
     const role=pr?(pr.role||""):"";
     const phone=pr?(pr.phone||""):"";
     const email=(pr&&pr.email)?pr.email:(d.email||"");
