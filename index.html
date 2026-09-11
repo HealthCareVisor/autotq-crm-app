@@ -1493,6 +1493,36 @@ function mapPin(x,y,n,sel,st){
   return '<path d="'+d+'" fill="'+col+'" stroke="#fff" stroke-width="1.5" data-act="mapstate" data-st="'+st+'" style="cursor:pointer"/>'+
     '<text x="'+x+'" y="'+(hy+4).toFixed(1)+'" text-anchor="middle" font-size="'+(n>=10?11:12)+'" font-weight="700" fill="#fff" data-act="mapstate" data-st="'+st+'" style="cursor:pointer;pointer-events:none">'+n+'</text>';
 }
+const ENGAGE_GRADES=[["engaged","Engaged","ok"],["warm","Warm","warn"],["cold","Cold","info"],["none","No response","dang"]];
+function demoEngageList(){
+  const team=TEAM.map(t=>t.name.toLowerCase());
+  return (DB.demos||[]).filter(d=>{
+    const co=(d.company||"").toLowerCase(),ho=(d.holder||"").toLowerCase(),em=(d.email||"").toLowerCase();
+    if(/golden hour/.test(co)||/golden hour/.test(ho))return false;
+    if(em.endsWith("@goldenhourmedical.com"))return false;
+    if(team.includes(ho))return false;
+    return true;
+  }).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+}
+function demoEngageHTML(){
+  const list=demoEngageList();
+  const graded=list.filter(d=>d.engage),ungraded=list.filter(d=>!d.engage);
+  const row=d=>{
+    const pr=d.email?DB.people.find(p=>(p.email||"").toLowerCase()===d.email.toLowerCase()):null;
+    return '<div class="card" style="padding:11px 14px;margin-bottom:8px"><div class="row" style="align-items:flex-start">'+
+    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px">'+(pr?'<a href="#" data-act="personpeek" data-id="'+pr.id+'" style="color:inherit">'+esc(d.holder)+'</a>':esc(d.holder))+'</p>'+
+    '<p class="t2">'+esc(d.company||"—")+(d.state?' · '+esc(d.state):'')+(d.date?' · received '+esc(d.date):'')+'</p>'+
+    (d.engageBy?'<p class="t2" style="font-size:11.5px">graded by '+esc(shortName(d.engageBy))+' · '+esc(String(d.engageAt||"").slice(0,10))+'</p>':'')+'</div>'+
+    '<div style="flex:none;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:270px">'+
+     ENGAGE_GRADES.map(g=>'<span class="qchip'+(d.engage===g[0]?" on":"")+'" data-act="demograde" data-id="'+d.id+'" data-v="'+g[0]+'">'+g[1]+'</span>').join("")+
+    '</div></div></div>';};
+  let h='<div class="lvhead" style="margin:4px 0 8px"><div class="sectlabel" style="margin:0">Demo engagement — '+list.length+' holders'+(graded.length?' · '+graded.length+' graded':'')+'</div>'+
+   '<div class="qa-types" style="margin-left:auto">'+ENGAGE_GRADES.map(g=>{const n=graded.filter(d=>d.engage===g[0]).length;return n?'<span class="pill '+g[2]+'">'+g[1]+' '+n+'</span>':'';}).join("")+'</div></div>';
+  if(ungraded.length)h+='<div class="sectlabel">Not graded yet — '+ungraded.length+'</div>'+ungraded.map(row).join("");
+  ENGAGE_GRADES.forEach(g=>{const rs=graded.filter(d=>d.engage===g[0]);
+    if(rs.length)h+='<div class="sectlabel">'+g[1]+' — '+rs.length+'</div>'+rs.map(row).join("");});
+  return h;
+}
 function viewMap(){
   var byState={};
   if(mapMode==="reps"){
@@ -1515,10 +1545,11 @@ function viewMap(){
   }
   var nst=Object.keys(byState).length;
   var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:400px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Field reps</button><button class="'+(mapMode==="training"?"on":"")+'" data-act="mapmode" data-v="training">Trained</button></div>'+
-   (mapMode==="demos"?'<div class="seg" style="max-width:170px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button></div>':'')+
+   (mapMode==="demos"?'<div class="seg" style="max-width:270px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button><button class="'+(demoView==="engage"?"on":"")+'" data-act="demoview" data-v="engage">Engagement</button></div>':'')+
    (mapMode==="reps"?'<button class="btn sm'+(mapSellers?' coral':'')+'" data-act="mapsellers" style="margin:0">'+(mapSellers?"✓ ":"")+'Grainger sellers</button>':'')+
    '<button class="travel" style="width:auto;flex:none;margin:0;padding:10px 14px" data-act="travel">'+svg("plane")+'Traveling soon?</button></div>';
   if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+(DB.demos||[]).length+'</div>'+demoListHTML();}
+  if(mapMode==="demos"&&demoView==="engage"){return h+demoEngageHTML();}
   var total=Object.values(byState).reduce(function(s,a){return s+a.length;},0);
   h+='<div class="sectlabel">'+(mapMode==="reps"?('Field reps (distributor + man-rep) — '+total+' across '+nst+' states · tap a state to see who\'s there')
     :mapMode==="training"?('Reps trained — '+total+' across '+nst+' states · tap a state to see who')
@@ -4380,6 +4411,10 @@ document.addEventListener("click",e=>{
   if(a==="acctfilter"){acctFilter=t.dataset.v;listQ="";render();return;}
   if(a==="contactfilter"){contactFilter=t.dataset.v;listQ="";contactStateF="";render();return;}
   if(a==="demoview"){demoView=t.dataset.v;render();return;}
+  if(a==="demograde"){const d=(DB.demos||[]).find(x=>x.id===t.dataset.id);
+    if(d){if(d.engage===t.dataset.v){d.engage=null;d.engageBy=null;d.engageAt=null;}
+      else{d.engage=t.dataset.v;d.engageBy=USER;d.engageAt=new Date().toISOString();}
+      save();render();}return;}
   if(a==="assignone"){const v=t.dataset.v,sel=logState.taskAssign||[];logState.taskAssign=sel.includes(v)?sel.filter(x=>x!==v):sel.concat([v]);document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
   if(a==="assignall"){const others=TEAM.filter(x=>x.id!==USER).map(x=>x.id);const sel=logState.taskAssign||[];logState.taskAssign=sel.length>=others.length?[]:others;document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
   if(a==="settask"){logState.taskType=t.dataset.v;document.querySelectorAll("#taskTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
