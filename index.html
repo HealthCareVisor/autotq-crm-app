@@ -564,6 +564,7 @@ const SVG={
  users:'<circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 3-5 6-5s6 1.7 6 5"/><path d="M16 5.5a3 3 0 010 5.6"/><path d="M21 20c0-2.6-1.6-4.2-3.5-4.7"/>',
  chart:'<line x1="4" y1="20" x2="20" y2="20"/><rect x="5" y="11" width="3" height="7"/><rect x="10.5" y="5" width="3" height="13"/><rect x="16" y="14" width="3" height="4"/>',
  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+ camera:'<path d="M4 8h3.5l1.5-2.5h6L16.5 8H20v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>',
  ware:'<path d="M4 9l8-4 8 4v11H4z"/><rect x="9" y="13" width="6" height="7"/>',
  build:'<rect x="5" y="4" width="14" height="16"/><line x1="9" y1="8" x2="9" y2="8.01"/><line x1="15" y1="8" x2="15" y2="8.01"/><line x1="9" y1="12" x2="9" y2="12.01"/><line x1="15" y1="12" x2="15" y2="12.01"/>',
  user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/>',
@@ -1242,12 +1243,14 @@ function viewPerson(id){
    '<div class="facts" style="margin-top:14px">'+
    '<div><b>Email</b><span>'+(p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--info-t)">'+esc(p.email)+'</a>':"—")+'</span></div>'+
    '<div><b>Phone</b><span>'+(p.phone?'<a href="tel:'+esc(p.phone.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.phone)+'</a>':"—")+'</span></div>'+
+   (p.mobile?'<div><b>Mobile</b><span><a href="tel:'+esc(p.mobile.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.mobile)+'</a></span></div>':'')+
    '<div><b>Location</b><span>'+esc([p.city,personStates(p)[0]].filter(Boolean).join(", ")||"—")+'</span></div>'+
    '<div><b>Mailing address</b><span>'+esc(p.address||"—")+'</span></div>'+
    '<div><b>Territory</b><span>'+(personStates(p).length?esc(personStates(p).join(", ")):"—")+'</span></div>'+
    '<div><b>Last contact</b><span>'+ago(p.last)+'</span></div><div><b>Units (YTD)</b><span>'+(p.units||0)+'</span></div></div>'+
    (p.note?'<p class="t2" style="white-space:normal;margin-top:10px">'+esc(p.note)+'</p>':'')+
    '<button class="btn sm" data-act="coverage" data-id="'+p.id+'" style="margin-top:12px">'+svg("pin")+' Edit coverage states</button>'+
+   (p.cardPath?' <button class="btn sm" data-act="cardview" data-id="'+p.id+'" style="margin-top:12px">'+svg("camera")+' Business card</button>':'')+
    (isTop(p)?' <span class="pill coral" style="margin-left:8px">'+svg("flame")+' Top seller</span>':'')+'</div>';
   const trainings=acts.filter(a=>a.type==="training");
   if(trainings.length){
@@ -2784,7 +2787,7 @@ function viewInsights(){
 
 /* ---------- ADD ---------- */
 function addHub(){
-  const items=[["opportunity","chart","Opportunity"],["distributor","ware","Distributor"],["enduser","build","End-user"],["rep","user","Rep / contact"],["training","school","Training"],["demo","box","Demo unit"],["call","phone","Call / note"]];
+  const items=[["card","camera","Business card"],["opportunity","chart","Opportunity"],["distributor","ware","Distributor"],["enduser","build","End-user"],["rep","user","Rep / contact"],["training","school","Training"],["demo","box","Demo unit"],["call","phone","Call / note"]];
   openSheet('<h2>Add to CRM</h2><div style="height:8px"></div>'+items.map(i=>'<button class="hub" data-act="form" data-form="'+i[0]+'">'+svg(i[1])+'<b>'+i[2]+'</b></button>').join(""));
 }
 function formLogAcct(cid){
@@ -2989,6 +2992,102 @@ function saveRep(){const name=document.getElementById("rName").value.trim();
   if(!name||!cid){toast(name?"Pick the company from the suggestions":"Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
   DB.people.unshift({id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null});
   save();closeSheet();view="contacts";render();toast(name+" added");}
+/* ---------- BUSINESS CARD: photo → details pulled off the card → note + date (Max, 2026-09-17) ----------
+   The photo is downscaled in the browser, read by the `card-scan` edge function (Claude vision; the API
+   key lives in Supabase), and kept in the shared `resources` bucket under cards/. If the scan can't run
+   the form still works — the rep types the details and the photo is saved with the contact. */
+const BC_FIELDS=[["bcName","name"],["bcTitle","title"],["bcCoQ","company"],["bcEmail","email"],["bcPhone","phone"],["bcMobile","mobile"],["bcCity","city"],["bcState","state"]];
+function formCard(){
+  logState.bc={blob:null,cid:null,kind:"enduser",card:null};
+  openSheet('<h2>Business card</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">Snap the card — the details fill themselves in. Then add your note.</p>'+
+   '<label class="btn coral block" for="bcFile" style="cursor:pointer">'+svg("camera")+' Take or upload a photo</label>'+
+   '<input type="file" id="bcFile" accept="image/*" style="display:none"><div id="bcPrev"></div>'+
+   '<label class="fl">Name</label><input class="f" id="bcName" placeholder="Full name" autocomplete="off">'+
+   '<label class="fl">Title</label><input class="f" id="bcTitle" placeholder="e.g. Safety Manager" autocomplete="off">'+
+   '<label class="fl">Company</label>'+comboField("bcCoQ","Type the company — matches your accounts","")+
+   '<div id="bcKindWrap" style="display:none"><label class="fl">New to the CRM — add it as</label><div class="chips" id="bcKind">'+
+    [["enduser","End-user"],["distributor","Distributor"]].map(k=>'<span class="chip'+(k[0]==="enduser"?" on":"")+'" data-act="bcKind" data-v="'+k[0]+'">'+k[1]+'</span>').join("")+'</div></div>'+
+   '<label class="fl">Email</label><input class="f" id="bcEmail" type="email" autocomplete="off">'+
+   '<div style="display:flex;gap:10px"><div style="flex:1"><label class="fl">Phone</label><input class="f" id="bcPhone" autocomplete="off"></div>'+
+    '<div style="flex:1"><label class="fl">Mobile</label><input class="f" id="bcMobile" autocomplete="off"></div></div>'+
+   '<div style="display:flex;gap:10px"><div style="flex:2"><label class="fl">City</label><input class="f" id="bcCity" autocomplete="off"></div>'+
+    '<div style="flex:1"><label class="fl">State</label><input class="f" id="bcState" maxlength="2" placeholder="FL" autocomplete="off"></div></div>'+
+   '<label class="fl">Date you met</label><input class="f" id="bcDate" type="date" value="'+todayStr()+'">'+
+   '<label class="fl">Note</label><textarea class="f" id="bcNote" rows="3" placeholder="What did you do, and how did the meeting go?"></textarea>'+
+   '<button class="btn coral block" data-act="saveCard" style="margin-top:18px">Save contact + note</button>');
+}
+function bcStatus(html){const el=document.getElementById("bcPrev");if(el)el.innerHTML=html;}
+function bcThumb(msg){const b=logState.bc;if(!b||!b.thumb)return "";
+  return '<div class="row" style="margin-top:12px;gap:12px"><img src="'+b.thumb+'" alt="Business card" style="width:112px;height:70px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">'+
+   '<div class="grow t2" style="white-space:normal">'+msg+'</div></div>';}
+/* downscale to ≤1600px JPEG — phone photos are 4–12 MB, the card reads fine at ~300 KB */
+function bcShrink(file){return new Promise((res,rej)=>{
+  const url=URL.createObjectURL(file),img=new Image();
+  img.onload=()=>{const k=Math.min(1,1600/Math.max(img.width,img.height));
+    const cv=document.createElement("canvas");cv.width=Math.round(img.width*k);cv.height=Math.round(img.height*k);
+    cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(url);
+    cv.toBlob(b=>b?res({blob:b,dataUrl:cv.toDataURL("image/jpeg",.85)}):rej(new Error("encode")),"image/jpeg",.85);};
+  img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error("decode"));};
+  img.src=url;});}
+function bcMatchCompany(name){const q=String(name||"").trim().toLowerCase();if(!q)return null;
+  const strip=s=>shortAcct(s).toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  return DB.companies.find(c=>(c.name||"").toLowerCase()===q)||DB.companies.find(c=>strip(c.name)===strip(q))||null;}
+function bcSyncCompany(){const b=logState.bc;if(!b)return;const w=document.getElementById("bcKindWrap");
+  if(w)w.style.display=(!b.cid&&val("bcCoQ"))?"block":"none";}
+async function bcHandleFile(file){
+  const b=logState.bc;if(!b||!file)return;
+  let shr;try{shr=await bcShrink(file);}catch(e){toast("Couldn't open that photo — try another");return;}
+  b.blob=shr.blob;b.thumb=shr.dataUrl;
+  bcStatus(bcThumb('<span class="spinwheel" style="display:inline-block;width:16px;height:16px;border-width:2px;margin:0 8px -3px 0"></span>Reading the card…'));
+  let card=null,why="";
+  try{
+    const r=await supa("/functions/v1/card-scan",{method:"POST",body:JSON.stringify({image:shr.dataUrl.split(",")[1],mime:"image/jpeg"})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.card)card=j.card;else why=j.error||("HTTP "+r.status);
+  }catch(e){why="offline";}
+  if(logState.bc!==b)return; // sheet closed or reopened while reading
+  if(!card){console.warn("card-scan:",why);bcStatus(bcThumb("Couldn't read the card automatically — type the details below. The photo is still saved with the contact."));return;}
+  b.card=card;let n=0;
+  BC_FIELDS.forEach(f=>{const el=document.getElementById(f[0]);let v=String(card[f[1]]||"").trim();
+    if(f[1]==="state")v=v.toUpperCase().slice(0,2);if(f[1]==="email")v=v.toLowerCase();
+    if(el&&v&&!el.value.trim()){el.value=v;n++;}});
+  const hit=bcMatchCompany(val("bcCoQ"));
+  if(hit){b.cid=hit.id;document.getElementById("bcCoQ").value=hit.name;}
+  bcSyncCompany();
+  bcStatus(bcThumb(n?'<b style="color:var(--ok-t)">'+svg("check")+' Pulled '+n+' detail'+(n>1?"s":"")+' off the card.</b> Give it a quick look'+(hit?" — matched to your account "+esc(hit.name):"")+', then add your note.':"Couldn't find any text on that photo — try a closer, sharper shot or type the details."));
+  const note=document.getElementById("bcNote");if(note&&n)note.focus();
+}
+function saveCard(){
+  const b=logState.bc;if(!b)return;
+  const name=val("bcName");if(!name){toast("Add the person's name");return;}
+  const coTxt=val("bcCoQ"),city=val("bcCity"),st=val("bcState").toUpperCase().slice(0,2),email=val("bcEmail").toLowerCase();
+  const phone=val("bcPhone")||val("bcMobile"),mobile=val("bcPhone")?val("bcMobile"):"",title=val("bcTitle");
+  const card=b.card||{};
+  let c=b.cid?company(b.cid):bcMatchCompany(coTxt),newCo=false;
+  if(!c&&coTxt){c={id:uid(),name:coTxt,type:b.kind,city:city,state:st,website:card.website?"https://"+String(card.website).replace(/^https?:\/\//i,""):"",owner:USER,source:"Business card"};
+    if(b.kind==="distributor"){c.territory=regionFromState(st);c.dstatus="potential";}
+    DB.companies.unshift(c);newCo=true;}
+  const addr=[card.street,[city||card.city,[st||String(card.state||"").toUpperCase(),card.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(", ");
+  let p=(email&&DB.people.find(x=>(x.email||"").toLowerCase()===email))||DB.people.find(x=>(x.name||"").toLowerCase()===name.toLowerCase()&&(c?x.cid===c.id:!x.cid)),isNew=!p;
+  if(isNew){p={id:uid(),name:name,cid:c?c.id:null,branch:c?c.name+(city?" — "+city:""):"",role:title||"Contact",email:email,phone:phone,city:city,state:st,units:0,pos:0,last:null,source:"Business card"};
+    if(mobile)p.mobile=mobile;if(card.street&&addr)p.address=addr;DB.people.unshift(p);}
+  else{ // already in the CRM — only fill what's blank
+    [["role",title],["email",email],["phone",phone],["mobile",mobile],["city",city],["state",st],["address",card.street?addr:""]].forEach(f=>{if(f[1]&&!p[f[0]])p[f[0]]=f[1];});
+    if(!p.cid&&c){p.cid=c.id;if(!p.branch)p.branch=c.name+(city?" — "+city:"");}}
+  const d=val("bcDate")||todayStr(),when=d===todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
+  DB.activities.unshift({id:uid(),type:"meeting",pid:p.id,cid:p.cid||null,note:val("bcNote")||"Met — business card collected",date:when,by:USER});
+  if(!p.last||new Date(when)>new Date(p.last))p.last=when;
+  save();closeSheet();pushNav();curPerson=p.id;view="person";render();window.scrollTo(0,0);
+  toast(name+(isNew?" added":" updated")+(newCo?" · new account "+c.name:""));
+  if(b.blob){const path="cards/"+p.id+"_"+Date.now()+".jpg",pid=p.id;
+    storUpload(path,b.blob).then(ok=>{const q=person(pid);if(ok&&q){q.cardPath=path;save();if(view==="person"&&curPerson===pid)render();}
+      else if(!ok)toast("Contact saved — the card photo didn't upload (offline?)");}).catch(()=>{});}
+  logState.bc=null;
+}
+async function openCardPhoto(pid){const p=person(pid);if(!p||!p.cardPath)return;
+  toast("Opening…");const bl=await storBlob(p.cardPath);
+  if(!bl){toast("Couldn't fetch the card photo — are you online?");return;}
+  const url=URL.createObjectURL(bl);window.open(url,"_blank");setTimeout(()=>URL.revokeObjectURL(url),60000);}
 /* searchable pickers — type a few letters, tap a match (like the global search) */
 function comboField(id,placeholder,label){return '<div style="position:relative"><input class="f" id="'+id+'" placeholder="'+esc(placeholder)+'" value="'+esc(label||"")+'" autocomplete="off"><div class="sug" id="'+id+'_sug"></div></div>';}
 function sugRender(id,items){const el=document.getElementById(id+"_sug");if(el){el.innerHTML=items.join("");el.style.display=items.length?"block":"none";}}
@@ -3178,6 +3277,7 @@ function personSheetHTML(pid){
   h+='<div class="facts">'+
    '<div><b>Email</b><span>'+(p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--info-t)">'+esc(p.email)+'</a>':"—")+'</span></div>'+
    '<div><b>Phone</b><span>'+(p.phone?'<a href="tel:'+esc(p.phone.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.phone)+'</a>':"—")+'</span></div>'+
+   (p.mobile?'<div><b>Mobile</b><span><a href="tel:'+esc(p.mobile.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.mobile)+'</a></span></div>':'')+
    '<div><b>Location</b><span>'+esc([p.city,personStates(p)[0]].filter(Boolean).join(", ")||"—")+'</span></div>'+
    '<div><b>Territory</b><span>'+(personStates(p).length?esc(personStates(p).join(", ")):"—")+'</span></div>'+
    '<div><b>Last contact</b><span>'+ago(p.last)+'</span></div>'+
@@ -4611,9 +4711,14 @@ document.addEventListener("click",e=>{
   if(a==="restorepick"){formRestore();return;}
   if(a==="restoredo"){doRestore();return;}
   if(a==="addhub"){addHub();return;}
+  if(a==="saveCard"){saveCard();return;}
+  if(a==="bcKind"){if(logState.bc)logState.bc.kind=t.dataset.v;document.querySelectorAll("#bcKind .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="pickBcCo"){const c=company(t.dataset.id);if(c&&logState.bc){logState.bc.cid=c.id;const i=document.getElementById("bcCoQ");if(i)i.value=c.name;sugRender("bcCoQ",[]);bcSyncCompany();}return;}
+  if(a==="cardview"){openCardPhoto(id);return;}
   if(a==="travel"){formTravel();return;}
   if(a==="form"){const f=t.dataset.form;
     if(f==="opportunity")formOpp(null);
+    else if(f==="card")formCard();
     else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
   if(a==="person"){pushNav();curPerson=id;view="person";render();window.scrollTo(0,0);return;}
@@ -4746,6 +4851,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="gsFile"){if(e.target.files&&e.target.files[0])importSellers(e.target.files[0]);return;}
   if(e.target.id==="logWho2"){logState.logPid=null;sugRender("logWho2",peopleSugItems(e.target.value,"pickLogWho"));return;}
   if(e.target.id==="oCidQ"){logState.oppCid=null;sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct"));return;}
+  if(e.target.id==="bcFile"){bcHandleFile(e.target.files&&e.target.files[0]);return;}
+  if(e.target.id==="bcCoQ"){if(logState.bc)logState.bc.cid=null;sugRender("bcCoQ",acctSugItems(e.target.value,"pickBcCo"));bcSyncCompany();return;}
   if(e.target.id==="rCidQ"){logState.repCid=null;sugRender("rCidQ",acctSugItems(e.target.value,"pickRepCo",["distributor","manrep","partner"]));return;}
   if(e.target.id==="oDistQ"){logState.oppDistCid=null;sugRender("oDistQ",acctSugItems(e.target.value,"pickOppDist",["distributor"]));return;}
   if(e.target.id==="oDistRepQ"){logState.oppDistRepPid=null;sugRender("oDistRepQ",peopleSugItemsF(e.target.value,"pickOppDistRep",logState.oppDistCid?(p=>p.cid===logState.oppDistCid):(p=>contactType(p)==="distrep")));return;}
