@@ -3510,8 +3510,9 @@ let invFilter="queue";
 const INV_STATUS={queue:["Needs invoice","var(--warn-t,#a15c00)","rgba(255,180,0,.14)"],loaner:["Loaner — demo out","#3b6fb5","rgba(60,110,180,.12)"],invoiced:["Invoiced","var(--ok-t)","rgba(0,160,90,.12)"],paid:["Paid","var(--ok-t)","rgba(0,160,90,.12)"],supplier:["Supplier PO","var(--hint)","rgba(120,120,120,.12)"]};
 function invChip(st){const c=INV_STATUS[st]||INV_STATUS.queue;return '<span class="pill" style="color:'+c[1]+';background:'+c[2]+';font-weight:600;white-space:nowrap">'+c[0]+'</span>';}
 /* AP/billing emails seen on POs — a per-order billEmail (editable) overrides this seed */
-const BILL_TO={"UniFirst":"apfirstaid@unifirst.com"};
-function billToFor(o){if(o&&o.billEmail)return o.billEmail;const a=String((o&&o.account)||"").toLowerCase();const k=Object.keys(BILL_TO).find(n=>a.includes(n.toLowerCase()));return k?BILL_TO[k]:"";}
+const BILL_TO={"UniFirst":"apfirstaid@unifirst.com","Industrial Supply":"ap@indsupply.com"};
+const BILL_TO_NOT={"Industrial Supply":/\bmsc\b/i}; // MSC Industrial Supply Co. is a different company
+function billToFor(o){if(o&&o.billEmail)return o.billEmail;const a=String((o&&o.account)||"").toLowerCase();const k=Object.keys(BILL_TO).find(n=>a.includes(n.toLowerCase())&&!(BILL_TO_NOT[n]&&BILL_TO_NOT[n].test(a)));return k?BILL_TO[k]:"";}
 /* Grainger + Fastenal invoice through the SPS Commerce portal (Max, 2026-09-03); everyone else email */
 const INV_PORTAL={"Grainger":"SPS Commerce","Fastenal":"SPS Commerce"};
 function invPortalFor(o){const a=String((o&&o.account)||"").toLowerCase();const k=Object.keys(INV_PORTAL).find(n=>a.includes(n.toLowerCase()));return k?INV_PORTAL[k]:"";}
