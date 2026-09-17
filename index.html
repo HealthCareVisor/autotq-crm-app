@@ -3685,7 +3685,7 @@ function invoiceHTML(o){
   '<div class="sheet">'+
    '<div class="top"><div><h1 class="title">INVOICE</h1>'+
     '<div class="company" contenteditable>Golden Hour Medical, Inc.</div>'+
-    '<div class="addr" contenteditable>6590 W Rogers Cir Ste 4, Boca Raton, FL 33487-2739<br><span class="lnk">billing@goldenhourmedical.com</span><br><span class="lnk">+1 (561) 866-9697</span></div>'+
+    '<div class="addr" contenteditable>6590 W Rogers Cir Ste 5, Boca Raton, FL 33487-2739<br><span class="lnk">billing@goldenhourmedical.com</span><br><span class="lnk">+1 (561) 866-9697</span></div>'+
    '</div><div class="brand">AutoTQ</div></div>'+
    '<div class="info">'+
     '<div class="cell"><h3>BILL TO</h3><p contenteditable>'+esc(o.account||"")+'<br>'+(cityLine?esc(cityLine)+'<br>':'')+'Street address…</p></div>'+
@@ -4097,7 +4097,7 @@ function packingSlipHTML(s){
   '<div class="page"><div class="topbar"></div>'+
   '<div class="crest"><div class="rule"></div><img src="'+assetUrl("ring.png")+'" alt=""><div class="rule"></div></div>'+
   '<div class="head"><div class="co"><b contenteditable>Golden Hour Medical, Inc.</b>'+
-   '<p contenteditable>6590 W Rogers Cir Ste 4, Boca Raton, FL 33487<br><span class="em">salessupport@goldenhourmedical.com</span> · +1 (561) 866-9697</p></div>'+
+   '<p contenteditable>6590 W Rogers Cir Ste 5, Boca Raton, FL 33487<br><span class="em">salessupport@goldenhourmedical.com</span> · +1 (561) 866-9697</p></div>'+
    '<div class="inv"><div class="word">PACKING SLIP</div><div class="no" contenteditable>PO '+esc(s.poNo||o.poNo||"—")+'</div><div class="pill" contenteditable>'+pill+'</div></div></div>'+
   '<div class="cards">'+
    '<div class="card"><h4>BILL TO</h4><p contenteditable>'+(bill.length?'<b>'+esc(bill[0])+'</b>'+(bill.length>1?'<br>'+bill.slice(1).map(esc).join("<br>"):''):'—')+'</p></div>'+
@@ -4117,7 +4117,7 @@ function packingSlipHTML(s){
   '<img class="watermark" src="'+assetUrl("ring.png")+'" alt="">'+
   '<div class="foot"><div class="rule"></div><div class="frow"><img src="'+assetUrl("lockup.png")+'" alt="AutoTQ">'+
    '<p contenteditable><b>CONTACT FOR ANY QUESTIONS</b><br>'+esc(SLIP_CONTACT.name)+' · '+esc(SLIP_CONTACT.email)+' · '+esc(SLIP_CONTACT.phone)+'</p></div>'+
-   '<div class="legal">'+(o.fname?'Source: '+esc(o.fname)+' · ':'')+'Golden Hour Medical, Inc. · 6590 W Rogers Cir Ste 4, Boca Raton, FL 33487 · theautotq.com</div></div>'+
+   '<div class="legal">'+(o.fname?'Source: '+esc(o.fname)+' · ':'')+'Golden Hour Medical, Inc. · 6590 W Rogers Cir Ste 5, Boca Raton, FL 33487 · theautotq.com</div></div>'+
   '</div></body></html>';
 }
 /* ---------- Order confirmation — "We've received your order", from Sales Support to the PO's point of contact ---------- */
