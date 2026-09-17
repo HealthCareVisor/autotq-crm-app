@@ -3128,9 +3128,18 @@ function formLog(prefillPid,prefillType){
   const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
   logState.logType=prefillType||"call";logState.outcome="Interested";
   logState.logPid=prefillPid||null;
+  logState.logNew=false;logState.logNewCid=null;logState.logNewKind="enduser";
   openSheet('<h2>Log activity</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.logType?' on':'')+'" data-act="setType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
    '<label class="fl">With</label>'+comboField("logWho2","Type a name — rep, contact, anyone…",personLabel(person(prefillPid)))+
+   /* not in the CRM yet? add them right here instead of backing out (Max, 2026-09-17) */
+   '<div id="logNewWrap" style="display:none;margin-top:10px;padding:12px 14px 14px;border:1px dashed var(--line);border-radius:14px;background:rgba(255,255,255,.55)">'+
+    '<p class="t2" style="white-space:normal;margin:0 0 2px"><b id="logNewName" style="color:var(--ink,#1c1c1c)"></b> isn\'t in the CRM yet — saving adds them as a contact. Fill in what you know:</p>'+
+    '<label class="fl">Company</label>'+comboField("logNewCoQ","Type the company — matches your accounts","")+
+    '<div id="logNewKindWrap" style="display:none"><label class="fl">New company — add it as</label><div class="chips" id="logNewKind">'+
+     [["enduser","End-user"],["distributor","Distributor"]].map(k=>'<span class="chip'+(k[0]==="enduser"?" on":"")+'" data-act="logNewKind" data-v="'+k[0]+'">'+k[1]+'</span>').join("")+'</div></div>'+
+    '<div style="display:flex;gap:10px"><div style="flex:1"><label class="fl">Email</label><input class="f" id="logNewEmail" type="email" autocomplete="off" placeholder="optional"></div>'+
+     '<div style="flex:1"><label class="fl">Phone</label><input class="f" id="logNewPhone" autocomplete="off" placeholder="optional"></div></div></div>'+
    '<label class="fl">Note</label><textarea class="f" id="logNote" placeholder="One line is plenty…"></textarea>'+
    '<label class="fl">Outcome</label><div class="chips" id="logOut">'+
    ["Interested","Wants quote","Potential opportunity","Not now"].map(o=>'<span class="chip'+(o==="Interested"?" on":"")+'" data-act="setOut" data-v="'+o+'">'+o+'</span>').join("")+'</div>'+
@@ -3139,9 +3148,28 @@ function formLog(prefillPid,prefillType){
    '<button class="btn coral block" data-act="saveLog" style="margin-top:18px">Save</button>'+
    '<p style="text-align:center;color:var(--hint);font-size:13px;margin-top:9px">3 taps. Done.</p>');
 }
+/* "With" quick-add: show/hide the inline new-contact block under the name box */
+function logNewShow(on){logState.logNew=!!on;const w=document.getElementById("logNewWrap");if(!w)return;
+  w.style.display=on?"block":"none";const n=document.getElementById("logNewName");if(n)n.textContent=val("logWho2");
+  if(on)sugRender("logWho2",[]);}
+function logNewSyncCo(){const w=document.getElementById("logNewKindWrap");if(w)w.style.display=(!logState.logNewCid&&val("logNewCoQ")&&!bcMatchCompany(val("logNewCoQ")))?"block":"none";}
+function logNewCreate(){
+  const name=val("logWho2").replace(/\s+—\s+.*$/,"").trim();if(!name)return null;
+  const coTxt=val("logNewCoQ"),email=val("logNewEmail").toLowerCase(),phone=val("logNewPhone");
+  let c=logState.logNewCid?company(logState.logNewCid):bcMatchCompany(coTxt);
+  if(!c&&coTxt){c={id:uid(),name:coTxt,type:logState.logNewKind||"enduser",city:"",state:"",owner:USER,sourcedBy:""};
+    if(c.type==="distributor")c.dstatus="potential";DB.companies.unshift(c);}
+  let p=(email&&DB.people.find(x=>(x.email||"").toLowerCase()===email))||DB.people.find(x=>(x.name||"").toLowerCase()===name.toLowerCase()&&(c?x.cid===c.id:!x.cid));
+  if(p){if(email&&!p.email)p.email=email;if(phone&&!p.phone)p.phone=phone;return p;}
+  p={id:uid(),name:name,cid:c?c.id:null,branch:c?c.name:"",role:"Contact",email:email,phone:phone,city:c?c.city||"":"",state:c?c.state||"":"",units:0,pos:0,last:null};
+  DB.people.unshift(p);return p;
+}
 function saveLog(){
-  const pid=logState.logPid;
-  if(!pid){toast("Who was it with? Type a name and tap a match");return;}
+  let pid=logState.logPid,added=null;
+  if(!pid&&val("logWho2").length>=2){
+    if(!logState.logNew){logNewShow(true);logNewSyncCo();toast("Not in the CRM yet — add what you know, then Save");return;}
+    added=logNewCreate();if(added)pid=added.id;}
+  if(!pid){toast("Who was it with? Type a name");return;}
   const note=document.getElementById("logNote").value.trim()||("("+logState.outcome+")");
   const mention=document.getElementById("logMention").value.trim();
   const p=person(pid);
@@ -3152,7 +3180,7 @@ function saveLog(){
     DB.companies.unshift({id:uid(),name:info.name,type:"enduser",city:info.city,state:info.state,industry:info.industry,website:info.website,owner:USER,sourcedBy:p?p.name:""});
     extra=" · new end-user "+info.name;}
   save();closeSheet();render();
-  toast("Logged"+(p?" — "+p.name.split(" ")[0]:"")+extra);
+  toast("Logged"+(p?" — "+p.name.split(" ")[0]:"")+(added?" · added to Contacts":"")+extra);
 }
 
 /* ---------- TRAVEL ---------- */
@@ -4744,7 +4772,10 @@ document.addEventListener("click",e=>{
   if(a==="rosterbranch"){rosterBranchF=t.dataset.v;render();return;}
   if(a==="logfor"){formLog(id,"call");return;}
   if(a==="quicknote"){formLog(id,"note");return;}
-  if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);}return;}
+  if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);logNewShow(false);}return;}
+  if(a==="logNewWho"){logNewShow(true);logNewSyncCo();const i=document.getElementById("logNewCoQ");if(i)i.focus();return;}
+  if(a==="pickLogNewCo"){const c=company(t.dataset.id);if(c){logState.logNewCid=c.id;const i=document.getElementById("logNewCoQ");if(i)i.value=c.name;sugRender("logNewCoQ",[]);logNewSyncCo();}return;}
+  if(a==="logNewKind"){logState.logNewKind=t.dataset.v;document.querySelectorAll("#logNewKind .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="pickRepCo"){const c=company(t.dataset.id);if(c){logState.repCid=c.id;const i=document.getElementById("rCidQ");if(i)i.value=c.name;sugRender("rCidQ",[]);}return;}
   if(a==="pickOppDist"){const c=company(t.dataset.id);if(c){logState.oppDistCid=c.id;const i=document.getElementById("oDistQ");if(i)i.value=c.name;sugRender("oDistQ",[]);logState.oppDistRepPid=null;const r=document.getElementById("oDistRepQ");if(r)r.value="";}return;}
   if(a==="pickOppDistRep"){const p=person(t.dataset.id);if(p){logState.oppDistRepPid=p.id;const i=document.getElementById("oDistRepQ");if(i)i.value=p.name;sugRender("oDistRepQ",[]);}return;}
@@ -4849,7 +4880,12 @@ document.addEventListener("input",e=>{
   if(e.target.classList&&e.target.classList.contains("cf")){const tb=e.target.dataset.tbl,k=e.target.dataset.key;colFlt[tb]=colFlt[tb]||{};colFlt[tb][k]=e.target.value;render();refocus(e.target.id);}
   if(e.target.id==="campFile"){campHandleFile(e.target.files&&e.target.files[0]);return;}
   if(e.target.id==="gsFile"){if(e.target.files&&e.target.files[0])importSellers(e.target.files[0]);return;}
-  if(e.target.id==="logWho2"){logState.logPid=null;sugRender("logWho2",peopleSugItems(e.target.value,"pickLogWho"));return;}
+  if(e.target.id==="logWho2"){logState.logPid=null;const q=e.target.value.trim(),hits=peopleSugItems(q,"pickLogWho");
+    if(q.length>=3&&!hits.length){logNewShow(true);logNewSyncCo();return;} // nobody by that name — open the quick-add
+    logNewShow(false);
+    if(q.length>=2)hits.push('<button type="button" data-act="logNewWho" style="color:var(--coral);font-weight:600">+ Add "'+esc(q)+'" as a new contact</button>');
+    sugRender("logWho2",hits);return;}
+  if(e.target.id==="logNewCoQ"){logState.logNewCid=null;sugRender("logNewCoQ",acctSugItems(e.target.value,"pickLogNewCo"));logNewSyncCo();return;}
   if(e.target.id==="oCidQ"){logState.oppCid=null;sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct"));return;}
   if(e.target.id==="bcFile"){bcHandleFile(e.target.files&&e.target.files[0]);return;}
   if(e.target.id==="bcCoQ"){if(logState.bc)logState.bc.cid=null;sugRender("bcCoQ",acctSugItems(e.target.value,"pickBcCo"));bcSyncCompany();return;}
