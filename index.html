@@ -1874,18 +1874,15 @@ function challengeCard(){
     '<button class="btn sm coral" data-act="openchallenge" style="margin:10px 0 0 52px">'+svg("clock")+' Open challenge</button></div>';
 }
 function viewConf(){
-  /* upcoming events always show; past ones only when we hold a lead list (Max, 2026-08-10) */
+  /* only conferences we hold a lead list for — no upcoming calendar (Max, 2026-09-17) */
   var today=todayStr();
-  var list=confSchedule().filter(function(c){return (c.start||"")>=today || !!confLeadsFor(c.name);});
-  if(!list.length)return challengeCard()+'<div class="empty">Nothing scheduled.</div>';
-  var up=list.filter(function(c){return (c.start||"")>=today;});
+  var list=confSchedule().filter(function(c){return !!confLeadsFor(c.name);});
+  if(!list.length)return challengeCard()+'<div class="empty">No conference lead lists yet.</div>';
   var past=list.filter(function(c){return (c.start||"")<today;});
   var last=past.length?past[past.length-1].name:"";
   var h=challengeCard();
-  h+='<div class="sectlabel">Upcoming · '+up.length+'</div>';
-  h+= up.length? up.map(function(c){return confCard(c,false,last);}).join("") : '<div class="empty">No upcoming conferences.</div>';
-  if(past.length){h+='<div class="sectlabel" style="margin-top:20px">Past · '+past.length+'</div>';
-    h+=past.slice().reverse().map(function(c){return confCard(c,true,last);}).join("");}
+  h+='<div class="sectlabel">Conferences with leads · '+list.length+'</div>';
+  h+=list.slice().reverse().map(function(c){return confCard(c,(c.start||"")<today,last);}).join("");
   return h;
 }
 
