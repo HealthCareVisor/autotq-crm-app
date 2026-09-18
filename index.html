@@ -345,7 +345,7 @@ const KEY="autotq_crm_v16", UKEY="autotq_crm_user", HKEY="autotq_crm_onboarded";
 const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
-const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa"};
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
 const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
@@ -484,11 +484,12 @@ function ownerTag(o){return admin()&&o?" · "+teamById(o).name.split(" ")[0]:"";
 
 const TEAM=[
  {id:"max",name:"Max Herbst",role:"Strategic Account Manager",c:"#D85A30"},
- {id:"john",name:"John Cornejo",role:"Channel Sales Manager",c:"#185FA5"},
+ {id:"john",name:"John Cornejo",role:"Channel Sales — Central",c:"#185FA5"},
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
  {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
  {id:"kellan",name:"Kellan",role:"Admin",c:"#6B4FA3"},
  {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
+ {id:"tim",name:"Tim Ford",role:"Channel Sales — West",c:"#B7791F"},
  {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}
 ];
 const ENRICH={
@@ -990,9 +991,11 @@ function canEditOpp(o){if(admin())return true;if(!o||!o.owner)return true;return
 function oppOwnerName(o){return o&&o.owner?teamById(o.owner).name.split(" ")[0]:"";}
 /* rep landing: reps open on their own pipeline */
 function applyRoleDefaults(){if(USER==="laresa"){view="today";return;}if(userRegion(USER)){view="opps";oppFilter="mine";oppView="list";}}
-/* region model — contacts/accounts are East or West (no person owns a contact); Nationwide = multi-region account */
+/* region model — contacts/accounts are East, Central or West (no person owns a contact); Nationwide = multi-region account.
+   3-territory map per Max 2026-09-18: East → John Morrison, Central → John Cornejo, West → Tim Ford. */
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" ")); // MI → East per Max 2026-08-14 (John Morrison home state)
-function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":"West";}
+const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
+function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":(CENTRAL_STATES.has(st)?"Central":"West");}
 function personStates(p){if(Array.isArray(p.states)&&p.states.length)return p.states;return p.state?[p.state]:[];}
 /* "Who they buy from" — distributor coverage on end-user accounts.
    Entries link to a CRM distributor (cid) or are free text for ones we're not set up with. */
@@ -1035,12 +1038,13 @@ function buysFromCard(c){
 }
 function regionFromStates(arr){if(!arr||!arr.length)return '';const r=new Set(arr.map(regionFromState).filter(Boolean));if(r.size>1)return 'Nationwide';return [...r][0]||'';}
 function personRegion(p){return regionFromStates(personStates(p));}
-function companyRegion(c){return c.territory?c.territory:regionFromState(c.state);}
-function userRegion(u){return u==="john"?"West":(u==="jamie"||u==="johnm"?"East":null);}
+/* stored East/West territories predate the Central split — trust the state; keep Nationwide + free-text ones */
+function companyRegion(c){const t=c.territory||"";if(/^nationwide/i.test(t))return "Nationwide";if(t&&!/^(east|west|central)$/i.test(t))return t;return regionFromState(c.state)||t;}
+function userRegion(u){return u==="tim"?"West":(u==="john"?"Central":(u==="jamie"||u==="johnm"?"East":null));}
 function inRegion(region){return true;} /* all reps see all records — filter by region chips instead */
 function regionMatch(r){return !regionF||r===regionF||r==="Nationwide";}
-function regionSeg(){return '<div class="seg" style="max-width:230px;margin:0">'+[["","All"],["East","East"],["West","West"]].map(x=>'<button class="'+(regionF===x[0]?"on":"")+'" data-act="regionf" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';}
-function regionTag(region){if(!region)return '<span class="muted">—</span>';const cls={East:"info",West:"ok",Nationwide:"coral"}[region]||"gray";return '<span class="pill '+cls+'">'+region+'</span>';}
+function regionSeg(){return '<div class="seg" style="max-width:300px;margin:0">'+[["","All"],["East","East"],["Central","Central"],["West","West"]].map(x=>'<button class="'+(regionF===x[0]?"on":"")+'" data-act="regionf" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';}
+function regionTag(region){if(!region)return '<span class="muted">—</span>';const cls={East:"info",Central:"warn",West:"ok",Nationwide:"coral"}[region]||"gray";return '<span class="pill '+cls+'">'+region+'</span>';}
 
 /* ---------- ACCOUNTS (list view) ---------- */
 function viewAccounts(){
@@ -1820,7 +1824,7 @@ function confSchedule(){
   var st=(window.CONF_SCHEDULE||[]).filter(function(c){return !seen[String(c.name||"").toLowerCase()];});
   return st.concat(db).sort(function(a,b){return String(a.start||"").localeCompare(String(b.start||""));});
 }
-function confGoing(c){if(c.who)return c.who;if(!c.state)return "";var r=regionFromState(c.state);return r==="East"?"Jamie (East)":(r==="West"?"John (West)":"");}
+function confGoing(c){if(c.who)return c.who;if(!c.state)return "";var r=regionFromState(c.state);return r==="East"?"John M. (East)":(r==="Central"?"John C. (Central)":(r==="West"?"Tim (West)":""));}
 function fmtConfDate(c){
   var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
   var ABBR={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Sept:8,Oct:9,Nov:10,Dec:11,
@@ -2731,7 +2735,7 @@ const REPORTS=[
  {id:"conf-leads",name:"Conference Call List",desc:"Every conference lead with call status — printable / exportable",
   run(){return {cols:["Lead","Company","Title","Email","Phone","City","State","Region","Segment","Contacted","Status","Temp","Next step","In CRM"],
    rows:(DB.confLeads||[]).filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region))
-    .map(l=>[l.name,l.company||"",l.title||"",l.email||"",l.phone||"",l.city||"",l.state||"",l.region||"",l.segment||"",l.contacted?"Yes":"No",l.status||"",l.temp||"",l.next||"",l.promoted?"Yes":""])};}}
+    .map(l=>[l.name,l.company||"",l.title||"",l.email||"",l.phone||"",l.city||"",l.state||"",leadRegion(l),l.segment||"",l.contacted?"Yes":"No",l.status||"",l.temp||"",l.next||"",l.promoted?"Yes":""])};}}
 ];
 function viewReports(){
   return '<div class="sectlabel" style="margin-top:2px">'+REPORTS.length+' reports — tap to run, sort by any column, export CSV</div>'+
@@ -3253,7 +3257,7 @@ function helpSheet(){
    ["Leads","The working list between conference lists and the CRM — push promising people here, log every touch (date, method, details), promote when they get real."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
-   '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / West</b> by state — John works West, Jamie works East, Max sees everything.</p>'+
+   '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / Central / West</b> by state — John Morrison works East, John Cornejo works Central, Tim Ford works West, Max sees everything.</p>'+
    rows.map(r=>'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:96px;font-size:13px;padding-top:1px">'+r[0]+'</b><span style="font-size:13px;color:var(--muted)">'+r[1]+'</span></div>').join("")+
    '<button class="btn coral block" data-act="closehelp" style="margin-top:14px">Got it</button>');
 }
@@ -3329,6 +3333,7 @@ function parseListQuery(q){
   const CODES=new Set(Object.values(STATE_NAMES));
   (orig.match(/\b[A-Z]{2}\b/g)||[]).forEach(c=>{if(CODES.has(c)){sts.add(c);txt=txt.replace(new RegExp("\\b"+c.toLowerCase()+"\\b")," ");}});
   if(/\beast\b/.test(txt)){f.region="East";txt=txt.replace(/\beast\b/," ");}
+  else if(/\bcentral\b/.test(txt)){f.region="Central";txt=txt.replace(/\bcentral\b/," ");}
   else if(/\bwest\b/.test(txt)){f.region="West";txt=txt.replace(/\bwest\b/," ");}
   if(/\bset[- ]?up\b|\bstocking\b/.test(txt)){f.dstatus="setup";txt=txt.replace(/\bset[- ]?up\b|\bstocking\b/g," ");}
   else if(/\bpotential\b/.test(txt)){f.dstatus="potential";txt=txt.replace(/\bpotential\b/," ");}
