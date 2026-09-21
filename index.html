@@ -620,8 +620,8 @@ function renderLogin(){
      '<button class="btn block ghost" data-act="setpwskip" style="margin-top:8px">Skip for now</button>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
   }else{
-    h+='<div class="who">Enter the 6-digit code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div>'+
-     '<input class="f" id="otpCode" inputmode="numeric" maxlength="6" placeholder="123456" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:8px;font-weight:700">'+
+    h+='<div class="who">Enter the code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div>'+
+     '<input class="f" id="otpCode" inputmode="numeric" maxlength="12" placeholder="Code" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:6px;font-weight:700">'+
      '<button class="btn coral block" data-act="verifyotp" style="margin-top:14px">Sign in</button>'+
      '<button class="btn block ghost" data-act="otpback" style="margin-top:8px">Back</button>'+
      '<p id="loginMsg" style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:14px"></p>';
@@ -657,8 +657,8 @@ async function sendOtp(email){
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 async function verifyOtp(){
-  const code=(document.getElementById("otpCode").value||"").trim();
-  if(code.length<6){loginMsg("Enter the 6-digit code",true);return;}
+  const code=(document.getElementById("otpCode").value||"").replace(/\D/g,""); // length is a Supabase setting (6–10) — don't hard-code it
+  if(code.length<6){loginMsg("Enter the full code from the email",true);return;}
   loginMsg("Checking…");
   try{
     const res=await fetch(SUPA_URL+"/auth/v1/verify",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},
