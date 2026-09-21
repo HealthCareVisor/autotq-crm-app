@@ -3050,7 +3050,11 @@ async function bcHandleFile(file){
     if(r.ok&&j.card)card=j.card;else why=j.error||("HTTP "+r.status);
   }catch(e){why="offline";}
   if(logState.bc!==b)return; // sheet closed or reopened while reading
-  if(!card){console.warn("card-scan:",why);bcStatus(bcThumb("Couldn't read the card automatically — type the details below. The photo is still saved with the contact."));return;}
+  if(!card){console.warn("card-scan:",why);
+    // function not deployed / key missing — not the rep's photo. (An undeployed function fails its CORS
+    // preflight, so the browser reports it as a network error even though we're online.)
+    const setup=/HTTP 404|secret is not set|was rejected/.test(why)||(why==="offline"&&navigator.onLine);
+    bcStatus(bcThumb((setup?"Automatic card reading isn't switched on yet (Max is finishing the setup)":"Couldn't read the card automatically")+" — type the details below. The photo is still saved with the contact."));return;}
   b.card=card;let n=0;
   BC_FIELDS.forEach(f=>{const el=document.getElementById(f[0]);let v=String(card[f[1]]||"").trim();
     if(f[1]==="state")v=v.toUpperCase().slice(0,2);if(f[1]==="email")v=v.toLowerCase();
