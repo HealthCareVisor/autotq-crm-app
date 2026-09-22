@@ -3614,6 +3614,21 @@ function netDue(o){
   d.setDate(d.getDate()+30);
   return {label:d.toLocaleDateString(undefined,{month:"short",day:"numeric"}),over:d<new Date()};
 }
+/* Delete an order (wrong upload, dupe, test PO). Hard delete — the sync engine tombstones it for the
+   whole team; the demo-map entry + shipments that were derived from it go too. The PO PDF stays in storage. */
+function deleteOrder(id){
+  const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
+  const demos=(DB.demos||[]).filter(d=>d.srcOrder===o.id).length,ships=shipmentsFor(o.id).length;
+  const extra=[demos?demos+' Demo Map entr'+(demos>1?'ies':'y'):'',ships?ships+' shipment record'+(ships>1?'s':''):''].filter(Boolean);
+  if(!confirm('Delete the '+(shortAcct(o.account)||o.account||"this")+' order'+(o.poNo?' (PO '+o.poNo+')':'')+'?'+
+    (extra.length?'\n\n• Also removes: '+extra.join(', '):'')+
+    (o.fname?'\n• The PO PDF stays in the file library':'')+
+    '\n\nThis syncs to the whole team and cannot be undone.'))return;
+  DB.demos=(DB.demos||[]).filter(d=>d.srcOrder!==o.id);
+  DB.shipments=(DB.shipments||[]).filter(s=>s.orderId!==o.id);
+  DB.orders=(DB.orders||[]).filter(x=>x.id!==o.id);
+  save();closeSheet();render();toast("Order deleted");
+}
 /* clean record sheet — the row click lands here; Edit is a button inside */
 function orderSheet(id){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o)return;
@@ -3660,6 +3675,7 @@ function orderSheet(id){
      (shipAccess()&&o.status!=="supplier"?'<button class="btn" data-act="shipfor" data-id="'+o.id+'">'+(shipmentsFor(o.id).length?'Ship more':'Ship it')+'</button>'+
        (orderNeedsShip(o)&&!orderShipState(o).covered?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Packing slip</button>':''):'')+
      '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
+     '<button class="btn ghost" data-act="invdel" data-id="'+o.id+'" style="color:var(--dang-t,#b3261e);margin-left:auto">Delete order</button>'+
    '</div>');
 }
 /* branded invoice, styled after AutoTQ_Packing_Slip — opens print-ready, blocks are click-to-edit */
@@ -4446,7 +4462,8 @@ function formOrder(id,keepItems){
    '<label class="fl">QB invoice #(s)</label><input class="f" id="ivQb" value="'+esc(o?o.qbInv:"")+'" placeholder="e.g. 1172">'+
    '<label class="fl">Bill-to email (AP)</label><input class="f" id="ivBill" value="'+esc(o&&o.billEmail?o.billEmail:"")+'" placeholder="Where this customer wants invoices sent">'+
    '<label class="fl">Notes</label><textarea class="f" id="ivNotes" rows="2">'+esc(o?o.notes:"")+'</textarea>'+
-   '<button class="btn coral block" data-act="invsave" data-id="'+(o?o.id:"")+'" style="margin-top:16px">Save</button>');
+   '<button class="btn coral block" data-act="invsave" data-id="'+(o?o.id:"")+'" style="margin-top:16px">Save</button>'+
+   (o?'<button class="btn ghost block" data-act="invdel" data-id="'+o.id+'" style="margin-top:8px;color:var(--dang-t,#b3261e)">Delete this order</button>':''));
 }
 function saveOrder(id){
   const o=id?(DB.orders||[]).find(x=>x.id===id):null;
@@ -4572,6 +4589,7 @@ document.addEventListener("click",e=>{
       inp.addEventListener("change",()=>{if(inp.files.length)attachPoFile(logState.attachId,inp.files[0]);inp.value="";});}
     inp.click();return;}
   if(a==="invform"){formOrder(id);return;}
+  if(a==="invdel"){e.stopPropagation();deleteOrder(id);return;}
   if(a==="invpdf"){invoicePdf(id);return;}
   if(a==="invemail"){formInvoiceEmail(id);return;}
   if(a==="invemailsend"){sendInvoiceEmail(id);return;}
