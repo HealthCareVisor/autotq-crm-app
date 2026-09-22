@@ -3004,8 +3004,8 @@ const BC_FIELDS=[["bcName","name"],["bcTitle","title"],["bcCoQ","company"],["bcE
 function formCard(){
   logState.bc={blob:null,cid:null,kind:"enduser",card:null};
   openSheet('<h2>Business card</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">Snap the card — the details fill themselves in. Then add your note.</p>'+
-   '<label class="btn coral block" for="bcFile" style="cursor:pointer">'+svg("camera")+' Take or upload a photo</label>'+
-   '<input type="file" id="bcFile" accept="image/*" style="display:none"><div id="bcPrev"></div>'+
+   '<label class="btn coral block" for="bcFile" style="cursor:pointer">'+svg("camera")+' Take or upload a photo or PDF scan</label>'+
+   '<input type="file" id="bcFile" accept="image/*,application/pdf,.pdf" style="display:none"><div id="bcPrev"></div>'+
    '<label class="fl">Name</label><input class="f" id="bcName" placeholder="Full name" autocomplete="off">'+
    '<label class="fl">Title</label><input class="f" id="bcTitle" placeholder="e.g. Safety Manager" autocomplete="off">'+
    '<label class="fl">Company</label>'+comboField("bcCoQ","Type the company — matches your accounts","")+
@@ -3021,10 +3021,16 @@ function formCard(){
    '<button class="btn coral block" data-act="saveCard" style="margin-top:18px">Save contact + note</button>');
 }
 function bcStatus(html){const el=document.getElementById("bcPrev");if(el)el.innerHTML=html;}
-function bcThumb(msg){const b=logState.bc;if(!b||!b.thumb)return "";
-  return '<div class="row" style="margin-top:12px;gap:12px"><img src="'+b.thumb+'" alt="Business card" style="width:112px;height:70px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">'+
+function bcThumb(msg){const b=logState.bc;if(!b||!(b.thumb||b.pdf))return "";
+  return '<div class="row" style="margin-top:12px;gap:12px">'+(b.thumb?'<img src="'+b.thumb+'" alt="Business card" style="width:112px;height:70px;object-fit:cover;border-radius:10px;border:1px solid var(--line)">':
+    '<div style="width:112px;height:70px;border-radius:10px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted);flex:none" title="'+esc(b.name||"")+'">PDF</div>')+
    '<div class="grow t2" style="white-space:normal">'+msg+'</div></div>';}
-/* downscale to ≤1600px JPEG — phone photos are 4–12 MB, the card reads fine at ~300 KB */
+/* downscale to ≤1600px JPEG — phone photos are 4–12 MB, the card reads fine at ~300 KB.
+   A PDF scan is sent as-is (Claude reads PDFs natively) — no canvas, no pdf.js. */
+function bcIsPdf(file){return file.type==="application/pdf"||/\.pdf$/i.test(file.name||"");}
+function bcReadPdf(file){return new Promise((res,rej)=>{
+  if(file.size>5e6){rej(new Error("big"));return;}
+  const fr=new FileReader();fr.onload=()=>res({blob:file,dataUrl:String(fr.result),pdf:true});fr.onerror=()=>rej(new Error("read"));fr.readAsDataURL(file);});}
 function bcShrink(file){return new Promise((res,rej)=>{
   const url=URL.createObjectURL(file),img=new Image();
   img.onload=()=>{const k=Math.min(1,1600/Math.max(img.width,img.height));
@@ -3040,12 +3046,14 @@ function bcSyncCompany(){const b=logState.bc;if(!b)return;const w=document.getEl
   if(w)w.style.display=(!b.cid&&val("bcCoQ"))?"block":"none";}
 async function bcHandleFile(file){
   const b=logState.bc;if(!b||!file)return;
-  let shr;try{shr=await bcShrink(file);}catch(e){toast("Couldn't open that photo — try another");return;}
-  b.blob=shr.blob;b.thumb=shr.dataUrl;
+  const pdf=bcIsPdf(file);let shr;
+  try{shr=pdf?await bcReadPdf(file):await bcShrink(file);}
+  catch(e){toast(pdf?(e.message==="big"?"That PDF is over 5 MB — scan just the card page":"Couldn't open that PDF"):"Couldn't open that photo — try another");return;}
+  b.blob=shr.blob;b.pdf=pdf;b.thumb=pdf?null:shr.dataUrl;b.name=pdf?(file.name||"card.pdf"):"";
   bcStatus(bcThumb('<span class="spinwheel" style="display:inline-block;width:16px;height:16px;border-width:2px;margin:0 8px -3px 0"></span>Reading the card…'));
   let card=null,why="";
   try{
-    const r=await supa("/functions/v1/card-scan",{method:"POST",body:JSON.stringify({image:shr.dataUrl.split(",")[1],mime:"image/jpeg"})});
+    const r=await supa("/functions/v1/card-scan",{method:"POST",body:JSON.stringify({image:shr.dataUrl.split(",")[1],mime:pdf?"application/pdf":"image/jpeg"})});
     const j=await r.json().catch(()=>({}));
     if(r.ok&&j.card)card=j.card;else why=j.error||("HTTP "+r.status);
   }catch(e){why="offline";}
@@ -3054,15 +3062,15 @@ async function bcHandleFile(file){
     // function not deployed / key missing — not the rep's photo. (An undeployed function fails its CORS
     // preflight, so the browser reports it as a network error even though we're online.)
     const setup=/HTTP 404|secret is not set|was rejected/.test(why)||(why==="offline"&&navigator.onLine);
-    bcStatus(bcThumb((setup?"Automatic card reading isn't switched on yet (Max is finishing the setup)":"Couldn't read the card automatically")+" — type the details below. The photo is still saved with the contact."));return;}
+    bcStatus(bcThumb((setup?"Automatic card reading isn't switched on yet (Max is finishing the setup)":"Couldn't read the card automatically")+" — type the details below. The card is still saved with the contact."));return;}
   b.card=card;let n=0;
-  BC_FIELDS.forEach(f=>{const el=document.getElementById(f[0]);let v=String(card[f[1]]||"").trim();
+  BC_FIELDS.forEach(f=>{const el=document.getElementById(f[0]);let v=String(card[f[1]]||"").replace(/&amp;/g,"&").trim();
     if(f[1]==="state")v=v.toUpperCase().slice(0,2);if(f[1]==="email")v=v.toLowerCase();
     if(el&&v&&!el.value.trim()){el.value=v;n++;}});
   const hit=bcMatchCompany(val("bcCoQ"));
   if(hit){b.cid=hit.id;document.getElementById("bcCoQ").value=hit.name;}
   bcSyncCompany();
-  bcStatus(bcThumb(n?'<b style="color:var(--ok-t)">'+svg("check")+' Pulled '+n+' detail'+(n>1?"s":"")+' off the card.</b> Give it a quick look'+(hit?" — matched to your account "+esc(hit.name):"")+', then add your note.':"Couldn't find any text on that photo — try a closer, sharper shot or type the details."));
+  bcStatus(bcThumb(n?'<b style="color:var(--ok-t)">'+svg("check")+' Pulled '+n+' detail'+(n>1?"s":"")+' off the card.</b> Give it a quick look'+(hit?" — matched to your account "+esc(hit.name):"")+', then add your note.':"Couldn't find any text on that card — try a closer, sharper shot or type the details."));
   const note=document.getElementById("bcNote");if(note&&n)note.focus();
 }
 function saveCard(){
@@ -3087,7 +3095,7 @@ function saveCard(){
   if(!p.last||new Date(when)>new Date(p.last))p.last=when;
   save();closeSheet();pushNav();curPerson=p.id;view="person";render();window.scrollTo(0,0);
   toast(name+(isNew?" added":" updated")+(newCo?" · new account "+c.name:""));
-  if(b.blob){const path="cards/"+p.id+"_"+Date.now()+".jpg",pid=p.id;
+  if(b.blob){const path="cards/"+p.id+"_"+Date.now()+(b.pdf?".pdf":".jpg"),pid=p.id;
     storUpload(path,b.blob).then(ok=>{const q=person(pid);if(ok&&q){q.cardPath=path;save();if(view==="person"&&curPerson===pid)render();}
       else if(!ok)toast("Contact saved — the card photo didn't upload (offline?)");}).catch(()=>{});}
   logState.bc=null;
