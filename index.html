@@ -137,6 +137,8 @@ button.card:hover,.card[data-act]:hover{border-color:var(--line-3);box-shadow:va
 .list>:first-child{border-top:0}
 .list>button.card:hover,.list>.card[data-act]:hover,.list>.hub:hover,.list>.ubtn:hover{background:var(--hover);box-shadow:none;border-color:var(--line-2)}
 .list>.card .bar{margin-top:10px}
+.list>.tk[data-act]{transition:background .15s}
+.list>.tk[data-act]:hover{background:var(--hover)}
 .ic{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--sunken);color:var(--ink-2);font-size:13px;font-weight:650;letter-spacing:.01em}
 .ic svg{width:18px;height:18px}
 .ic:not(:has(svg)){border-radius:50%}
@@ -2480,8 +2482,9 @@ function leadFltVal(l,key){
 function formLead(id){
   const l=leadById(id);if(!l)return;logState.leadId=id;
   const temps=["New","Voicemail","Interested","Warm","Hot"];
-  openSheet('<h2>'+esc(l.name)+'</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+
-   (l.city||l.state?' · '+esc([l.city,l.state].filter(Boolean).join(", ")):'')+' · '+esc(l.conf)+'</p>'+
+  openSheet('<div class="row" style="align-items:flex-start;gap:10px"><div class="grow"><h2 style="margin-right:0">'+esc(l.name)+'</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+
+   (l.city||l.state?' · '+esc([l.city,l.state].filter(Boolean).join(", ")):'')+' · '+esc(l.conf)+'</p></div>'+
+   '<button class="btn sm" data-act="editconflead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
     (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
@@ -2596,37 +2599,122 @@ function pushLeadFromConf(confId){
   }
   formTouch(ml.id,true);
 }
-function formTouch(leadId,fromConf){
+function formTouch(leadId,fromConf,editIdx){
   const l=myLeadById(leadId);if(!l)return;
-  logState.touchLead=leadId;logState.touchMethod="call";
+  const ed=(editIdx!=null&&l.touches&&l.touches[editIdx])?l.touches[editIdx]:null;
+  logState.touchLead=leadId;logState.touchEdit=ed?editIdx:null;logState.touchMethod=ed?(ed.method||"call"):"call";
   const methods=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["note","note","Note"]];
-  openSheet('<h2>'+(fromConf?"Push to Leads — log the touch":"Log a touch")+'</h2>'+
+  openSheet('<h2>'+(ed?"Edit touch":fromConf?"Push to Leads — log the touch":"Log a touch")+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc(l.name)+(l.company?' · '+esc(l.company):'')+(l.conf?' · '+esc(l.conf):'')+'</p>'+
    '<label class="fl">Method of contact</label><div class="tiles" id="touchTiles">'+
-   methods.map(m=>'<div class="tile'+(m[0]==="call"?' on':'')+'" data-act="setTouchM" data-v="'+m[0]+'">'+svg(m[1])+m[2]+'</div>').join("")+'</div>'+
-   '<label class="fl">Date of contact</label><input class="f" id="touchDate" type="date" value="'+todayStr()+'">'+
-   '<label class="fl">Conversation details</label><textarea class="f" id="touchNote" rows="3" placeholder="What was said, what they want next…"></textarea>'+
-   '<button class="btn coral block" data-act="touchsave" style="margin-top:18px">'+(fromConf?"Push to Leads":"Save touch")+'</button>');
+   methods.map(m=>'<div class="tile'+(m[0]===logState.touchMethod?' on':'')+'" data-act="setTouchM" data-v="'+m[0]+'">'+svg(m[1])+m[2]+'</div>').join("")+'</div>'+
+   '<label class="fl">Date of contact</label><input class="f" id="touchDate" type="date" value="'+esc(ed?(ed.date||todayStr()):todayStr())+'">'+
+   '<label class="fl">Conversation details</label><textarea class="f" id="touchNote" rows="3" placeholder="What was said, what they want next…">'+(ed?esc(ed.note||""):"")+'</textarea>'+
+   '<button class="btn coral block" data-act="touchsave" style="margin-top:18px">'+(ed?"Save changes":fromConf?"Push to Leads":"Save touch")+'</button>'+
+   (ed?'<button class="btn block" data-act="deltouch" data-id="'+esc(l.id)+'" data-i="'+editIdx+'" style="margin-top:8px;color:var(--dang-t)">Delete touch</button>'+
+       '<button class="btn block ghost" data-act="openlead" data-id="'+esc(l.id)+'" style="margin-top:8px">Cancel</button>':''));
 }
 function saveTouch(){
   const l=myLeadById(logState.touchLead);if(!l)return;
   l.touches=l.touches||[];
-  l.touches.push({date:document.getElementById("touchDate").value||todayStr(),method:logState.touchMethod||"call",note:val("touchNote"),by:USER});
+  const date=document.getElementById("touchDate").value||todayStr(),method=logState.touchMethod||"call",note=val("touchNote");
+  if(logState.touchEdit!=null&&l.touches[logState.touchEdit]){
+    const t=l.touches[logState.touchEdit];t.date=date;t.method=method;t.note=note;t.editedBy=USER;t.editedAt=new Date().toISOString();
+    logState.touchEdit=null;save();render();formLeadRec(l.id);toast("Touch updated");return;
+  }
+  l.touches.push({date:date,method:method,note:note,by:USER});
   const cl=l.refId?leadById(l.refId):null;
   if(cl){cl.contacted=true;if(cl.status==="Not contacted")cl.status="Contacted";}
   save();closeSheet();render();toast(l.name+" — in Leads with the touch logged");
 }
+/* ---------- edit a lead (Leads tab + conference call lists) ----------
+   A conference lead pushed to Leads is the same person in two lists (linked by refId):
+   contact details saved on either side are copied to the other so promotion uses the fix. */
+const LEAD_SEGS=["End User","Distributor/Rep","Set Aside"];
+function leadTwinCopy(from,to){["name","title","company","email","phone","city","state"].forEach(k=>{to[k]=from[k]||"";});}
+function leadEditFields(pre){const v=k=>esc(logState[pre+k]||"");
+  return '<label class="fl">Contact name</label><input class="f" id="'+pre+'Name" value="'+v("Name")+'">'+
+   '<label class="fl">Title</label><input class="f" id="'+pre+'Title" value="'+v("Title")+'">'+
+   '<label class="fl">Company</label><input class="f" id="'+pre+'Co" value="'+v("Co")+'">';}
+function leadEditContact(pre){const v=k=>esc(logState[pre+k]||"");
+  return '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Phone</label><input class="f" id="'+pre+'Phone" inputmode="tel" value="'+v("Phone")+'"></div>'+
+   '<div style="width:90px"><label class="fl">State</label><input class="f" id="'+pre+'State" maxlength="2" value="'+v("State")+'" placeholder="FL"></div></div>'+
+   '<label class="fl">City</label><input class="f" id="'+pre+'City" value="'+v("City")+'">'+
+   '<label class="fl">Email</label><input class="f" id="'+pre+'Email" type="email" value="'+v("Email")+'">';}
+const EL_KEYS=["Name","Title","Co","Email","Phone","City","State","BuyQ","Notes"];
+function collectLeadEdit(pre){EL_KEYS.forEach(k=>{const e=document.getElementById(pre+k);if(e)logState[pre+k]=e.value;});}
+function formEditLead(id,keep){
+  const l=myLeadById(id);if(!l)return;
+  if(!keep){const b=l.buysThrough||{};
+    Object.assign(logState,{elId:id,elKind:l.kind||(/distributor/i.test(l.segment||"")?"distributor":"enduser"),elDst:l.dstStage||"Potential",elBuyCid:b.cid||null,
+      elName:l.name||"",elTitle:l.title||"",elCo:l.company||"",elEmail:l.email||"",elPhone:l.phone||"",elCity:l.city||"",elState:l.state||"",elBuyQ:b.name||""});}
+  const k=logState.elKind;
+  openSheet('<h2>Edit lead</h2>'+(l.conf?'<p class="t2" style="margin:-2px 0 12px">From '+esc(l.conf)+'</p>':'')+
+   '<div class="seg" style="margin:2px 0 12px"><button class="'+(k==="enduser"?"on":"")+'" data-act="elkind" data-v="enduser">End-user</button>'+
+   '<button class="'+(k==="distributor"?"on":"")+'" data-act="elkind" data-v="distributor">Distributor</button></div>'+
+   leadEditFields("el")+
+   (k==="enduser"
+    ?'<label class="fl">Distributor they buy through <span style="font-weight:400;color:var(--hint)">(if applicable)</span></label>'+comboField("elBuyQ","Type — ours pop up, free text ok",logState.elBuyQ||"")
+    :'<label class="fl">Where are they with us?</label><div class="qa-types" style="margin-bottom:4px">'+["Potential","Set up","Stocking"].map(x=>'<span class="qchip'+(logState.elDst===x?" on":"")+'" data-act="eldst" data-v="'+x+'">'+x+'</span>').join("")+'</div>')+
+   leadEditContact("el")+
+   (l.promoted?'<p class="t2" style="white-space:normal;margin-top:12px">Already in the CRM as a contact — this updates the lead, not the contact page.</p>':'')+
+   '<button class="btn coral block" data-act="elsave" style="margin-top:16px">Save lead</button>'+
+   '<button class="btn block ghost" data-act="openlead" data-id="'+esc(id)+'" style="margin-top:8px">Cancel</button>');
+}
+function saveEditLead(){
+  const l=myLeadById(logState.elId);if(!l)return;collectLeadEdit("el");
+  const nm=(logState.elName||"").trim();if(!nm){toast("Give the lead a name");return;}
+  const kind=logState.elKind||"enduser";
+  l.name=nm;l.title=(logState.elTitle||"").trim();l.company=(logState.elCo||"").trim();
+  l.email=(logState.elEmail||"").trim().toLowerCase();l.phone=(logState.elPhone||"").trim();
+  l.city=(logState.elCity||"").trim();l.state=(logState.elState||"").trim().toUpperCase().slice(0,2);
+  l.kind=kind;
+  if(kind==="enduser"){const txt=(logState.elBuyQ||"").trim();
+    const bc=logState.elBuyCid?company(logState.elBuyCid):(txt?DB.companies.find(c=>c.type==="distributor"&&c.name.toLowerCase()===txt.toLowerCase()):null);
+    l.buysThrough=txt?{cid:bc?bc.id:null,name:bc?bc.name:txt}:null;l.dstStage=null;}
+  else{l.dstStage=logState.elDst||"Potential";l.buysThrough=null;}
+  const cl=l.refId?leadById(l.refId):null;
+  if(cl){leadTwinCopy(l,cl);if(cl.state)cl.region=regionFromState(cl.state);if(cl.segment!=="Set Aside")cl.segment=kind==="distributor"?"Distributor/Rep":"End User";}
+  l.editedBy=USER;l.editedAt=new Date().toISOString();
+  save();render();formLeadRec(l.id);toast(l.name+" updated");
+}
+function formEditConfLead(id,keep){
+  const l=leadById(id);if(!l)return;
+  if(!keep)Object.assign(logState,{eclId:id,eclSeg:l.segment||"",eclName:l.name||"",eclTitle:l.title||"",eclCo:l.company||"",eclEmail:l.email||"",eclPhone:l.phone||"",eclCity:l.city||"",eclState:l.state||"",eclNotes:l.notes||""});
+  openSheet('<h2>Edit lead</h2><p class="t2" style="margin:-2px 0 12px">From '+esc(l.conf||"")+'</p>'+
+   '<label class="fl">Segment</label><div class="qa-types" id="eclSegs">'+LEAD_SEGS.map(x=>'<span class="qchip'+(logState.eclSeg===x?" on":"")+'" data-act="eclseg" data-v="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
+   leadEditFields("ecl")+leadEditContact("ecl")+
+   '<label class="fl">Notes</label><textarea class="f" id="eclNotes" rows="3">'+esc(logState.eclNotes||"")+'</textarea>'+
+   (l.promoted?'<p class="t2" style="white-space:normal;margin-top:12px">Already in the CRM as a contact — this updates the lead, not the contact page.</p>':'')+
+   '<button class="btn coral block" data-act="eclsave" style="margin-top:16px">Save lead</button>'+
+   '<button class="btn block ghost" data-act="leadopen" data-id="'+esc(id)+'" style="margin-top:8px">Cancel</button>');
+}
+function saveEditConfLead(){
+  const l=leadById(logState.eclId);if(!l)return;collectLeadEdit("ecl");
+  const nm=(logState.eclName||"").trim();if(!nm){toast("Give the lead a name");return;}
+  l.name=nm;l.title=(logState.eclTitle||"").trim();l.company=(logState.eclCo||"").trim();
+  l.email=(logState.eclEmail||"").trim().toLowerCase();l.phone=(logState.eclPhone||"").trim();
+  l.city=(logState.eclCity||"").trim();l.state=(logState.eclState||"").trim().toUpperCase().slice(0,2);
+  if(l.state)l.region=regionFromState(l.state);
+  l.notes=(logState.eclNotes||"").trim();
+  if(logState.eclSeg)l.segment=logState.eclSeg;
+  ensureLeads();const ml=DB.leads.find(x=>x.refId===l.id);
+  if(ml){leadTwinCopy(l,ml);if(l.segment==="Distributor/Rep")ml.kind="distributor";else if(l.segment==="End User")ml.kind="enduser";}
+  l.editedBy=USER;l.editedAt=new Date().toISOString();
+  save();render();formLead(l.id);toast(l.name+" updated");
+}
 function formLeadRec(id){
   const l=myLeadById(id);if(!l)return;
   const touches=(l.touches||[]).slice().reverse();
-  openSheet('<h2>'+esc(l.name)+'</h2>'+
-   '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p>'+
+  openSheet('<div class="row" style="align-items:flex-start;gap:10px"><div class="grow"><h2 style="margin-right:0">'+esc(l.name)+'</h2>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p></div>'+
+   '<button class="btn sm" data-act="editlead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
     (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
    '<button class="btn coral block" data-act="addtouch" data-id="'+esc(l.id)+'" style="margin:8px 0">'+svg("phone")+' Log a touch</button>'+
    '<div class="sectlabel">Touch history · '+touches.length+'</div>'+
-   (touches.length?touches.map(t=>'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:92px;font-size:12.5px">'+esc(t.date)+'</b><span style="font-size:13.5px"><span class="pill '+(toneFor(t.method)||"gray")+'" style="font-size:11px">'+esc(titlecase(t.method))+'</span> '+esc(t.note||"")+' <span style="color:var(--hint)">— '+esc(teamById(t.by).name.split(" ")[0])+'</span></span></div>').join(""):'<p style="color:var(--hint);font-size:13px">No touches logged yet.</p>')+
+   (touches.length?'<div class="list">'+touches.map((t,i)=>'<div class="tk" data-act="edittouch" data-id="'+esc(l.id)+'" data-i="'+(touches.length-1-i)+'" style="align-items:flex-start;cursor:pointer" title="Edit this touch"><b style="flex:none;width:92px;font-size:12.5px">'+esc(t.date)+'</b><span class="grow" style="font-size:13.5px"><span class="pill '+(toneFor(t.method)||"gray")+'" style="font-size:11px">'+esc(titlecase(t.method))+'</span> '+esc(t.note||"")+' <span style="color:var(--hint)">— '+esc(teamById(t.by).name.split(" ")[0])+'</span></span>'+chev()+'</div>').join("")+'</div>':'<p style="color:var(--hint);font-size:13px">No touches logged yet.</p>')+
    (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ In the CRM as a contact</p>'
     :'<button class="btn block" data-act="mlpromote" data-id="'+esc(l.id)+'" style="margin-top:10px">'+svg("user")+' Promote to CRM (account + contact)</button>')+
    '<button class="btn block" data-act="mldelete" data-id="'+esc(l.id)+'" style="margin-top:8px;color:var(--dang-t)">Remove lead</button>');
@@ -5076,7 +5164,7 @@ document.addEventListener("click",e=>{
     c.buysFrom.splice(i,1);if(e.first&&c.buysFrom.length)c.buysFrom[0].first=true;save();render();return;}
   if(a==="bffirst"){const c=company(id);if(!c)return;const i=+t.dataset.i;
     bfList(c).forEach((e,j)=>e.first=j===i);save();render();return;}
-  if(a==="pushlead"){const p=person(id);if(!p)return;ensureLeads();const co=company(p.cid);
+  if(a==="pushlead"&&person(id)){const p=person(id);ensureLeads();const co=company(p.cid); /* contact page; conference leads fall through to pushLeadFromConf below */
     const dup=DB.leads.find(l=>(p.email&&l.email&&l.email.toLowerCase()===p.email.toLowerCase())||(l.refPid===p.id)||(l.name.toLowerCase()===p.name.toLowerCase()&&(l.company||"").toLowerCase()===((co&&co.name)||"").toLowerCase()));
     if(dup){toast(p.name+" is already in Leads");return;}
     DB.leads.unshift({id:uid(),name:p.name,company:co?co.name:(p.branch||""),title:p.role||"",email:p.email||"",phone:p.phone||"",
@@ -5101,6 +5189,16 @@ document.addEventListener("click",e=>{
   if(a==="openlead"){formLeadRec(id);return;}
   if(a==="pushlead"){pushLeadFromConf(t.dataset.id);return;}
   if(a==="addtouch"){formTouch(id);return;}
+  if(a==="edittouch"){formTouch(id,false,parseInt(t.dataset.i,10));return;}
+  if(a==="deltouch"){const ml=myLeadById(id),i=parseInt(t.dataset.i,10);if(ml&&ml.touches&&ml.touches[i]&&confirm("Delete this touch from "+ml.name+"'s history?")){ml.touches.splice(i,1);logState.touchEdit=null;save();render();formLeadRec(ml.id);toast("Touch deleted");}return;}
+  if(a==="editlead"){formEditLead(id);return;}
+  if(a==="elsave"){saveEditLead();return;}
+  if(a==="elkind"){collectLeadEdit("el");logState.elKind=t.dataset.v;formEditLead(logState.elId,true);return;}
+  if(a==="eldst"){logState.elDst=t.dataset.v;document.querySelectorAll('[data-act="eldst"]').forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="pickElBuy"){const c=company(t.dataset.id);if(c){logState.elBuyCid=c.id;logState.elBuyQ=c.name;const i=document.getElementById("elBuyQ");if(i)i.value=c.name;sugRender("elBuyQ",[]);}return;}
+  if(a==="editconflead"){formEditConfLead(id);return;}
+  if(a==="eclsave"){saveEditConfLead();return;}
+  if(a==="eclseg"){logState.eclSeg=t.dataset.v;document.querySelectorAll('#eclSegs .qchip').forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="setTouchM"){logState.touchMethod=t.dataset.v;document.querySelectorAll("#touchTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="touchsave"){saveTouch();return;}
   if(a==="newlead"){formNewLead();return;}
@@ -5216,6 +5314,7 @@ document.addEventListener("input",e=>{
   if(e.target.id==="snTo"){sugRender("snTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickSnTo",p=>!!p.email));return;}
   if(e.target.id==="bfSearch"){sugRender("bfSearch",acctSugItems(e.target.value,"pickBf",["distributor"]));return;}
   if(e.target.id==="nlBuyQ"){logState.nlBuyCid=null;sugRender("nlBuyQ",acctSugItems(e.target.value,"pickNlBuy",["distributor"]));return;}
+  if(e.target.id==="elBuyQ"){logState.elBuyCid=null;sugRender("elBuyQ",acctSugItems(e.target.value,"pickElBuy",["distributor"]));return;}
   if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.note=e.target.value;it.noteAt=new Date().toISOString();clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
   if(e.target.id==="listSt"){logState.listSt=e.target.value;
