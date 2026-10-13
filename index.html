@@ -1646,7 +1646,7 @@ function viewRoster(cid){
     h+='<div class="lvhead" style="margin-top:24px"><div class="sech">Opportunities <span class="cnt">'+opps.length+'</span></div></div>';
     h+=oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false);
   }
-  const acctQuotes=quotesAll().filter(q=>q.cid===cid||String(q.account||"").toLowerCase()===c.name.toLowerCase());
+  const acctQuotes=quotesAll().filter(q=>q.cid===cid||q.distCid===cid||String(q.account||"").toLowerCase()===c.name.toLowerCase());
   if(acctQuotes.length)h+='<div class="lvhead" style="margin-top:24px"><div class="sech">Quotes <span class="cnt">'+acctQuotes.length+'</span></div></div><div class="list">'+acctQuotes.map(quoteRowHTML).join("")+'</div>';
   h+='<div class="lvhead" style="margin-top:24px"><div class="sech">Contacts <span class="cnt">'+reps.length+'</span></div>'+
      '<button class="btn sm coral" data-act="addcontactfor" data-id="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Add contact</button></div>';
@@ -4656,6 +4656,7 @@ function quotePrice(sku,qty,level){
   if(sku==="1000-0005-TQ"){const n=+qty||1;return (KIT_TIERS.find(t=>n>=t[0])||KIT_TIERS[KIT_TIERS.length-1])[1];}
   return c[4];
 }
+function qAcct(n){return shortAcct(n).replace(/[\s,]+$/,"");} // "Century Ambulance Service, INC." must not leave its comma behind
 function qItemName(it){const c=qCat(it.sku);return c?c[1]:(it.name||it.sku||"");}
 function qLine(it){return Math.round((+it.qty||0)*(+it.unit||0)*100)/100;}
 function quoteSubtotal(q){return Math.round((q.items||[]).reduce((s,it)=>s+qLine(it),0)*100)/100;}
@@ -4681,14 +4682,17 @@ function quoteDraftFrom(q,pre){
   if(q)return {id:q.id,cid:q.cid||null,pid:q.pid||null,level:q.level==="dist"?"dist":"enduser",validDays:+q.validDays||30,
     items:(q.items||[]).map(x=>({sku:x.sku||"",name:x.name||"",qty:x.qty,unit:x.unit,auto:!!x.auto})),
     acct:q.account||"",con:q.contactName||"",email:q.contactEmail||"",shipTo:q.shipTo||"",notes:q.notes||"",
+    dist:q.distName||"",distCid:q.distCid||null,distRep:q.distRep||"",distPid:q.distPid||null,
     shipping:quoteShipping(q)==null?"":String(quoteShipping(q)),more:!!(q.shipTo||q.notes||quoteShipping(q)!=null)};
   pre=pre||{};
   const p=pre.pid?person(pre.pid):null,c0=pre.cid?company(pre.cid):(p&&p.cid?company(p.cid):null);
   const c=c0&&!/company unknown/i.test(c0.name)?c0:null; // the business-card holding bucket is not a customer name
   const level=c&&c.type==="distributor"?"dist":"enduser",ship=quoteShipToText(c);
+  const bf=c&&c.type==="enduser"?quoteFirstDist(c):null; // their 1st-choice distributor, if the account page has one
   return {id:null,cid:c?c.id:null,pid:p?p.id:null,level:level,validDays:30,
     items:[{sku:"1000-0005-TQ",name:"",qty:1,unit:quotePrice("1000-0005-TQ",1,level),auto:true}],
-    acct:c?c.name:"",con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!ship};
+    acct:c?c.name:"",con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!ship,
+    dist:bf?bf.name:"",distCid:bf?bf.cid:null,distRep:"",distPid:null};
 }
 function formQuote(id,pre,keep){
   if(!keep)logState.qt=quoteDraftFrom(id?quoteById(id):null,pre);
@@ -4700,6 +4704,7 @@ function formQuote(id,pre,keep){
    '<div class="grow"><label class="fl">Email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="Where the quote goes"></div></div>'+
    '<label class="fl">Pricing</label><div class="qa-types" id="qtLevel">'+
     [["enduser","End-user (MSRP)"],["dist","Distributor"]].map(l=>'<span class="chip'+(S.level===l[0]?" on":"")+'" data-act="qtlevel" data-v="'+l[0]+'">'+l[1]+'</span>').join("")+'</div>'+
+   quoteDistHTML()+
    quoteItemsHTML()+
    '<label class="fl">Valid for</label><div class="qa-types" id="qtValid">'+
     [30,60,90].map(n=>'<span class="chip'+(S.validDays===n?" on":"")+'" data-act="qtvalid" data-v="'+n+'">'+n+' days</span>').join("")+'</div>'+
@@ -4712,6 +4717,24 @@ function formQuote(id,pre,keep){
    '<button class="btn coral" data-act="qtsave" data-v="send" style="flex:1.6;min-height:46px">Save &amp; send</button></div>'+
    '<button class="btn ghost block" data-act="qtsave" data-v="draft" style="margin-top:8px">Save as a draft</button>');
 }
+/* "Attach a distributor" — who an end-user should buy this through (Howmet: "quote it through McKesson"). Ours pop
+   up, free text is fine for one we are not set up with. A distributor in the CRM also offers its reps, the ones
+   covering the customer's state first; the one picked is printed on the quote as where the PO goes. */
+function quoteFirstDist(c){const l=bfList(c),e=l.find(x=>x.first)||l[0];if(!e)return null;const d=e.cid?company(e.cid):null;return {cid:d?d.id:null,name:d?d.name:e.name};}
+function quoteDistRepHTML(){
+  const S=logState.qt,d=S.distCid?company(S.distCid):null;
+  if(!d)return '<div id="qtDistRepWrap"></div>';
+  const cust=S.cid?company(S.cid):null,cover=cust&&cust.state?bfRepsInState(d.id,cust.state).slice(0,4):[];
+  return '<div id="qtDistRepWrap"><label class="fl">Their rep <span style="font-weight:400;color:var(--hint)">— optional; printed on the quote as where the PO goes</span></label>'+
+   comboField("qtDistRep","Type a "+shortAcct(d.name)+" rep…",S.distRep)+
+   (cover.length?'<div class="qa-types" style="margin-top:8px">'+cover.map(p=>'<span class="qchip'+(S.distPid===p.id?" on":"")+'" data-act="pickQtDistRep" data-id="'+p.id+'">'+esc(p.name)+' · covers '+esc(cust.state)+'</span>').join("")+'</div>':'')+'</div>';
+}
+function quoteDistHTML(){
+  const S=logState.qt;
+  return '<div id="qtDistWrap"'+(S.level==="dist"?' style="display:none"':'')+'><label class="fl">Attach a distributor <span style="font-weight:400;color:var(--hint)">— optional: who they should buy this through</span></label>'+
+   comboField("qtDist","Type a distributor — ours pop up, free text ok",S.dist)+quoteDistRepHTML()+'</div>';
+}
+function quoteRedrawDistRep(){const w=document.getElementById("qtDistRepWrap");if(w)w.outerHTML=quoteDistRepHTML();}
 /* under a catalog line: its part # and, for kits at distributor pricing, which quantity tier the price came from */
 function quoteItemSub(it,level){
   if(!it.auto)return it.sku+" · price set by hand";
@@ -4739,7 +4762,7 @@ function quoteItemsHTML(){
 function quoteCollect(){
   const S=logState.qt;if(!S)return;
   const g=id=>{const el=document.getElementById(id);return el?el.value:null;};
-  [["qtAcct","acct"],["qtCon","con"],["qtEmail","email"],["qtShip","shipTo"],["qtShipAmt","shipping"],["qtNotes","notes"]].forEach(m=>{const v=g(m[0]);if(v!==null)S[m[1]]=v;});
+  [["qtAcct","acct"],["qtCon","con"],["qtEmail","email"],["qtShip","shipTo"],["qtShipAmt","shipping"],["qtNotes","notes"],["qtDist","dist"],["qtDistRep","distRep"]].forEach(m=>{const v=g(m[0]);if(v!==null)S[m[1]]=v;});
   S.items.forEach((it,i)=>{
     const nm=g("qt_name_"+i);if(nm!==null)it.name=nm;
     const qv=g("qt_qty_"+i);if(qv!==null)it.qty=parseFloat(qv)||0;
@@ -4764,6 +4787,7 @@ function quoteSetLevel(v){
   const S=logState.qt;if(!S)return;quoteCollect();S.level=v;
   S.items.forEach(it=>{if(it.auto){const p=quotePrice(it.sku,it.qty,v);if(p!=null)it.unit=p;}});
   document.querySelectorAll("#qtLevel .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===v));
+  const dw=document.getElementById("qtDistWrap");if(dw)dw.style.display=v==="dist"?"none":"";
   quoteRedrawItems();
 }
 function quoteAddItem(sku){
@@ -4791,6 +4815,14 @@ function saveQuote(mode){
   q.account=acct;q.cid=S.cid||null;q.contactName=String(S.con||"").trim();q.contactEmail=email;q.pid=S.pid||null;
   q.level=S.level;q.validDays=S.validDays;q.items=items;q.shipTo=String(S.shipTo||"").trim();q.notes=String(S.notes||"").trim();
   q.shipping=sh===""?null:(parseFloat(sh)||0);q.total=quoteTotal(q);q.updatedAt=new Date().toISOString();
+  const dn=S.level==="dist"?"":String(S.dist||"").trim(); // a distributor's own quote has nobody to buy it through
+  if(dn&&!S.distCid){const d=DB.companies.find(x=>x.type==="distributor"&&x.name&&x.name.toLowerCase()===dn.toLowerCase());if(d)S.distCid=d.id;}
+  const dr=dn&&S.distCid&&S.distPid?person(S.distPid):null;
+  q.distName=dn;q.distCid=dn?(S.distCid||null):null;q.distPid=dr?dr.id:null;
+  q.distRep=dn?(dr?dr.name:String(S.distRep||"").trim()):"";q.distRepEmail=dr?(dr.email||""):"";q.distRepPhone=dr?(dr.phone||dr.mobile||""):"";
+  const cu=company(q.cid); // remember the routing on the customer's account page ("Who they buy from")
+  if(dn&&cu&&cu.type==="enduser"&&!bfList(cu).some(e=>(q.distCid&&e.cid===q.distCid)||String(e.name||"").toLowerCase()===dn.toLowerCase())){
+    cu.buysFrom=bfList(cu);cu.buysFrom.push({cid:q.distCid||null,name:dn,first:!cu.buysFrom.length});}
   S.id=q.id;save();render();
   if(mode==="send"){formQuoteSend(q.id);return;}
   if(mode==="preview")quotePrint(q.id);
@@ -4810,12 +4842,13 @@ function quoteSheet(id){
     '<tr><td colspan="3" style="'+cell+'text-align:right;color:var(--muted)">Quote total</td><td style="'+cell+'text-align:right;font-weight:800">'+fmtC(quoteTotal(q))+'</td></tr></table>';
   const fact=(k,v)=>v?'<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--muted)">'+k+'</span><b style="text-align:right">'+v+'</b></div>':'';
   const acct=company(q.cid);
-  openSheet('<h2 style="margin-bottom:2px">'+(acct?'<a href="#" data-act="roster" data-id="'+acct.id+'" style="text-decoration:none" title="Open the account">'+esc(shortAcct(q.account))+'</a>':esc(shortAcct(q.account)))+'</h2>'+
+  openSheet('<h2 style="margin-bottom:2px">'+(acct?'<a href="#" data-act="roster" data-id="'+acct.id+'" style="text-decoration:none" title="Open the account">'+esc(qAcct(q.account))+'</a>':esc(qAcct(q.account)))+'</h2>'+
    '<p style="margin:4px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)"><b style="color:var(--ink)">'+esc(q.no)+'</b><span>'+esc(usDate(q.date))+'</span>'+quoteChip(q)+'</p>'+
    tbl+
    '<div style="margin:10px 0 6px">'+
     fact("Contact",q.contactName||q.contactEmail?esc(q.contactName||"")+(q.contactEmail?(q.contactName?' · ':'')+'<a href="mailto:'+esc(q.contactEmail)+'" style="color:var(--coral-text)">'+esc(q.contactEmail)+'</a>':''):"")+
     fact("Pricing",q.level==="dist"?"Distributor":"End-user (MSRP)")+
+    fact("Buy through",q.distName?(company(q.distCid)?'<a href="#" data-act="roster" data-id="'+q.distCid+'" style="color:var(--coral-text)">'+esc(q.distName)+'</a>':esc(q.distName))+(q.distRep?' · '+esc(q.distRep):''):"")+
     fact("Valid through",st==="expired"?'<span style="color:var(--dang-t)">'+esc(usDate(quoteValidThrough(q)))+' — expired</span>':esc(usDate(quoteValidThrough(q))))+
     fact("Sent",q.sentAt?(q.sentTo?'to '+esc(q.sentTo)+' · ':'')+esc(usDate(localDay(q.sentAt))):'<span style="color:var(--coral-text)">not sent yet</span>')+
     fact("Prepared by",esc(teamById(q.by).name))+
@@ -4849,14 +4882,14 @@ function duplicateQuote(id){
 }
 function deleteQuote(id){
   const q=quoteById(id);if(!q)return;
-  if(!confirm('Delete quote '+q.no+' for '+(shortAcct(q.account)||"this customer")+'?\n\nThis syncs to the whole team and cannot be undone.'))return;
+  if(!confirm('Delete quote '+q.no+' for '+(qAcct(q.account)||"this customer")+'?\n\nThis syncs to the whole team and cannot be undone.'))return;
   DB.quotes=(DB.quotes||[]).filter(x=>x.id!==id);
   save();closeSheet();render();toast("Quote deleted");
 }
 function quoteRowHTML(q){
   return '<button class="card" data-act="quoteopen" data-id="'+q.id+'"><div class="row"><span class="ic coral">'+svg("tag")+'</span>'+
-   '<div class="grow"><p class="t1">'+esc(shortAcct(q.account)||"—")+'</p>'+
-   '<p class="t2">'+esc(q.no)+' · '+esc(usDate(q.date))+(q.contactName?' · '+esc(q.contactName):'')+' · '+esc(shortName(q.by))+'</p>'+
+   '<div class="grow"><p class="t1">'+esc(qAcct(q.account)||"—")+'</p>'+
+   '<p class="t2">'+esc(q.no)+' · '+esc(usDate(q.date))+(q.contactName?' · '+esc(q.contactName):'')+(q.distName?' · via '+esc(shortAcct(q.distName)):'')+' · '+esc(shortName(q.by))+'</p>'+
    '<p class="t2" style="white-space:normal">'+esc(quoteItemsSummary(q))+'</p></div>'+
    '<b style="flex:none;font-size:14.5px;font-variant-numeric:tabular-nums">'+fmtC(quoteTotal(q))+'</b>'+quoteChip(q)+chev()+'</div></button>';
 }
@@ -4884,12 +4917,14 @@ function quoteHTML(q,print){
   const forL=[q.account||"",q.contactName?"Attn: "+q.contactName:"",q.contactEmail||"",city].filter(Boolean);
   const shipL=String(q.shipTo||"").split("\n").map(x=>x.trim()).filter(Boolean);
   const block=l=>'<b>'+esc(l[0])+'</b>'+(l.length>1?'<br>'+l.slice(1).map(esc).join("<br>"):'');
+  const dist=q.distName||"",distRep=[q.distRep,q.distRepEmail,q.distRepPhone].filter(Boolean); // the distributor this customer should buy it through
+  const notes='Prices in USD. Sales tax and shipping, if any, are added at order.';
   const h4=t=>'<h4><i></i>'+t+'</h4>';
   const rows=items.map(it=>{const cat=qCat(it.sku),th=QUOTE_THUMB[it.sku];
     return '<div class="ir"><div class="pn">'+(th?'<img class="th" src="'+assetUrl(th)+'" alt="">':'<span class="th ph"><img src="'+assetUrl("ring.png")+'" alt=""></span>')+
      '<span class="nm"><span class="l1"><b contenteditable>'+esc(qItemName(it))+'</b>'+(cat?'<i>'+esc(cat[0])+'</i>':'')+'</span>'+(cat?'<small contenteditable>'+esc(cat[2])+'</small>':'')+'</span></div>'+
      '<span class="n" contenteditable>'+(+it.qty||0)+'</span><span class="n" contenteditable>'+fmtC(it.unit)+'</span><span class="n a" contenteditable>'+fmtC(qLine(it))+'</span></div>';}).join("");
-  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>AutoTQ Quote '+esc(q.no)+' — '+esc(shortAcct(q.account)||"")+'</title><style>'+
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>AutoTQ Quote '+esc(q.no)+' — '+esc(qAcct(q.account)||"")+'</title><style>'+
   '@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:block;src:url("'+assetUrl("inter-latin.woff2")+'") format("woff2")}'+
   ':root{--ink:#14181c;--body:#3a4149;--gray:#5c6670;--faint:#9aa3ab;--line:#e7e3dd;--card:#f6f4f0;--coral:#e8402e}'+
   '*{box-sizing:border-box;margin:0}body{background:#6f6f6f;font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif;font-feature-settings:"calt" 0;color:var(--ink);'+
@@ -4923,6 +4958,7 @@ function quoteHTML(q,print){
   '.pay{background:var(--card);border-radius:16px;padding:19px 24px 18px;margin-top:26px}.pay h4{margin-bottom:12px}'+
   '.paycols{display:flex}.paycol{flex:1 1 0;min-width:0;padding-right:24px}.paycol+.paycol{border-left:1px solid #dedad3;padding-left:24px}.paycol.q{flex:0 0 auto}.paycol.q p{white-space:nowrap}'+
   '.paycol b{font-size:11px;font-weight:750;letter-spacing:.5px;display:block;margin-bottom:6px}.paycol p{font-size:11.5px;color:var(--gray);line-height:1.65}'+
+  '.nb{white-space:nowrap}.paycol .rp{display:block;margin-top:4px;color:var(--ink);font-weight:600}.pnote{margin-top:11px;padding-top:9px;border-top:1px solid #dedad3;font-size:11px;color:var(--gray)}'+
   '.sig{margin-top:24px}.sigcols{display:flex;gap:24px;margin-top:6px}.sigcols div{flex:2.1}.sigcols div:last-child{flex:1.3}'+
   '.sigcols .ln{height:30px;border-bottom:1px solid var(--ink)}.sigcols small{display:block;font-size:10.5px;color:var(--gray);margin-top:7px}'+
   '.foot{margin-top:auto;padding-top:20px}.foot .rule{height:1px;background:var(--line);margin-bottom:16px}'+
@@ -4936,7 +4972,7 @@ function quoteHTML(q,print){
   '.dx{padding-bottom:22px}.dx .head{margin-top:28px}.dx .logo{height:46px}.dx .co{margin-top:9px;line-height:1.6}.dx .inv .word{font-size:30px}.dx .inv .no{font-size:23px;margin-top:3px}.dx .inv .pill{margin-top:9px;padding:6px 14px}'+
    '.dx .cards{margin-top:16px}.dx .card{padding:12px 16px 11px}.dx .card p{line-height:1.55}.dx .card .kv{line-height:1.7}.dx .items{margin-top:18px}.dx .ih{padding-bottom:8px}.dx .ir{padding:6px 8px}'+
    '.dx .pn .th{width:44px;height:33px}.dx .nm b{font-size:14px}.dx .nm small{font-size:11px;margin-top:0}.dx .n{font-size:13.5px}.dx .totwrap{margin-top:10px}.dx .tot .row{padding:3px 10px}'+
-   '.dx .tot .due{padding:12px 20px;margin-top:8px}.dx .tot .due .amt{font-size:22px}.dx .pay{margin-top:14px;padding:12px 20px 11px}.dx .pay h4{margin-bottom:7px}.dx .paycol p{line-height:1.5}'+
+   '.dx .tot .due{padding:12px 20px;margin-top:8px}.dx .tot .due .amt{font-size:22px}.dx .pay{margin-top:14px;padding:12px 20px 11px}.dx .pay h4{margin-bottom:7px}.dx .paycol p{line-height:1.5}.dx .pnote{margin-top:7px;padding-top:6px}'+
    '.dx .sig{margin-top:14px}.dx .sigcols .ln{height:20px}.dx .sigcols small{margin-top:5px}.dx .foot{padding-top:12px}.dx .foot .rule{margin-bottom:12px}.dx .frow img{height:28px}.dx .legal{margin-top:8px}'+
   '.d3 .pn .th{display:none}.d3 .nm{display:flex;align-items:baseline;gap:10px}.d3 .nm .l1{flex:none}.d3 .nm b{font-size:13.5px}.d3 .nm small{margin:0;flex:1}.d3 .n{font-size:13px}'+
   '.d4 .ir{padding:4px 8px}.d4 .card{padding:10px 14px 9px}.d4 .items{margin-top:14px}.d4 .pay{margin-top:10px}.d4 .sig{margin-top:10px}.d4 .sigcols .ln{height:16px}.d4 .foot{padding-top:9px}'+
@@ -4957,16 +4993,20 @@ function quoteHTML(q,print){
     '<div class="kv"><span>Quote date</span><b contenteditable>'+esc(usDate(q.date))+'</b></div>'+
     '<div class="kv"><span>Valid for</span><b contenteditable>'+(+q.validDays||30)+' days</b></div>'+
     '<div class="kv"><span>Pricing</span><b contenteditable>'+(q.level==="dist"?"Distributor":"End-user (MSRP)")+'</b></div>'+
-    '<div class="kv"><span>Prepared by</span><b contenteditable>'+esc(rep.name)+'</b></div></div></div>'+
+    '<div class="kv"><span>Prepared by</span><b contenteditable>'+esc(rep.name)+'</b></div>'+
+    (dist?'<div class="kv"><span>Buy through</span><b contenteditable>'+esc(dist)+'</b></div>':'')+'</div></div>'+
   '<div class="items"><div class="ih"><span>ITEM</span><span>QTY</span><span>RATE</span><span>AMOUNT</span></div>'+rows+'</div>'+
   '<div class="totwrap">'+(q.notes?'<div class="note">'+h4("NOTE")+'<p contenteditable>'+esc(q.notes)+'</p></div>':'')+
    '<div class="tot"><div class="row"><span>Subtotal</span><span contenteditable>'+fmtC(quoteSubtotal(q))+'</span></div>'+
    '<div class="row"><span>Shipping</span><span contenteditable>'+(ship==null?'Quoted at order':fmtC(ship))+'</span></div>'+
    '<div class="due"><b>QUOTE TOTAL</b><span class="amt" contenteditable>'+fmtC(quoteTotal(q))+'</span></div></div></div>'+
   '<div class="pay">'+h4("TO ORDER")+'<div class="paycols">'+
-   '<div class="paycol"><b>ACCEPT THIS QUOTE</b><p contenteditable>Reply with a PO referencing Quote No. '+esc(q.no)+', or sign and return this page.</p></div>'+
+   (dist?'<div class="paycol"><b>ORDER THROUGH '+esc(dist.toUpperCase())+'</b><p contenteditable>Send your PO to '+esc(dist)+' and reference <span class="nb">Quote No. '+esc(q.no)+'.</span>'+
+          (distRep.length?'<span class="rp">'+distRep.map(esc).join(" · ")+'</span>':'')+'</p></div>'
+        :'<div class="paycol"><b>ACCEPT THIS QUOTE</b><p contenteditable>Reply with a PO referencing <span class="nb">Quote No. '+esc(q.no)+',</span> or sign and return this page.</p></div>')+
    '<div class="paycol q"><b>QUESTIONS</b><p contenteditable>'+esc(rep.name)+'<br>'+esc(repEmail)+'<br>'+GHM_PHONE+'</p></div>'+
-   '<div class="paycol"><b>NOTES</b><p contenteditable>Prices in USD. Sales tax and shipping, if any, are added at order.</p></div></div></div>'+
+   (dist?'':'<div class="paycol"><b>NOTES</b><p contenteditable>'+notes+'</p></div>')+'</div>'+
+   (dist?'<p class="pnote" contenteditable>'+notes+'</p>':'')+'</div>'+
   '<div class="sig">'+h4("ACCEPTED BY")+'<div class="sigcols"><div><div class="ln"></div><small>Name &amp; title</small></div><div><div class="ln"></div><small>Signature</small></div><div><div class="ln"></div><small>Date</small></div></div></div>'+
   '<div class="foot"><div class="rule"></div><div class="frow"><img src="'+assetUrl("lockup_mail.png")+'" alt="AutoTQ">'+
    '<p>Golden Hour Medical, Inc. · '+GHM_ADDR+'<br>theautotq.com · '+esc(repEmail)+'</p></div>'+
@@ -4998,6 +5038,7 @@ function quoteEmailHTML(q,msg){
   const kv=(k,v)=>v?'<tr><td style="padding:3px 14px 3px 0;'+f+'font-size:11.5px;color:#5c6670;white-space:nowrap;vertical-align:top;line-height:1.5">'+k+'</td><td style="padding:3px 0;'+f+'font-size:11.5px;color:#14181c;font-weight:700;line-height:1.5">'+v+'</td></tr>':'';
   const para=String(msg||"").trim().split(/\n\s*\n/).filter(Boolean).map(p=>'<p style="margin:0 0 14px;'+f+'font-size:13.5px;line-height:1.65;color:#333333">'+esc(p.trim()).replace(/\n/g,"<br>")+'</p>').join("");
   const tot=(k,v)=>'<tr><td style="padding:4px 0;'+f+'font-size:12px;color:#5c6670">'+k+'</td><td align="right" style="padding:4px 0;'+f+'font-size:12px;color:#5c6670;white-space:nowrap">'+v+'</td></tr>';
+  const mail='<a href="mailto:'+esc(repEmail)+'" style="color:#e8402e;text-decoration:none">'+esc(repEmail)+'</a>';
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>AutoTQ quote '+esc(q.no)+'</title></head>'+
   '<body style="margin:0;padding:0;background:#f3f3f3;'+f+'">'+
   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f3f3"><tr><td align="center" style="padding:28px 12px">'+
@@ -5008,7 +5049,7 @@ function quoteEmailHTML(q,msg){
     '<tr><td style="padding:26px 32px 4px">'+para+
      '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 22px">'+
       kv("Prepared for",esc(q.account||"")+(q.contactName?' &middot; '+esc(q.contactName):''))+kv("Quote date",esc(usDate(q.date)))+
-      kv("Valid through",esc(usDate(quoteValidThrough(q))))+kv("Ship to",q.shipTo?esc(q.shipTo).replace(/\n/g,"<br>"):"")+'</table>'+
+      kv("Valid through",esc(usDate(quoteValidThrough(q))))+kv("Buy through",q.distName?esc(q.distName):"")+kv("Ship to",q.shipTo?esc(q.shipTo).replace(/\n/g,"<br>"):"")+'</table>'+
      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'+th("ITEM")+th("QTY",1)+th("RATE",1)+th("AMOUNT",1)+'</tr>'+rows+'</table>'+
      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0"><tr><td width="50%"></td><td width="50%">'+
       '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'+tot("Subtotal",fmtC(quoteSubtotal(q)))+tot("Shipping",ship==null?"Quoted at order":fmtC(ship))+'</table>'+
@@ -5020,7 +5061,12 @@ function quoteEmailHTML(q,msg){
     '</td></tr>'+
     '<tr><td style="padding:22px 32px 4px">'+
      '<p style="margin:0 0 6px;'+f+'font-size:10px;letter-spacing:1.5px;font-weight:700;color:#14181c"><span style="color:#e8402e">&#9632;</span>&nbsp; TO ORDER</p>'+
-     '<p style="margin:0;'+f+'font-size:12.5px;line-height:1.7;color:#333333">Email a PO that references Quote No. '+esc(q.no)+' to <a href="mailto:'+esc(repEmail)+'" style="color:#e8402e;text-decoration:none">'+esc(repEmail)+'</a>, or reply all to this message. Prices are in USD; sales tax and shipping, where applicable, are added at order.</p>'+
+     '<p style="margin:0;'+f+'font-size:12.5px;line-height:1.7;color:#333333">'+
+      (q.distName?'Place this order through <b style="color:#14181c">'+esc(q.distName)+'</b>: send your PO to '+esc(q.distName)+
+         (q.distRep?' ('+esc(q.distRep)+(q.distRepEmail?', <a href="mailto:'+esc(q.distRepEmail)+'" style="color:#e8402e;text-decoration:none">'+esc(q.distRepEmail)+'</a>':'')+(q.distRepPhone?', '+esc(q.distRepPhone):'')+')':'')+
+         ' and reference Quote No. '+esc(q.no)+'. Questions go to '+mail+', or reply all to this message.'
+       :'Email a PO that references Quote No. '+esc(q.no)+' to '+mail+', or reply all to this message.')+
+      ' Prices are in USD; sales tax and shipping, where applicable, are added at order.</p>'+
     '</td></tr>'+
     '<tr><td style="padding:24px 32px 28px">'+
      '<p style="margin:0;'+f+'font-size:12.5px;line-height:1.7;color:#333333"><b style="color:#14181c">'+esc(rep.name)+'</b><br>'+esc(rep.role||"")+(rep.role?' &nbsp;|&nbsp; ':'')+'Golden Hour Medical, Inc.<br>'+
@@ -5041,7 +5087,8 @@ function formQuoteSend(id){
    (q.sentAt?'<p style="font-size:12.5px;color:var(--ok-t);margin:0 0 8px">Already sent'+(q.sentTo?' to '+esc(q.sentTo):'')+' on '+esc(usDate(localDay(q.sentAt)))+' — sending again is fine.</p>':'')+
    '<label class="fl">To <span style="font-weight:400;color:var(--hint)">— type a name to pick from contacts, or paste the email</span></label>'+comboField("qsTo","name or email",q.contactEmail||"")+
    '<label class="fl">Cc</label><input class="f" id="qsCc" autocomplete="off" value="'+esc(userEmail(USER))+'">'+
-   '<label class="fl">Subject</label><input class="f" id="qsSub" autocomplete="off" value="'+esc("AutoTQ quote "+q.no+" — "+shortAcct(q.account))+'">'+
+   (q.distRepEmail?'<div class="qa-types" style="margin-top:8px"><span class="qchip" data-act="qsccdist" data-v="'+esc(q.distRepEmail)+'">+ Cc '+esc(q.distRep||"their rep")+' at '+esc(shortAcct(q.distName))+'</span></div>':'')+
+   '<label class="fl">Subject</label><input class="f" id="qsSub" autocomplete="off" value="'+esc("AutoTQ quote "+q.no+" — "+qAcct(q.account))+'">'+
    '<label class="fl">Your note <span style="font-weight:400;color:var(--hint)">— sits above the quote; your name and email are added under it</span></label><textarea class="f" id="qsMsg" rows="5">'+esc(quoteDefaultMsg(q))+'</textarea>'+
    '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn" data-act="quotemailview" data-id="'+q.id+'" style="flex:1;min-height:46px">Preview the email</button>'+
    '<button class="btn coral" data-act="quotesendgo" data-id="'+q.id+'" id="qsSend" style="flex:1.6;min-height:46px">Send quote</button></div>'+
@@ -5082,7 +5129,7 @@ async function sendQuote(id){
     await sendHtmlMail({from:SALES_FROM,to:to,cc:cc,subject:sub,html:html});
     if(q.status!=="won"&&q.status!=="lost")q.status="sent";
     q.sentAt=new Date().toISOString();q.sentTo=to;q.sentBy=USER;q.updatedAt=q.sentAt;
-    if(q.cid||q.pid)DB.activities.unshift({id:uid(),type:"quote",pid:q.pid||null,cid:q.cid||null,note:"Quote "+q.no+" ("+fmtC(quoteTotal(q))+") emailed to "+to,date:q.sentAt,by:USER});
+    if(q.cid||q.pid)DB.activities.unshift({id:uid(),type:"quote",pid:q.pid||null,cid:q.cid||null,note:"Quote "+q.no+" ("+fmtC(quoteTotal(q))+") emailed to "+to+(q.distName?" · to buy through "+q.distName:""),date:q.sentAt,by:USER});
     const p=q.pid?person(q.pid):null;if(p)p.last=q.sentAt;
     save();closeSheet();render();toast("Quote sent to "+to+" ✓");
   }catch(e){
@@ -5513,10 +5560,15 @@ document.addEventListener("click",e=>{
   if(a==="pickQtAcct"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;const i=document.getElementById("qtAcct");if(i)i.value=c.name;sugRender("qtAcct",[]);
     if(S.pid&&(person(S.pid)||{}).cid!==c.id)S.pid=null;
     const sh=document.getElementById("qtShip");if(sh&&!sh.value.trim()&&quoteShipToText(c)){sh.value=quoteShipToText(c);S.shipTo=sh.value;}
+    if(!String(S.dist||"").trim()){const bf=c.type==="enduser"?quoteFirstDist(c):null;if(bf){S.dist=bf.name;S.distCid=bf.cid;}}
+    const dw=document.getElementById("qtDistWrap");if(dw)dw.outerHTML=quoteDistHTML(); // their 1st-choice distributor, and the reps covering their state
     const lv=c.type==="distributor"?"dist":"enduser";if(lv!==S.level&&S.items.every(it=>it.auto))quoteSetLevel(lv);}return;}
   if(a==="pickQtCon"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.pid=p.id;S.con=p.name;const i=document.getElementById("qtCon");if(i)i.value=p.name;sugRender("qtCon",[]);
     const em=document.getElementById("qtEmail");if(em&&p.email){em.value=p.email;S.email=p.email;}
     const co=company(p.cid),ai=document.getElementById("qtAcct");if(co&&ai&&!ai.value.trim()){ai.value=co.name;S.cid=co.id;S.acct=co.name;}}return;}
+  if(a==="pickQtDist"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){S.distCid=c.id;S.dist=c.name;S.distPid=null;S.distRep="";const i=document.getElementById("qtDist");if(i)i.value=c.name;sugRender("qtDist",[]);quoteRedrawDistRep();}return;}
+  if(a==="pickQtDistRep"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.distPid=p.id;S.distRep=p.name;quoteRedrawDistRep();}return;}
+  if(a==="qsccdist"){const i=document.getElementById("qsCc"),v=t.dataset.v;if(i&&v&&!i.value.toLowerCase().includes(v.toLowerCase()))i.value=(i.value.trim()?i.value.trim().replace(/[,;]\s*$/,"")+", ":"")+v;t.style.display="none";return;}
   if(a==="pickQsTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("qsTo");if(p&&i)i.value=p.email||"";sugRender("qsTo",[]);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
   if(a==="sort"){if(e.target.tagName==="INPUT"||e.target.classList.contains("rz"))return;const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
@@ -5828,6 +5880,9 @@ document.addEventListener("input",e=>{
   if(/^qt_(qty|unit|name)_\d+$/.test(e.target.id||"")){quoteItemInput(e.target);return;}
   if(e.target.id==="qtAcct"){if(logState.qt)logState.qt.cid=null;sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
   if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
+  if(e.target.id==="qtDist"){const S=logState.qt;if(S){S.dist=e.target.value;if(S.distCid){S.distCid=null;S.distPid=null;S.distRep="";quoteRedrawDistRep();}}sugRender("qtDist",acctSugItems(e.target.value,"pickQtDist",["distributor"]));return;}
+  if(e.target.id==="qtDistRep"){const S=logState.qt;if(S){S.distPid=null;S.distRep=e.target.value;document.querySelectorAll("#qtDistRepWrap .qchip").forEach(x=>x.classList.remove("on"));}
+    sugRender("qtDistRep",peopleSugItemsF(e.target.value,"pickQtDistRep",p=>!!S&&p.cid===S.distCid));return;}
   if(e.target.id==="qsTo"){sugRender("qsTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickQsTo",p=>!!p.email));return;}
   if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
   if(e.target.id==="shOrderQ"){sugRender("shOrderQ",orderSugItems(e.target.value,"pickShOrder"));return;}
