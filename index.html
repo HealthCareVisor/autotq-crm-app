@@ -315,6 +315,21 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .pngrid .rowx svg.i{width:14px;height:14px}
 .pngrid th svg.sa{width:12px;height:12px;vertical-align:-1px;opacity:.7}
 .wiz button svg.i{width:14px;height:14px;vertical-align:-2px;stroke-width:2.4}
+/* quote builder — line items */
+.qtrows{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 12px;box-shadow:var(--sh-1)}
+.qtrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 0;border-top:1px solid var(--line-2)}
+.qtrow:first-child{border-top:0}
+.qtname{flex:1 1 130px;min-width:0}
+.qtname b{display:block;font-size:14.5px;font-weight:600;letter-spacing:-.006em}
+.qtname small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+.qtname input.f,.qtnums input.f{padding:9px 10px;box-shadow:none}
+.qtnums{display:flex;align-items:center;gap:6px;flex:none;margin-left:auto}
+.qtnums input.f{width:54px;padding:9px 8px;text-align:right;font-variant-numeric:tabular-nums}
+.qtnums input.f.u{width:84px}
+.qtnums .x{color:var(--faint);font-size:13px}
+.qtnums b{min-width:76px;text-align:right;font-size:14px;font-weight:650;font-variant-numeric:tabular-nums}
+.qtsum{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.qtsum b{font-size:18px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.012em}
 .invmid{flex:0 0 300px;align-self:center;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);padding:5px 10px}
 .invright{flex:0 0 330px;display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
 .invline{display:none}
@@ -557,7 +572,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -810,7 +825,8 @@ const SVG={
  alert:'<path d="M10.3 4.6L3 17.5A2 2 0 004.7 20.5h14.6a2 2 0 001.7-3L13.7 4.6a2 2 0 00-3.4 0z"/><line x1="12" y1="9.5" x2="12" y2="13.5"/><line x1="12" y1="16.8" x2="12" y2="16.9"/>',
  arrow:'<line x1="5" y1="12" x2="18.5" y2="12"/><polyline points="13 6.5 18.5 12 13 17.5"/>',
  star:'<polygon points="12 3.8 14.5 9 20.2 9.6 15.9 13.4 17.1 19 12 16.1 6.9 19 8.1 13.4 3.8 9.6 9.5 9"/>',
- edit:'<path d="M4.5 19.5h3.8L19 8.8a2.2 2.2 0 000-3.1l-.7-.7a2.2 2.2 0 00-3.1 0L4.5 15.7z"/><line x1="13.6" y1="6.6" x2="17.4" y2="10.4"/>'
+ edit:'<path d="M4.5 19.5h3.8L19 8.8a2.2 2.2 0 000-3.1l-.7-.7a2.2 2.2 0 00-3.1 0L4.5 15.7z"/><line x1="13.6" y1="6.6" x2="17.4" y2="10.4"/>',
+ tag:'<path d="M4 11.6V5.5A1.5 1.5 0 015.5 4h6.1a1.5 1.5 0 011.06.44l7 7a1.5 1.5 0 010 2.12l-6.1 6.1a1.5 1.5 0 01-2.12 0l-7-7A1.5 1.5 0 014 11.6z"/><circle cx="8.6" cy="8.6" r="1.3"/>'
 };
 function svg(n,cls){return '<svg class="i '+(cls||"")+'" viewBox="0 0 24 24" aria-hidden="true">'+(SVG[n]||"")+'</svg>';}
 /* the AutoTQ ring mark (traced from AutoTQ_CRM_assets/ring.png) */
@@ -924,7 +940,7 @@ function render(){
   if(view==="invoicing"&&!invAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -944,6 +960,7 @@ function render(){
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
     search:(searchQ?('Results for “'+esc(searchQ)+'”'):""),
+    quotes:(function(){const qs=quotesAll(),op=qs.filter(q=>{const st=quoteState(q);return st==="draft"||st==="sent";});return qs.length?op.length+" open · "+money(op.reduce((s,q)=>s+quoteTotal(q),0))+" quoted":"Price it, preview it, send it";})(),
     invoicing:(function(){const os=ordersAll();const q=os.filter(o=>o.status==="queue");return os.length+" orders · "+q.length+" awaiting invoice"+(q.length?" ("+money(q.reduce((s,o)=>s+(o.amount||0),0))+")":"");})(),
     shipping:(function(){const t=ordersToShip().length,tr=(DB.shipments||[]).filter(s=>s.status==="shipped").length;return (t?t+" new order"+(t>1?"s":"")+" to send out":"Nothing waiting to go out")+(tr?" · "+tr+" in transit":"");})()
   };
@@ -968,13 +985,14 @@ function render(){
   else if(view==="search")body=searchView();
   else if(view==="invoicing")body=invAccess()?viewInvoicing():viewToday();
   else if(view==="shipping")body=shipAccess()?viewShipping():viewToday();
+  else if(view==="quotes")body=viewQuotes();
   else body=viewToday();
   const NU=(admin()&&VIEWAS)?VIEWAS:USER; /* rail preview: admin sees another seat's left nav */
   const groups=NU==="laresa"
    ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["shipping","truck","Shipping"],["opps","chart","Pipeline"]]],
      ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
    :[
-   ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
+   ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["quotes","tag","Quotes"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"],["export","dl","Lists"]]],
    ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
    ["Plan",[["conf","cal","Conferences"]]]
@@ -1535,6 +1553,7 @@ function viewPerson(id){
   }
   h+='<div class="qa" style="margin-bottom:8px"><button class="btn coral block" data-act="logfor" data-id="'+p.id+'">'+svg("phone")+' Log</button>'+
      '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button>'+
+     (contactType(p)!=="manrep"?'<button class="btn block" data-act="quoteforp" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("tag")+' Quote</button>':'')+
      (contactType(p)!=="distrep"&&contactType(p)!=="manrep"?'<button class="btn block" data-act="pushlead" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px" title="Work them from the Leads tab">'+svg("spark")+' Push to Leads</button>':'')+'</div>';
   const onDeals=(DB.opps||[]).filter(o=>(o.contacts||[]).some(x=>x.pid===p.id));
   if(onDeals.length){h+='<div class="sectlabel">On deals ('+onDeals.length+')</div><div class="list">';
@@ -1598,6 +1617,7 @@ function viewRoster(cid){
   h+='<div class="reccard"><div class="rechead"><span class="ic lg coral">'+svg(c.type==="distributor"?"ware":c.type==="enduser"?"build":"pin")+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:20px;letter-spacing:-.02em">'+esc(c.name)+'</p><p class="t2" style="margin-top:4px">'+typeTag(c.type)+(c.website?' &nbsp; <a href="'+esc(c.website)+'" target="_blank" rel="noopener" style="color:var(--info-t)">'+esc(c.website.replace(/^https:\/\//,""))+'</a>':'')+'</p></div>'+
    '<div class="qa"><button class="btn sm coral" data-act="newoppfor" data-id="'+c.id+'">'+svg("plus")+' Opportunity</button>'+
+   '<button class="btn sm" data-act="quotefor" data-id="'+c.id+'">'+svg("tag")+' Quote</button>'+
    '<button class="btn sm" data-act="logacct" data-id="'+c.id+'">'+svg("note")+' Log</button>'+
    '<button class="btn sm" data-act="editacct" data-id="'+c.id+'">Edit</button></div></div>'+
    '<div class="recstats">'+stat("Region",regionTag(companyRegion(c)))+stat("Enablement",c.type==="distributor"?stageTag(enableStage(c)):(c.stage?esc(c.stage):"—"))+stat("Contacts",reps.length)+
@@ -1626,6 +1646,8 @@ function viewRoster(cid){
     h+='<div class="lvhead" style="margin-top:24px"><div class="sech">Opportunities <span class="cnt">'+opps.length+'</span></div></div>';
     h+=oppTableHTML(opps.slice().sort((a,b)=>(b.amount||0)-(a.amount||0)),false);
   }
+  const acctQuotes=quotesAll().filter(q=>q.cid===cid||String(q.account||"").toLowerCase()===c.name.toLowerCase());
+  if(acctQuotes.length)h+='<div class="lvhead" style="margin-top:24px"><div class="sech">Quotes <span class="cnt">'+acctQuotes.length+'</span></div></div><div class="list">'+acctQuotes.map(quoteRowHTML).join("")+'</div>';
   h+='<div class="lvhead" style="margin-top:24px"><div class="sech">Contacts <span class="cnt">'+reps.length+'</span></div>'+
      '<button class="btn sm coral" data-act="addcontactfor" data-id="'+c.id+'" style="margin-left:auto">'+svg("plus")+' Add contact</button></div>';
   /* branch chips: multi-location books (Ritz, Unifirst…) sift by branch city, like Grainger districts */
@@ -3151,7 +3173,7 @@ function viewInsights(){
 
 /* ---------- ADD ---------- */
 function addHub(){
-  const items=[["card","camera","Business card"],["opportunity","chart","Opportunity"],["distributor","ware","Distributor"],["enduser","build","End-user"],["rep","user","Rep / contact"],["training","school","Training"],["demo","box","Demo unit"],["call","phone","Call / note"]];
+  const items=[["card","camera","Business card"],["quote","tag","Quote"],["opportunity","chart","Opportunity"],["distributor","ware","Distributor"],["enduser","build","End-user"],["rep","user","Rep / contact"],["training","school","Training"],["demo","box","Demo unit"],["call","phone","Call / note"]];
   openSheet('<h2>Add to CRM</h2><div class="hubgrid">'+items.map(i=>'<button class="hub" data-act="form" data-form="'+i[0]+'"><span class="hubic">'+svg(i[1])+'</span><b>'+i[2]+'</b></button>').join("")+'</div>');
 }
 function formLogAcct(cid){
@@ -3579,7 +3601,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list" style="margin-top:12px">'+
- [["leads","spark","Leads"],["export","dl","Lists"],["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
+ [["quotes","tag","Quotes"],["leads","spark","Leads"],["export","dl","Lists"],["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b class="grow">'+n[2]+'</b>'+chev()+'</button>').join("")+
  '</div><div class="list">'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -3616,6 +3638,7 @@ function helpSheet(){
   const rows=[
    ["Home","Your day: tasks, conference call lists, and the distributors you're onboarding."],
    ["Pipeline","Every deal as cards by stage. ‹ › moves a deal; ✓/✕ closes it. Tap a card to edit everything, including who's on the deal."],
+   ["Quotes","Price a customer on the spot: pick the account, tap the line items (prices fill in and stay editable), then preview the AutoTQ quote sheet or email it. Every quote is saved with its status."],
    ["Forecasts","Salesforce-style rollup — Closed / Commit / Best case / Pipeline by quarter. Tap any cell to see the deals behind it."],
    ["Accounts","Distributors, end-users and man-rep groups. Open one for its contacts, deals, demos and activity."],
    ["Contacts","The channel reps we enable. Tap-to-call/email; log every touch."],
@@ -4603,6 +4626,471 @@ async function sendOrderConfirm(oid){
     htmlCopyWindow(orderConfirmHTML(o),to,sub,SALES_FROM);
   }
 }
+/* ---------- QUOTES (Max, 2026-10-13: "a form that our sales people can use to quote people immediately… input line
+   items then send a copy"). One synced record per quote in `quotes`:
+   {id,no,date,validDays,account,cid,contactName,contactEmail,pid,level:"enduser"|"dist",items:[{sku,name,qty,unit,auto}],
+    shipping,shipTo,notes,total,status:"draft"|"sent"|"won"|"lost",sentAt,sentTo,by,createdAt,updatedAt}.
+   The printable sheet is the approved AutoTQ quote design (Quotes/AutoTQ_Quote_Q-260924-01_EndUser); the email goes
+   out through send-invoice action:"notify" from Sales Support with the rep copied. ---------- */
+/* July 2026 price list: [part #, name on the quote, description, MSRP, distributor price, chip label] */
+const QUOTE_CAT=[
+ ["1000-0005-TQ","AutoTQ Kit","Inflator, charging cable, arm & leg cuffs, training, 1-yr warranty",680,544,"AutoTQ Kit"],
+ ["7000-WB","Wall Mount Bracket","Permanent placement, keeps AutoTQ visible and ready",35,26.25,"Wall bracket"],
+ ["7000-CC","Hard-Shell Case","Rugged, weather-resistant case for field use",59,47,"Hard case"],
+ ["7000-LS-P","Additional Cuffs — Pair","One arm cuff + one leg cuff, single-use",45,33.75,"Cuff pair"],
+ ["7000-LS2P","Additional Cuffs — Two-Pack","Two arm cuffs + two leg cuffs, single-use",80,60,"Cuff two-pack"],
+ ["7000-FA","First-Aid Supplies","Single-casualty bleeding-control supplies, latex-free",45,33.75,"First-aid"],
+ ["1000-Wifi","Wi-Fi Monitoring — Basic","Per device, per year: live fleet map, readiness reports, charge alerts",36,27,"Wi-Fi Basic"],
+ ["1000-Wifi-M","Wi-Fi Monitoring — Guardian","Per device, per year: Basic plus deployment alerts and a 5-year warranty",60,45,"Wi-Fi Guardian"],
+ ["Demo unit","AutoTQ Demo Unit","Demo kit for a distributor's sales team",350,350,"Demo unit"]];
+const KIT_TIERS=[[200,380],[100,396],[51,435],[11,460.20],[1,544]]; // distributor kit price by quantity ordered
+const QUOTE_THUMB=Object.assign({},THUMB_FILE,{"7000-LS2P":THUMB_FILE["7000-LS-P"]});
+const QUOTE_ST={draft:["Draft","gray"],sent:["Sent","info"],won:["Won","ok"],lost:["Lost","dang"],expired:["Expired","warn"]};
+const GHM_ADDR="6590 W Rogers Cir Ste 5, Boca Raton, FL 33487",GHM_PHONE="+1 (561) 866-9697";
+const MAIL_ASSETS="https://autotqcrm.goldenhourmedical.com/AutoTQ_CRM_assets/"; // images in an email need a public address, wherever the CRM itself is running
+let quoteFilter="open",quoteMine=false;
+function qCat(sku){return QUOTE_CAT.find(x=>x[0]===sku)||null;}
+function quotePrice(sku,qty,level){
+  const c=qCat(sku);if(!c)return null;
+  if(level!=="dist")return c[3];
+  if(sku==="1000-0005-TQ"){const n=+qty||1;return (KIT_TIERS.find(t=>n>=t[0])||KIT_TIERS[KIT_TIERS.length-1])[1];}
+  return c[4];
+}
+function qItemName(it){const c=qCat(it.sku);return c?c[1]:(it.name||it.sku||"");}
+function qLine(it){return Math.round((+it.qty||0)*(+it.unit||0)*100)/100;}
+function quoteSubtotal(q){return Math.round((q.items||[]).reduce((s,it)=>s+qLine(it),0)*100)/100;}
+function quoteShipping(q){return q.shipping===""||q.shipping==null?null:(+q.shipping||0);}
+function quoteTotal(q){return Math.round((quoteSubtotal(q)+(quoteShipping(q)||0))*100)/100;}
+function quotesAll(){return (DB.quotes||[]).filter(q=>q&&q.no).sort((a,b)=>String(b.createdAt||b.date||"").localeCompare(String(a.createdAt||a.date||"")));}
+function quoteById(id){return (DB.quotes||[]).find(q=>q&&q.no&&q.id===id);}
+function quoteValidThrough(q){const d=new Date(String(q.date||todayStr()).slice(0,10)+"T12:00:00");d.setDate(d.getDate()+(+q.validDays||30));return ymd(d);}
+/* a draft or sent quote past its valid-through date reads as expired — the stored status is left alone */
+function quoteState(q){return (q.status==="draft"||q.status==="sent"||!q.status)&&quoteValidThrough(q)<todayStr()?"expired":(q.status||"draft");}
+function quoteChip(q){const s=QUOTE_ST[quoteState(q)]||QUOTE_ST.draft;return '<span class="pill '+s[1]+'">'+s[0]+'</span>';}
+function quoteItemsSummary(q){return (q.items||[]).map(it=>(+it.qty||0)+"× "+qItemName(it)).join(" + ");}
+function nextQuoteNo(){
+  const d=todayStr(),stem="Q-"+d.slice(2,4)+d.slice(5,7)+d.slice(8,10)+"-";
+  const n=(DB.quotes||[]).reduce((m,q)=>q&&q.no&&q.no.indexOf(stem)===0?Math.max(m,parseInt(q.no.slice(stem.length),10)||0):m,0);
+  return stem+pad2(n+1);
+}
+function userEmail(u){return Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===u)||"";}
+function quoteShipToText(c){return c&&c.shipTo?shipToLines(c.shipTo).join("\n"):"";}
+
+/* ----- the form: who it's for, pricing level, line items. Prices fill themselves and stay editable ----- */
+function quoteDraftFrom(q,pre){
+  if(q)return {id:q.id,cid:q.cid||null,pid:q.pid||null,level:q.level==="dist"?"dist":"enduser",validDays:+q.validDays||30,
+    items:(q.items||[]).map(x=>({sku:x.sku||"",name:x.name||"",qty:x.qty,unit:x.unit,auto:!!x.auto})),
+    acct:q.account||"",con:q.contactName||"",email:q.contactEmail||"",shipTo:q.shipTo||"",notes:q.notes||"",
+    shipping:quoteShipping(q)==null?"":String(quoteShipping(q)),more:!!(q.shipTo||q.notes||quoteShipping(q)!=null)};
+  pre=pre||{};
+  const p=pre.pid?person(pre.pid):null,c0=pre.cid?company(pre.cid):(p&&p.cid?company(p.cid):null);
+  const c=c0&&!/company unknown/i.test(c0.name)?c0:null; // the business-card holding bucket is not a customer name
+  const level=c&&c.type==="distributor"?"dist":"enduser",ship=quoteShipToText(c);
+  return {id:null,cid:c?c.id:null,pid:p?p.id:null,level:level,validDays:30,
+    items:[{sku:"1000-0005-TQ",name:"",qty:1,unit:quotePrice("1000-0005-TQ",1,level),auto:true}],
+    acct:c?c.name:"",con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!ship};
+}
+function formQuote(id,pre,keep){
+  if(!keep)logState.qt=quoteDraftFrom(id?quoteById(id):null,pre);
+  const S=logState.qt,q=S.id?quoteById(S.id):null;
+  const hint=t=>' <span style="font-weight:400;color:var(--hint)">'+t+'</span>';
+  openSheet('<h2>'+(q?'Edit quote '+esc(q.no):'New quote')+'</h2>'+
+   '<label class="fl">Quote for'+hint('— the company; pick an account or type a new name')+'</label>'+comboField("qtAcct","Company",S.acct)+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Contact</label>'+comboField("qtCon","Name",S.con)+'</div>'+
+   '<div class="grow"><label class="fl">Email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="Where the quote goes"></div></div>'+
+   '<label class="fl">Pricing</label><div class="qa-types" id="qtLevel">'+
+    [["enduser","End-user (MSRP)"],["dist","Distributor"]].map(l=>'<span class="chip'+(S.level===l[0]?" on":"")+'" data-act="qtlevel" data-v="'+l[0]+'">'+l[1]+'</span>').join("")+'</div>'+
+   quoteItemsHTML()+
+   '<label class="fl">Valid for</label><div class="qa-types" id="qtValid">'+
+    [30,60,90].map(n=>'<span class="chip'+(S.validDays===n?" on":"")+'" data-act="qtvalid" data-v="'+n+'">'+n+' days</span>').join("")+'</div>'+
+   '<button class="btn sm ghost" data-act="qtmore" id="qtMoreBtn" style="margin-top:14px'+(S.more?';display:none':'')+'">+ Ship-to, shipping cost or a note</button>'+
+   '<div id="qtMore"'+(S.more?'':' style="display:none"')+'>'+
+    '<label class="fl">Ship to</label><textarea class="f" id="qtShip" rows="3" placeholder="Name, street, city, state ZIP">'+esc(S.shipTo)+'</textarea>'+
+    '<label class="fl">Shipping cost'+hint('— leave blank and the quote says “Quoted at order”')+'</label><input class="f" id="qtShipAmt" inputmode="decimal" autocomplete="off" value="'+esc(S.shipping)+'" placeholder="$">'+
+    '<label class="fl">Note on the quote</label><textarea class="f" id="qtNotes" rows="2" placeholder="Optional">'+esc(S.notes)+'</textarea></div>'+
+   '<div style="display:flex;gap:8px;margin-top:18px"><button class="btn" data-act="qtsave" data-v="preview" style="flex:1;min-height:46px">Preview</button>'+
+   '<button class="btn coral" data-act="qtsave" data-v="send" style="flex:1.6;min-height:46px">Save &amp; send</button></div>'+
+   '<button class="btn ghost block" data-act="qtsave" data-v="draft" style="margin-top:8px">Save as a draft</button>');
+}
+/* under a catalog line: its part # and, for kits at distributor pricing, which quantity tier the price came from */
+function quoteItemSub(it,level){
+  if(!it.auto)return it.sku+" · price set by hand";
+  if(it.sku==="1000-0005-TQ"&&level==="dist"){const n=+it.qty||1;let i=KIT_TIERS.findIndex(t=>n>=t[0]);if(i<0)i=KIT_TIERS.length-1;
+    return it.sku+" · "+(i>0?KIT_TIERS[i][0]+"–"+(KIT_TIERS[i-1][0]-1):KIT_TIERS[i][0]+"+")+" unit price tier";}
+  return it.sku;
+}
+function quoteItemsHTML(){
+  const S=logState.qt;
+  const chips=QUOTE_CAT.filter(c=>c[0]!=="Demo unit"||S.level==="dist").map(c=>'<span class="qchip" data-act="qtadd" data-v="'+esc(c[0])+'">+ '+esc(c[5])+'</span>').join("")+
+   '<span class="qchip" data-act="qtadd" data-v="">+ Custom line</span>';
+  const rows=S.items.map((it,i)=>{const c=qCat(it.sku);
+    return '<div class="qtrow"><div class="qtname">'+
+     (c?'<b>'+esc(c[1])+'</b><small id="qt_sub_'+i+'">'+esc(quoteItemSub(it,S.level))+'</small>'
+       :'<input class="f" id="qt_name_'+i+'" placeholder="What is this line?" value="'+esc(it.name||"")+'" autocomplete="off">')+'</div>'+
+     '<div class="qtnums"><input class="f" id="qt_qty_'+i+'" inputmode="numeric" aria-label="Quantity" value="'+(it.qty===""||it.qty==null?"":it.qty)+'" autocomplete="off">'+
+      '<span class="x">×</span><input class="f u" id="qt_unit_'+i+'" inputmode="decimal" aria-label="Unit price" value="'+(it.unit===""||it.unit==null?"":(+it.unit).toFixed(2))+'" placeholder="$ each" autocomplete="off">'+
+      '<b id="qt_tot_'+i+'">'+fmtC(qLine(it))+'</b>'+
+      '<button class="tkdel" data-act="qtdel" data-i="'+i+'" aria-label="Remove line" title="Remove line">'+svg("x")+'</button></div></div>';}).join("");
+  return '<div id="qtItems"><label class="fl">Line items</label>'+
+   (S.items.length?'<div class="qtrows">'+rows+'</div>':'')+
+   '<div class="qa-types" style="margin-top:10px">'+chips+'</div>'+
+   '<div class="qtsum"><span>Subtotal</span><b id="qtSub">'+fmtC(S.items.reduce((a,x)=>a+qLine(x),0))+'</b></div></div>';
+}
+function quoteCollect(){
+  const S=logState.qt;if(!S)return;
+  const g=id=>{const el=document.getElementById(id);return el?el.value:null;};
+  [["qtAcct","acct"],["qtCon","con"],["qtEmail","email"],["qtShip","shipTo"],["qtShipAmt","shipping"],["qtNotes","notes"]].forEach(m=>{const v=g(m[0]);if(v!==null)S[m[1]]=v;});
+  S.items.forEach((it,i)=>{
+    const nm=g("qt_name_"+i);if(nm!==null)it.name=nm;
+    const qv=g("qt_qty_"+i);if(qv!==null)it.qty=parseFloat(qv)||0;
+    const uv=g("qt_unit_"+i);if(uv!==null)it.unit=uv.trim()===""?"":(parseFloat(uv.replace(/[$,]/g,""))||0);
+  });
+}
+/* typing in a line: the totals follow without redrawing (focus stays put); a new kit quantity re-prices its tier */
+function quoteItemInput(el){
+  const S=logState.qt,m=String(el.id).match(/^qt_(qty|unit|name)_(\d+)$/);if(!S||!m)return;
+  const i=+m[2],it=S.items[i];if(!it)return;
+  if(m[1]==="name"){it.name=el.value;return;}
+  if(m[1]==="unit"){it.unit=parseFloat(String(el.value).replace(/[$,]/g,""))||0;it.auto=false;}
+  else{it.qty=parseFloat(el.value)||0;
+    if(it.auto){const p=quotePrice(it.sku,it.qty,S.level);
+      if(p!=null&&p!==it.unit){it.unit=p;const u=document.getElementById("qt_unit_"+i);if(u)u.value=p.toFixed(2);}}}
+  const sub=document.getElementById("qt_sub_"+i);if(sub)sub.textContent=quoteItemSub(it,S.level);
+  const t=document.getElementById("qt_tot_"+i);if(t)t.textContent=fmtC(qLine(it));
+  const s=document.getElementById("qtSub");if(s)s.textContent=fmtC(S.items.reduce((a,x)=>a+qLine(x),0));
+}
+function quoteRedrawItems(){const w=document.getElementById("qtItems");if(w)w.outerHTML=quoteItemsHTML();}
+function quoteSetLevel(v){
+  const S=logState.qt;if(!S)return;quoteCollect();S.level=v;
+  S.items.forEach(it=>{if(it.auto){const p=quotePrice(it.sku,it.qty,v);if(p!=null)it.unit=p;}});
+  document.querySelectorAll("#qtLevel .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===v));
+  quoteRedrawItems();
+}
+function quoteAddItem(sku){
+  const S=logState.qt;if(!S)return;quoteCollect();
+  const ex=sku?S.items.find(it=>it.sku===sku):null;
+  if(ex){ex.qty=(+ex.qty||0)+1;if(ex.auto){const p=quotePrice(sku,ex.qty,S.level);if(p!=null)ex.unit=p;}}
+  else S.items.push(sku?{sku:sku,name:"",qty:1,unit:quotePrice(sku,1,S.level),auto:true}:{sku:"",name:"",qty:1,unit:"",auto:false});
+  quoteRedrawItems();
+  if(!sku){const el=document.getElementById("qt_name_"+(S.items.length-1));if(el)el.focus();}
+}
+function quoteDelItem(i){const S=logState.qt;if(!S)return;quoteCollect();S.items.splice(i,1);quoteRedrawItems();}
+function saveQuote(mode){
+  const S=logState.qt;if(!S)return;quoteCollect();
+  const acct=String(S.acct||"").trim(),email=String(S.email||"").trim();
+  if(!acct){toast("Who is the quote for? Add the company");return;}
+  const items=S.items.filter(it=>(it.sku||String(it.name||"").trim())&&+it.qty>0)
+   .map(it=>({sku:it.sku||"",name:it.sku?"":String(it.name||"").trim(),qty:+it.qty,unit:Math.round((+it.unit||0)*100)/100,auto:!!it.auto}));
+  if(!items.length){toast("Add at least one line item");return;}
+  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("That email doesn't look right");return;}
+  DB.quotes=DB.quotes||[];
+  let q=S.id?quoteById(S.id):null;const fresh=!q;
+  if(!q){q={id:uid(),no:nextQuoteNo(),date:todayStr(),status:"draft",by:USER,createdAt:new Date().toISOString()};DB.quotes.push(q);}
+  if(!S.cid){const c=DB.companies.find(x=>x.name&&x.name.toLowerCase()===acct.toLowerCase());if(c)S.cid=c.id;}
+  const sh=String(S.shipping||"").replace(/[$,\s]/g,"");
+  q.account=acct;q.cid=S.cid||null;q.contactName=String(S.con||"").trim();q.contactEmail=email;q.pid=S.pid||null;
+  q.level=S.level;q.validDays=S.validDays;q.items=items;q.shipTo=String(S.shipTo||"").trim();q.notes=String(S.notes||"").trim();
+  q.shipping=sh===""?null:(parseFloat(sh)||0);q.total=quoteTotal(q);q.updatedAt=new Date().toISOString();
+  S.id=q.id;save();render();
+  if(mode==="send"){formQuoteSend(q.id);return;}
+  if(mode==="preview")quotePrint(q.id);
+  quoteSheet(q.id);toast("Quote "+q.no+(fresh?" saved":" updated"));
+}
+
+/* ----- one quote: the read view, with everything you can do to it ----- */
+function quoteSheet(id){
+  const q=quoteById(id);if(!q)return;
+  const st=quoteState(q),ship=quoteShipping(q),cell='padding:8px 10px;border:1px solid var(--line);';
+  const tbl='<table style="width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px"><tr>'+
+    ["Item","Qty","Unit price","Total"].map((x,i)=>'<th style="'+cell+'text-align:'+(i?"right":"left")+';background:rgba(0,0,0,.035);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">'+x+'</th>').join("")+'</tr>'+
+    (q.items||[]).map(it=>'<tr><td style="'+cell+'"><b>'+esc(qItemName(it))+'</b>'+(qCat(it.sku)?'<span style="color:var(--hint);font-size:12px"> · '+esc(it.sku)+'</span>':'')+'</td>'+
+      '<td style="'+cell+'text-align:right">'+(+it.qty||0)+'</td><td style="'+cell+'text-align:right">'+fmtC(it.unit)+'</td>'+
+      '<td style="'+cell+'text-align:right;font-weight:700">'+fmtC(qLine(it))+'</td></tr>').join("")+
+    (ship!=null?'<tr><td colspan="3" style="'+cell+'text-align:right;color:var(--muted)">Shipping</td><td style="'+cell+'text-align:right">'+fmtC(ship)+'</td></tr>':'')+
+    '<tr><td colspan="3" style="'+cell+'text-align:right;color:var(--muted)">Quote total</td><td style="'+cell+'text-align:right;font-weight:800">'+fmtC(quoteTotal(q))+'</td></tr></table>';
+  const fact=(k,v)=>v?'<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--muted)">'+k+'</span><b style="text-align:right">'+v+'</b></div>':'';
+  const acct=company(q.cid);
+  openSheet('<h2 style="margin-bottom:2px">'+(acct?'<a href="#" data-act="roster" data-id="'+acct.id+'" style="text-decoration:none" title="Open the account">'+esc(shortAcct(q.account))+'</a>':esc(shortAcct(q.account)))+'</h2>'+
+   '<p style="margin:4px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)"><b style="color:var(--ink)">'+esc(q.no)+'</b><span>'+esc(usDate(q.date))+'</span>'+quoteChip(q)+'</p>'+
+   tbl+
+   '<div style="margin:10px 0 6px">'+
+    fact("Contact",q.contactName||q.contactEmail?esc(q.contactName||"")+(q.contactEmail?(q.contactName?' · ':'')+'<a href="mailto:'+esc(q.contactEmail)+'" style="color:var(--coral-text)">'+esc(q.contactEmail)+'</a>':''):"")+
+    fact("Pricing",q.level==="dist"?"Distributor":"End-user (MSRP)")+
+    fact("Valid through",st==="expired"?'<span style="color:var(--dang-t)">'+esc(usDate(quoteValidThrough(q)))+' — expired</span>':esc(usDate(quoteValidThrough(q))))+
+    fact("Sent",q.sentAt?(q.sentTo?'to '+esc(q.sentTo)+' · ':'')+esc(usDate(localDay(q.sentAt))):'<span style="color:var(--coral-text)">not sent yet</span>')+
+    fact("Prepared by",esc(teamById(q.by).name))+
+    fact("Ship to",q.shipTo?esc(q.shipTo).replace(/\n/g,"<br>"):"")+
+    fact("Note",q.notes?esc(q.notes):"")+
+   '</div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
+    '<button class="btn coral" data-act="quotesend" data-id="'+q.id+'">'+(q.sentAt?'Send again':'Send to the customer')+'</button>'+
+    '<button class="btn" data-act="quotepdf" data-id="'+q.id+'">Export PDF</button>'+
+    '<button class="btn" data-act="quoteedit" data-id="'+q.id+'">Edit</button>'+
+    '<button class="btn" data-act="quotedup" data-id="'+q.id+'">Duplicate</button></div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+    (q.status==="won"||q.status==="lost"
+      ?'<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="'+(q.sentAt?"sent":"draft")+'">Reopen</button>'
+      :(q.sentAt?'':'<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="sent">Mark as sent</button>')+
+       '<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="won">Mark won</button>'+
+       '<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="lost">Mark lost</button>')+
+    '<button class="btn ghost" data-act="quotedel" data-id="'+q.id+'" style="color:var(--dang-t);margin-left:auto">Delete</button></div>');
+}
+function setQuoteStatus(id,v){
+  const q=quoteById(id);if(!q)return;
+  q.status=v;
+  if(v==="sent"&&!q.sentAt){q.sentAt=new Date().toISOString();q.sentBy=USER;q.sentTo=q.contactEmail||"";} // sent outside the CRM, marked by hand
+  q.updatedAt=new Date().toISOString();
+  save();render();quoteSheet(id);toast("Quote "+q.no+" → "+QUOTE_ST[v][0]);
+}
+function duplicateQuote(id){
+  const q=quoteById(id);if(!q)return;
+  logState.qt=quoteDraftFrom(q);logState.qt.id=null;
+  formQuote(null,null,true);toast("Copy of "+q.no+" — it gets its own number when you save");
+}
+function deleteQuote(id){
+  const q=quoteById(id);if(!q)return;
+  if(!confirm('Delete quote '+q.no+' for '+(shortAcct(q.account)||"this customer")+'?\n\nThis syncs to the whole team and cannot be undone.'))return;
+  DB.quotes=(DB.quotes||[]).filter(x=>x.id!==id);
+  save();closeSheet();render();toast("Quote deleted");
+}
+function quoteRowHTML(q){
+  return '<button class="card" data-act="quoteopen" data-id="'+q.id+'"><div class="row"><span class="ic coral">'+svg("tag")+'</span>'+
+   '<div class="grow"><p class="t1">'+esc(shortAcct(q.account)||"—")+'</p>'+
+   '<p class="t2">'+esc(q.no)+' · '+esc(usDate(q.date))+(q.contactName?' · '+esc(q.contactName):'')+' · '+esc(shortName(q.by))+'</p>'+
+   '<p class="t2" style="white-space:normal">'+esc(quoteItemsSummary(q))+'</p></div>'+
+   '<b style="flex:none;font-size:14.5px;font-variant-numeric:tabular-nums">'+fmtC(quoteTotal(q))+'</b>'+quoteChip(q)+chev()+'</div></button>';
+}
+function viewQuotes(){
+  const all=quoteMine?quotesAll().filter(q=>q.by===USER):quotesAll();
+  const pick=f=>all.filter(q=>{const s=quoteState(q);return f==="all"||(f==="open"?(s==="draft"||s==="sent"):s===f);});
+  let h='<div class="lvhead"><button class="btn coral" data-act="quotenew">'+svg("plus")+' New quote</button>'+
+   '<div class="qa-types" style="margin-left:auto">'+
+    [["open","Open"],["won","Won"],["lost","Lost"],["expired","Expired"],["all","All"]].map(f=>'<button class="qchip'+(quoteFilter===f[0]?" on":"")+'" data-act="quotefilter" data-v="'+f[0]+'">'+f[1]+' ('+pick(f[0]).length+')</button>').join("")+
+    '<button class="qchip'+(quoteMine?" on":"")+'" data-act="quotemine">Mine only</button></div></div>';
+  const list=pick(quoteFilter);
+  if(!list.length)return h+'<div class="empty">'+(all.length?'Nothing in this view.':'No quotes yet. Tap <b>New quote</b>, pick the customer, tap the line items — then preview it or send it.')+'</div>';
+  return h+'<div class="list">'+list.map(quoteRowHTML).join("")+'</div>';
+}
+
+/* ----- the printable sheet. Layout after the MARCH quote Max sent as the model (logo top-left, Inter, cards, ink rule,
+   dark total, To order, Accepted by) in the AutoTQ document palette (coral #e8402e, ink #14181c, warm-grey cards).
+   Rows are grid lines, not table cells (cells split each rule into segments that PDF viewers show as seams), and
+   tabular figures are set on the number columns only (in Inter they also widen the hyphens in part numbers).
+   With more lines the page tightens itself step by step (d1…d4) to stay on one sheet, and only then runs onto a second.
+   `print` = open the browser's print window straight away (Export PDF). ----- */
+function quoteHTML(q,print){
+  const rep=teamById(q.by),repEmail=userEmail(q.by)||SALES_FROM,items=q.items||[],ship=quoteShipping(q);
+  const c=company(q.cid),city=c&&c.city?[c.city,c.state].filter(Boolean).join(", "):"";
+  const forL=[q.account||"",q.contactName?"Attn: "+q.contactName:"",q.contactEmail||"",city].filter(Boolean);
+  const shipL=String(q.shipTo||"").split("\n").map(x=>x.trim()).filter(Boolean);
+  const block=l=>'<b>'+esc(l[0])+'</b>'+(l.length>1?'<br>'+l.slice(1).map(esc).join("<br>"):'');
+  const h4=t=>'<h4><i></i>'+t+'</h4>';
+  const rows=items.map(it=>{const cat=qCat(it.sku),th=QUOTE_THUMB[it.sku];
+    return '<div class="ir"><div class="pn">'+(th?'<img class="th" src="'+assetUrl(th)+'" alt="">':'<span class="th ph"><img src="'+assetUrl("ring.png")+'" alt=""></span>')+
+     '<span class="nm"><span class="l1"><b contenteditable>'+esc(qItemName(it))+'</b>'+(cat?'<i>'+esc(cat[0])+'</i>':'')+'</span>'+(cat?'<small contenteditable>'+esc(cat[2])+'</small>':'')+'</span></div>'+
+     '<span class="n" contenteditable>'+(+it.qty||0)+'</span><span class="n" contenteditable>'+fmtC(it.unit)+'</span><span class="n a" contenteditable>'+fmtC(qLine(it))+'</span></div>';}).join("");
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>AutoTQ Quote '+esc(q.no)+' — '+esc(shortAcct(q.account)||"")+'</title><style>'+
+  '@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:block;src:url("'+assetUrl("inter-latin.woff2")+'") format("woff2")}'+
+  ':root{--ink:#14181c;--body:#3a4149;--gray:#5c6670;--faint:#9aa3ab;--line:#e7e3dd;--card:#f6f4f0;--coral:#e8402e}'+
+  '*{box-sizing:border-box;margin:0}body{background:#6f6f6f;font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif;font-feature-settings:"calt" 0;color:var(--ink);'+
+   '-webkit-print-color-adjust:exact;print-color-adjust:exact;-webkit-font-smoothing:antialiased}'+
+  '.page{position:relative;display:flex;flex-direction:column;width:816px;height:1056px;margin:20px auto;background:#fff;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,.35);padding:0 64px 30px}'+
+  '.page>*{flex:none}.page.flow{height:auto;min-height:1056px}'+
+  '.topbar{position:absolute;top:0;left:0;right:0;height:7px;background:var(--coral)}'+
+  '.head{display:flex;justify-content:space-between;align-items:flex-start;margin-top:40px}'+
+  '.logo{display:block;height:56px}.co{margin-top:15px;font-size:11.5px;line-height:1.7;color:var(--gray)}.co b{color:var(--ink);font-weight:600}'+
+  '.inv{text-align:right}.inv .word{font-size:35px;font-weight:200;letter-spacing:12px;margin-right:-12px;line-height:1.1;color:var(--faint)}'+
+  '.inv .no{font-size:26px;font-weight:800;letter-spacing:-.015em;margin-top:5px;white-space:nowrap}'+
+  '.inv .pill{display:inline-block;margin-top:12px;background:var(--coral);color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;padding:7px 15px;border-radius:999px;white-space:nowrap}'+
+  'h4{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;letter-spacing:1.7px;color:var(--ink)}h4 i{width:7px;height:7px;border-radius:2px;background:var(--coral);flex:none}'+
+  '.cards{display:flex;gap:14px;margin-top:30px}.card{flex:1;min-width:0;background:var(--card);border-radius:14px;padding:18px 20px 16px}'+
+  '.card h4{margin-bottom:11px}.card p{font-size:12.5px;line-height:1.7;color:var(--body);overflow-wrap:anywhere}.card p b{font-size:13px;font-weight:650;color:var(--ink)}.card p.tbd{color:var(--faint)}'+
+  '.card .kv{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;line-height:1.85}.card .kv span{color:var(--gray)}.card .kv b{font-weight:650;text-align:right}'+
+  '.items{margin-top:32px}.ih,.ir{display:grid;grid-template-columns:minmax(0,1fr) 50px 92px 104px;align-items:center}'+
+  '.ih{padding:0 8px 11px;border-bottom:2px solid var(--ink);font-size:10px;font-weight:700;letter-spacing:1.7px}.ih span+span{text-align:right}'+
+  '.ir{padding:12px 8px;border-bottom:1px solid var(--line)}'+
+  '.n{text-align:right;font-size:14px;color:var(--body);font-variant-numeric:tabular-nums;white-space:nowrap}.n.a{font-weight:700;color:var(--ink)}'+
+  '.pn{display:flex;align-items:center;gap:16px;min-width:0}.pn .th{width:58px;height:44px;object-fit:cover;border-radius:10px;border:1px solid var(--line);flex:none;display:block;background:var(--card)}'+
+  '.pn .ph{display:flex;align-items:center;justify-content:center}.pn .ph img{height:54%;opacity:.28}'+
+  '.nm{min-width:0;flex:1}.nm .l1{display:flex;align-items:baseline;gap:9px;min-width:0}.nm b{font-size:15px;font-weight:650;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '.nm i{font-style:normal;font-size:11px;color:var(--faint);letter-spacing:.02em;white-space:nowrap;flex:none}'+
+  '.nm small{display:block;color:var(--gray);font-size:11.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '.totwrap{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-top:18px}'+
+  '.note{flex:1;min-width:0;background:var(--card);border-radius:14px;padding:16px 20px}.note h4{margin-bottom:8px}.note p{font-size:12px;color:var(--body);line-height:1.65;white-space:pre-line}'+
+  '.tot{width:288px;flex:none;margin-left:auto}.tot .row{display:flex;justify-content:space-between;font-size:13px;color:var(--gray);padding:5px 10px;font-variant-numeric:tabular-nums}'+
+  '.tot .due{display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;border-radius:14px;padding:17px 22px;margin-top:10px}'+
+  '.tot .due b{font-size:12px;font-weight:700;letter-spacing:1.6px}.tot .due .amt{font-size:25px;font-weight:800;letter-spacing:-.01em;color:#ff6a58;font-variant-numeric:tabular-nums}'+
+  '.pay{background:var(--card);border-radius:16px;padding:19px 24px 18px;margin-top:26px}.pay h4{margin-bottom:12px}'+
+  '.paycols{display:flex}.paycol{flex:1 1 0;min-width:0;padding-right:24px}.paycol+.paycol{border-left:1px solid #dedad3;padding-left:24px}.paycol.q{flex:0 0 auto}.paycol.q p{white-space:nowrap}'+
+  '.paycol b{font-size:11px;font-weight:750;letter-spacing:.5px;display:block;margin-bottom:6px}.paycol p{font-size:11.5px;color:var(--gray);line-height:1.65}'+
+  '.sig{margin-top:24px}.sigcols{display:flex;gap:24px;margin-top:6px}.sigcols div{flex:2.1}.sigcols div:last-child{flex:1.3}'+
+  '.sigcols .ln{height:30px;border-bottom:1px solid var(--ink)}.sigcols small{display:block;font-size:10.5px;color:var(--gray);margin-top:7px}'+
+  '.foot{margin-top:auto;padding-top:20px}.foot .rule{height:1px;background:var(--line);margin-bottom:16px}'+
+  '.frow{display:flex;justify-content:space-between;align-items:center}.frow img{height:32px}.frow p{font-size:10.5px;color:var(--gray);text-align:right;line-height:1.7}'+
+  '.legal{font-size:8.5px;color:var(--faint);margin-top:11px;text-align:center;white-space:nowrap}'+
+  '.ir,.totwrap,.pay,.sig,.foot{break-inside:avoid}'+
+  /* d1: tighter margins · d2: smaller photos and panels · dx: everything squeezed, photos kept · d3: no photos, one line each · d4: tightest */
+  '.d1 .head{margin-top:34px}.d1 .cards{margin-top:22px}.d1 .items{margin-top:24px}.d1 .ir{padding:10px 8px}.d1 .totwrap{margin-top:14px}.d1 .pay{margin-top:20px}.d1 .sig{margin-top:18px}.d1 .foot{padding-top:16px}'+
+  '.d2 .logo{height:50px}.d2 .co{margin-top:11px}.d2 .card{padding:14px 18px 13px}.d2 .card h4{margin-bottom:8px}.d2 .ir{padding:8px}.d2 .pn{gap:14px}.d2 .pn .th{width:48px;height:36px;border-radius:8px}'+
+   '.d2 .nm b{font-size:14.5px}.d2 .nm small{margin-top:1px}.d2 .pay{padding:15px 22px 13px}.d2 .pay h4{margin-bottom:9px}.d2 .tot .due{padding:14px 22px}.d2 .sigcols .ln{height:24px}'+
+  '.dx{padding-bottom:22px}.dx .head{margin-top:28px}.dx .logo{height:46px}.dx .co{margin-top:9px;line-height:1.6}.dx .inv .word{font-size:30px}.dx .inv .no{font-size:23px;margin-top:3px}.dx .inv .pill{margin-top:9px;padding:6px 14px}'+
+   '.dx .cards{margin-top:16px}.dx .card{padding:12px 16px 11px}.dx .card p{line-height:1.55}.dx .card .kv{line-height:1.7}.dx .items{margin-top:18px}.dx .ih{padding-bottom:8px}.dx .ir{padding:6px 8px}'+
+   '.dx .pn .th{width:44px;height:33px}.dx .nm b{font-size:14px}.dx .nm small{font-size:11px;margin-top:0}.dx .n{font-size:13.5px}.dx .totwrap{margin-top:10px}.dx .tot .row{padding:3px 10px}'+
+   '.dx .tot .due{padding:12px 20px;margin-top:8px}.dx .tot .due .amt{font-size:22px}.dx .pay{margin-top:14px;padding:12px 20px 11px}.dx .pay h4{margin-bottom:7px}.dx .paycol p{line-height:1.5}'+
+   '.dx .sig{margin-top:14px}.dx .sigcols .ln{height:20px}.dx .sigcols small{margin-top:5px}.dx .foot{padding-top:12px}.dx .foot .rule{margin-bottom:12px}.dx .frow img{height:28px}.dx .legal{margin-top:8px}'+
+  '.d3 .pn .th{display:none}.d3 .nm{display:flex;align-items:baseline;gap:10px}.d3 .nm .l1{flex:none}.d3 .nm b{font-size:13.5px}.d3 .nm small{margin:0;flex:1}.d3 .n{font-size:13px}'+
+  '.d4 .ir{padding:4px 8px}.d4 .card{padding:10px 14px 9px}.d4 .items{margin-top:14px}.d4 .pay{margin-top:10px}.d4 .sig{margin-top:10px}.d4 .sigcols .ln{height:16px}.d4 .foot{padding-top:9px}'+
+  '[contenteditable]:hover{outline:1px dashed var(--coral);outline-offset:2px}'+
+  '.bar{position:fixed;top:10px;right:12px;display:flex;gap:8px;align-items:center;z-index:5;font:600 13px/1 "Inter",Arial,sans-serif}.bar button{font:inherit;padding:9px 16px;border:0;border-radius:8px;cursor:pointer}'+
+   '.bar .p{background:var(--coral);color:#fff}.bar .h{background:#eee}.bar span{color:#fff;font-weight:500;font-size:12px;opacity:.85;margin-right:4px}'+
+  '@media print{@page{size:Letter;margin:0}body{background:#fff}.page{margin:0;box-shadow:none;width:8.5in;height:11in}.page.flow{height:auto;min-height:11in}.bar{display:none}}'+
+  '</style></head><body>'+
+  '<div class="bar"><span>In the print window, pick “Save as PDF”</span><button class="h" onclick="document.designMode=document.designMode===\'on\'?\'off\':\'on\'">Edit all</button><button class="p" onclick="window.print()">Print / Save PDF</button></div>'+
+  '<div class="page"><div class="topbar"></div>'+
+  '<div class="head"><div><img class="logo" src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ — a Golden Hour Medical innovation">'+
+    '<p class="co" contenteditable>Golden Hour Medical, Inc. · '+GHM_ADDR+'<br><b>'+esc(repEmail)+'</b> · '+GHM_PHONE+'</p></div>'+
+   '<div class="inv"><div class="word">QUOTE</div><div class="no" contenteditable>No. '+esc(q.no)+'</div><div class="pill" contenteditable>VALID THROUGH '+esc(usDate(quoteValidThrough(q)))+'</div></div></div>'+
+  '<div class="cards">'+
+   '<div class="card">'+h4("PREPARED FOR")+'<p contenteditable>'+block(forL.length?forL:["—"])+'</p></div>'+
+   '<div class="card">'+h4("SHIP TO")+(shipL.length?'<p contenteditable>'+block(shipL)+'</p>':'<p class="tbd" contenteditable>Confirmed with your order</p>')+'</div>'+
+   '<div class="card">'+h4("DETAILS")+
+    '<div class="kv"><span>Quote date</span><b contenteditable>'+esc(usDate(q.date))+'</b></div>'+
+    '<div class="kv"><span>Valid for</span><b contenteditable>'+(+q.validDays||30)+' days</b></div>'+
+    '<div class="kv"><span>Pricing</span><b contenteditable>'+(q.level==="dist"?"Distributor":"End-user (MSRP)")+'</b></div>'+
+    '<div class="kv"><span>Prepared by</span><b contenteditable>'+esc(rep.name)+'</b></div></div></div>'+
+  '<div class="items"><div class="ih"><span>ITEM</span><span>QTY</span><span>RATE</span><span>AMOUNT</span></div>'+rows+'</div>'+
+  '<div class="totwrap">'+(q.notes?'<div class="note">'+h4("NOTE")+'<p contenteditable>'+esc(q.notes)+'</p></div>':'')+
+   '<div class="tot"><div class="row"><span>Subtotal</span><span contenteditable>'+fmtC(quoteSubtotal(q))+'</span></div>'+
+   '<div class="row"><span>Shipping</span><span contenteditable>'+(ship==null?'Quoted at order':fmtC(ship))+'</span></div>'+
+   '<div class="due"><b>QUOTE TOTAL</b><span class="amt" contenteditable>'+fmtC(quoteTotal(q))+'</span></div></div></div>'+
+  '<div class="pay">'+h4("TO ORDER")+'<div class="paycols">'+
+   '<div class="paycol"><b>ACCEPT THIS QUOTE</b><p contenteditable>Reply with a PO referencing Quote No. '+esc(q.no)+', or sign and return this page.</p></div>'+
+   '<div class="paycol q"><b>QUESTIONS</b><p contenteditable>'+esc(rep.name)+'<br>'+esc(repEmail)+'<br>'+GHM_PHONE+'</p></div>'+
+   '<div class="paycol"><b>NOTES</b><p contenteditable>Prices in USD. Sales tax and shipping, if any, are added at order.</p></div></div></div>'+
+  '<div class="sig">'+h4("ACCEPTED BY")+'<div class="sigcols"><div><div class="ln"></div><small>Name &amp; title</small></div><div><div class="ln"></div><small>Signature</small></div><div><div class="ln"></div><small>Date</small></div></div></div>'+
+  '<div class="foot"><div class="rule"></div><div class="frow"><img src="'+assetUrl("lockup_mail.png")+'" alt="AutoTQ">'+
+   '<p>Golden Hour Medical, Inc. · '+GHM_ADDR+'<br>theautotq.com · '+esc(repEmail)+'</p></div>'+
+   '<div class="legal">Thank you for considering AutoTQ. This quote is subject to our Terms and Conditions (theautotq.com/termsofservice) and Privacy Policy (theautotq.com/privacypolicy).</div></div>'+
+  '</div>'+
+  '<script>(function(){var p=document.querySelector(".page"),steps=["","d1","d1 d2","d1 d2 dx","d1 d2 dx d3","d1 d2 dx d3 d4"];'+
+   'function fit(){for(var k=0;k<steps.length;k++){p.className=("page "+steps[k]).trim();if(p.scrollHeight<=p.clientHeight+1)return;}p.className="page flow d1 d2 dx d3";}'+
+   'var ready=Promise.all([document.fonts&&document.fonts.ready,new Promise(function(r){if(document.readyState==="complete")r();else window.addEventListener("load",r);})]);'+
+   'fit();ready.then(function(){fit();'+(print?'setTimeout(function(){window.print();},200);':'')+'});})();<\/script>'+
+  '</body></html>';
+}
+function quotePrint(id,print){
+  const q=quoteById(id);if(!q)return;
+  const w=window.open("","_blank");
+  if(!w){toast("Allow pop-ups to open the quote");return;}
+  w.document.write(quoteHTML(q,print));w.document.close();
+}
+
+/* ----- the email: the same quote, built for a mail client (tables + inline styles), with the rep's note on top ----- */
+function quoteEmailHTML(q,msg){
+  const rep=teamById(q.by),repEmail=userEmail(q.by)||SALES_FROM,ship=quoteShipping(q);
+  const f='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;',td='padding:10px 0;border-bottom:1px solid #eeeeee;'+f;
+  const th=(x,r)=>'<td'+(r?' align="right"':'')+' style="padding:0 0 7px '+(r?'10px':'0')+';border-bottom:2px solid #14181c;'+f+'font-size:9.5px;letter-spacing:1.5px;font-weight:700;color:#14181c">'+x+'</td>';
+  const rows=(q.items||[]).map(it=>{const cat=qCat(it.sku);
+    return '<tr><td style="'+td+'font-size:13.5px;color:#14181c"><b>'+esc(qItemName(it))+'</b>'+(cat?' &nbsp;<span style="font-size:10.5px;color:#9aa3ab;white-space:nowrap">'+esc(cat[0])+'</span><br><span style="font-size:11px;line-height:1.5;color:#5c6670">'+esc(cat[2])+'</span>':'')+'</td>'+
+     '<td align="right" valign="top" style="'+td+'padding-left:10px;font-size:13px;color:#5c6670;white-space:nowrap">'+(+it.qty||0)+'</td>'+
+     '<td align="right" valign="top" style="'+td+'padding-left:10px;font-size:13px;color:#5c6670;white-space:nowrap">'+fmtC(it.unit)+'</td>'+
+     '<td align="right" valign="top" style="'+td+'padding-left:10px;font-size:13px;color:#14181c;font-weight:700;white-space:nowrap">'+fmtC(qLine(it))+'</td></tr>';}).join("");
+  const kv=(k,v)=>v?'<tr><td style="padding:3px 14px 3px 0;'+f+'font-size:11.5px;color:#5c6670;white-space:nowrap;vertical-align:top;line-height:1.5">'+k+'</td><td style="padding:3px 0;'+f+'font-size:11.5px;color:#14181c;font-weight:700;line-height:1.5">'+v+'</td></tr>':'';
+  const para=String(msg||"").trim().split(/\n\s*\n/).filter(Boolean).map(p=>'<p style="margin:0 0 14px;'+f+'font-size:13.5px;line-height:1.65;color:#333333">'+esc(p.trim()).replace(/\n/g,"<br>")+'</p>').join("");
+  const tot=(k,v)=>'<tr><td style="padding:4px 0;'+f+'font-size:12px;color:#5c6670">'+k+'</td><td align="right" style="padding:4px 0;'+f+'font-size:12px;color:#5c6670;white-space:nowrap">'+v+'</td></tr>';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>AutoTQ quote '+esc(q.no)+'</title></head>'+
+  '<body style="margin:0;padding:0;background:#f3f3f3;'+f+'">'+
+  '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f3f3"><tr><td align="center" style="padding:28px 12px">'+
+   '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff;border-top:5px solid #e8402e;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)">'+
+    '<tr><td style="padding:26px 32px 20px;border-bottom:1px solid #eeeeee"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'+
+     '<td><img src="'+MAIL_ASSETS+'lockup_mail.png" width="176" alt="AutoTQ" style="display:block;border:0;outline:none;width:176px;height:auto;'+f+'font-size:24px;font-weight:800;color:#14181c"></td>'+
+     '<td align="right" style="'+f+'font-size:10px;letter-spacing:2.4px;color:#9aa3ab">QUOTE<br><span style="font-size:15px;letter-spacing:0;font-weight:800;color:#14181c">No. '+esc(q.no)+'</span></td></tr></table></td></tr>'+
+    '<tr><td style="padding:26px 32px 4px">'+para+
+     '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:6px 0 22px">'+
+      kv("Prepared for",esc(q.account||"")+(q.contactName?' &middot; '+esc(q.contactName):''))+kv("Quote date",esc(usDate(q.date)))+
+      kv("Valid through",esc(usDate(quoteValidThrough(q))))+kv("Ship to",q.shipTo?esc(q.shipTo).replace(/\n/g,"<br>"):"")+'</table>'+
+     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>'+th("ITEM")+th("QTY",1)+th("RATE",1)+th("AMOUNT",1)+'</tr>'+rows+'</table>'+
+     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0"><tr><td width="50%"></td><td width="50%">'+
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">'+tot("Subtotal",fmtC(quoteSubtotal(q)))+tot("Shipping",ship==null?"Quoted at order":fmtC(ship))+'</table>'+
+      '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="#14181c" style="margin-top:8px;background:#14181c;border-collapse:collapse"><tr>'+
+       '<td style="background:#14181c;padding:13px 0 13px 16px;'+f+'font-size:11px;letter-spacing:1px;font-weight:700;color:#ffffff">QUOTE TOTAL</td>'+
+       '<td align="right" style="background:#14181c;padding:13px 16px 13px 8px;'+f+'font-size:18px;font-weight:800;color:#ff6a58;white-space:nowrap">'+fmtC(quoteTotal(q))+'</td></tr></table>'+
+     '</td></tr></table>'+
+     (q.notes?'<p style="margin:20px 0 0;'+f+'font-size:12px;line-height:1.65;color:#5c6670"><b style="color:#14181c">Note:</b> '+esc(q.notes).replace(/\n/g,"<br>")+'</p>':'')+
+    '</td></tr>'+
+    '<tr><td style="padding:22px 32px 4px">'+
+     '<p style="margin:0 0 6px;'+f+'font-size:10px;letter-spacing:1.5px;font-weight:700;color:#14181c"><span style="color:#e8402e">&#9632;</span>&nbsp; TO ORDER</p>'+
+     '<p style="margin:0;'+f+'font-size:12.5px;line-height:1.7;color:#333333">Email a PO that references Quote No. '+esc(q.no)+' to <a href="mailto:'+esc(repEmail)+'" style="color:#e8402e;text-decoration:none">'+esc(repEmail)+'</a>, or reply all to this message. Prices are in USD; sales tax and shipping, where applicable, are added at order.</p>'+
+    '</td></tr>'+
+    '<tr><td style="padding:24px 32px 28px">'+
+     '<p style="margin:0;'+f+'font-size:12.5px;line-height:1.7;color:#333333"><b style="color:#14181c">'+esc(rep.name)+'</b><br>'+esc(rep.role||"")+(rep.role?' &nbsp;|&nbsp; ':'')+'Golden Hour Medical, Inc.<br>'+
+      '<a href="mailto:'+esc(repEmail)+'" style="color:#e8402e;text-decoration:none">'+esc(repEmail)+'</a> &nbsp;&middot;&nbsp; '+GHM_PHONE+'</p>'+
+    '</td></tr>'+
+   '</table>'+
+   '<p style="margin:16px 0 0;'+f+'font-size:9.5px;color:#999999">&copy; '+new Date().getFullYear()+' Golden Hour Medical, Inc. &nbsp;|&nbsp; '+GHM_ADDR+' &nbsp;|&nbsp; theautotq.com</p>'+
+  '</td></tr></table></body></html>';
+}
+function quoteDefaultMsg(q){
+  const first=String(q.contactName||"").trim().split(/\s+/)[0];
+  return "Hi "+(first||"there")+",\n\nThank you for your interest in AutoTQ. Your quote is below.\n\nI am glad to answer any questions.";
+}
+function formQuoteSend(id){
+  const q=quoteById(id);if(!q)return;
+  openSheet('<h2>Send quote '+esc(q.no)+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 8px">Goes out from <b>'+SALES_FROM+'</b> with the whole quote in the email. You are copied, so a reply-all reaches you.</p>'+
+   (q.sentAt?'<p style="font-size:12.5px;color:var(--ok-t);margin:0 0 8px">Already sent'+(q.sentTo?' to '+esc(q.sentTo):'')+' on '+esc(usDate(localDay(q.sentAt)))+' — sending again is fine.</p>':'')+
+   '<label class="fl">To <span style="font-weight:400;color:var(--hint)">— type a name to pick from contacts, or paste the email</span></label>'+comboField("qsTo","name or email",q.contactEmail||"")+
+   '<label class="fl">Cc</label><input class="f" id="qsCc" autocomplete="off" value="'+esc(userEmail(USER))+'">'+
+   '<label class="fl">Subject</label><input class="f" id="qsSub" autocomplete="off" value="'+esc("AutoTQ quote "+q.no+" — "+shortAcct(q.account))+'">'+
+   '<label class="fl">Your note <span style="font-weight:400;color:var(--hint)">— sits above the quote; your name and email are added under it</span></label><textarea class="f" id="qsMsg" rows="5">'+esc(quoteDefaultMsg(q))+'</textarea>'+
+   '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn" data-act="quotemailview" data-id="'+q.id+'" style="flex:1;min-height:46px">Preview the email</button>'+
+   '<button class="btn coral" data-act="quotesendgo" data-id="'+q.id+'" id="qsSend" style="flex:1.6;min-height:46px">Send quote</button></div>'+
+   '<button class="btn ghost block" data-act="quotepdf" data-id="'+q.id+'" style="margin-top:8px">Export a PDF instead</button>');
+}
+function quoteMsgNow(q){const el=document.getElementById("qsMsg");return el?el.value:quoteDefaultMsg(q);}
+function quoteEmailPreview(id){
+  const q=quoteById(id);if(!q)return;
+  const w=window.open("","_blank");if(!w){toast("Allow pop-ups to preview");return;}
+  w.document.write(quoteEmailHTML(q,quoteMsgNow(q)));w.document.close();
+}
+/* send-invoice builds and emails an INVOICE for any request it doesn't recognise, so a deployment from before the
+   notify branch would mail the customer a blank one. Ask first, with a request that cannot send anything: the
+   recipient is on a reserved domain that never resolves, the html is empty (the notify branch answers "html required"
+   before it touches mail) and the line item is one an old deployment fails on while drawing its PDF. */
+let NOTIFY_READY=null;
+async function notifyReady(){ // resolves when it is safe to send; throws with the reason when it is not
+  if(NOTIFY_READY===false)throw new Error("the mail function needs a redeploy");
+  if(NOTIFY_READY)return true;
+  const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
+    headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
+    body:JSON.stringify({action:"notify",to:"probe@example.invalid",html:"",invoice:{invNo:"🔒",items:[null]}})});
+  const b=await r.json().catch(()=>({}));
+  if(r.status===400&&String(b.error||"")==="html required"){NOTIFY_READY=true;return true;}
+  if(r.status===500){NOTIFY_READY=false;throw new Error("the mail function needs a redeploy");} // an old deployment, choking on the probe's invoice
+  throw new Error(b.error||b.message||("HTTP "+r.status)); // signed out, not on the allowlist, offline… — not remembered, so the next try asks again
+}
+async function sendQuote(id){
+  const q=quoteById(id);if(!q)return;
+  const to=val("qsTo").replace(/^.*<|>.*$/g,"").trim(),sub=val("qsSub"),cc=val("qsCc").split(/[,;]/).map(x=>x.trim()).filter(Boolean),msg=quoteMsgNow(q);
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter the customer's email");return;}
+  const btn=document.getElementById("qsSend");if(btn){btn.disabled=true;btn.textContent="Sending…";}
+  if(!q.sentAt)q.date=todayStr(); // the valid-for clock starts the day it first goes out
+  if(!q.contactEmail)q.contactEmail=to;
+  const html=quoteEmailHTML(q,msg);
+  try{
+    await notifyReady();
+    await sendHtmlMail({from:SALES_FROM,to:to,cc:cc,subject:sub,html:html});
+    if(q.status!=="won"&&q.status!=="lost")q.status="sent";
+    q.sentAt=new Date().toISOString();q.sentTo=to;q.sentBy=USER;q.updatedAt=q.sentAt;
+    if(q.cid||q.pid)DB.activities.unshift({id:uid(),type:"quote",pid:q.pid||null,cid:q.cid||null,note:"Quote "+q.no+" ("+fmtC(quoteTotal(q))+") emailed to "+to,date:q.sentAt,by:USER});
+    const p=q.pid?person(q.pid):null;if(p)p.last=q.sentAt;
+    save();closeSheet();render();toast("Quote sent to "+to+" ✓");
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent="Send quote";}
+    save();toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
+    htmlCopyWindow(html,to,sub,SALES_FROM);
+  }
+}
 /* packing slip straight from the PO — no shipment record needed yet */
 function orderSlipObj(o){const st=orderShipState(o);
   return {id:"order-"+o.id,orderId:o.id,account:o.account,poNo:o.poNo,shipTo:shipToFor(o),items:(st.remaining.length?st.remaining:shipItems(o)).map(x=>({sku:x.sku,qty:x.qty})),carrier:"UPS",service:"Ground",shipDate:todayStr(),tracking:"",boxes:0,weight:0};}
@@ -5002,6 +5490,34 @@ document.addEventListener("click",e=>{
   if(a==="pickShOrder"){formShipment(null,t.dataset.id);return;}
   if(a==="invsetst"){logState.invStatus=t.dataset.v;document.querySelectorAll("#ivStatus .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="invsave"){saveOrder(id||null);return;}
+  if(a==="quotenew"){formQuote(null,null);return;}
+  if(a==="quotefor"){formQuote(null,{cid:id});return;}
+  if(a==="quoteforp"){formQuote(null,{pid:id});return;}
+  if(a==="quoteopen"){quoteSheet(id);return;}
+  if(a==="quoteedit"){formQuote(id);return;}
+  if(a==="quotedup"){duplicateQuote(id);return;}
+  if(a==="quotedel"){deleteQuote(id);return;}
+  if(a==="quotepdf"){quotePrint(id,true);return;}
+  if(a==="quotesend"){formQuoteSend(id);return;}
+  if(a==="quotesendgo"){sendQuote(id);return;}
+  if(a==="quotemailview"){quoteEmailPreview(id);return;}
+  if(a==="quotest"){setQuoteStatus(id,t.dataset.v);return;}
+  if(a==="quotefilter"){quoteFilter=t.dataset.v;render();return;}
+  if(a==="quotemine"){quoteMine=!quoteMine;render();return;}
+  if(a==="qtlevel"){quoteSetLevel(t.dataset.v);return;}
+  if(a==="qtvalid"){if(logState.qt)logState.qt.validDays=+t.dataset.v;document.querySelectorAll("#qtValid .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="qtadd"){quoteAddItem(t.dataset.v);return;}
+  if(a==="qtdel"){quoteDelItem(+t.dataset.i);return;}
+  if(a==="qtmore"){if(logState.qt)logState.qt.more=true;t.style.display="none";const m=document.getElementById("qtMore");if(m)m.style.display="";const f=document.getElementById("qtShip");if(f)f.focus();return;}
+  if(a==="qtsave"){saveQuote(t.dataset.v);return;}
+  if(a==="pickQtAcct"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;const i=document.getElementById("qtAcct");if(i)i.value=c.name;sugRender("qtAcct",[]);
+    if(S.pid&&(person(S.pid)||{}).cid!==c.id)S.pid=null;
+    const sh=document.getElementById("qtShip");if(sh&&!sh.value.trim()&&quoteShipToText(c)){sh.value=quoteShipToText(c);S.shipTo=sh.value;}
+    const lv=c.type==="distributor"?"dist":"enduser";if(lv!==S.level&&S.items.every(it=>it.auto))quoteSetLevel(lv);}return;}
+  if(a==="pickQtCon"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.pid=p.id;S.con=p.name;const i=document.getElementById("qtCon");if(i)i.value=p.name;sugRender("qtCon",[]);
+    const em=document.getElementById("qtEmail");if(em&&p.email){em.value=p.email;S.email=p.email;}
+    const co=company(p.cid),ai=document.getElementById("qtAcct");if(co&&ai&&!ai.value.trim()){ai.value=co.name;S.cid=co.id;S.acct=co.name;}}return;}
+  if(a==="pickQsTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("qsTo");if(p&&i)i.value=p.email||"";sugRender("qsTo",[]);return;}
   if(a==="stpop"){stPop(t.dataset.st);return;}
   if(a==="sort"){if(e.target.tagName==="INPUT"||e.target.classList.contains("rz"))return;const s=sortState[t.dataset.tbl];const k=t.dataset.key;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="regionf"){regionF=t.dataset.v;render();return;}
@@ -5147,6 +5663,7 @@ document.addEventListener("click",e=>{
   if(a==="travel"){formTravel();return;}
   if(a==="form"){const f=t.dataset.form;
     if(f==="opportunity")formOpp(null);
+    else if(f==="quote")formQuote(null,null);
     else if(f==="card")formCard();
     else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
     else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
@@ -5308,6 +5825,10 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oDistQ"){logState.oppDistCid=null;sugRender("oDistQ",acctSugItems(e.target.value,"pickOppDist",["distributor"]));return;}
   if(e.target.id==="oDistRepQ"){logState.oppDistRepPid=null;sugRender("oDistRepQ",peopleSugItemsF(e.target.value,"pickOppDistRep",logState.oppDistCid?(p=>p.cid===logState.oppDistCid):(p=>contactType(p)==="distrep")));return;}
   if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
+  if(/^qt_(qty|unit|name)_\d+$/.test(e.target.id||"")){quoteItemInput(e.target);return;}
+  if(e.target.id==="qtAcct"){if(logState.qt)logState.qt.cid=null;sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
+  if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
+  if(e.target.id==="qsTo"){sugRender("qsTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickQsTo",p=>!!p.email));return;}
   if(e.target.id==="ivAcct"){sugRender("ivAcct",acctSugItems(e.target.value,"pickIvAcct"));return;}
   if(e.target.id==="shOrderQ"){sugRender("shOrderQ",orderSugItems(e.target.value,"pickShOrder"));return;}
   if(e.target.id==="ocTo"){sugRender("ocTo",/@/.test(e.target.value)?[]:peopleSugItemsF(e.target.value,"pickOcTo",p=>!!p.email));return;}
