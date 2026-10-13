@@ -4700,8 +4700,9 @@ function formQuote(id,pre,keep){
   const hint=t=>' <span style="font-weight:400;color:var(--hint)">'+t+'</span>';
   openSheet('<h2>'+(q?'Edit quote '+esc(q.no):'New quote')+'</h2>'+
    '<label class="fl">Quote for'+hint('— the company; pick an account or type a new name')+'</label>'+comboField("qtAcct","Company",S.acct)+
-   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Contact</label>'+comboField("qtCon","Name",S.con)+'</div>'+
-   '<div class="grow"><label class="fl">Email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="Where the quote goes"></div></div>'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Customer name</label>'+comboField("qtCon","First and last name",S.con)+'</div>'+
+   '<div class="grow"><label class="fl">Customer email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="name@company.com"></div></div>'+
+   quoteConChipsHTML()+
    '<label class="fl">Pricing</label><div class="qa-types" id="qtLevel">'+
     [["enduser","End-user (MSRP)"],["dist","Distributor"]].map(l=>'<span class="chip'+(S.level===l[0]?" on":"")+'" data-act="qtlevel" data-v="'+l[0]+'">'+l[1]+'</span>').join("")+'</div>'+
    quoteDistHTML()+
@@ -4717,6 +4718,16 @@ function formQuote(id,pre,keep){
    '<button class="btn coral" data-act="qtsave" data-v="send" style="flex:1.6;min-height:46px">Save &amp; send</button></div>'+
    '<button class="btn ghost block" data-act="qtsave" data-v="draft" style="margin-top:8px">Save as a draft</button>');
 }
+/* the people we already know at the picked account: one tap fills the customer's name and email. Both boxes stay
+   plain text boxes, so anyone who is not in the CRM yet can simply be typed in. */
+function quoteConChipsHTML(){
+  const S=logState.qt,c=S.cid?company(S.cid):null;
+  const ps=c?DB.people.filter(p=>p.cid===c.id&&p.name)
+    .sort((a,b)=>(b.email?1:0)-(a.email?1:0)||String(b.last||"").localeCompare(String(a.last||""))||String(a.name).localeCompare(String(b.name))).slice(0,5):[];
+  return '<div class="qa-types" id="qtConChips"'+(ps.length?' style="margin-top:8px"':'')+'>'+
+   ps.map(p=>'<span class="qchip'+(S.pid===p.id?" on":"")+'" data-act="pickQtCon" data-id="'+p.id+'">'+esc(p.name)+'</span>').join("")+'</div>';
+}
+function quoteRedrawConChips(){const w=document.getElementById("qtConChips");if(w)w.outerHTML=quoteConChipsHTML();}
 /* "Attach a distributor" — who an end-user should buy this through (Howmet: "quote it through McKesson"). Ours pop
    up, free text is fine for one we are not set up with. A distributor in the CRM also offers its reps, the ones
    covering the customer's state first; the one picked is printed on the quote as where the PO goes. */
@@ -5559,13 +5570,15 @@ document.addEventListener("click",e=>{
   if(a==="qtsave"){saveQuote(t.dataset.v);return;}
   if(a==="pickQtAcct"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;const i=document.getElementById("qtAcct");if(i)i.value=c.name;sugRender("qtAcct",[]);
     if(S.pid&&(person(S.pid)||{}).cid!==c.id)S.pid=null;
+    quoteRedrawConChips();
     const sh=document.getElementById("qtShip");if(sh&&!sh.value.trim()&&quoteShipToText(c)){sh.value=quoteShipToText(c);S.shipTo=sh.value;}
     if(!String(S.dist||"").trim()){const bf=c.type==="enduser"?quoteFirstDist(c):null;if(bf){S.dist=bf.name;S.distCid=bf.cid;}}
     const dw=document.getElementById("qtDistWrap");if(dw)dw.outerHTML=quoteDistHTML(); // their 1st-choice distributor, and the reps covering their state
     const lv=c.type==="distributor"?"dist":"enduser";if(lv!==S.level&&S.items.every(it=>it.auto))quoteSetLevel(lv);}return;}
   if(a==="pickQtCon"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.pid=p.id;S.con=p.name;const i=document.getElementById("qtCon");if(i)i.value=p.name;sugRender("qtCon",[]);
     const em=document.getElementById("qtEmail");if(em&&p.email){em.value=p.email;S.email=p.email;}
-    const co=company(p.cid),ai=document.getElementById("qtAcct");if(co&&ai&&!ai.value.trim()){ai.value=co.name;S.cid=co.id;S.acct=co.name;}}return;}
+    const co=company(p.cid),ai=document.getElementById("qtAcct");if(co&&ai&&!ai.value.trim()){ai.value=co.name;S.cid=co.id;S.acct=co.name;}
+    quoteRedrawConChips();}return;}
   if(a==="pickQtDist"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){S.distCid=c.id;S.dist=c.name;S.distPid=null;S.distRep="";const i=document.getElementById("qtDist");if(i)i.value=c.name;sugRender("qtDist",[]);quoteRedrawDistRep();}return;}
   if(a==="pickQtDistRep"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.distPid=p.id;S.distRep=p.name;quoteRedrawDistRep();}return;}
   if(a==="qsccdist"){const i=document.getElementById("qsCc"),v=t.dataset.v;if(i&&v&&!i.value.toLowerCase().includes(v.toLowerCase()))i.value=(i.value.trim()?i.value.trim().replace(/[,;]\s*$/,"")+", ":"")+v;t.style.display="none";return;}
@@ -5878,8 +5891,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oDistRepQ"){logState.oppDistRepPid=null;sugRender("oDistRepQ",peopleSugItemsF(e.target.value,"pickOppDistRep",logState.oppDistCid?(p=>p.cid===logState.oppDistCid):(p=>contactType(p)==="distrep")));return;}
   if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
   if(/^qt_(qty|unit|name)_\d+$/.test(e.target.id||"")){quoteItemInput(e.target);return;}
-  if(e.target.id==="qtAcct"){if(logState.qt)logState.qt.cid=null;sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
-  if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
+  if(e.target.id==="qtAcct"){if(logState.qt&&logState.qt.cid){logState.qt.cid=null;quoteRedrawConChips();}sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
+  if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;document.querySelectorAll("#qtConChips .qchip").forEach(x=>x.classList.remove("on"));sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
   if(e.target.id==="qtDist"){const S=logState.qt;if(S){S.dist=e.target.value;if(S.distCid){S.distCid=null;S.distPid=null;S.distRep="";quoteRedrawDistRep();}}sugRender("qtDist",acctSugItems(e.target.value,"pickQtDist",["distributor"]));return;}
   if(e.target.id==="qtDistRep"){const S=logState.qt;if(S){S.distPid=null;S.distRep=e.target.value;document.querySelectorAll("#qtDistRepWrap .qchip").forEach(x=>x.classList.remove("on"));}
     sugRender("qtDistRep",peopleSugItemsF(e.target.value,"pickQtDistRep",p=>!!S&&p.cid===S.distCid));return;}
@@ -5909,6 +5922,15 @@ document.addEventListener("input",e=>{
       save();}
     return;}
   if(e.target.id==="contactState"){contactStateF=e.target.value;render();}
+});
+/* type-ahead lists used to stay open after you moved on, covering the labels and fields below (Max's New-quote
+   screenshot, 2026-10-13). A list now closes when its field loses focus; pressing on a suggestion keeps the focus
+   where it is, so the pick still lands. */
+document.addEventListener("mousedown",e=>{if(e.target.closest&&e.target.closest(".sug"))e.preventDefault();});
+document.addEventListener("focusout",e=>{
+  const el=e.target,box=el&&el.closest?(el.closest(".sug")||(el.id?document.getElementById(el.id+"_sug"):null)):null;
+  if(!box||!/_sug$/.test(box.id))return;const fid=box.id.slice(0,-4);
+  setTimeout(()=>{const a=document.activeElement;if(a&&(a.id===fid||box.contains(a)))return;sugRender(fid,[]);},160); // tabbing into the list keeps it open
 });
 function refocus(idv){const el=document.getElementById(idv);if(el){const v=el.value;el.focus();try{el.setSelectionRange(v.length,v.length);}catch(_){}}}
 
