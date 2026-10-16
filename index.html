@@ -383,6 +383,65 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .tl .tle p{margin:0;font-size:13.5px}
 .tl .tle .tls{font-size:12.5px;color:var(--muted)}
 .tl .tle[data-act]:hover p:first-child strong{color:var(--coral-text)}
+/* 2026-10-16 simplification: pipeline filter bar, sales-person button, activity queue + week grid, team tiles, home folds */
+.pipef{display:flex;flex-direction:column;gap:6px;margin:-2px 0 14px}
+.pipef .qa-types{align-items:center}
+.lbl{font-size:12px;font-weight:600;color:var(--muted);min-width:84px}
+.repbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 9px 2px 3px;font:inherit;font-size:12.5px;font-weight:550;color:var(--ink);cursor:pointer;white-space:nowrap}
+.repbtn:hover{border-color:var(--line-3);background:var(--hover)}
+.repbtn .av{width:20px;height:20px;font-size:9px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+.repbtn small{color:var(--hint);font-weight:500}
+.kpi.warn>span{color:var(--dang-t)}
+.chkrow{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);margin:8px 0 2px}
+.chkrow input{width:16px;height:16px;accent-color:var(--coral)}
+.lnk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--ink);cursor:pointer;text-decoration:underline;text-decoration-color:var(--line-3);text-underline-offset:3px}
+.lnk:hover{color:var(--coral-tt)}
+.act{display:flex;align-items:flex-start;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px 10px 14px;margin-bottom:8px;box-shadow:var(--sh-1)}
+.act.old{border-left:3px solid var(--warn-t)}
+.act .ic{flex:none}
+.act .t1{font-size:14px;margin:0}
+.actbtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none;max-width:46%}
+.cnt.warnc{color:var(--warn-t)}
+.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.wkday{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;min-height:120px;box-shadow:var(--sh-1)}
+.wkday.today{border-color:rgba(216,90,48,.5);box-shadow:0 0 0 2px var(--coral-t)}
+.wkh{display:flex;align-items:baseline;gap:6px;padding:2px 4px 8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.wkh b{font-size:12px;color:var(--muted);font-weight:600}
+.wkh span{font-size:17px;font-weight:650;letter-spacing:-.02em}
+.wkh em{margin-left:auto;font-style:normal;font-size:11px;font-weight:600;color:var(--coral-tt);background:var(--coral-t);border-radius:999px;padding:1px 7px}
+.wki{display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:5px 4px;font:inherit;cursor:pointer;min-width:0}
+.wki:hover{background:var(--hover)}
+.wki .ic{width:24px;height:24px;flex:none}
+.wki .ic svg{width:13px;height:13px}
+.wki b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wki small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wki.task{cursor:default}
+.wki.task.done b{text-decoration:line-through;color:var(--hint)}
+.reptiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:6px}
+.reptile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-1)}
+.rephead{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:22px 12px 18px;color:#fff;text-align:center}
+.rephead .av{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.22);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-bottom:4px}
+.rephead b{font-size:16px;letter-spacing:-.01em}
+.rephead small{font-size:12px;opacity:.85}
+.reptile .stat{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:9px 14px;font:inherit;font-size:13.5px;color:var(--ink-2);cursor:pointer;text-align:left}
+.reptile .stat:hover,.reptile .stat.on{background:var(--hover);color:var(--ink)}
+.reptile .stat b{font-variant-numeric:tabular-nums;font-weight:650;color:var(--ink)}
+.reptile .stat b small{font-weight:500;color:var(--muted);font-size:11.5px}
+.ktiles .kpi.fill{background:var(--coral-btn,#C4502A);border-color:transparent;color:#fff;text-align:center;cursor:pointer;font:inherit;padding:18px 12px 14px}
+.ktiles .kpi.fill>span{color:#fff;font-size:30px}
+.ktiles .kpi.fill>b{color:rgba(255,255,255,.95);white-space:normal;line-height:1.25;margin:6px 0 2px;font-weight:600;font-size:13px;order:2}
+.ktiles .kpi.fill>small{color:rgba(255,255,255,.75);white-space:normal;order:3;margin-top:2px}
+.ktiles .kpi.fill{display:flex;flex-direction:column}
+.ktiles .kpi.fill:hover,.ktiles .kpi.fill.on{filter:brightness(.92);box-shadow:0 0 0 3px var(--coral-t)}
+.chiprow{display:flex;gap:4px;flex-wrap:nowrap}
+.chiprow .qchip{min-height:26px;padding:0 8px;font-size:12px}
+.fold{margin:0}
+.fold summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0 10px;user-select:none}
+.fold summary::-webkit-details-marker{display:none}
+.fold .fchev{margin-left:auto;display:inline-flex;transition:transform .15s;color:var(--muted)}
+.fold[open] .fchev{transform:rotate(90deg)}
+@media(max-width:900px){.wk{grid-template-columns:1fr 1fr}.actbtns{max-width:none;width:100%;justify-content:flex-start}.act{flex-wrap:wrap}.act .grow{min-width:60%}.lbl{min-width:0}}
+@media(max-width:640px){.wk{grid-template-columns:1fr}.wkday{min-height:0}}
 .onboard{background:var(--coral-t);border:1px solid rgba(216,90,48,.3);border-radius:var(--r-lg);padding:16px 44px 16px 18px;margin-bottom:14px;position:relative}
 .onboard h3{margin:0 0 8px;font-size:15px}
 .onboard ol{margin:0;padding-left:20px;font-size:13.5px;color:var(--ink);line-height:1.6}
@@ -480,7 +539,7 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 @media(max-width:1099px){
   .homegrid{display:flex;flex-direction:column;align-items:stretch}
   .homegrid>.hcol{display:contents}
-  #hs-day{order:1}#hs-conf{order:2}#hs-dist{order:3}#hs-eod{order:4}#hs-team{order:5}
+  #hs-day{order:1}#hs-attn{order:2}#hs-fu{order:3}#hs-leads{order:4}#hs-conf{order:5}#hs-outreach{order:6}#hs-lists{order:7}#hs-quotes{order:8}#hs-eod{order:9}#hs-team{order:10}
 }
 
 /* ---------- sheets, dialogs, toast ---------- */
@@ -713,7 +772,7 @@ const TEAM=[
  {id:"john",name:"John Cornejo",role:"Channel Sales — Central",c:"#185FA5"},
  {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
  {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
- {id:"kellan",name:"Kellan",role:"Admin",c:"#6B4FA3"},
+ {id:"kellan",name:"Kellan Phillips",role:"Outreach / lead gen",c:"#6B4FA3"},
  {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
  {id:"tim",name:"Tim Ford",role:"Channel Sales — West",c:"#B7791F"},
  {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}
@@ -837,6 +896,7 @@ function openSheet(html){document.getElementById("sheet").innerHTML='<div class=
 function closeSheet(){document.getElementById("scrim").classList.remove("open");}
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"&&document.getElementById("scrim").classList.contains("open")){closeSheet();return;}
   if(e.key==="/"&&!e.metaKey&&!e.ctrlKey&&!e.altKey){const ae=document.activeElement;
@@ -938,11 +998,17 @@ function render(){
   ensureActIds(); // older logged activities may predate ids — editing needs one
   const me=teamById(USER);
   if(view==="invoicing"&&!invAccess())view="today";
+  if(view==="team"&&!teamAccess())view="today";
+  if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Forecasts",dash:"Dashboard",reports:"Reports",report:rep?rep.name:"Report",insights:"Distributor Volume",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaign",leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes"};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",activity:"Activity",team:"Team"};
   const subs={
     today:greeting()+(admin()?" · admin":""),
+    activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
+    team:"KPIs by sales person — tap a tile for the deals, quotes and touches behind it",
+    insight:(insightTab==="reports"?"Run, sort & export":insightTab==="insights"?"Units bought & demos picked up, by distributor":"The channel at a glance"),
+    campaigns:(function(){const cs=(DB.campaigns||[]);return cs.length?cs.length+" campaign"+(cs.length>1?"s":"")+" · "+cs.reduce((s,c)=>s+(c.leads||[]).length,0)+" contacts":"Your campaigns, their materials and the leads they produced";})(),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
     contacts:(userRegion(USER)?userRegion(USER)+" territory":DB.people.length+" contacts"),
     opps:(myOpps().filter(oppIsOpen).length+" open · "+fmtK(myOpps().filter(oppIsOpen).reduce((s,o)=>s+(o.amount||0),0))+" pipeline"),
@@ -974,8 +1040,11 @@ function render(){
   else if(view==="reports")body=viewReports();
   else if(view==="report")body=viewReport(curReport);
   else if(view==="insights")body=viewInsights();
+  else if(view==="insight")body=viewInsight();
+  else if(view==="activity")body=viewActivity();
+  else if(view==="team")body=viewTeam();
   else if(view==="confleads")body=viewConfLeads();
-  else if(view==="camp")body=viewCampaigns();
+  else if(view==="camp"||view==="campaigns")body=viewCampaignsHub();
   else if(view==="leads")body=viewLeads();
   else if(view==="export")body=curList?viewList(curList):viewLists();
   else if(view==="person")body=viewPerson(curPerson);
@@ -991,13 +1060,8 @@ function render(){
   const groups=NU==="laresa"
    ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["shipping","truck","Shipping"],["opps","chart","Pipeline"]]],
      ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
-   :[
-   ["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["quotes","tag","Quotes"],["fcast","bolt","Forecasts"],["camp","plane","Campaign"]]],
-   ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"],["export","dl","Lists"]]],
-   ["Insight",[["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["insights","chart","Volume"]]],
-   ["Plan",[["conf","cal","Conferences"]]]
-  ];
-  const nuInv=(NU==="max"||NU==="kellan"||NU==="jamie"||NU==="laresa");
+   :railGroups(NU); /* per-profile rail (2026-10-16): sales / outreach / admin — see railGroups() */
+  const nuInv=(NU==="max"||NU==="jamie"||NU==="laresa"); /* Kellan's rail is outreach only (2026-10-16) */
   if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"],["shipping","truck","Shipping"]]]);
   const sideNav=(VIEWAS&&admin()
     ?'<div class="grp" style="color:var(--coral,#e8543f)">Rail: '+esc(teamById(VIEWAS).name.split(" ")[0]+(VIEWAS==="johnm"?" M.":VIEWAS==="john"?" C.":""))+'</div>'+
@@ -1006,7 +1070,7 @@ function render(){
    groups.map(g=>'<div class="grp">'+g[0]+'</div>'+
    g[1].map(n=>'<button class="'+(navOn(n[0])?"on":"")+'" data-act="nav" data-view="'+n[0]+'" title="'+n[2]+'">'+svg(n[1])+'<span>'+n[2]+'</span></button>').join("")).join("");
   document.getElementById("screen").innerHTML=
-  '<div class="console"><aside class="side"><div class="brand">'+BRAND_MARK+'<div><div class="wm">AutoTQ</div><small>'+(NU==="laresa"?"Billing":(NU==="max"||NU==="kellan")?"Admin":"Channel CRM")+'</small></div></div>'+
+  '<div class="console"><aside class="side"><div class="brand">'+BRAND_MARK+'<div><div class="wm">AutoTQ</div><small>'+(NU==="laresa"?"Billing":profile(NU)==="outreach"?"Outreach":profile(NU)==="admin"?"Admin":"Channel CRM")+'</small></div></div>'+
    '<nav>'+sideNav+'</nav>'+
    '<div class="su"><span class="av" style="background:'+me.c+'">'+initials(me.name)+'</span><div class="grow"><b>'+me.name.split(" ")[0]+'</b><small>'+roleShort(me)+'</small></div><button class="ibtn" data-act="menu" title="Menu" aria-label="Menu">'+svg("dots")+'</button></div></aside>'+
    '<div class="work"><header class="tbar">'+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
@@ -1017,9 +1081,9 @@ function render(){
     '<button class="ibtn" data-act="help" title="How this CRM works" aria-label="How this CRM works">'+svg("help")+'</button>'+
     '<button class="av" style="background:'+me.c+'" data-act="menu" title="Menu" aria-label="Menu">'+initials(me.name)+'</button></div></header>'+
     '<main class="content">'+body+'</main>'+
-    '<div class="nav">'+navbtn("today","home","Home")+(NU==="laresa"?navbtn("invoicing","file","Invoicing"):navbtn("opps","chart","Pipeline"))+
+    '<div class="nav">'+navbtn("today","home","Home")+(NU==="laresa"?navbtn("invoicing","file","Invoicing"):profile(NU)==="outreach"?navbtn("leads","spark","Leads"):navbtn("opps","chart","Pipeline"))+
      '<button class="plus" data-act="addhub"><span class="bubble">'+svg("plus")+'</span></button>'+
-     navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts")+'</div>'+
+     (profile(NU)==="outreach"?navbtn("export","dl","Lists"):navbtn("accounts","ware","Accounts"))+navbtn("contacts","users","Contacts")+'</div>'+
    '</div></div>';
   applyColW();
   topScrollSync();
@@ -1066,7 +1130,7 @@ function goBack(fb){
   }
   restoreNav(st);render();window.scrollTo(0,st.scroll||0);
 }
-function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="reports"&&view==="report");}
+function navOn(v){return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
 function typeLabel(t){return {distributor:"Distributor",manrep:"Man-rep",partner:"Partner",enduser:"End-user"}[t]||"Account";}
 function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.role;}
@@ -1244,8 +1308,35 @@ function oppIsOpen(o){return o.stage!=="Closed Won"&&o.stage!=="Closed Lost";}
 function oppProb(o){return typeof o.probability==="number"?o.probability:(OPP_PROB[o.stage]||0);}
 function oppWeighted(o){return (o.amount||0)*oppProb(o)/100;}
 function oppRegion(o){if(o.state)return regionFromState(o.state);const c=o.accountId?company(o.accountId):null;return c?companyRegion(c):"";}
-function oppVisible(o){if(admin())return true;const r=oppRegion(o);return !r||inRegion(r)||o.owner===USER;}
+function oppVisible(o){return true;} /* the whole team sees the broad pipeline; filter by region / sales person instead (Max, 2026-10-16) */
 function myOpps(){ensureOpps();return DB.opps.filter(oppVisible);}
+/* Golden Hour sales person on every deal: stored as o.ghRep (team id), defaulted from the territory of the deal's state */
+const GH_REPS=["johnm","john","tim","kellan"];
+function repForRegion(r){return r==="East"?"johnm":r==="Central"?"john":r==="West"?"tim":"";}
+function oppGhRep(o){return (o&&o.ghRep)||repForRegion(oppRegion(o))||"";}
+function oppHasDist(o){return !!(o.distributorId||oppDistLabel(o)||o.direct);}
+function oppIsDirect(o){return !!o.direct||oppDistLabel(o)==="Direct";}
+function teamAccessFor(u){return ["max","hannah","kellan","jamie"].includes(u);}
+function campAccessFor(u){return u==="max"||u==="hannah";}
+function teamAccess(){return teamAccessFor(USER);}
+function campAccess(){return campAccessFor(USER);}
+/* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
+   Kellan = outreach (finds + categorizes leads, works the lists, hands off), admins direct it all, Laresa = billing. */
+function profile(u){u=u||USER;if(u==="laresa")return "billing";if(u==="kellan")return "outreach";if(u==="max"||u==="hannah"||u==="jamie")return "admin";return "sales";}
+function railGroups(u){
+  const p=profile(u);
+  if(p==="sales")return [["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["activity","clock","Activity"]]],
+    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"]]],
+    ["Plan",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
+  if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["export","dl","Lists"],["conf","cal","Conferences"],["activity","clock","Activity"]]],
+    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
+    ["Manage",[["team","users","Team"]]]];
+  const g=[["Sell",[["today","home","Home"],["opps","chart","Pipeline"],["activity","clock","Activity"]]],
+    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["leads","spark","Leads"],["export","dl","Lists"]]],
+    ["Insight",[["insight","spark","Insight"],["map","pin","Field Map"],["conf","cal","Conferences"]]]];
+  const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(campAccessFor(u))mg.push(["campaigns","plane","Campaigns"]);if(mg.length)g.push(["Manage",mg]);
+  return g;
+}
 function oppAcctLabel(o){const c=o.accountId?company(o.accountId):null;return c?c.name:(o.accountName||"—");}
 function fmtK(n){n=Math.round(n||0);if(Math.abs(n)>=1e6)return "$"+(n/1e6).toFixed(2).replace(/\.?0+$/,"")+"M";if(Math.abs(n)>=1e4)return "$"+Math.round(n/1e3)+"k";return "$"+n.toLocaleString();}
 function oppAge(o){if(!o.createdAt)return null;return Math.max(0,Math.floor((Date.now()-new Date(o.createdAt))/86400000));}
@@ -1265,7 +1356,9 @@ function oppLastTouch(o){
   if(o.lastContact)ds.push(o.lastContact);
   ds.sort();return ds.length?ds[ds.length-1]:"";
 }
-function oppDistLabel(o){return o.distributorId?((company(o.distributorId)||{}).name||o.distributorName||""):(o.distributorName||"");}
+/* free-text distributor names from the July rebuild: "(direct)" / "Direct" = a direct sale, "(quoted-through TBD)" = nobody yet */
+function distTxtClean(n){n=String(n||"").trim();if(!n)return "";if(/^\(?\s*direct\s*\)?$/i.test(n))return "Direct";if(/tbd|\?\?|^\(.*\)$/i.test(n))return "";return n.replace(/\s*\((awaiting setup|pending)\)\s*/i,"").trim();}
+function oppDistLabel(o){return o.distributorId?((company(o.distributorId)||{}).name||distTxtClean(o.distributorName)):distTxtClean(o.distributorName);}
 /* owner permissions: owners edit their deals, admins edit all, unowned deals are open to all; everyone can view */
 function canEditOpp(o){if(admin())return true;if(!o||!o.owner)return true;return o.owner===USER;}
 function oppOwnerName(o){return o&&o.owner?teamById(o.owner).name.split(" ")[0]:"";}
@@ -1412,7 +1505,7 @@ function eodRecapHTML(){
     .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
   const entry=a=>{const p=a.pid?person(a.pid):null;const c=a.cid?company(a.cid):(p?company(p.cid):null);
     return '<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer;padding:11px 14px"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span>'+
-    '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(titlecase(a.type))+(p?' — '+esc(p.name):'')+(c?' <span style="color:var(--hint);font-weight:500">('+esc(c.name)+')</span>':'')+'</p>'+
+    '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(actLabel(a.type))+(p?' — '+esc(p.name):'')+(c?' <span style="color:var(--hint);font-weight:500">('+esc(c.name)+')</span>':'')+'</p>'+
     '<p class="t2">'+esc(a.note||"")+'</p></div>'+
     (mineOnly?'':'<span class="pill gray" style="flex:none">'+esc(teamById(a.by).name.split(" ")[0])+'</span>')+'</div></div>';};
   // To-do events (added / completed / removed) show up in the recap alongside logged activities.
@@ -1439,34 +1532,47 @@ function eodSectionHTML(){
 function viewToday(){
   if(USER==="laresa")return billingHome(); /* her Home is the billing picture, not the sales floor */
   ensureTasks();ensureOpps();
-  const mydist=DB.companies.filter(c=>c.type==="distributor"&&(admin()||inRegion(companyRegion(c))));
-  const setup=mydist.filter(c=>distStatus(c)==="setup").sort((a,b)=>ESTAGES.indexOf(enableStage(b))-ESTAGES.indexOf(enableStage(a)));
-  const potN=mydist.filter(c=>distStatus(c)==="potential").length;
-  const open=myOpps().filter(oppIsOpen);
-  const overdue=open.filter(oppOverdue).length;
-  const T=todayStr();
+  /* Home per profile (Max, 2026-10-16: "established perfectly… get these distributors out of my face"):
+     sales = my day, my deals that need attention, my follow-ups, leads handed to me, quotes;
+     outreach (Kellan) = my day, leads to categorize, conference reach-out, lists in progress;
+     admin = the whole picture at a glance + what needs attention + outreach this week. */
+  const P=profile(),T=todayStr(),W=ymd(new Date(Date.now()-7*86400000));
   const tasks=myTasks().filter(t=>!t.done||t.completedDay===T).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||String(a.due).localeCompare(String(b.due)));
   const dueToday=tasks.filter(t=>!t.done&&t.due<=T).length;
+  const allOpen=myOpps().filter(oppIsOpen),mine=allOpen.filter(o=>oppGhRep(o)===USER);
+  const pool=P==="sales"?mine:allOpen;
+  const qMe=actQueueFor(USER),qAll=actQueueFor("");
+  ensureLeads();const leads=DB.leads.filter(l=>!l.removed);
+  const toCat=leads.filter(l=>leadCat(l)==="new"),handedWk=leads.filter(l=>l.handedAt&&String(l.handedAt).slice(0,10)>=W),forMe=leads.filter(l=>l.assignee===USER&&!(l.touches&&l.touches.length));
+  const confs=confLeadLists(),toCall=confs.reduce((s,c)=>s+c.tocall,0);
+  const wonMonth=myOpps().filter(o=>o.stage==="Closed Won"&&String(o.closeDate||o.createdAt||"").slice(0,7)===T.slice(0,7));
   let h='';
-  h+='<div class="kpis">'+
-   '<div class="kpi"><b>My pipeline</b><span>'+fmtK(open.reduce((s,o)=>s+(o.amount||0),0))+'</span><small>'+open.length+' open'+(overdue?' · '+overdue+' past due':'')+'</small></div>'+
-   '<div class="kpi"><b>Tasks due</b><span>'+dueToday+'</span><small>today or overdue</small></div>'+
-   '<div class="kpi"><b>Set-up distributors</b><span>'+setup.length+'</span><small>'+potN+' potential</small></div>'+
-   '<div class="kpi"><b>Demos out</b><span>'+(DB.demos||[]).filter(d=>admin()||!regionFromState(d.state)||inRegion(regionFromState(d.state))).length+'</span></div>'+
-  '</div>';
+  if(P==="sales")h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["New leads for me",forMe.length,"handed off, not touched yet",forMe.length?"warn":""]]);
+  else if(P==="outreach")h+=kpiRow([["Leads to categorize",toCat.length,"new, uncategorized",toCat.length?"warn":""],["Handed to sales",handedWk.length,"this week"],["Conf leads to call",toCall,confs.length+" show list"+(confs.length===1?"":"s")],["Follow-ups waiting",qMe.todo.length+qMe.old.length,"mine"]]);
+  else h+=kpiRow([["Open pipeline",fmtK(allOpen.reduce((s,o)=>s+(o.amount||0),0)),allOpen.length+" deals"],["Won this month",fmtK(wonMonth.reduce((s,o)=>s+(o.amount||0),0)),wonMonth.length+" deals"],["Stale follow-ups",qAll.old.length,"team-wide, 14+ days",qAll.old.length?"warn":""],["Leads to categorize",toCat.length,handedWk.length+" handed off this week"]]);
   h+='<div class="planbar" style="margin-bottom:22px"><input class="qa-input" id="taskTitle" placeholder="Add an action for today…" autocomplete="off">'+
    '<div class="qa-types" id="taskTypes">'+[["call","Call"],["email","Email"],["demo","Demo"],["train","Train"],["followup","Follow-up"],["todo","To-do"]].map((t,i)=>'<span class="qchip'+((logState.taskType||"call")===t[0]?" on":"")+'" data-act="settask" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
    '<button class="btn coral" data-act="addtask">Add</button>'+assignChipsHTML()+'</div>';
-  /* sections render into two columns on wide screens (work | context); narrow screens keep the original order */
-  let day='',conf='',dist='';
-  if(tasks.length||taskHistoryPool().length){
-    day='<div class="lvhead" style="margin:4px 0 10px"><div class="sectlabel" style="margin:0">My day — '+tasks.filter(t=>!t.done).length+' open</div>'+
+  let day='',attn='',fu='',lds='',conf='',outreach='',lists='';
+  day='<div class="lvhead" style="margin:4px 0 10px"><div class="sectlabel" style="margin:0">My day — '+tasks.filter(t=>!t.done).length+' open'+(dueToday?' · '+dueToday+' due':'')+'</div>'+
      '<button class="btn sm" data-act="taskhistory" style="margin-left:auto">'+svg("clock")+' History</button></div>';
-    if(tasks.length)day+='<div class="list">'+tasks.slice(0,12).map(taskRow).join("")+'</div>';
+  day+=tasks.length?'<div class="list">'+tasks.slice(0,12).map(taskRow).join("")+'</div>':'<div class="empty" style="padding:14px">Nothing on the list — add an action above.</div>';
+  if(P!=="outreach"){
+    const rows=attnRows(pool);
+    if(rows.length)attn='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(P==="sales"?"My deals that need attention":"Deals that need attention")+' <span class="cnt">'+rows.length+'</span></div><button class="btn sm" data-act="nav" data-view="opps" style="margin-left:auto">Pipeline '+chev()+'</button></div><div class="list">'+rows.slice(0,8).map(attnRow).join("")+'</div>';
   }
-  const confs=confLeadLists();
-  if(confs.length){
+  if(P==="sales"){
+    const q=qMe.old.concat(qMe.todo).slice(0,5);
+    if(q.length)fu='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">Follow-ups waiting <span class="cnt">'+(qMe.todo.length+qMe.old.length)+'</span></div><button class="btn sm" data-act="nav" data-view="activity" style="margin-left:auto">Activity '+chev()+'</button></div>'+q.map(actRow).join("");
+    if(forMe.length)lds='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">New leads for me <span class="cnt">'+forMe.length+'</span></div><button class="btn sm" data-act="nav" data-view="leads" style="margin-left:auto">Leads '+chev()+'</button></div><div class="list">'+forMe.slice(0,6).map(leadHomeRow).join("")+'</div>';
+  }
+  if(P==="outreach"){
+    lds='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">Leads to categorize <span class="cnt">'+toCat.length+'</span></div><button class="btn sm" data-act="nav" data-view="leads" style="margin-left:auto">All leads '+chev()+'</button></div>'+
+        (toCat.length?'<div class="list">'+toCat.slice(0,10).map(l=>'<div class="tk" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><p class="t1" style="font-size:14px"><button class="lnk" data-act="openlead" data-id="'+esc(l.id)+'">'+esc(l.name)+'</button></p><p class="t2">'+esc([l.company,l.title,l.conf].filter(Boolean).join(" · "))+'</p></div>'+leadChipsHTML(l)+leadHandChipsHTML(l)+'</div>').join("")+'</div>':'<div class="empty" style="padding:14px">Everything is categorized.</div>');
+    lists=savedListsHTML();
+  }
+  if(P!=="sales"&&confs.length){
     conf='<div class="sectlabel">Conference reach-out</div><div class="list">';
     conf+=confs.map(cl=>{
       const pct=cl.total?Math.round(cl.contacted/cl.total*100):0;
@@ -1477,26 +1583,44 @@ function viewToday(){
        '<div class="bar"><i style="width:'+pct+'%"></i></div></button>';
     }).join("")+'</div>';
   }
-  if(!mydist.length){dist='<div class="empty" style="padding:18px">No distributors in your region yet.</div>';}
-  else{
-    dist='<div class="sectlabel">Distributors — '+setup.length+' set-up · '+potN+' potential</div>';
-    if(setup.length){
-      dist+='<div class="list">'+setup.map(c=>{
-        var bits=[(c.demoCount?c.demoCount+" demo":""),companyRegion(c)];
-        if(admin())bits.unshift(c.units?c.units+"u sold":"");
-        return '<button class="card" data-act="roster" data-id="'+c.id+'"><div class="row">'+
-          '<span class="ic coral">'+svg("ware")+'</span>'+
-          '<div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+bits.filter(Boolean).join(" · ")+'</p></div>'+
-          stageTag(enableStage(c))+chev()+'</div></button>';
-      }).join("")+'</div>';
-    } else {
-      dist+='<div class="empty" style="padding:18px">No set-up distributors yet — work the '+potN+' in your Potential tab to onboard them.</div>';
-    }
+  if(P==="admin"){
+    const added=leads.filter(l=>String(l.createdAt||"").slice(0,10)>=W).length;
+    const perRep=GH_REPS.filter(id=>profile(id)==="sales").map(id=>[id,handedWk.filter(l=>l.assignee===id).length]);
+    const cl=(DB.confLeads||[]),called=cl.filter(l=>(l.touches||[]).some(t=>String(t.date||"").slice(0,10)>=W)).length;
+    outreach='<div class="sectlabel">Outreach this week</div><div class="card"><div class="facts">'+
+      '<div><b>Leads added</b><span>'+added+'</span></div><div><b>To categorize</b><span>'+toCat.length+'</span></div><div><b>Handed to sales</b><span>'+handedWk.length+(perRep.some(r=>r[1])?' <small style="color:var(--muted)">'+perRep.filter(r=>r[1]).map(r=>shortName(r[0])+" "+r[1]).join(" · ")+'</small>':'')+'</span></div><div><b>Conf leads called</b><span>'+called+'</span></div></div>'+
+      '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="nav" data-view="leads">Leads</button><button class="btn sm" data-act="nav" data-view="team">Team</button>'+(campAccess()?'<button class="btn sm" data-act="nav" data-view="campaigns">Campaigns</button>':'')+'</div></div>';
   }
   const sec=(id,x)=>x?'<section class="hsec" id="'+id+'">'+x+'</section>':'';
-  h+='<div class="homegrid"><div class="hcol">'+sec("hs-day",day)+sec("hs-dist",dist)+'</div>'+
-     '<div class="hcol">'+sec("hs-conf",conf)+sec("hs-eod",eodSectionHTML())+sec("hs-team",(mydist.length&&admin())?teamFeed():"")+'</div></div>';
+  h+='<div class="homegrid"><div class="hcol">'+sec("hs-day",day)+sec("hs-attn",attn)+sec("hs-fu",fu)+sec("hs-leads",lds)+'</div>'+
+     '<div class="hcol">'+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+(P==="outreach"?"":sec("hs-quotes",homeQuotesHTML()))+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
   return h;
+}
+function actQueueFor(w){const keep=actWho;actWho=w;const q=actQueue();actWho=keep;return q;}
+/* a deal needs attention when its next action or close date slipped, it has no closing distributor, no next action, or it went quiet */
+function dealIssues(o){
+  const is=[];
+  if((o.nextActionDate&&o.nextActionDate<todayStr())||oppOverdue(o))is.push(["dang","past due"]);
+  if(!oppHasDist(o))is.push(["dang","needs distributor"]);
+  if(!o.nextAction)is.push(["warn","no next action"]);
+  const lt=oppLastTouch(o),age=lt?since(lt):(o.createdAt?since(o.createdAt):null);
+  if(age!==null&&age>21)is.push(["warn",lt?"quiet "+age+"d":"never touched"]);
+  return is;
+}
+function attnRows(pool){return pool.filter(oppIsOpen).map(o=>({o:o,is:dealIssues(o)})).filter(x=>x.is.length).sort((a,b)=>b.is.length-a.is.length||(b.o.amount||0)-(a.o.amount||0));}
+function attnRow(x){const o=x.o;return '<button class="card" data-act="editopp" data-id="'+o.id+'"><div class="row"><span class="ic '+(x.is.some(i=>i[0]==="dang")?"coral":"warn")+'">'+svg("chart")+'</span>'+
+  '<div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">'+esc(oppAcctLabel(o))+(oppDistLabel(o)?' · via '+esc(oppDistLabel(o)):'')+' · '+money(o.amount||0)+' · '+esc(OPP_SHORT[o.stage]||o.stage)+(profile()!=="sales"&&oppGhRep(o)?' · '+esc(shortName(oppGhRep(o))):'')+'</p></div>'+
+  '<span class="chips" style="justify-content:flex-end">'+x.is.map(i=>'<span class="pill '+i[0]+'">'+i[1]+'</span>').join("")+'</span>'+chev()+'</div></button>';}
+function leadHomeRow(l){return '<button class="card" data-act="openlead" data-id="'+esc(l.id)+'"><div class="row"><span class="ic info">'+svg("spark")+'</span><div class="grow"><p class="t1">'+esc(l.name)+'</p><p class="t2">'+esc([l.company,l.title,l.conf].filter(Boolean).join(" · "))+(l.handedBy?' · from '+esc(shortName(l.handedBy)):'')+'</p></div>'+leadCatTag(leadCat(l))+chev()+'</div></button>';}
+/* Quotes fold up on Home instead of having their own tab (Max, 2026-10-16); the full Quotes page is one tap away */
+function homeQuotesHTML(){
+  const qs=quotesAll(),open=qs.filter(q=>{const s=quoteState(q);return s==="draft"||s==="sent";});
+  const mine=open.filter(q=>q.by===USER);
+  const show=(admin()?open:mine).slice(0,6);
+  return '<details class="fold" id="homeQuotes"'+(logState.homeQuotesOpen?' open':'')+'><summary><span class="sectlabel" style="margin:0">Quotes</span>'+
+   '<span class="t2">'+(open.length?open.length+' open · '+money(open.reduce((s,q)=>s+quoteTotal(q),0))+' quoted'+(admin()||!mine.length?'':' · '+mine.length+' mine'):'nothing open')+'</span><span class="fchev">'+chev()+'</span></summary>'+
+   (show.length?'<div class="list">'+show.map(quoteRowHTML).join("")+'</div>':'<div class="empty" style="padding:14px">No open quotes.</div>')+
+   '<div class="row" style="gap:8px;margin-bottom:6px"><button class="btn sm coral" data-act="quotenew">'+svg("plus")+' New quote</button><button class="btn sm" data-act="nav" data-view="quotes">All quotes'+(qs.length?' ('+qs.length+')':'')+'</button></div></details>';
 }
 function taskRow(t){
   const m=taskTypeMeta(t.type),T=todayStr(),overdue=!t.done&&t.due<T;
@@ -1513,7 +1637,7 @@ function teamFeed(){
   if(!feed.length)return"";
   let h='<div class="sectlabel">Team activity</div><div class="list">';
   h+=feed.map(a=>{const p=person(a.pid);return '<div class="card" style="padding:11px 14px"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:14px">'+teamById(a.by).name.split(" ")[0]+' · '+titlecase(a.type)+(p?' with '+p.name:'')+'</p>'+
+   '<div class="grow"><p class="t1" style="font-size:14px">'+teamById(a.by).name.split(" ")[0]+' · '+actLabel(a.type)+(p?' with '+p.name:'')+'</p>'+
    '<p class="t2" style="white-space:normal">'+ago(a.date)+' · '+a.note+'</p></div></div></div>';}).join("");
   return h+'</div>';
 }
@@ -1564,7 +1688,7 @@ function viewPerson(id){
   if(surfaced.length){h+='<div class="sectlabel">End-users '+esc(p.name.split(" ")[0])+' surfaced</div><div class="list">';
     h+=surfaced.map(o=>'<div class="card" data-act="roster" data-id="'+o.id+'" style="cursor:pointer"><div class="row"><span class="ic ok">'+svg("build")+'</span><div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">End-user · '+esc(o.city?o.city+", "+o.state:"new")+'</p></div>'+chev()+'</div></div>').join("")+'</div>';}
   h+='<div class="sectlabel">History</div>';
-  h+= acts.length? '<div class="list">'+acts.map(a=>'<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(titlecase(a.type))+' · '+fmtDay(a.date)+' <span style="color:var(--hint);font-weight:500">('+ago(a.date)+(a.by?' · '+esc(teamById(a.by).name.split(" ")[0]):'')+')</span></p><p class="t2" style="white-space:normal">'+esc(a.note)+'</p></div>'+chev()+'</div></div>').join("")+'</div>'
+  h+= acts.length? '<div class="list">'+acts.map(a=>'<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(actLabel(a.type))+' · '+fmtDay(a.date)+' <span style="color:var(--hint);font-weight:500">('+ago(a.date)+(a.by?' · '+esc(teamById(a.by).name.split(" ")[0]):'')+')</span></p><p class="t2" style="white-space:normal">'+esc(a.note)+'</p></div>'+chev()+'</div></div>').join("")+'</div>'
      :'<div class="empty">No touches logged yet.</div>';
   return h;
 }
@@ -1601,8 +1725,11 @@ function savePerson(){
   p.note=val("epNote");
   save();closeSheet();render();toast("Contact updated");
 }
-function iconFor(t){return {call:"phone",voicemail:"phone",meeting:"cal",email:"mail",training:"school",demo:"box",note:"note",quote:"file"}[t]||"note";}
-function toneFor(t){return {call:"info",voicemail:"warn",meeting:"info",email:"info",training:"ok",demo:"coral",note:"",quote:"warn"}[t]||"";}
+/* visits, co-travel with a distributor rep and man-rep travel are logged like everything else (Max, 2026-10-16) */
+const LOG_TYPES=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["visit","pin","Visit"],["cotravel","plane","Co-travel"],["mrtravel","truck","Man-rep travel"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+function iconFor(t){return {call:"phone",voicemail:"phone",meeting:"cal",visit:"pin",cotravel:"plane",mrtravel:"truck",email:"mail",training:"school",demo:"box",note:"note",quote:"file"}[t]||"note";}
+function toneFor(t){return {call:"info",voicemail:"warn",meeting:"info",visit:"coral",cotravel:"coral",mrtravel:"warn",email:"info",training:"ok",demo:"coral",note:"",quote:"warn"}[t]||"";}
+function actLabel(t){return {voicemail:"Left VM",cotravel:"Co-travel",mrtravel:"Man-rep travel",visit:"Visit",training:"Training",meeting:"Meeting"}[t]||titlecase(t||"note");}
 
 function viewRoster(cid){
   const c=company(cid);if(!c)return'<div class="empty">Not found.</div>';
@@ -1669,7 +1796,7 @@ function viewRoster(cid){
   }
   h+='<div class="sech" style="margin:26px 0 12px">Activity</div>';
   h+=acts.length?'<div class="tl">'+acts.slice(0,20).map(a=>{const p=a.pid?person(a.pid):null;
-    return '<div class="tle" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><p><strong>'+esc(titlecase(a.type))+'</strong>'+(p?' with '+esc(p.name):'')+' · <span class="tls">'+fmtDay(a.date)+' ('+ago(a.date)+') by '+esc(teamById(a.by).name.split(" ")[0])+'</span></p><p class="tls" style="font-size:13px;color:var(--muted)">'+esc(a.note||"")+'</p></div>';}).join("")+'</div>'
+    return '<div class="tle" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><p><strong>'+esc(actLabel(a.type))+'</strong>'+(p?' with '+esc(p.name):'')+' · <span class="tls">'+fmtDay(a.date)+' ('+ago(a.date)+') by '+esc(teamById(a.by).name.split(" ")[0])+'</span></p><p class="tls" style="font-size:13px;color:var(--muted)">'+esc(a.note||"")+'</p></div>';}).join("")+'</div>'
     :'<div class="empty" style="padding:16px">No activity logged yet — use Log to start the record.</div>';
   return h;
 }
@@ -2437,6 +2564,21 @@ function leadTempTag(t){
   return '<span class="pill '+cls+'">'+esc(t||"New")+'</span>';
 }
 function leadRegion(l){if(l.region==="International"&&!l.state)return "International";return l.state?regionFromState(l.state):(l.region||"");}
+/* Lead categories + hand-off (Max, 2026-10-16): outreach categorizes, sales works what's handed to them */
+const LEAD_CATS=[["new","New"],["qualified","Qualified"],["handed","Handed off"],["nurture","Nurture"],["dead","Not a fit"]];
+function leadCat(l){return l.cat||(l.assignee?"handed":(l.promoted?"qualified":"new"));}
+function leadCatTag(c){const cls={new:"warn",qualified:"info",handed:"ok",nurture:"gray",dead:"dang"}[c]||"gray";return '<span class="pill '+cls+'">'+(LEAD_CATS.find(x=>x[0]===c)||["","—"])[1]+'</span>';}
+function leadHand(l,rep){
+  if(l.assignee===rep){l.assignee=null;if(l.cat==="handed")l.cat="qualified";return;}
+  l.assignee=rep;l.cat="handed";l.handedAt=new Date().toISOString();l.handedBy=USER;
+}
+function leadChipsHTML(l){
+  const c=leadCat(l);
+  return '<div class="chiprow">'+LEAD_CATS.map(x=>'<span class="qchip'+(c===x[0]?" on":"")+'" data-act="leadcat" data-id="'+esc(l.id)+'" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
+}
+function leadHandChipsHTML(l){
+  return '<div class="chiprow">'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>{const t=teamById(id);return '<span class="qchip'+(l.assignee===id?" on":"")+'" data-act="leadhand" data-id="'+esc(l.id)+'" data-v="'+id+'" style="'+(l.assignee===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+'</span>';}).join("")+'</div>';
+}
 function leadVal(l,key){
   if(key==="name")return (l.name||"").toLowerCase();
   if(key==="company")return (l.company||"").toLowerCase();
@@ -2568,16 +2710,18 @@ function mlVal(l,k){const t=leadLastTouch(l);
   if(k==="last")return t?t.date:"";
   if(k==="method")return t?t.method:"~";
   if(k==="touches")return (l.touches||[]).length;
+  if(k==="cat")return LEAD_CATS.findIndex(x=>x[0]===leadCat(l));
+  if(k==="rep")return l.assignee?teamById(l.assignee).name:"~";
   return "";}
 function viewLeads(){
   ensureLeads();
   const all=DB.leads.slice();
-  const confs=[...new Set(all.map(l=>l.conf).filter(Boolean))].sort();
+  if(!logState.leadsFInit){logState.leadsFInit=true;leadsF=profile()==="sales"?"mine":"";}
   let pool=all.filter(l=>{
     if(!leadsF)return true;
-    if(leadsF.indexOf("conf:")===0)return l.conf===leadsF.slice(5);
+    if(leadsF==="mine")return l.assignee===USER;
     if(leadsF==="untouched")return !(l.touches&&l.touches.length);
-    if(leadsF==="promoted")return !!l.promoted;
+    if(leadsF.indexOf("cat:")===0)return leadCat(l)===leadsF.slice(4);
     return true;});
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(l=>((l.name||"")+" "+(l.company||"")+" "+(l.email||"")+" "+(l.title||"")).toLowerCase().includes(q));
@@ -2587,25 +2731,24 @@ function viewLeads(){
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
   const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
   let h='';
-  h+='<div class="lvhead"><div class="lvtabs">'+chip("","All",all.length)+
-     confs.map(c=>chip("conf:"+c,c.replace(/ 20\d\d$/,""),all.filter(l=>l.conf===c).length)).join("")+
-     chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+
-     chip("promoted","In CRM",all.filter(l=>l.promoted).length)+'</div>'+
+  const sales=profile()==="sales";
+  h+='<div class="lvhead"><div class="lvtabs">'+(GH_REPS.includes(USER)?chip("mine","Handed to me",all.filter(l=>l.assignee===USER).length):'')+chip("","All",all.length)+
+     (sales?'':LEAD_CATS.map(c=>chip("cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]).length)).join(""))+
+     chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+'</div>'+
      '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
      '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
-  if(!pool.length)return h+'<div class="empty">No leads yet.</div>';
+  if(!pool.length)return h+'<div class="empty">'+(leadsF==="mine"?'Nothing handed to you yet — outreach sends leads here.':'No leads here.')+'</div>';
   const th=(k,l)=>thSort("myleads",k,l);
-  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Conference")+th("state","State")+th("region","Territory")+th("last","Last contact")+th("method","Method")+'<th>Conversation details</th>'+th("touches","Touches")+'</tr></thead><tbody>'+
+  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Source")+th("state","State")+(sales?'<th>Category</th>':th("cat","Category"))+(sales?'':'<th>Sales person</th>')+th("last","Last contact")+th("touches","Touches")+'</tr></thead><tbody>'+
    pool.map(l=>{const t=leadLastTouch(l);
     return '<tr data-act="openlead" data-id="'+esc(l.id)+'">'+
     '<td><div class="lvname">'+esc(l.name)+(l.kind?' <span class="pill '+(l.kind==="distributor"?"coral":"info")+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+(l.kind==="distributor"?"Dist":"End-user")+'</span>':'')+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||(l.dstStage||""))+'</div></td>'+
     '<td>'+esc(l.company||"—")+(l.buysThrough?'<div class="lvsub">buys via '+esc(l.buysThrough.name)+'</div>':'')+'</td>'+
     '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
-    '<td>'+(l.state?regionTag(regionFromState(l.state)):'<span class="muted">—</span>')+'</td>'+
-    '<td>'+(t?esc(t.date):'<span class="muted">never</span>')+'</td>'+
-    '<td>'+(t?'<span class="pill '+(toneFor(t.method)||"gray")+'">'+esc(titlecase(t.method))+'</span>':'<span class="muted">—</span>')+'</td>'+
-    '<td style="max-width:320px;overflow:hidden;text-overflow:ellipsis">'+esc(t?(t.note||""):"")+'</td>'+
+    (sales?'<td>'+leadCatTag(leadCat(l))+(l.handedBy?'<div class="lvsub">from '+esc(shortName(l.handedBy))+(l.handedAt?' · '+esc(String(l.handedAt).slice(0,10)):'')+'</div>':'')+'</td>'
+          :'<td>'+leadChipsHTML(l)+'</td><td>'+leadHandChipsHTML(l)+'</td>')+
+    '<td>'+(t?esc(t.date)+(t.note?'<div class="lvsub" style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+esc(titlecase(t.method))+' · '+esc(t.note)+'</div>':''):'<span class="muted">never</span>')+'</td>'+
     '<td class="num">'+((l.touches||[]).length)+'</td></tr>';}).join("")+
   '</tbody></table></div>';
   return h;
@@ -2731,6 +2874,8 @@ function formLeadRec(id){
   openSheet('<div class="row" style="align-items:flex-start;gap:10px"><div class="grow"><h2 style="margin-right:0">'+esc(l.name)+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p></div>'+
    '<button class="btn sm" data-act="editlead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
+   (profile()==="sales"?'<p class="t2" style="margin:6px 0 0">'+leadCatTag(leadCat(l))+(l.handedBy?' handed to you by '+esc(shortName(l.handedBy))+(l.handedAt?' on '+esc(String(l.handedAt).slice(0,10)):''):'')+'</p>'
+    :'<label class="fl">Category</label>'+leadChipsHTML(l)+'<label class="fl">Hand to</label>'+leadHandChipsHTML(l))+
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
     (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
@@ -2836,6 +2981,7 @@ function oppVal(o,key){
   if(key==="close")return o.closeDate||"~";
   if(key==="region")return oppRegion(o)||"~";
   if(key==="rep")return (o.rep||"~").toLowerCase();
+  if(key==="ghrep")return oppGhRep(o)?teamById(oppGhRep(o)).name.toLowerCase():"~";
   if(key==="prob")return oppProb(o);
   if(key==="touches")return oppTouches(o);
   if(key==="lasttouch")return oppLastTouch(o)||"~";
@@ -2844,9 +2990,13 @@ function oppVal(o,key){
   return "";
 }
 function oppRow(o){
+  const lead=oppAcctLabel(o),isStock=lead&&oppDistLabel(o)&&lead.toLowerCase()===oppDistLabel(o).toLowerCase();
   return '<tr data-act="editopp" data-id="'+o.id+'">'+
-  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+esc(o.dealType||"")+(o.source==="manrep-report"?" · man-rep report":"")+'</div></td>'+
-  '<td>'+esc(oppAcctLabel(o))+(o.distributorName&&o.distributorName!==oppAcctLabel(o)?'<div class="lvsub">via '+esc(o.distributorName)+'</div>':'')+'</td>'+
+  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+esc(o.dealType||"")+(o.rep?' · '+esc(o.rep):'')+'</div></td>'+
+  '<td>'+(isStock?'<span class="muted">stocking</span>':esc(lead))+'</td>'+
+  '<td>'+distCell(o)+'</td>'+
+  '<td>'+ghRepCell(o)+'</td>'+
+  '<td>'+regionTag(oppRegion(o))+'</td>'+
   '<td>'+(o.state?stateChip(o.state):'<span class="muted">—</span>')+'</td>'+
   '<td>'+oppStageTag(o.stage)+(oppOverdue(o)?' <span class="pill dang">past due</span>':'')+'</td>'+
   '<td class="num">'+money(o.amount||0)+'</td>'+
@@ -2855,10 +3005,7 @@ function oppRow(o){
   '<td class="num"><b>'+oppTouches(o)+'</b></td>'+
   '<td>'+(oppLastTouch(o)?esc(oppLastTouch(o)):'<span class="muted">—</span>')+'</td>'+
   '<td>'+(o.nextAction?'<div class="lvname" style="font-weight:500">'+esc(o.nextAction)+'</div>'+(o.nextActionDate?'<div class="lvsub"'+((o.nextActionDate<todayStr()&&oppIsOpen(o))?' style="color:var(--dang-t)"':'')+'>'+esc(o.nextActionDate)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
-  '<td>'+(oppDistLabel(o)?esc(oppDistLabel(o))+(o.distRepPid&&person(o.distRepPid)?'<div class="lvsub">'+esc(person(o.distRepPid).name)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
-  '<td>'+(o.closeDate?esc(o.closeDate):(o.forecastYear?'FY '+o.forecastYear:'<span class="muted">—</span>'))+'</td>'+
-  '<td>'+regionTag(oppRegion(o))+'</td>'+
-  '<td>'+(o.rep?esc(o.rep):(o.owner?esc(teamById(o.owner).name.split(" ")[0]):'<span class="muted">—</span>'))+'</td></tr>';
+  '<td>'+(o.closeDate?esc(o.closeDate):(o.forecastYear?'FY '+o.forecastYear:'<span class="muted">—</span>'))+'</td></tr>';
 }
 function oppFltVal(o,key){
   if(key==="stage")return (OPP_SHORT[o.stage]||"")+" "+(o.stage||"")+(oppOverdue(o)?" past due":"");
@@ -2868,6 +3015,7 @@ function oppFltVal(o,key){
   if(key==="close")return o.closeDate||(o.forecastYear?"FY "+o.forecastYear:"");
   if(key==="region")return oppRegion(o)||"";
   if(key==="rep")return o.rep||(o.owner?teamById(o.owner).name:"");
+  if(key==="ghrep")return oppGhRep(o)?teamById(oppGhRep(o)).name:"unassigned";
   if(key==="account")return oppAcctLabel(o)+" "+(o.distributorName||"");
   if(key==="state")return o.state||"";
   if(key==="touches")return oppTouches(o);
@@ -2878,10 +3026,22 @@ function oppFltVal(o,key){
 }
 function oppTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("opps",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Opportunity")+th("account","Account")+th("state","State")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("touches","Touches")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("dist","Distributor")+th("close","Close")+th("region","Region")+th("rep","Rep")+'</tr>';
-  const total=list.reduce((s,o)=>s+(o.amount||0),0);
+  const head='<tr>'+th("name","Opportunity")+th("account","Lead / end user")+th("dist","Closing distributor")+th("ghrep","Golden Hour sales person")+th("region","Region")+th("state","State")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("touches","Touches")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("close","Close")+'</tr>';
+  const total=list.reduce((s,o)=>s+(o.amount||0),0),units=list.reduce((s,o)=>s+(o.units||0),0);
   return '<div class="tablewrap"><table class="lv"'+(sortable?' data-tbl="opps"':'')+'><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
-    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td></td><td></td><td></td><td class="num" style="font-weight:700">'+money(total)+'</td><td colspan="9"></td></tr></tfoot></table></div>';
+    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td colspan="6"></td><td class="num" style="font-weight:700">'+money(total)+'</td><td class="num" style="font-weight:700">'+units+'</td><td colspan="5"></td></tr></tfoot></table></div>';
+}
+function ghRepCell(o){
+  const id=oppGhRep(o);
+  if(!id)return '<span class="pill dang">Unassigned</span>';
+  const t=teamById(id);
+  return '<button class="repbtn" data-act="pipef" data-k="rep" data-v="'+id+'" title="Show only '+esc(t.name)+'\'s deals"><span class="av" style="background:'+t.c+'">'+initials(t.name)+'</span>'+esc(shortName(id))+(o.ghRep?'':' <small>auto</small>')+'</button>';
+}
+function distCell(o){
+  const d=oppDistLabel(o);
+  if(oppIsDirect(o))return '<span class="pill gray">Direct</span>';
+  if(d)return esc(d)+(o.distRepPid&&person(o.distRepPid)?'<div class="lvsub">'+esc(person(o.distRepPid).name)+'</div>':'');
+  return '<span class="pill dang" title="Pick the distributor this closes through, or mark it direct">'+svg("alert")+' Needs distributor</span>';
 }
 function oppCard(o){
   const si=OPP_STAGES.indexOf(o.stage);
@@ -2893,8 +3053,9 @@ function oppCard(o){
   const age=oppAge(o);
   return '<div class="pcard" data-act="editopp" data-id="'+o.id+'">'+
    '<div class="pn">'+esc(o.name)+'</div>'+
-   '<div class="pa">'+esc(oppAcctLabel(o))+(o.distributorName&&o.distributorName!==oppAcctLabel(o)?' · via '+esc(o.distributorName):'')+'</div>'+
-   '<div class="pm">'+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
+   '<div class="pa">'+esc(oppAcctLabel(o))+(oppDistLabel(o)&&oppDistLabel(o).toLowerCase()!==oppAcctLabel(o).toLowerCase()?' · via '+esc(oppDistLabel(o)):'')+'</div>'+
+   '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
+     (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
      (o.units?'<span>'+o.units+'u</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      '<span class="pill gray" style="font-size:10.5px">Touches: '+oppTouches(o)+'</span>'+
      (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
@@ -2904,46 +3065,61 @@ function oppCard(o){
    (o.nextAction?'<div class="pnext">'+svg("arrow")+'<span>'+esc(o.nextAction)+(o.nextActionDate?' — '+esc(o.nextActionDate.slice(5)):'')+'</span>'+((o.nextActionDate&&o.nextActionDate<todayStr()&&oppIsOpen(o))?'<span title="Next action is past due" style="color:var(--dang-t);display:inline-flex">'+svg("alert")+'</span>':'')+'</div>':'')+
    '<div class="pv"><span>'+money(o.amount||0)+' <small style="color:var(--muted);font-weight:500;font-size:12px">'+oppProb(o)+'%</small></span>'+adv+'</div></div>';
 }
-function oppKpis(pool){
-  const open=pool.filter(oppIsOpen), won=pool.filter(o=>o.stage==="Closed Won"), lost=pool.filter(o=>o.stage==="Closed Lost");
-  const openAmt=open.reduce((s,o)=>s+(o.amount||0),0), wAmt=open.reduce((s,o)=>s+oppWeighted(o),0);
-  const wonAmt=won.reduce((s,o)=>s+(o.amount||0),0);
-  const winRate=(won.length+lost.length)?Math.round(won.length/(won.length+lost.length)*100):null;
-  return '<div class="kpis">'+
-   '<div class="kpi"><b>Open pipeline</b><span>'+fmtK(openAmt)+'</span><small>'+open.length+' deals</small></div>'+
-   '<div class="kpi"><b>Weighted forecast</b><span>'+fmtK(wAmt)+'</span><small>probability-adjusted</small></div>'+
-   '<div class="kpi"><b>Closed won</b><span>'+fmtK(wonAmt)+'</span><small>'+won.length+' deals</small></div>'+
-   '<div class="kpi"><b>Win rate</b><span>'+(winRate===null?"—":winRate+"%")+'</span><small>'+won.length+'W / '+lost.length+'L</small></div>'+
-  '</div>';
+function kpiRow(items){return '<div class="kpis">'+items.map(k=>'<div class="kpi'+(k[3]?' '+k[3]:'')+'"><b>'+k[0]+'</b><span>'+k[1]+'</span><small>'+(k[2]||"")+'</small></div>').join("")+'</div>';}
+function oppKpis(list,tab){
+  /* totals for the tab that's showing (after filters) — Open, Won and Lost never mix (Max, 2026-10-16) */
+  const amt=list.reduce((s,o)=>s+(o.amount||0),0),units=list.reduce((s,o)=>s+(o.units||0),0),noDist=list.filter(o=>!oppHasDist(o)).length;
+  const n=list.length+" deal"+(list.length===1?"":"s");
+  if(tab==="won")return kpiRow([["Closed won",fmtK(amt),n],["Units sold",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""],["Needs distributor",noDist,noDist?"closed without one":"all attributed",noDist?"warn":""]]);
+  if(tab==="lost")return kpiRow([["Closed lost",fmtK(amt),n],["Units",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""]]);
+  const wAmt=list.reduce((s,o)=>s+oppWeighted(o),0),due=list.filter(oppOverdue).length;
+  return kpiRow([["Open pipeline",fmtK(amt),n],["Weighted",fmtK(wAmt),"probability-adjusted"],["Units in play",units,""],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""]]);
+}
+/* Pipeline filters (Max, 2026-10-16): Open | Won | Lost are separate views with separate totals; everyone sees the whole
+   book and narrows by region, Golden Hour sales person (tap a name anywhere) or closing distributor. */
+/* one filter: whose deals. A sales rep lands on "Mine"; everyone else lands on the whole book. Territory = person,
+   so there is no region row, and the search box covers distributors (Max: "too many filters"). */
+let pipeF={region:"",rep:null,dist:""};
+function pipeRep(){if(pipeF.rep===null)pipeF.rep=(profile()==="sales"&&GH_REPS.includes(USER))?USER:"";return pipeF.rep;}
+function oppMatchesF(o){
+  const r=pipeRep();
+  if(r==="none"){if(oppGhRep(o))return false;}
+  else if(r&&oppGhRep(o)!==r)return false;
+  return true;
+}
+function pipeFilterBar(pool){
+  const r=pipeRep();
+  const reps=GH_REPS.concat(["jamie","max"]).filter(id=>id===USER||pool.some(o=>oppGhRep(o)===id));
+  const chip=(v,l)=>'<span class="qchip'+(r===v?" on":"")+'" data-act="pipef" data-k="rep" data-v="'+esc(v)+'">'+esc(l)+'</span>';
+  return '<div class="qa-types" style="margin:-2px 0 14px">'+(GH_REPS.includes(USER)?chip(USER,"Mine"):"")+chip("","Everyone")+reps.filter(id=>id!==USER).map(id=>chip(id,shortName(id))).join("")+(pool.some(o=>!oppGhRep(o))?chip("none","Unassigned"):"")+'</div>';
 }
 function viewOpps(){
   const pool=myOpps();
   const q=listQ.trim().toLowerCase();
-  const isMine=o=>o.owner===USER||(!o.owner&&userRegion(USER)&&oppRegion(o)===userRegion(USER));
-  let show=pool.filter(o=>{
-    if(oppFilter==="open"&&!oppIsOpen(o))return false;
-    if(oppFilter==="mine"&&!(oppIsOpen(o)&&isMine(o)))return false;
-    if(oppFilter==="won"&&o.stage!=="Closed Won")return false;
-    if(oppFilter==="lost"&&o.stage!=="Closed Lost")return false;
-    if(q&&!((o.name||"").toLowerCase().includes(q)||oppAcctLabel(o).toLowerCase().includes(q)||(o.rep||"").toLowerCase().includes(q)))return false;
-    return true;
-  });
-  const cnt={mine:pool.filter(o=>oppIsOpen(o)&&isMine(o)).length,open:pool.filter(oppIsOpen).length,won:pool.filter(o=>o.stage==="Closed Won").length,lost:pool.filter(o=>o.stage==="Closed Lost").length,all:pool.length};
+  if(!["open","won","lost"].includes(oppFilter))oppFilter="open";
+  const inTab=o=>oppFilter==="won"?o.stage==="Closed Won":oppFilter==="lost"?o.stage==="Closed Lost":oppIsOpen(o);
+  const tabPool=pool.filter(inTab);
+  let show=tabPool.filter(o=>oppMatchesF(o)&&(!q||((o.name||"")+" "+oppAcctLabel(o)+" "+oppDistLabel(o)+" "+(o.rep||"")+" "+teamById(oppGhRep(o)).name).toLowerCase().includes(q)));
+  const mineP=pool.filter(oppMatchesF); /* tab counts follow the person filter */
+  const cnt={open:mineP.filter(oppIsOpen).length,won:mineP.filter(o=>o.stage==="Closed Won").length,lost:mineP.filter(o=>o.stage==="Closed Lost").length};
   const tab=(v,l,n)=>'<button class="'+(oppFilter===v?"on":"")+'" data-act="oppfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
-  let h=oppKpis(pool);
-  h+='<div class="lvhead"><div class="lvtabs">'+tab("mine","My pipeline",cnt.mine)+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+tab("all","All",cnt.all)+'</div>'+
-   '<div class="seg" style="margin:0;max-width:180px"><button class="'+(oppView==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button><button class="'+(oppView==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button></div>'+
+  const vw=(oppFilter!=="open"&&oppView==="board")?"list":oppView;
+  let h=oppKpis(show,oppFilter);
+  h+='<div class="lvhead"><div class="lvtabs">'+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+'</div>'+
+   '<div class="seg" style="margin:0;max-width:280px">'+(oppFilter==="open"?'<button class="'+(vw==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button>':'')+'<button class="'+(vw==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button><button class="'+(vw==="fcast"?"on":"")+'" data-act="oppview" data-v="fcast">Forecast</button></div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search pipeline…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
    '<button class="btn sm coral" data-act="addopp">'+svg("plus")+' New</button></div>';
-  if(!show.length)return h+'<div class="empty">'+(pool.length?'Nothing in this tab.':'The pipeline is a clean slate — add deals as you confirm real numbers.<br><br><button class="btn coral" data-act="addopp">'+svg("plus")+' Add your first opportunity</button><br><br><span style="font-size:12.5px">The old imported pipeline is archived in CRM_Cleanup/opportunities_import_archive.csv for reference.</span>')+'</div>';
-  if(oppView==="list"){
+  h+=pipeFilterBar(tabPool);
+  if(vw==="fcast")return h+viewForecast(show);
+  if(!show.length)return h+'<div class="empty">'+(pool.length?'Nothing here'+((pipeF.region||pipeF.rep||pipeF.dist||q)?' with these filters.':'.'):'The pipeline is a clean slate — add deals as you confirm real numbers.<br><br><button class="btn coral" data-act="addopp">'+svg("plus")+' Add your first opportunity</button>')+'</div>';
+  if(vw==="list"){
     const f=colFlt.opps||{};
     show=show.filter(o=>Object.keys(f).every(k=>fltMatch(oppFltVal(o,k),f[k])));
     const s=sortState.opps;
     show=show.slice().sort((a,b)=>cmpv(oppVal(a,s.key),oppVal(b,s.key))*s.dir);
     return h+oppTableHTML(show,true);
   }
-  const cols=(oppFilter==="open"||oppFilter==="mine")?OPP_STAGES.slice(0,4):OPP_STAGES.filter(s=>show.some(o=>o.stage===s));
+  const cols=OPP_STAGES.slice(0,4);
   h+='<div class="pipe">'+cols.map(st=>{
     const os=show.filter(o=>o.stage===st).sort((a,b)=>(b.amount||0)-(a.amount||0));
     const amt=os.reduce((s,o)=>s+(o.amount||0),0);
@@ -2970,9 +3146,11 @@ function fPeriodSort(p){
   const m=p.match(/^Q(\d) (\d{4})$/);return m?m[2]+"q"+m[1]:p;
 }
 let fSel=null; // {cat, period} — selected matrix cell
-function viewForecast(){
-  if(!myOpps().length)return '<div class="empty">No deals in the pipeline yet.<br>Forecasts build themselves as you add opportunities — tap <b>New</b> (or the + button) and pick Opportunity.<br><br><span style="font-size:12.5px">The old imported pipeline is archived at CRM_Cleanup/opportunities_import_archive.csv if you need to reference it.</span></div>';
-  const pool=myOpps().filter(o=>o.stage!=="Closed Lost");
+function viewForecast(poolIn){
+  /* lives inside Pipeline now (the Forecast toggle); poolIn = the deals showing under the current tab + filters */
+  const base=poolIn||myOpps();
+  if(!base.length)return '<div class="empty">No deals to forecast'+(poolIn?' with these filters.':'. Add opportunities with <b>New</b> and the forecast builds itself.')+'</div>';
+  const pool=base.filter(o=>o.stage!=="Closed Lost");
   const periods=[...new Set(pool.map(fPeriod))].sort((a,b)=>fPeriodSort(a).localeCompare(fPeriodSort(b)));
   const cell={};pool.forEach(o=>{const k=fcatOf(o)+"|"+fPeriod(o);(cell[k]=cell[k]||[]).push(o);});
   const sum=os=>os.reduce((s,o)=>s+(o.amount||0),0);
@@ -2997,7 +3175,7 @@ function viewForecast(){
   h+='<tr class="total"><td>Total</td>'+periods.map(p=>{
     const os=pool.filter(o=>fPeriod(o)===p);
     return '<td>'+money(sum(os))+'</td>';}).join("")+'<td>'+money(sum(pool))+'</td></tr>';
-  const lost=myOpps().filter(o=>o.stage==="Closed Lost");
+  const lost=base.filter(o=>o.stage==="Closed Lost");
   if(lost.length)h+='<tr class="muted"><td>Omitted (lost)</td><td colspan="'+periods.length+'"></td><td>'+money(sum(lost))+'</td></tr>';
   h+='</tbody></table></div>';
   h+='<p style="font-size:12.5px;color:var(--hint);margin:10px 2px 0">Closed = won · Commit = in negotiation · Best case = quoted/proposal out · Pipeline = still qualifying. Deals without a close date sit in their forecast-year bucket — set close dates from the deal to tighten this.</p>';
@@ -3009,6 +3187,367 @@ function viewForecast(){
     h+=os.length?oppTableHTML(os,false):'<div class="empty">No deals in this cell.</div>';
   }
   return h;
+}
+
+/* ---------- INSIGHT (Dashboard · Reports · Distributor volume in one tab) ---------- */
+let insightTab="dash";
+function viewInsight(){
+  const seg=[["dash","Dashboard"],["reports","Reports"],["insights","Distributor volume"]];
+  return '<div class="seg" style="max-width:460px">'+seg.map(s=>'<button class="'+(insightTab===s[0]?"on":"")+'" data-act="insighttab" data-v="'+s[0]+'">'+s[1]+'</button>').join("")+'</div>'+
+   (insightTab==="reports"?viewReports():insightTab==="insights"?viewInsights():viewDash());
+}
+
+/* ---------- ACTIVITY — the top of the funnel (Max, 2026-10-16) ----------
+   Everything logged is an activity until it's followed up, closed, or turned into a lead / opportunity.
+   Queue buckets: to follow up (recent, nobody went back) · old — never followed up (14+ days, nobody went back)
+   · scheduled (a follow-up to-do exists and isn't done) · done (closed, to-do done, or a later touch with the same person). */
+let actMode="queue",actBucket="todo",actType="",actWho=null,actWeekOff=0;
+function actWhoCur(){if(actWho===null)actWho=profile()==="sales"?USER:"";return actWho;} /* reps land on their own activity */
+const ACT_FU_TYPES=["call","voicemail","email","meeting","visit","cotravel","mrtravel","demo","training"];
+function actFuTask(a){return a.fuTask?(DB.tasks||[]).find(t=>t.id===a.fuTask):null;}
+function actLaterTouch(a){const d=new Date(a.date).getTime();return (DB.activities||[]).some(b=>b.id!==a.id&&b.pid&&b.pid===a.pid&&new Date(b.date).getTime()>d);}
+function actState(a){
+  if(a.closed)return "done";
+  const t=actFuTask(a);
+  if(t&&!t.removed){return t.done?"done":"sched";}
+  if(!ACT_FU_TYPES.includes(a.type))return "done";
+  if(actLaterTouch(a))return "done";
+  return (since(a.date)||0)>14?"old":"todo";
+}
+function actWhoOk(a){const w=actWhoCur();if(!w)return true;return a.by===w;}
+function actQueue(){
+  const q={todo:[],old:[],sched:[],done:[]};
+  (DB.activities||[]).forEach(a=>{if(!a||!a.date)return;if(!actWhoOk(a))return;q[actState(a)].push(a);});
+  Object.keys(q).forEach(k=>q[k].sort((a,b)=>new Date(b.date)-new Date(a.date)));
+  return q;
+}
+function actTypeGroup(t){return {call:"calls",voicemail:"calls",email:"emails",meeting:"visits",visit:"visits",cotravel:"visits",mrtravel:"visits",demo:"demos",training:"training",note:"notes",quote:"quotes"}[t]||"notes";}
+function actRow(a){
+  const p=person(a.pid),c=p?company(p.cid):(a.cid?company(a.cid):null),st=actState(a),t=actFuTask(a);
+  const who=p?'<button class="lnk" data-act="actperson" data-id="'+p.id+'">'+esc(p.name)+'</button>':(c?esc(c.name):'<span class="muted">—</span>');
+  const where=(c?esc(c.name):p&&p.branch?esc(p.branch):"")+(p&&p.role?' · '+esc(p.role):'');
+  const stamp=fmtDay(a.date)+' · '+ago(a.date)+(a.by?' · '+esc(shortName(a.by)):'');
+  let acts='';
+  if(st==="sched"&&t)acts='<span class="pill info">'+svg("clock")+' follow-up '+esc(t.due)+'</span><button class="btn sm" data-act="actdone" data-id="'+a.id+'">Done</button>';
+  else if(st==="done")acts='<span class="pill gray">done</span><button class="btn sm ghost" data-act="actreopen" data-id="'+a.id+'">Reopen</button>';
+  else acts='<button class="btn sm coral" data-act="actfu" data-id="'+a.id+'">'+svg("clock")+' Follow up</button><button class="btn sm" data-act="actdone" data-id="'+a.id+'">Done</button>'+
+    (p?'<button class="btn sm ghost" data-act="acttoopp" data-id="'+a.id+'" title="Start an opportunity from this">'+svg("chart")+' Opp</button>'+(p&&!(DB.leads||[]).some(l=>l.refPid===p.id)?'<button class="btn sm ghost" data-act="pushlead" data-id="'+p.id+'" title="Push to Leads">'+svg("spark")+' Lead</button>':''):'');
+  return '<div class="act'+(st==="old"?' old':'')+'"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span>'+
+   '<div class="grow"><p class="t1">'+esc(actLabel(a.type))+' · '+who+(where?'<span class="t2" style="display:inline;margin-left:6px">'+where+'</span>':'')+'</p>'+
+   '<p class="t2" style="white-space:normal">'+(a.note?esc(a.note)+' · ':'')+stamp+'</p></div><div class="actbtns">'+acts+'</div></div>';
+}
+function viewActivity(){
+  const q=actQueue();
+  const seg='<div class="seg" style="margin:0;max-width:240px"><button class="'+(actMode==="queue"?"on":"")+'" data-act="actmode" data-v="queue">Follow-ups</button><button class="'+(actMode==="week"?"on":"")+'" data-act="actmode" data-v="week">Week</button></div>';
+  const w=actWhoCur();
+  const whoChips='<div class="qa-types"><span class="qchip'+(w===USER?" on":"")+'" data-act="actwho" data-v="'+USER+'">Mine</span><span class="qchip'+(!w?" on":"")+'" data-act="actwho" data-v="">Everyone</span>'+
+    (profile()==="sales"?"":TEAM.filter(t=>t.id!=="laresa"&&t.id!==USER).map(t=>'<span class="qchip'+(w===t.id?" on":"")+'" data-act="actwho" data-v="'+t.id+'" style="'+(w===t.id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(t.id))+'</span>').join(""))+'</div>';
+  let h='<div class="lvhead">'+seg+'<button class="btn sm coral" data-act="form" data-form="call" style="margin-left:auto">'+svg("plus")+' Log activity</button></div>'+whoChips;
+  if(actMode==="week")return h+actWeekHTML();
+  const bucket=(v,l,n,cls)=>'<button class="'+(actBucket===v?"on":"")+'" data-act="actbucket" data-v="'+v+'">'+l+' <span class="cnt'+(cls&&n?' '+cls:'')+'">'+n+'</span></button>';
+  h+='<div class="lvtabs" style="margin:10px 0">'+bucket("todo","To follow up",q.todo.length)+bucket("old","Old — never followed up",q.old.length,"warnc")+bucket("sched","Scheduled",q.sched.length)+bucket("done","Done",q.done.length)+'</div>';
+  let list=q[actBucket]||[];
+  const groups=[["","All"],["calls","Calls"],["emails","Emails"],["visits","Visits & meetings"],["demos","Demos"],["training","Training"],["notes","Notes"]];
+  const counts={};list.forEach(a=>{const g=actTypeGroup(a.type);counts[g]=(counts[g]||0)+1;});
+  h+='<div class="qa-types" style="margin-bottom:12px"><span class="lbl">Kind</span>'+groups.filter(g=>!g[0]||counts[g[0]]).map(g=>'<span class="qchip'+(actType===g[0]?" on":"")+'" data-act="acttype" data-v="'+g[0]+'">'+g[1]+(g[0]?' '+counts[g[0]]:'')+'</span>').join("")+'</div>';
+  if(actType)list=list.filter(a=>actTypeGroup(a.type)===actType);
+  if(!list.length)return h+'<div class="empty">'+(actBucket==="todo"?'Nothing waiting on a follow-up.':actBucket==="old"?'Nothing has gone stale — every touch got a follow-up.':actBucket==="sched"?'No follow-ups scheduled.':'Nothing here yet.')+'</div>';
+  if(actBucket==="done")list=list.slice(0,80);
+  /* group by day so a long queue still reads */
+  let cur="",out="";
+  list.forEach(a=>{const d=String(a.date).slice(0,10);if(d!==cur){cur=d;out+='<div class="sectlabel" style="margin:16px 2px 8px">'+esc(fmtDay(a.date))+(since(a.date)>14?' <span class="pill warn">'+since(a.date)+' days ago</span>':'')+'</div>';}out+=actRow(a);});
+  return h+out;
+}
+function actWeekHTML(){
+  const now=new Date();const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7)+actWeekOff*7);
+  const days=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d);}
+  const from=ymd(days[0]),to=ymd(days[6]),T=todayStr();
+  const acts=(DB.activities||[]).filter(a=>a&&a.date&&actWhoOk(a)&&String(a.date).slice(0,10)>=from&&String(a.date).slice(0,10)<=to);
+  const w=actWhoCur();
+  const tasks=(DB.tasks||[]).filter(t=>!t.removed&&t.due>=from&&t.due<=to&&(w?(t.owner===w||(t.assignees||[]).includes(w)):true));
+  const tally={};acts.forEach(a=>{const g=actTypeGroup(a.type);tally[g]=(tally[g]||0)+1;});
+  let h='<div class="lvhead" style="margin:12px 0 10px"><button class="btn sm" data-act="actweek" data-v="-1">'+svg("chevL")+'</button><div class="sech">'+esc(days[0].toLocaleDateString(undefined,{month:"short",day:"numeric"}))+' – '+esc(days[6].toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}))+'</div><button class="btn sm" data-act="actweek" data-v="1">'+svg("chevR")+'</button>'+(actWeekOff?'<button class="btn sm ghost" data-act="actweek" data-v="0">This week</button>':'')+
+   '<span class="t2" style="margin-left:auto">'+acts.length+' logged · '+Object.keys(tally).map(k=>tally[k]+' '+k).join(" · ")+'</span></div>';
+  h+='<div class="wk">'+days.map(d=>{const k=ymd(d);
+    const da=acts.filter(a=>String(a.date).slice(0,10)===k).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const dt=tasks.filter(t=>t.due===k);
+    return '<div class="wkday'+(k===T?' today':'')+'"><div class="wkh"><b>'+d.toLocaleDateString(undefined,{weekday:"short"})+'</b><span>'+d.getDate()+'</span>'+(da.length?'<em>'+da.length+'</em>':'')+'</div>'+
+      da.map(a=>{const p=person(a.pid);return '<button class="wki" data-act="actopen" data-id="'+a.id+'" title="'+esc(a.note||"")+'"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><span class="grow"><b>'+esc(p?p.name:(a.cid&&company(a.cid)?company(a.cid).name:actLabel(a.type)))+'</b><small>'+esc(actLabel(a.type))+(a.by&&!w?' · '+esc(shortName(a.by)):'')+'</small></span></button>';}).join("")+
+      dt.map(t=>'<div class="wki task'+(t.done?' done':'')+'"><span class="ic gray">'+svg("check")+'</span><span class="grow"><b>'+esc(t.title)+'</b><small>to-do · '+esc(shortName(t.owner))+'</small></span></div>').join("")+
+      (!da.length&&!dt.length?'<p class="t2" style="padding:6px 2px">—</p>':'')+'</div>';}).join("")+'</div>';
+  return h;
+}
+function actFollowupForm(aid){
+  const a=(DB.activities||[]).find(x=>x.id===aid);if(!a)return;
+  const p=person(a.pid);logState.actFuId=aid;
+  openSheet('<h2>Follow up</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+esc(actLabel(a.type))+(p?' with '+esc(p.name):'')+' · '+esc(fmtDay(a.date))+(a.note?'<br><i>'+esc(a.note)+'</i>':'')+'</p>'+
+   '<label class="fl">What</label><input class="f" id="afuTitle" value="'+esc("Follow up"+(p?" with "+p.name:"")+(a.note?" — "+a.note.slice(0,60):""))+'" autocomplete="off">'+
+   '<label class="fl">How</label><div class="qa-types" id="afuType">'+[["call","Call"],["email","Email"],["demo","Demo"],["followup","Visit / meet"]].map((t,i)=>'<span class="qchip'+(i===0?" on":"")+'" data-act="afutype" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
+   '<label class="fl">When</label><div class="qa-types" style="margin-bottom:6px">'+[[0,"Today"],[1,"Tomorrow"],[3,"In 3 days"],[7,"Next week"]].map(d=>'<span class="qchip" data-act="afudue" data-v="'+d[0]+'">'+d[1]+'</span>').join("")+'</div>'+
+   '<input class="f" id="afuDue" type="date" value="'+ymd(new Date(Date.now()+3*86400000))+'">'+
+   '<button class="btn coral block" data-act="afusave" style="margin-top:18px">Add to my day</button>');
+  logState.afuType="call";
+}
+function actFollowupSave(){
+  const a=(DB.activities||[]).find(x=>x.id===logState.actFuId);if(!a)return;
+  ensureTasks();
+  const title=val("afuTitle")||"Follow up";const due=(document.getElementById("afuDue")||{}).value||todayStr();
+  const t={id:uid(),owner:USER,title:title,type:logState.afuType||"call",due:due,done:false,createdAt:new Date().toISOString(),pid:a.pid||null,actId:a.id};
+  DB.tasks.unshift(t);a.fuTask=t.id;save();closeSheet();render();toast("Follow-up on your day — "+due);
+}
+
+/* ---------- LISTS — pick, show, call (Max, 2026-10-16: "should be easy") ---------- */
+function viewLists(){
+  const setups=DB.companies.filter(c=>c.type==="distributor"&&distStatus(c)==="setup").sort((a,b)=>a.name.localeCompare(b.name));
+  const who=logState.lsWho||"distrep";
+  const chip=(k,v,l)=>'<span class="qchip'+((logState[k]||"")===v?" on":"")+'" data-act="lschip" data-k="'+k+'" data-v="'+esc(v)+'">'+esc(l)+'</span>';
+  let h='<div class="reccard">'+
+   '<label class="fl" style="margin-top:0">Who</label><div class="qa-types">'+[["distrep","Distributor reps"],["enduser","End-users"],["manrep","Man-reps"],["all","Everyone"]].map(x=>'<span class="qchip'+(who===x[0]?" on":"")+'" data-act="lschip" data-k="lsWho" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>'+
+   (who==="distrep"||who==="all"?'<label class="fl">Distributor</label><div class="qa-types">'+chip("listDist","","Any")+setups.map(c=>chip("listDist",c.id,c.name)).join("")+'</div>':'')+
+   '<label class="fl">Where</label><div class="row" style="gap:8px;flex-wrap:wrap"><input class="f" id="listSt" style="margin:0;width:170px;flex:none" value="'+esc(logState.listSt||"")+'" placeholder="State — TX or TX, OK" autocomplete="off">'+
+   '<div class="qa-types">'+chip("lsRegion","","Any region")+["East","Central","West"].map(r=>chip("lsRegion",r,r)).join("")+'</div></div>'+
+   '<label class="fl">Name or company contains <span style="font-weight:400;color:var(--hint)">(optional)</span></label><input class="f" id="listQ" value="'+esc(logState.listQ||"")+'" placeholder="e.g. safety" autocomplete="off">'+
+   '<button class="btn coral" data-act="listbuild" style="margin-top:12px">Show the list</button>';
+  const R=logState.listResults;
+  if(R){
+    h+='<div class="lvhead" style="margin:16px 0 8px"><div class="sectlabel" style="margin:0">'+R.objs.filter((o,i)=>!R.excluded.has(i)).length+' of '+R.objs.length+' picked</div>'+
+     (R.chips.length?'<div class="qa-types" style="margin-left:10px">'+R.chips.map(c=>'<span class="qchip on" style="pointer-events:none">'+esc(c)+'</span>').join("")+'</div>':'')+
+     (R.objs.length?'<button class="btn sm ghost" data-act="listall" style="margin-left:auto">'+(R.excluded.size?'Pick all':'Clear picks')+'</button>':'')+'</div>';
+    if(!R.objs.length){h+='<div class="empty" style="padding:14px">Nobody matches that — widen it.</div></div>';return h+savedListsHTML();}
+    h+='<div class="card" style="padding:6px 4px;max-height:360px;overflow:auto">'+R.objs.map((p,i)=>{const on=!R.excluded.has(i);
+      return '<div class="tk" style="margin:2px 8px;padding:8px 10px'+(on?'':';opacity:.45')+'"><button class="chk'+(on?" on":"")+'" data-act="listrow" data-i="'+i+'">'+(on?svg("check"):"")+'</button>'+
+      '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(p.name)+'</p><p class="t2">'+esc((company(p.cid)||{}).name||p.branch||"")+(personStates(p).length?' · '+esc(personStates(p).join(" ")):'')+(p.phone?'':' · <span style="color:var(--dang-t)">no number</span>')+'</p></div></div>';}).join("")+'</div>';
+    h+='<label class="fl" style="margin-top:12px">Include on each row</label><div class="qa-types">'+LIST_FIELDS.map(f=>'<span class="qchip'+(R.fields.has(f[0])?" on":"")+'" data-act="listfield" data-v="'+f[0]+'">'+f[1]+'</span>').join("")+'</div>'+
+     '<label class="fl">List name</label><input class="f" id="listName" value="'+esc(R.name)+'" autocomplete="off">'+
+     '<button class="btn coral block" data-act="listsave" style="margin-top:12px">Save list</button>';
+  }
+  h+='</div>';
+  return h+savedListsHTML();
+}
+function listBuildNow(){
+  const who=logState.lsWho||"distrep";
+  logState.listSt=(document.getElementById("listSt")||{value:logState.listSt||""}).value.trim();
+  logState.listQ=(document.getElementById("listQ")||{value:logState.listQ||""}).value.trim();
+  expF={mode:"contacts",acctCid:(who==="distrep"||who==="all")?(logState.listDist||null):null,acctTxt:"",types:who==="all"?[]:[who],dstatus:"",states:logState.listSt.toUpperCase(),region:logState.lsRegion||"",needEmail:false,needPhone:false,q:logState.listQ.toLowerCase()};
+  const d=expRows();
+  const distName=expF.acctCid?((company(expF.acctCid)||{}).name||""):"";
+  const whoL={distrep:"Distributor reps",enduser:"End-users",manrep:"Man-reps",all:"Everyone"}[who];
+  const bits=[distName||whoL];if(logState.listSt)bits.push(logState.listSt.toUpperCase());if(logState.lsRegion)bits.push(logState.lsRegion);if(logState.listQ)bits.push('"'+logState.listQ+'"');
+  const dt=new Date();
+  logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:bits.join(" — ")+" · "+dt.toLocaleDateString(undefined,{month:"short",day:"numeric"}),
+    chips:[distName?distName+" reps":whoL,logState.listSt.toUpperCase(),logState.lsRegion,logState.listQ?'"'+logState.listQ+'"':""].filter(Boolean)};
+  render();
+}
+
+/* ---------- TEAM — the admin view (Max's frames, 2026-10-16) ---------- */
+let teamR={preset:"ytd",from:"",to:""},teamDrill=null;
+function teamRange(){
+  const T=new Date(),y=T.getFullYear(),m=T.getMonth();
+  const p=teamR.preset;
+  if(p==="custom")return [teamR.from||"2000-01-01",teamR.to||"2999-12-31"];
+  if(p==="month")return [ymd(new Date(y,m,1)),todayStr()];
+  if(p==="quarter")return [ymd(new Date(y,Math.floor(m/3)*3,1)),todayStr()];
+  if(p==="90")return [ymd(new Date(Date.now()-90*86400000)),todayStr()];
+  if(p==="all")return ["2000-01-01","2999-12-31"];
+  return [y+"-01-01",todayStr()];
+}
+function inTeamRange(d){const r=teamRange(),s=String(d||"").slice(0,10);return !!s&&s>=r[0]&&s<=r[1];}
+function kitQty(items){return (items||[]).reduce((s,i)=>s+(((i.sku||"")==="1000-0005-TQ"||(i.sku||"")==="Demo unit")?(+i.qty||0):0),0);}
+function teamStats(id){
+  const won=myOpps().filter(o=>o.stage==="Closed Won"&&oppGhRep(o)===id&&inTeamRange(o.closeDate||o.createdAt));
+  const open=myOpps().filter(o=>oppIsOpen(o)&&oppGhRep(o)===id);
+  const quotes=quotesAll().filter(q=>q.by===id&&inTeamRange(q.date||q.createdAt));
+  const touches=(DB.activities||[]).filter(a=>a.by===id&&inTeamRange(a.date));
+  return {won,open,quotes,touches,sold:won.reduce((s,o)=>s+(o.amount||0),0),soldUnits:won.reduce((s,o)=>s+(o.units||0),0),
+    quoted:quotes.reduce((s,q)=>s+quoteTotal(q),0),quotedUnits:quotes.reduce((s,q)=>s+kitQty(q.items),0),openAmt:open.reduce((s,o)=>s+(o.amount||0),0)};
+}
+function outreachStats(id){
+  ensureLeads();const L=DB.leads.filter(l=>!l.removed);
+  const cl=(DB.confLeads||[]);
+  return {added:L.filter(l=>l.by===id&&inTeamRange(l.createdAt)),
+    cat:L.filter(l=>l.catBy===id&&l.cat&&l.cat!=="new"&&inTeamRange(l.catAt)),
+    handed:L.filter(l=>l.handedBy===id&&inTeamRange(l.handedAt)),
+    calls:cl.filter(l=>(l.touches||[]).some(t=>t.by===id&&inTeamRange(t.date))),
+    touches:(DB.activities||[]).filter(a=>a.by===id&&inTeamRange(a.date))};
+}
+function teamKpis(){
+  const acts=(DB.activities||[]).filter(a=>inTeamRange(a.date));
+  const isDistPerson=p=>{const c=p&&company(p.cid);return !!(c&&c.type==="distributor");};
+  const trained=new Set(acts.filter(a=>a.type==="training"&&isDistPerson(person(a.pid))).map(a=>a.pid));
+  const quotes=quotesAll().filter(q=>inTeamRange(q.date||q.createdAt));
+  const won=myOpps().filter(o=>o.stage==="Closed Won"&&inTeamRange(o.closeDate||o.createdAt));
+  const cl=(DB.confLeads||[]);
+  const touched=cl.filter(l=>(l.touches||[]).some(t=>inTeamRange(t.date)));
+  const connected=cl.filter(l=>(l.touches||[]).some(t=>inTeamRange(t.date)&&!/voicemail|email|vm/i.test(t.method||"")));
+  const orders=(DB.orders||[]).filter(o=>inTeamRange(o.poDate));
+  const demoUnits=orders.reduce((s,o)=>s+(o.status==="loaner"?1:(o.items||[]).filter(i=>i.sku==="Demo unit").reduce((x,i)=>x+(+i.qty||0),0)),0);
+  const setup=DB.companies.filter(c=>c.type==="distributor"&&distStatus(c)==="setup");
+  return [
+   ["trained","Distributor reps trained",trained.size,"no end-users",acts.filter(a=>a.type==="training"&&isDistPerson(person(a.pid)))],
+   ["cotravel","Co-travel w/ distributor rep",acts.filter(a=>a.type==="cotravel").length,"logged as Co-travel",acts.filter(a=>a.type==="cotravel")],
+   ["uq","Units quoted",quotes.reduce((s,q)=>s+kitQty(q.items),0),quotes.length+" quotes",quotes],
+   ["us","Units sold",won.reduce((s,o)=>s+(o.units||0),0),won.length+" won deals",won],
+   ["clc","Conf leads called",touched.length,"of "+cl.length,touched],
+   ["demo","Demo units sent",demoUnits,"loaners + demo lines on POs",orders.filter(o=>o.status==="loaner"||(o.items||[]).some(i=>i.sku==="Demo unit"))],
+   ["dsu","Distributors set up",setup.length,"all time",setup],
+   ["mrt","Man-rep travel",acts.filter(a=>a.type==="mrtravel").length,"logged as Man-rep travel",acts.filter(a=>a.type==="mrtravel")],
+   ["mtg","Total meetings",acts.filter(a=>a.type==="meeting"||a.type==="visit").length,"meetings + visits",acts.filter(a=>a.type==="meeting"||a.type==="visit")],
+   ["clx","Conf leads connected with",connected.length,"spoke, met or demoed",connected]
+  ];
+}
+function viewTeam(){
+  const r=teamRange();
+  const presets=[["month","This month"],["quarter","This quarter"],["ytd","Year to date"],["90","Last 90 days"],["all","All time"]];
+  let h='<div class="reccard" style="margin-bottom:14px"><div class="row" style="gap:10px;flex-wrap:wrap"><span class="lbl" style="font-weight:600">Date range</span><div class="qa-types">'+presets.map(p=>'<span class="qchip'+(teamR.preset===p[0]?" on":"")+'" data-act="teampreset" data-v="'+p[0]+'">'+p[1]+'</span>').join("")+'</div>'+
+   '<input class="f" type="date" id="teamFrom" value="'+esc(teamR.preset==="custom"?teamR.from:r[0]==="2000-01-01"?"":r[0])+'" style="margin:0;width:150px;flex:none"><span class="t2">to</span><input class="f" type="date" id="teamTo" value="'+esc(teamR.preset==="custom"?teamR.to:r[1]==="2999-12-31"?"":r[1])+'" style="margin:0;width:150px;flex:none"></div></div>';
+  const reps=GH_REPS.filter(id=>profile(id)==="sales").map(id=>Object.assign({id:id,t:teamById(id)},teamStats(id)));
+  const on=(id,k)=>teamDrill&&teamDrill.rep===id&&teamDrill.k===k?" on":"";
+  const line=(id,k,l,v)=>'<button class="stat'+on(id,k)+'" data-act="teamdrill" data-rep="'+id+'" data-k="'+k+'"><span>'+l+'</span><b>'+v+'</b></button>';
+  /* outreach (Kellan) is measured on leads found, categorized and handed to sales — kept apart from the selling tiles */
+  const os=outreachStats("kellan"),ot=teamById("kellan");
+  h+='<div class="reptiles">'+reps.map(s=>'<div class="reptile"><div class="rephead" style="background:'+s.t.c+'"><span class="av">'+initials(s.t.name)+'</span><b>'+esc(s.t.name)+'</b><small>'+(userRegion(s.id)||"Sales")+'</small></div>'+
+    line(s.id,"sold","Sold",fmtK(s.sold)+(s.soldUnits?' <small>'+s.soldUnits+'u</small>':''))+line(s.id,"quoted","Quoted",fmtK(s.quoted)+(s.quotedUnits?' <small>'+s.quotedUnits+'u</small>':''))+line(s.id,"touches","Touches",s.touches.length)+line(s.id,"opps","Opportunities",s.open.length)+line(s.id,"open","Open pipeline",fmtK(s.openAmt))+'</div>').join("")+
+    '<div class="reptile outreach"><div class="rephead" style="background:'+ot.c+'"><span class="av">'+initials(ot.name)+'</span><b>'+esc(ot.name)+'</b><small>Outreach</small></div>'+
+    line("kellan","oleads","Leads added",os.added.length)+line("kellan","ocat","Categorized",os.cat.length)+line("kellan","ohanded","Handed to sales",os.handed.length)+line("kellan","ocalls","Conf leads called",os.calls.length)+line("kellan","otouches","Touches",os.touches.length)+'</div></div>';
+  /* rank by sales person */
+  const top=(k,f)=>{const best=reps.slice().sort((a,b)=>f(b)-f(a))[0];return best&&f(best)>0?best:null;};
+  const mostAct=top("touches",s=>s.touches.length),mostRev=top("sold",s=>s.sold),mostQ=top("quoted",s=>s.quoted);
+  const score=s=>{const rank=(f)=>reps.slice().sort((a,b)=>f(b)-f(a)).findIndex(x=>x.id===s.id);return rank(x=>x.touches.length)+rank(x=>x.sold)+rank(x=>x.quoted)+rank(x=>x.openAmt);};
+  const bestAll=reps.some(s=>s.touches.length||s.sold||s.quoted||s.openAmt)?reps.slice().sort((a,b)=>score(a)-score(b))[0]:null;
+  const worst=reps.some(s=>s.touches.length||s.sold||s.quoted||s.openAmt)?reps.slice().sort((a,b)=>score(b)-score(a))[0]:null;
+  const rk=(l,s,v)=>'<div class="kpi"><b>'+l+'</b><span style="font-size:19px">'+(s?esc(s.t.name):"—")+'</span><small>'+(s?v:"nothing in this range")+'</small></div>';
+  h+='<div class="sectlabel">Rank by sales person</div><div class="kpis">'+rk("Most activity",mostAct,mostAct?mostAct.touches.length+" touches":"")+rk("Most revenue",mostRev,mostRev?fmtK(mostRev.sold)+" sold":"")+rk("Most quotes",mostQ,mostQ?fmtK(mostQ.quoted)+" quoted":"")+rk("Best overall",bestAll,bestAll?"activity + revenue + quotes + pipeline":"")+(worst&&worst!==bestAll?rk("Needs attention",worst,"lowest across the board"):"")+'</div>';
+  /* Hannah's KPIs */
+  const kp=teamKpis();
+  h+='<div class="sectlabel">KPIs</div><div class="kpis ktiles">'+kp.map(k=>'<button class="kpi fill'+(teamDrill&&teamDrill.k==="kpi:"+k[0]?" on":"")+'" data-act="teamdrill" data-rep="" data-k="kpi:'+k[0]+'"><span>'+k[2]+'</span><b>'+k[1]+'</b><small>'+k[3]+'</small></button>').join("")+'</div>';
+  if(teamDrill){
+    let title="",body="";
+    if(teamDrill.k.indexOf("kpi:")===0){const k=kp.find(x=>"kpi:"+x[0]===teamDrill.k);if(k){title=k[1];body=drillList(k[4]);}}
+    else if(teamDrill.rep==="kellan"){title=ot.name+" — "+{oleads:"Leads added",ocat:"Categorized",ohanded:"Handed to sales",ocalls:"Conf leads called",otouches:"Touches"}[teamDrill.k];
+      const rows={oleads:os.added,ocat:os.cat,ohanded:os.handed,ocalls:os.calls,otouches:os.touches}[teamDrill.k]||[];
+      body=teamDrill.k==="otouches"?drillList(rows):teamDrill.k==="ocalls"?drillList(rows):(rows.length?'<div class="list">'+rows.map(leadHomeRow).join("")+'</div>':'<div class="empty">Nothing in this range.</div>');}
+    else{const s=reps.find(x=>x.id===teamDrill.rep);if(s){title=s.t.name+" — "+{sold:"Sold",quoted:"Quoted",touches:"Touches",opps:"Open opportunities",open:"Open pipeline"}[teamDrill.k];
+      body=teamDrill.k==="sold"?oppTableHTML(s.won,false):teamDrill.k==="quoted"?(s.quotes.length?'<div class="list">'+s.quotes.map(quoteRowHTML).join("")+'</div>':'<div class="empty">No quotes in this range.</div>'):teamDrill.k==="touches"?drillList(s.touches):oppTableHTML(s.open,false);}}
+    h+='<div class="lvhead" style="margin-top:22px"><div class="sech">'+esc(title)+'</div><button class="btn sm ghost" data-act="teamdrill" data-rep="" data-k="" style="margin-left:auto">Clear</button></div>'+body;
+  }
+  return h;
+}
+function drillList(rows){
+  if(!rows||!rows.length)return '<div class="empty">Nothing in this range.</div>';
+  const r0=rows[0];
+  if(r0&&r0.type&&r0.date&&!r0.stage&&!r0.no&&!r0.poNo)return rows.slice().sort((a,b)=>new Date(b.date)-new Date(a.date)).map(actRow).join("");
+  if(r0&&r0.stage)return oppTableHTML(rows,false);
+  if(r0&&r0.no)return '<div class="list">'+rows.map(quoteRowHTML).join("")+'</div>';
+  if(r0&&r0.poNo!==undefined)return '<div class="list">'+rows.map(o=>'<div class="tk"><span class="ic coral">'+svg("box")+'</span><div class="grow"><p class="t1">'+esc(o.account)+'</p><p class="t2">'+esc(o.poNo||"")+' · '+esc(o.poDate||"")+' · '+esc(o.notes||"")+'</p></div></div>').join("")+'</div>';
+  if(r0&&r0.type==="distributor")return '<div class="list">'+rows.map(c=>'<button class="card" data-act="roster" data-id="'+c.id+'"><div class="row"><span class="ic coral">'+svg("ware")+'</span><div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+esc([c.city,c.state].filter(Boolean).join(", "))+'</p></div>'+chev()+'</div></button>').join("")+'</div>';
+  /* conference leads */
+  return '<div class="list">'+rows.map(l=>'<div class="tk"><span class="ic info">'+svg("user")+'</span><div class="grow"><p class="t1">'+esc(l.name||"")+'</p><p class="t2">'+esc([l.company,l.conf,l.state].filter(Boolean).join(" · "))+(l.touches&&l.touches.length?' · last '+esc(String(l.touches[l.touches.length-1].date||"").slice(0,10)):'')+'</p></div></div>').join("")+'</div>';
+}
+
+/* ---------- CAMPAIGNS — Max + Hannah (2026-10-16): the campaign, its materials, its results, its contacts ---------- */
+const CAMP_CHANNELS=["Email","LinkedIn","Mail","Calls","Event","Ads","Other"];
+const CAMP_OUTCOMES=[["","—"],["noreply","No reply"],["replied","Replied"],["interested","Interested"],["meeting","Meeting"],["won","Won"],["dud","Dud"]];
+let campLeadF="";
+function campTracked(c){return c.kind==="track";}
+function viewCampaignsHub(){
+  ensureCampaigns();
+  const c=curCampaign?campaignById(curCampaign):null;
+  if(c)return campTracked(c)?campTrackPage(c):(c.status==="active"?campDashboard(c):campWizard(c));
+  const list=DB.campaigns.slice().sort((a,b)=>String(b.start||b.createdAt||"").localeCompare(String(a.start||a.createdAt||"")));
+  let h='<div class="lvhead"><button class="btn coral" data-act="campnewtrack">'+svg("plus")+' New campaign</button><button class="btn" data-act="campnew" title="The Apollo email sequence builder">'+svg("mail")+' Apollo sequence</button></div>';
+  if(!list.length)return h+'<div class="empty">No campaigns yet. Add one, attach the materials you used, drop in the contacts it reached, and tag how each one went.</div>';
+  h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Campaign</th><th>Channel</th><th>When</th><th>Status</th><th>Contacts</th><th>Interested+</th><th>Won</th><th>Sent to reps</th><th>Materials</th></tr></thead><tbody>'+
+   list.map(x=>{const L=x.leads||[];const good=L.filter(l=>["interested","meeting","won"].includes(l.outcome)).length,won=L.filter(l=>l.outcome==="won").length,sent=L.filter(l=>l.sentTo).length;
+    return '<tr data-act="campopen" data-id="'+x.id+'"><td class="lvname">'+esc(x.name)+(campTracked(x)?'':'<div class="lvsub">Apollo sequence</div>')+'</td><td>'+esc(x.channel||(campTracked(x)?"":"Email"))+'</td><td>'+esc(x.start?usDate(x.start)+(x.end?' – '+usDate(x.end):''):String(x.createdAt||"").slice(0,10))+'</td><td>'+(campTracked(x)?campTrackStatus(x):campStatusTag(x))+'</td><td class="num">'+L.length+'</td><td class="num">'+good+'</td><td class="num">'+won+'</td><td class="num">'+sent+'</td><td class="num">'+(x.materials||[]).length+'</td></tr>';}).join("")+
+  '</tbody></table></div>';
+  return h;
+}
+function campTrackStatus(c){const s=c.status||"planned";return '<span class="pill '+(s==="running"?"ok":s==="done"?"gray":"info")+'">'+titlecase(s)+'</span>';}
+function campTrackPage(c){
+  const L=c.leads||[];
+  const cnt=k=>L.filter(l=>(l.outcome||"")===k).length;
+  const chips=CAMP_OUTCOMES.map(o=>'<span class="qchip'+(campLeadF===o[0]?" on":"")+'" data-act="campleadf" data-v="'+o[0]+'">'+o[1]+' '+(o[0]?cnt(o[0]):L.length)+'</span>').join("");
+  let h='<button class="btn sm ghost" data-act="campback" style="margin:0 0 12px">'+svg("back")+' All campaigns</button>';
+  h+='<div class="reccard" style="margin-bottom:12px">'+
+   '<input class="f campfield" data-f="name" value="'+esc(c.name)+'" placeholder="Campaign name" style="font-weight:700;font-size:17px;margin-top:0">'+
+   '<div class="row" style="gap:10px;flex-wrap:wrap;align-items:flex-end"><div><label class="fl">Channel</label><div class="qa-types">'+CAMP_CHANNELS.map(ch=>'<span class="qchip'+(c.channel===ch?" on":"")+'" data-act="campchan" data-v="'+ch+'">'+ch+'</span>').join("")+'</div></div>'+
+   '<div><label class="fl">Status</label><div class="qa-types">'+[["planned","Planned"],["running","Running"],["done","Done"]].map(s=>'<span class="qchip'+((c.status||"planned")===s[0]?" on":"")+'" data-act="campstatus" data-v="'+s[0]+'">'+s[1]+'</span>').join("")+'</div></div></div>'+
+   '<div class="row" style="gap:10px;flex-wrap:wrap"><div><label class="fl">Start</label><input class="f campfield" data-f="start" type="date" value="'+esc(c.start||"")+'" style="margin:0;width:150px"></div><div><label class="fl">End</label><input class="f campfield" data-f="end" type="date" value="'+esc(c.end||"")+'" style="margin:0;width:150px"></div>'+
+   ["sent","opened","replied","booked"].map(k=>'<div><label class="fl">'+titlecase(k)+'</label><input class="f campfield" data-f="'+k+'" inputmode="numeric" value="'+esc(c[k]!=null?c[k]:"")+'" style="margin:0;width:90px" placeholder="#"></div>').join("")+'</div>'+
+   '<label class="fl">What it was, who it went to, how it did</label><textarea class="f campfield" data-f="notes" placeholder="e.g. 3-step email to safety managers at food plants in WI; 2 meetings booked">'+esc(c.notes||"")+'</textarea></div>';
+  /* materials */
+  const M=c.materials||[];
+  h+='<div class="lvhead"><div class="sech">Materials <span class="cnt">'+M.length+'</span></div><button class="btn sm" data-act="campmatpick" style="margin-left:auto">'+svg("plus")+' Add files</button><input type="file" id="campMat" multiple style="display:none"></div>';
+  h+=M.length?'<div class="list">'+M.map((m,i)=>'<div class="tk"><span class="ic coral">'+svg("file")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(m.name)+'</p><p class="t2">'+esc(String(m.at||"").slice(0,10))+(m.size?' · '+Math.round(m.size/1024)+' KB':'')+(m.by?' · '+esc(shortName(m.by)):'')+'</p></div><button class="btn sm" data-act="campmatopen" data-i="'+i+'">Open</button><button class="tkdel" data-act="campmatdel" data-i="'+i+'" title="Remove">'+svg("x")+'</button></div>').join("")+'</div>':'<div class="empty" style="padding:14px">Attach the deck, the email copy, the flyer — whatever this campaign used.</div>';
+  /* contacts */
+  h+='<div class="lvhead" style="margin-top:18px"><div class="sech">Contacts <span class="cnt">'+L.length+'</span></div>'+
+   '<button class="btn sm" data-act="campleadpick">'+svg("dl")+' Import CSV / Excel</button><input type="file" id="campLeadFile" accept=".csv,.xlsx" style="display:none">'+
+   '<button class="btn sm" data-act="campfromlist">'+svg("phone")+' From a saved list</button>'+
+   '<button class="btn sm" data-act="campleadadd">'+svg("plus")+' Add one</button>'+
+   (L.length?'<button class="btn sm" data-act="campexport" style="margin-left:auto">'+svg("dl")+' Export to Excel</button>':'')+'</div>';
+  if(L.length)h+='<div class="qa-types" style="margin-bottom:10px">'+chips+'</div>';
+  const show=L.map((l,i)=>({l,i})).filter(x=>!campLeadF||(x.l.outcome||"")===campLeadF);
+  if(!L.length)h+='<div class="empty">No contacts yet — import the list this campaign went to, or add people one at a time.</div>';
+  else if(!show.length)h+='<div class="empty" style="padding:14px">Nobody tagged like that yet.</div>';
+  else h+='<div class="tablewrap"><table class="lv"><thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Email</th><th>State</th><th>How it went</th><th>Send to</th><th></th></tr></thead><tbody>'+show.map(x=>{const l=x.l,i=x.i;
+     const nm=[l.first,l.last].filter(Boolean).join(" ")||l.name||"";
+     const oc=CAMP_OUTCOMES.filter(o=>o[0]).map(o=>'<span class="qchip'+(l.outcome===o[0]?" on":"")+'" data-act="campout" data-i="'+i+'" data-v="'+o[0]+'">'+o[1]+'</span>').join("");
+     const reps=GH_REPS.map(id=>'<span class="qchip'+(l.sentTo===id?" on":"")+'" data-act="campsend" data-i="'+i+'" data-v="'+id+'" style="'+(l.sentTo===id?'border-color:'+teamById(id).c+';color:'+teamById(id).c:'')+'">'+esc(shortName(id))+'</span>').join("");
+     return '<tr><td class="lvname">'+esc(nm)+'</td><td>'+esc(l.company||"")+'</td><td>'+esc(l.title||"")+'</td><td>'+(l.email?'<a href="mailto:'+esc(l.email)+'" style="color:var(--info-t)">'+esc(l.email)+'</a>':'<span class="muted">—</span>')+'</td><td>'+esc(l.state||"")+'</td><td><div class="chiprow">'+oc+'</div></td><td><div class="chiprow">'+reps+'</div></td><td><button class="tkdel" data-act="campleaddel" data-i="'+i+'" title="Remove">'+svg("x")+'</button></td></tr>';}).join("")+'</tbody></table></div>';
+  h+='<button class="btn block" data-act="campdel" data-id="'+c.id+'" style="margin-top:18px;color:var(--dang-t)">Delete this campaign</button>';
+  return h;
+}
+function campFieldChange(el){const c=campaignById(curCampaign);if(!c)return;const f=el.dataset.f;c[f]=["sent","opened","replied","booked"].includes(f)?(el.value===""?null:parseInt(el.value,10)||0):el.value.trim();save();if(f==="name")render();}
+function campTrackImport(f){
+  campParseFile(f).then(rows=>{const m=campMapRows(rows);const c=campaignById(curCampaign);if(!c)return;
+    const hdr=rows[0].map(h=>String(h||"").trim().toLowerCase());const iSt=hdr.findIndex(h=>/^state$|^st$|province/.test(h)),iPh=hdr.findIndex(h=>/phone|mobile/.test(h));
+    const have=new Set((c.leads||[]).map(l=>(l.email||"").toLowerCase()).filter(Boolean));let n=0;
+    m.leads.forEach((l,k)=>{if(l.email&&have.has(l.email.toLowerCase()))return;const r=rows[k+1]||[];l.state=iSt>-1?String(r[iSt]||"").trim().toUpperCase().slice(0,2):"";l.phone=iPh>-1?String(r[iPh]||"").trim():"";l.outcome="";c.leads=c.leads||[];c.leads.push(l);n++;});
+    save();render();toast(n+" contacts added");}).catch(err=>toast(err.message||"Couldn't read that file"));
+}
+async function campAddMaterials(files){
+  const c=campaignById(curCampaign);if(!c)return;c.materials=c.materials||[];
+  toast("Uploading "+files.length+" file"+(files.length>1?"s":"")+"…");
+  for(const f of files){const path="campaigns/"+c.id+"/"+Date.now()+"_"+f.name.replace(/[^\w.\-]+/g,"_");
+    let ok=false;try{ok=await storUpload(path,f);}catch(e){ok=false;}
+    if(ok)c.materials.push({name:f.name,path:path,size:f.size,type:f.type,at:new Date().toISOString(),by:USER});else toast("Couldn't upload "+f.name);}
+  save();render();
+}
+async function campOpenMaterial(i){
+  const c=campaignById(curCampaign);const m=c&&(c.materials||[])[i];if(!m)return;
+  const b=await storBlob(m.path);if(!b){toast("Couldn't fetch that file");return;}
+  const url=URL.createObjectURL(new Blob([b],{type:m.type||b.type}));window.open(url,"_blank");
+}
+function campSendLead(c,l,rep){
+  ensureLeads();
+  const nm=[l.first,l.last].filter(Boolean).join(" ")||l.name||"";
+  if(l.sentTo===rep){/* tap again = un-send */ const ex=DB.leads.find(x=>x.id===l.leadId);if(ex)ex.assignee=null;l.sentTo=null;return;}
+  let ex=l.leadId?DB.leads.find(x=>x.id===l.leadId):null;
+  if(!ex&&l.email)ex=DB.leads.find(x=>(x.email||"").toLowerCase()===l.email.toLowerCase());
+  if(!ex){ex={id:uid(),name:nm,company:l.company||"",title:l.title||"",email:l.email||"",phone:l.phone||"",state:l.state||"",conf:"Campaign: "+c.name,by:USER,createdAt:new Date().toISOString(),touches:[],kind:"enduser",campaignId:c.id,cat:"qualified",note:l.outcome?("Campaign outcome: "+l.outcome):""};DB.leads.unshift(ex);}
+  ex.conf=ex.conf||"Campaign: "+c.name;
+  if(ex.assignee!==rep)leadHand(ex,rep);
+  l.leadId=ex.id;l.sentTo=rep;
+}
+function campExportCsv(c){
+  const L=(c.leads||[]).filter(l=>!campLeadF||(l.outcome||"")===campLeadF);
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const rows=[["Name","Company","Title","Email","Phone","State","How it went","Sent to","Campaign"]].concat(L.map(l=>[[l.first,l.last].filter(Boolean).join(" ")||l.name||"",l.company||"",l.title||"",l.email||"",l.phone||"",l.state||"",(CAMP_OUTCOMES.find(o=>o[0]===(l.outcome||""))||["","—"])[1],l.sentTo?teamById(l.sentTo).name:"",c.name]));
+  const csv="﻿"+rows.map(r=>r.map(q).join(",")).join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="campaign_"+c.name.replace(/\W+/g,"_")+".csv";a.click();toast("Exported "+L.length+" contacts — opens in Excel");
+}
+function campLeadAddForm(){
+  openSheet('<h2>Add a contact</h2>'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">First</label><input class="f" id="clFirst"></div><div class="grow"><label class="fl">Last</label><input class="f" id="clLast"></div></div>'+
+   '<label class="fl">Company</label><input class="f" id="clCo"><label class="fl">Title</label><input class="f" id="clTitle">'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Email</label><input class="f" id="clEmail" type="email"></div><div style="width:90px"><label class="fl">State</label><input class="f" id="clState" maxlength="2"></div></div>'+
+   '<label class="fl">Phone</label><input class="f" id="clPhone">'+
+   '<button class="btn coral block" data-act="campleadsave" style="margin-top:16px">Add to campaign</button>');
+}
+function campFromListForm(){
+  const ls=myLists();
+  if(!ls.length){toast("No saved lists yet — build one under Records › Lists");return;}
+  openSheet('<h2>Add a saved list</h2><div class="list">'+ls.map(l=>'<button class="hub" data-act="campfromlistpick" data-id="'+l.id+'">'+svg("phone")+'<b class="grow">'+esc(l.name)+'</b><span class="t2">'+l.items.length+' people</span>'+chev()+'</button>').join("")+'</div>');
 }
 
 /* ---------- DASHBOARD ---------- */
@@ -3178,7 +3717,7 @@ function addHub(){
 }
 function formLogAcct(cid){
   const c=company(cid);if(!c)return;logState.logCid=cid;logState.logType="note";
-  const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=LOG_TYPES;
   openSheet('<h2>Log on '+esc(c.name)+'</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.logType?' on':'')+'" data-act="setType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
    '<label class="fl">Note</label><textarea class="f" id="logAcctNote" placeholder="What happened?"></textarea>'+
@@ -3254,10 +3793,15 @@ function formOpp(id,prefillCid){
   logState.oppDistRepPid=o?(o.distRepPid||null):null;
   logState.oppManrepPid=o?(o.manrepPid||null):null;
   const dtypes=["End User Order","Stocking Order","Training / Demo","Other"];
+  logState.oppGhRep=o?(o.ghRep||oppGhRep(o)||""):(repForRegion(regionFromState((prefillCid&&company(prefillCid)||{}).state))||(GH_REPS.includes(USER)?USER:""));
+  const repChips=GH_REPS.concat(["jamie","max"]).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
-   '<label class="fl">Opportunity name</label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Fastenal — Tahlequah stocking order" autocomplete="off">'+
-   '<label class="fl">Account</label>'+comboField("oCidQ","Type the account name…",selCid?((company(selCid)||{}).name||""):"")+
-   '<label class="fl">Account name (if not in CRM)</label><input class="f" id="oAcctName" value="'+(o?esc(o.accountName||""):"")+'" placeholder="prospect not in Accounts yet" autocomplete="off">'+
+   '<label class="fl">Opportunity name <span style="font-weight:400;color:var(--hint)">— account + what it is, e.g. "Grainger East run rate"</span></label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Grainger East run rate" autocomplete="off">'+
+   '<label class="fl">Lead / end user <span style="font-weight:400;color:var(--hint)">— who the product is for (Conagra)</span></label>'+comboField("oCidQ","Type the end-user or account…",selCid?((company(selCid)||{}).name||""):"")+
+   '<label class="fl">Lead / end user (if not in Accounts yet)</label><input class="f" id="oAcctName" value="'+(o?esc(o.accountName||""):"")+'" placeholder="prospect not in Accounts yet" autocomplete="off">'+
+   '<label class="fl">Closing distributor <span style="font-weight:400;color:var(--hint)">— who the PO comes through (Grainger)</span></label>'+comboField("oDistQ","Type a distributor…",(o&&o.distributorId?((company(o.distributorId)||{}).name||""):(o?o.distributorName||"":""))+"")+
+   '<label class="chkrow"><input type="checkbox" id="oDirect"'+(o&&o.direct?" checked":"")+'> Direct sale — no distributor on this one</label>'+
+   '<label class="fl">Golden Hour sales person</label><div class="chips" id="oGhRep">'+repChips+'</div>'+
    '<label class="fl">Stage</label><div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+esc(OPP_SHORT[s])+'</span>').join("")+'</div>'+
    '<label class="fl">Amount ($)</label><input class="f" id="oAmt" inputmode="numeric" value="'+(o&&o.amount?o.amount:"")+'" placeholder="15200">'+
    '<label class="fl"># of units</label><input class="f" id="oUnits" inputmode="numeric" value="'+(o&&o.units?o.units:"")+'" placeholder="40">'+
@@ -3272,7 +3816,6 @@ function formOpp(id,prefillCid){
    '<input class="f" id="oTouchX" inputmode="numeric" value="'+(o&&o.touchesExtra?o.touchesExtra:"")+'" placeholder="0">'+
    '<label class="fl">Last contact'+(o&&oppLastTouch(o)?' <span style="font-weight:400;color:var(--hint)">(auto: '+esc(oppLastTouch(o))+')</span>':'')+'</label>'+
    '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'">'+
-   '<label class="fl">Distributor on the deal</label>'+comboField("oDistQ","Type a distributor…",(o&&o.distributorId?((company(o.distributorId)||{}).name||""):(o?o.distributorName||"":""))+"")+
    '<label class="fl">Distributor rep</label>'+comboField("oDistRepQ","Type their rep on this deal…",(o&&o.distRepPid&&person(o.distRepPid)?person(o.distRepPid).name:""))+
    '<label class="fl">Man-rep / channel rep</label>'+comboField("oManrepQ","Type a man-rep…",(o&&o.manrepPid&&person(o.manrepPid)?personLabel(person(o.manrepPid)):""))+
    '<label class="fl">Channel rep (free text — shows on cards)</label><input class="f" id="oRep" value="'+(o?esc(o.rep||""):"")+'" placeholder="man-rep / distributor rep">'+
@@ -3308,7 +3851,12 @@ function saveOpp(){
     distributorName:distSel?((company(distSel)||{}).name||""):distTxt,
     distRepPid:logState.oppDistRepPid||null,
     manrepPid:manrepSel||null,
+    direct:!!(document.getElementById("oDirect")||{}).checked,
     probability:OPP_PROB[logState.oppStage||"Prospecting"]};
+  /* every deal is tied to a Golden Hour sales person; the territory fills it in when nobody picked one (Max, 2026-10-16) */
+  data.ghRep=logState.oppGhRep||repForRegion(regionFromState(data.state))||(c?repForRegion(companyRegion(c)):"")||"";
+  if(!data.ghRep){toast("Pick the Golden Hour sales person on this deal");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
+  if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
   const ownerSel=document.getElementById("oOwner");
   if(ownerSel)data.owner=ownerSel.value;
   if(existing){if(existing.stage===data.stage&&typeof existing.probability==="number")data.probability=existing.probability;Object.assign(existing,data);}
@@ -3523,7 +4071,7 @@ function saveActivity(){
   save();closeSheet();render();toast("Activity updated");
 }
 function formLog(prefillPid,prefillType){
-  const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  const types=LOG_TYPES;
   logState.logType=prefillType||"call";logState.outcome="Interested";
   logState.logPid=prefillPid||null;
   logState.logNew=false;logState.logNewCid=null;logState.logNewKind="enduser";
@@ -3601,7 +4149,7 @@ function renderTravel(){
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list" style="margin-top:12px">'+
- [["quotes","tag","Quotes"],["leads","spark","Leads"],["export","dl","Lists"],["camp","plane","Campaign"],["fcast","bolt","Forecasts"],["dash","spark","Dashboard"],["reports","file","Reports"],["map","pin","Field Map"],["conf","cal","Conferences"],["insights","chart","Distributor Volume"]]
+ railGroups(USER).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today").concat(profile()==="outreach"?[]:[["quotes","tag","Quotes"]])
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b class="grow">'+n[2]+'</b>'+chev()+'</button>').join("")+
  '</div><div class="list">'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -3636,20 +4184,19 @@ function doRestore(){
 }
 function helpSheet(){
   const rows=[
-   ["Home","Your day: tasks, conference call lists, and the distributors you're onboarding."],
-   ["Pipeline","Every deal as cards by stage. ‹ › moves a deal; ✓/✕ closes it. Tap a card to edit everything, including who's on the deal."],
-   ["Quotes","Price a customer on the spot: pick the account, tap the line items (prices fill in and stay editable), then preview the AutoTQ quote sheet or email it. Every quote is saved with its status."],
-   ["Forecasts","Salesforce-style rollup — Closed / Commit / Best case / Pipeline by quarter. Tap any cell to see the deals behind it."],
+   ["Home","Your day: to-dos, conference call lists, the distributors you're onboarding, and your quotes (folded up at the bottom)."],
+   ["Pipeline","Open, Won and Lost are separate views with their own totals. Every deal carries a Golden Hour sales person (tap a name to filter) and a closing distributor — a deal can't close won without one. Board, List or Forecast."],
+   ["Activity","The top of the funnel. Everything you log lands here: follow it up with one tap (it becomes a to-do), mark it done, or turn it into a lead or an opportunity. Week view shows who did what, day by day."],
    ["Accounts","Distributors, end-users and man-rep groups. Open one for its contacts, deals, demos and activity."],
    ["Contacts","The channel reps we enable. Tap-to-call/email; log every touch."],
-   ["Dashboard","The channel at a glance — pipeline, enablement funnel, top buyers, demos."],
-   ["Reports","10 ready-made reports; sort any column, export CSV."],
+   ["Leads","The working list between conference lists and the CRM — push promising people here, log every touch, promote when they get real."],
+   ["Lists","Pick who (distributor reps, end-users, man-reps), a distributor and a state — the call list builds itself. Check names off as you call."],
+   ["Insight","Dashboard, the 10 reports (sort, export CSV) and distributor volume, in one place."],
    ["Field Map","US map — flip between demos in the field and distributor reps by state. Tap a state."],
-   ["Volume","Distributor volume — units bought, revenue, orders and the demo units they've picked up."],
-   ["Conferences","The show calendar; shows with lead lists link straight to the call list."],
-   ["Campaign","Upload a lead list, write a short email sequence, launch — Apollo sends from your own inbox on schedule and tracks opens, clicks and replies."],
-   ["Shipping","Back office: what still has to go out the door, one record per box (ship-to, carrier, tracking, freight). Prints the packing slip; billable freight lands on the order so Invoicing sees it."],
-   ["Leads","The working list between conference lists and the CRM — push promising people here, log every touch (date, method, details), promote when they get real."]
+   ["Conferences","Shows with lead lists link straight to the call list."],
+   ["Team","Admin: each sales person's Sold, Quoted, Touches, Opportunities and Open pipeline for any date range, the rank by sales person, and Hannah's KPIs."],
+   ["Campaigns","Max + Hannah: every campaign with its materials, results and the contacts it produced — tag outcomes, send a lead to a rep, export the contacts to Excel."],
+   ["Shipping","Back office: what still has to go out the door, one record per box. Prints the packing slip; billable freight lands on the order so Invoicing sees it."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / Central / West</b> by state — John Morrison works East, John Cornejo works Central, Tim Ford works West, Max sees everything.</p>'+
@@ -3714,82 +4261,12 @@ function personSheetHTML(pid){
    '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button>'+
    '<button class="btn block" data-act="personfull" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("user")+' Full page</button></div>';
   if(acts.length){h+='<div class="sectlabel">History</div>'+acts.map(a=>'<div class="card" style="padding:9px 13px;margin-bottom:6px"><div class="row"><span class="ic '+toneFor(a.type)+'" style="width:30px;height:30px">'+svg(iconFor(a.type))+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:13px">'+esc(titlecase(a.type))+' · '+fmtDay(a.date)+(a.by?' <span style="color:var(--hint);font-weight:500">('+esc(teamById(a.by).name.split(" ")[0])+')</span>':'')+'</p>'+
+   '<div class="grow"><p class="t1" style="font-size:13px">'+esc(actLabel(a.type))+' · '+fmtDay(a.date)+(a.by?' <span style="color:var(--hint);font-weight:500">('+esc(teamById(a.by).name.split(" ")[0])+')</span>':'')+'</p>'+
    '<p class="t2" style="white-space:normal">'+esc(a.note||"")+'</p></div></div></div>').join("");}
   return h;
 }
 function myLists(){ensureLists();return DB.lists.filter(l=>!l.removed);}
-/* one box in, filters out: "All Grainger reps in Arkansas" / "set-up distributors TX" */
-function parseListQuery(q){
-  const orig=q;let txt=" "+q.toLowerCase().replace(/[,;]+/g," ")+" ";
-  const f={mode:"contacts",acctCid:null,acctTxt:"",types:[],dstatus:"",states:"",region:"",needEmail:false,needPhone:false,q:""};
-  const sts=new Set();
-  for(const nm in STATE_NAMES){const k=" "+nm+" ";while(txt.includes(k)){sts.add(STATE_NAMES[nm]);txt=txt.replace(k," ");}}
-  const CODES=new Set(Object.values(STATE_NAMES));
-  (orig.match(/\b[A-Z]{2}\b/g)||[]).forEach(c=>{if(CODES.has(c)){sts.add(c);txt=txt.replace(new RegExp("\\b"+c.toLowerCase()+"\\b")," ");}});
-  if(/\beast\b/.test(txt)){f.region="East";txt=txt.replace(/\beast\b/," ");}
-  else if(/\bcentral\b/.test(txt)){f.region="Central";txt=txt.replace(/\bcentral\b/," ");}
-  else if(/\bwest\b/.test(txt)){f.region="West";txt=txt.replace(/\bwest\b/," ");}
-  if(/\bset[- ]?up\b|\bstocking\b/.test(txt)){f.dstatus="setup";txt=txt.replace(/\bset[- ]?up\b|\bstocking\b/g," ");}
-  else if(/\bpotential\b/.test(txt)){f.dstatus="potential";txt=txt.replace(/\bpotential\b/," ");}
-  if(/\bdistributors?\b/.test(txt)){f.types.push("distrep");txt=txt.replace(/\bdistributors?\b/g," ");}
-  if(/\bend[- ]?users?\b/.test(txt)){f.types.push("enduser");txt=txt.replace(/\bend[- ]?users?\b/g," ");}
-  if(/\bman[- ]?reps?\b/.test(txt)){f.types.push("manrep");txt=txt.replace(/\bman[- ]?reps?\b/g," ");}
-  let best=null;
-  DB.companies.forEach(c=>{const n=" "+(c.name||"").toLowerCase()+" ";if(n.trim().length>=3&&txt.includes(n.trim())&&(!best||n.length>best.n.length))best={c,n};});
-  if(best){f.acctCid=best.c.id;f.acctTxt=best.c.name;txt=txt.replace(best.n.trim()," ");}
-  f.states=[...sts].join(", ");
-  f.q=txt.replace(/\b(all|reps?|of|the|in|at|and|list|call|contacts?|everyone|every|our|with)\b/g," ").replace(/\s+/g," ").trim();
-  return f;
-}
-function listAutoName(f){
-  const bits=[];
-  if(f.acctTxt)bits.push(f.acctTxt);
-  if(f.dstatus)bits.push(f.dstatus==="setup"?"Set-up":"Potential");
-  if(f.types.length)bits.push(f.types.map(t=>({distrep:"distributor",enduser:"end-user",manrep:"man-rep"})[t]).join("/"));
-  if(f.q)bits.push('"'+f.q+'"');
-  let n=bits.join(" ")||"All contacts";
-  if(f.states)n+=" — "+f.states;
-  if(f.region)n+=" — "+f.region;
-  const d=new Date();
-  return n+" · "+d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
-}
 const LIST_FIELDS=[["company","Company"],["role","Role"],["phone","Phone"],["email","Email"],["city","City"],["state","State"]];
-function runListBuild(q){
-  logState.listQ=q;logState.listGen=true;logState.listResults=null;render();
-  setTimeout(()=>{const f=parseListQuery(q);expF=f;const d=expRows();
-    logState.listGen=false;
-    logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:listAutoName(f),
-      chips:[f.acctTxt,f.dstatus?(f.dstatus==="setup"?"Set-up":"Potential"):"",f.types.map(t=>({distrep:"Distributors",enduser:"End-users",manrep:"Man-reps"})[t]).join(" "),f.states,f.region,f.q?'"'+f.q+'"':""].filter(Boolean)};
-    render();},1400);
-}
-function viewLists(){
-  const setups=DB.companies.filter(c=>c.type==="distributor"&&distStatus(c)==="setup").sort((a,b)=>a.name.localeCompare(b.name));
-  let h='<div class="reccard"><label class="fl">Who should be on the list?</label>'+
-   '<div style="display:flex;gap:8px"><input class="f" id="listQ" style="margin:0" value="'+esc(logState.listQ||"")+'" placeholder="e.g. All Grainger reps in Arkansas" autocomplete="off">'+
-   '<button class="btn coral" data-act="listbuild" style="flex:none">Build</button></div>'+
-   '<label class="fl">Set-up distributors</label><div class="qa-types">'+
-    setups.map(c=>'<span class="qchip'+(logState.listDist===c.id?" on":"")+'" data-act="listdist" data-id="'+c.id+'">'+esc(c.name)+'</span>').join("")+'</div>'+
-   '<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><input class="f" id="listSt" style="margin:0;width:190px;flex:none" value="'+esc(logState.listSt||"")+'" placeholder="State — e.g. TX or TX, OK" autocomplete="off">'+
-   (logState.listDist?'<span class="t2">'+esc((company(logState.listDist)||{}).name||"")+(logState.listSt?' · '+esc(logState.listSt.toUpperCase()):' · all states')+'</span>':'')+'</div>';
-  if(logState.listGen){
-    h+='<div style="padding:26px 0 4px;text-align:center"><div class="spinwheel"></div><p class="t2">Building your list…</p><div class="genbar"><i></i></div></div>';
-  }
-  const R=logState.listResults;
-  if(R){
-    h+='<div class="lvhead" style="margin:16px 0 8px"><div class="sectlabel" style="margin:0">'+R.objs.filter((o,i)=>!R.excluded.has(i)).length+' of '+R.objs.length+' picked</div>'+
-     (R.chips.length?'<div class="qa-types" style="margin-left:10px">'+R.chips.map(c=>'<span class="qchip on" style="pointer-events:none">'+esc(c)+'</span>').join("")+'</div>':'')+'</div>';
-    if(!R.objs.length){h+='<div class="empty" style="padding:14px">No matches for that.</div></div>';return h+savedListsHTML();}
-    h+='<div class="card" style="padding:6px 4px;max-height:330px;overflow:auto">'+R.objs.map((p,i)=>{const on=!R.excluded.has(i);
-      return '<div class="tk" style="margin:2px 8px;padding:8px 10px'+(on?'':';opacity:.45')+'"><button class="chk'+(on?" on":"")+'" data-act="listrow" data-i="'+i+'">'+(on?svg("check"):"")+'</button>'+
-      '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(p.name)+'</p><p class="t2">'+esc((company(p.cid)||{}).name||p.branch||"")+(personStates(p).length?' · '+esc(personStates(p).join(" ")):'')+'</p></div></div>';}).join("")+'</div>';
-    h+='<label class="fl" style="margin-top:12px">Include on each row</label><div class="qa-types">'+LIST_FIELDS.map(f=>'<span class="qchip'+(R.fields.has(f[0])?" on":"")+'" data-act="listfield" data-v="'+f[0]+'">'+f[1]+'</span>').join("")+'</div>'+
-     '<label class="fl">List name</label><input class="f" id="listName" value="'+esc(R.name)+'" autocomplete="off">'+
-     '<button class="btn coral block" data-act="listsave" style="margin-top:12px">Save list</button>';
-  }
-  h+='</div>';
-  return h+savedListsHTML();
-}
 function savedListsHTML(){
   const ls=myLists();
   if(!ls.length)return '';
@@ -5469,6 +5946,11 @@ document.addEventListener("change",e=>{
   if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invUploadFiles(Array.from(e.target.files));e.target.value="";}
   if(e.target&&e.target.id==="poCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(invImportCsv);e.target.value="";}
   if(e.target&&e.target.id==="upsCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(importUpsCsv);e.target.value="";}
+  if(e.target&&e.target.id==="pipeDist"){pipeF.dist=e.target.value;render();}
+  if(e.target&&e.target.id==="campMat"&&e.target.files.length){campAddMaterials(Array.from(e.target.files));e.target.value="";}
+  if(e.target&&e.target.id==="campLeadFile"&&e.target.files.length){campTrackImport(e.target.files[0]);e.target.value="";}
+  if(e.target&&(e.target.id==="teamFrom"||e.target.id==="teamTo")){teamR.preset="custom";teamR[e.target.id==="teamFrom"?"from":"to"]=e.target.value;render();}
+  if(e.target&&e.target.classList&&e.target.classList.contains("campfield")){campFieldChange(e.target);}
 });
 
 document.addEventListener("click",e=>{
@@ -5492,9 +5974,9 @@ document.addEventListener("click",e=>{
   if(a==="closesheet"){closeSheet();return;}
   if(a==="goback"){goBack(t.dataset.fb);return;}
   if(a==="nav"){const to=t.dataset.view;closeSheet();
-    const same=to===view&&!(to==="export"&&curList)&&!(to==="camp"&&curCampaign);
+    const same=to===view&&!(to==="export"&&curList)&&!((to==="camp"||to==="campaigns")&&curCampaign);
     if(!same)pushNav();
-    view=to;listQ="";if(to==="export")curList=null;if(to==="camp")curCampaign=null;if(to!=="search")searchQ="";if(view==="map")mapState=null;
+    view=to;listQ="";if(to==="export")curList=null;if(to==="camp"||to==="campaigns")curCampaign=null;if(to==="team")teamDrill=null;if(to!=="search")searchQ="";if(view==="map")mapState=null;
     render();window.scrollTo(0,0);return;}
   if(a==="invupload"){document.getElementById("poFiles").click();return;}
   if(a==="invcsv"){document.getElementById("poCsv").click();return;}
@@ -5616,7 +6098,12 @@ document.addEventListener("click",e=>{
   if(a==="oppview"){oppView=t.dataset.v;render();return;}
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
   if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
-  if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
+  if(a==="pipef"){pipeF.rep=t.dataset.v;if(view!=="opps"){pushNav();view="opps";oppFilter="open";}e.stopPropagation();render();return;}
+  if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on?tm.c:"";x.style.color=on?tm.c:"";});return;}
+  if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
+  if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
+    if(t.dataset.v==="Closed Won"&&!oppHasDist(o)){toast("Pick the closing distributor first (or mark it direct)");formOpp(o.id);return;}
+    o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
   if(a==="openreport"){pushNav();curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
   if(a==="repsort"){const k=parseInt(t.dataset.key,10);const s=sortState.report;if(s.key===k)s.dir=-s.dir;else{s.key=k;s.dir=1;}render();return;}
   if(a==="repcsv"){reportCSV(t.dataset.id);return;}
@@ -5683,7 +6170,7 @@ document.addEventListener("click",e=>{
   if(a==="campback"){pushNav();curCampaign=null;render();window.scrollTo(0,0);return;}
   if(a==="campstep"){campStep=+t.dataset.v;render();window.scrollTo(0,0);return;}
   if(a==="camppick"){const fi=document.getElementById("campFile");if(fi)fi.click();return;}
-  if(a==="campdel"){const c=campaignById(id);if(c&&confirm('Delete the draft "'+c.name+'"?')){DB.campaigns=DB.campaigns.filter(x=>x.id!==id);save();curCampaign=null;render();toast("Draft deleted");}return;}
+  if(a==="campdel"){const c=campaignById(id);if(c&&confirm('Delete "'+c.name+'"'+(campTracked(c)?' and its '+(c.leads||[]).length+' contacts?':' (draft)?'))){DB.campaigns=DB.campaigns.filter(x=>x.id!==id);save();curCampaign=null;render();toast("Campaign deleted");}return;}
   if(a==="campaddstep"){const c=campaignById(curCampaign);if(c){const lastDay=Math.max.apply(null,c.steps.map(s=>s.day||1));c.steps.push({day:lastDay+4,subject:"",body:""});save();render();}return;}
   if(a==="campdelstep"){const c=campaignById(curCampaign);if(c&&c.steps.length>1){c.steps.splice(+t.dataset.v,1);save();render();}return;}
   if(a==="camptoken"){const ci=+t.dataset.ci;const c=campaignById(curCampaign);
@@ -5768,6 +6255,8 @@ document.addEventListener("click",e=>{
   if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const an=document.getElementById("oAcctName");if(an)an.value="";}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
+  if(a==="leadcat"){e.stopPropagation();const l=myLeadById(id);if(l){l.cat=t.dataset.v;l.catAt=new Date().toISOString();l.catBy=USER;if(l.cat!=="handed"&&l.assignee&&t.dataset.v==="dead")l.assignee=null;save();render();if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
+  if(a==="leadhand"){e.stopPropagation();const l=myLeadById(id);if(l){leadHand(l,t.dataset.v);save();render();toast(l.assignee?l.name+" → "+teamById(l.assignee).name:"Taken back");if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="openlead"){formLeadRec(id);return;}
   if(a==="pushlead"){pushLeadFromConf(t.dataset.id);return;}
   if(a==="addtouch"){formTouch(id);return;}
@@ -5806,14 +6295,48 @@ document.addEventListener("click",e=>{
   if(a==="saveRep"){saveRep();return;}
   if(a==="saveLog"){saveLog();return;}
   if(a==="export"){exportCSV();return;}
-  if(a==="listbuild"){const q=(document.getElementById("listQ")||{value:""}).value.trim();if(!q){toast("Describe the list first");return;}
-    logState.listDist=null;runListBuild(q);return;}
-  if(a==="listdist"){const st=(document.getElementById("listSt")||{value:logState.listSt||""}).value.trim();
-    logState.listSt=st;
-    if(logState.listDist===t.dataset.id){logState.listDist=null;logState.listResults=null;render();return;}
-    logState.listDist=t.dataset.id;
-    const c=company(t.dataset.id);
-    runListBuild(c.name+" reps"+(st?" "+st.toUpperCase():""));return;}
+  if(a==="listbuild"){listBuildNow();return;}
+  if(a==="lschip"){const k=t.dataset.k,v=t.dataset.v;logState.listSt=(document.getElementById("listSt")||{value:logState.listSt||""}).value;logState.listQ=(document.getElementById("listQ")||{value:logState.listQ||""}).value;
+    logState[k]=(k==="lsWho")?v:(logState[k]===v?"":v);if(k==="lsWho"&&v!=="distrep"&&v!=="all")logState.listDist="";if(logState.listResults)listBuildNow();else render();return;}
+  if(a==="listall"){const R=logState.listResults;if(R){if(R.excluded.size)R.excluded=new Set();else R.objs.forEach((o,i)=>R.excluded.add(i));render();}return;}
+  /* Activity tab */
+  if(a==="actmode"){actMode=t.dataset.v;render();return;}
+  if(a==="actbucket"){actBucket=t.dataset.v;actType="";render();return;}
+  if(a==="acttype"){actType=t.dataset.v;render();return;}
+  if(a==="actwho"){actWho=t.dataset.v;render();return;}
+  if(a==="actweek"){actWeekOff=t.dataset.v==="0"?0:actWeekOff+parseInt(t.dataset.v,10);render();return;}
+  if(a==="actfu"){actFollowupForm(id);return;}
+  if(a==="afutype"){logState.afuType=t.dataset.v;document.querySelectorAll("#afuType .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="afudue"){const d=document.getElementById("afuDue");if(d)d.value=ymd(new Date(Date.now()+parseInt(t.dataset.v,10)*86400000));return;}
+  if(a==="afusave"){actFollowupSave();return;}
+  if(a==="actdone"){const x=(DB.activities||[]).find(y=>y.id===id);if(x){x.closed=true;x.closedAt=new Date().toISOString();x.closedBy=USER;const tk=actFuTask(x);if(tk&&!tk.done){tk.done=true;tk.completedAt=new Date().toISOString();tk.completedDay=todayStr();}save();render();toast("Done");}return;}
+  if(a==="actreopen"){const x=(DB.activities||[]).find(y=>y.id===id);if(x){x.closed=false;x.closedAt=null;const tk=actFuTask(x);if(tk&&tk.done){tk.done=false;tk.completedAt=null;tk.completedDay=null;}save();render();}return;}
+  if(a==="acttoopp"){const x=(DB.activities||[]).find(y=>y.id===id);const p=x&&person(x.pid);formOpp(null,p?p.cid:null);setTimeout(()=>{const n=document.getElementById("oName");if(n&&!n.value&&p)n.value=(company(p.cid)||{}).name||p.name;const nt=document.getElementById("oNotes");if(nt&&x&&x.note)nt.value="From "+actLabel(x.type).toLowerCase()+" "+String(x.date).slice(0,10)+": "+x.note;},30);return;}
+  if(a==="actperson"){openSheet(personSheetHTML(id));return;}
+  if(a==="actopen"){const x=(DB.activities||[]).find(y=>y.id===id);if(x&&x.pid&&person(x.pid))openSheet(personSheetHTML(x.pid));return;}
+  /* Team tab */
+  if(a==="teampreset"){teamR.preset=t.dataset.v;teamDrill=null;render();return;}
+  if(a==="teamdrill"){const k=t.dataset.k;teamDrill=(!k||(teamDrill&&teamDrill.k===k&&teamDrill.rep===t.dataset.rep))?null:{rep:t.dataset.rep,k:k};render();if(teamDrill){const el=document.querySelector(".content .sech");}return;}
+  /* Campaigns tab */
+  if(a==="campnewtrack"){ensureCampaigns();const nid=uid();DB.campaigns.push({id:nid,kind:"track",name:"New campaign",channel:"Email",status:"planned",start:todayStr(),end:"",notes:"",leads:[],materials:[],createdAt:new Date().toISOString(),by:USER});save();pushNav();curCampaign=nid;campLeadF="";render();window.scrollTo(0,0);setTimeout(()=>{const n=document.querySelector(".campfield[data-f=name]");if(n){n.focus();n.select();}},30);return;}
+  if(a==="campchan"){const c=campaignById(curCampaign);if(c){c.channel=t.dataset.v;save();render();}return;}
+  if(a==="campstatus"){const c=campaignById(curCampaign);if(c){c.status=t.dataset.v;save();render();}return;}
+  if(a==="campmatpick"){const fi=document.getElementById("campMat");if(fi)fi.click();return;}
+  if(a==="campmatopen"){campOpenMaterial(+t.dataset.i);return;}
+  if(a==="campmatdel"){const c=campaignById(curCampaign);if(c&&c.materials&&confirm("Remove this file from the campaign?")){c.materials.splice(+t.dataset.i,1);save();render();}return;}
+  if(a==="campleadpick"){const fi=document.getElementById("campLeadFile");if(fi)fi.click();return;}
+  if(a==="campfromlist"){campFromListForm();return;}
+  if(a==="campfromlistpick"){const c=campaignById(curCampaign),l=(DB.lists||[]).find(x=>x.id===id);if(c&&l){c.leads=c.leads||[];const have=new Set(c.leads.map(x=>(x.email||"").toLowerCase()).filter(Boolean));let n=0;
+    l.items.forEach(it=>{if(it.email&&have.has(it.email.toLowerCase()))return;const p=it.pid?person(it.pid):null;const parts=String(it.name||"").split(/\s+/);c.leads.push({first:parts[0]||"",last:parts.slice(1).join(" "),company:it.company||(p&&company(p.cid)?company(p.cid).name:""),title:it.role||(p?p.role:""),email:it.email||(p?p.email:"")||"",phone:it.phone||(p?p.phone:"")||"",state:it.state||(p?personStates(p)[0]:"")||"",outcome:"",pid:it.pid||null,flag:"ok"});n++;});
+    save();closeSheet();render();toast(n+" added from "+l.name);}return;}
+  if(a==="campleadadd"){campLeadAddForm();return;}
+  if(a==="campleadsave"){const c=campaignById(curCampaign);if(!c)return;const first=val("clFirst"),last=val("clLast");if(!first&&!last&&!val("clEmail")){toast("Name or email, at least");return;}
+    c.leads=c.leads||[];c.leads.push({first,last,company:val("clCo"),title:val("clTitle"),email:val("clEmail").toLowerCase(),phone:val("clPhone"),state:val("clState").toUpperCase(),outcome:"",flag:"ok"});save();closeSheet();render();return;}
+  if(a==="campleaddel"){const c=campaignById(curCampaign);if(c&&c.leads){c.leads.splice(+t.dataset.i,1);save();render();}return;}
+  if(a==="campout"){const c=campaignById(curCampaign);const l=c&&c.leads&&c.leads[+t.dataset.i];if(l){l.outcome=l.outcome===t.dataset.v?"":t.dataset.v;l.outcomeAt=new Date().toISOString();save();render();}return;}
+  if(a==="campsend"){const c=campaignById(curCampaign);const l=c&&c.leads&&c.leads[+t.dataset.i];if(l){campSendLead(c,l,t.dataset.v);save();render();toast(l.sentTo?"Sent to "+teamById(l.sentTo).name+" — it's in their Leads":"Taken back");}return;}
+  if(a==="campexport"){const c=campaignById(curCampaign);if(c)campExportCsv(c);return;}
+  if(a==="campleadf"){campLeadF=t.dataset.v;render();return;}
   if(a==="listrow"){const R=logState.listResults;const i=+t.dataset.i;if(R){R.excluded.has(i)?R.excluded.delete(i):R.excluded.add(i);render();}return;}
   if(a==="listfield"){const R=logState.listResults;const v=t.dataset.v;if(R){R.fields.has(v)?R.fields.delete(v):R.fields.add(v);render();}return;}
   if(a==="listsave"){const R=logState.listResults;if(!R)return;
@@ -5906,9 +6429,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="elBuyQ"){logState.elBuyCid=null;sugRender("elBuyQ",acctSugItems(e.target.value,"pickElBuy",["distributor"]));return;}
   if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.note=e.target.value;it.noteAt=new Date().toISOString();clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
-  if(e.target.id==="listSt"){logState.listSt=e.target.value;
-    if(logState.listDist){clearTimeout(window.__lsT);window.__lsT=setTimeout(()=>{const c=company(logState.listDist);if(c)runListBuild(c.name+" reps"+(logState.listSt.trim()?" "+logState.listSt.trim().toUpperCase():""));},600);}
-    return;}
+  if(e.target.id==="listSt"){logState.listSt=e.target.value;return;}
+  if(e.target.id==="listQ"){logState.listQ=e.target.value;return;}
   if(/^lphone_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.phone=e.target.value.trim();it.phoneAt=new Date().toISOString();
       const pr=it.pid?person(it.pid):null;if(pr&&!pr.phone&&it.phone)pr.phone=it.phone;
