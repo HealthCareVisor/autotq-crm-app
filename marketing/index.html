@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#F6F5F1">
+<meta name="theme-color" content="#0B0B0C">
 <title>AutoTQ Marketing</title>
 <style>
-/* AutoTQ Marketing — the operation as a transit map. Porcelain ground, hairline rules, Inter at one UI size with rank
-   by weight and case, six line inks at 6px with round caps, stations as ringed circles. Coral fills only the primary
-   action and the live dot. */
+/* AutoTQ Marketing — an operations console for the sending network: near-black ground, two panel steps, 1px rules,
+   Inter at one UI size with rank by weight and case, coral as the only fill (live dot, elevated state, primary action). */
 @font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url("assets/inter-latin.woff2") format("woff2")}
 :root{
   --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -33,7 +32,7 @@ input:focus-visible,textarea:focus-visible{outline:none}
 .num{font-variant-numeric:tabular-nums}
 /* ---- shell ---- */
 .live{display:inline-flex;align-items:center;gap:7px;color:var(--ink-3);font-size:12.5px}
-.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(47,106,25,.14)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-wash)}
 .live[data-state=off] i{background:var(--ink-4);box-shadow:none}.live[data-state=up] i{background:var(--warn)}
 .av{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex:none}
 button.av{border:0;padding:0}
@@ -130,7 +129,7 @@ table.lv td.wrap{white-space:normal;min-width:260px}.lvname{font-weight:600}
 /* schedule board */
 .sched th.dc,.sched td.dc{text-align:center;min-width:46px;padding:8px 4px;font-variant-numeric:tabular-nums}
 .sched .we{background:var(--panel);color:var(--ink-4)}.sched .today{box-shadow:inset 0 0 0 2px rgba(232,103,59,.45)}.sched th.today{color:var(--coral-ink)}
-.sched .cell{display:inline-block;min-width:30px;padding:3px 7px;border-radius:7px;color:#fff;font-size:12px;font-weight:650}.sched .cell.soft{background:var(--panel);color:var(--ink-2)}
+.sched .cell{display:inline-block;min-width:30px;padding:3px 7px;border-radius:7px;color:var(--ground);font-size:12px;font-weight:650}.sched .cell.soft{background:var(--panel);color:var(--ink-2)}
 .sched tr.tot td{background:var(--panel);font-weight:600}.sched a{text-decoration:none}.sched a:hover{text-decoration:underline}
 .sched .bar{height:6px;border-radius:99px;background:var(--panel);overflow:hidden}.sched .bar i{display:block;height:100%;border-radius:99px}
 .sched .lane{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:-1px}
