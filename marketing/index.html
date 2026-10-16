@@ -362,6 +362,7 @@ function campChecks(c){ // the SES terms, as checks a reviewer can read. hard = 
   add(true,false,"Unsubscribe link, List-Unsubscribe headers and our postal address go on every email automatically");
   add(true,false,"Replies go to a real mailbox: "+(c.replyTo||userEmail(USER)||SALES_FROM));
   const ok=campOk(c),ver=ok.filter(l=>l.vstatus).length;add(ok.length===0||ver/ok.length>=0.5,false,ok.length?(ver+" of "+ok.length+" addresses checked with Apollo"+(ver/ok.length<0.5?" — check the rest before sending":"")):"no one to email yet");
+  const nl=newsletterSet();const onNl=nl.size?ok.filter(l=>nl.has(String(l.email||"").toLowerCase())).length:0;if(onNl)add(true,false,onNl+" also get the Squarespace newsletter — don't send in the same week as a broadcast");
   const risky=ok.filter(l=>/^(info|sales|admin|office|contact|support|hello)@/i.test(l.email||"")).length;add(risky===0,false,risky?risky+" role addresses (info@, sales@…) — these complain most":"No role addresses (info@, sales@…)");
   return out;}
 function campHardOk(c){return campChecks(c).every(x=>x.ok||!x.hard);}
@@ -433,6 +434,20 @@ async function mailOutStatus(force){ if(MAILOUT_STATUS&&!force&&Date.now()-MAILO
   try{const r=await supa(MAILOUT+"?action=status",{method:"POST",body:JSON.stringify({action:"status"})});const b=await r.json().catch(()=>({}));MAILOUT_STATUS=r.ok?b:{ok:false,error:b.error||("HTTP "+r.status)};}
   catch(e){MAILOUT_STATUS={ok:false,error:"not reachable"};}MAILOUT_AT=Date.now();return MAILOUT_STATUS;}
 function suppressedSet(){return new Set((DB.suppress||[]).map(x=>String(x.email||x.id||"").toLowerCase()));}
+/* Squarespace newsletter list (profiles.csv export): who also gets our broadcasts, so a sequence does not land the same week */
+function newsletterRec(){return (DB.settings||[]).find(x=>x.id==="newsletter")||{id:"newsletter",emails:[],count:0};}
+function newsletterSet(){return new Set((newsletterRec().emails||[]).map(e=>String(e).toLowerCase()));}
+function importSquarespace(f){if(!f)return;f.text().then(t=>{const rows=csvRows(t);if(rows.length<2)throw new Error("Empty file");const hdr=rows[0].map(h=>String(h||"").trim().toLowerCase());
+    const ci=hdr.indexOf("email"),ca=hdr.indexOf("accepts email marketing"),cs=hdr.indexOf("email subscriber source"),cw=hdr.indexOf("email subscriber since");
+    if(ci<0||ca<0)throw new Error("This is not a Squarespace contacts export (needs Email + Accepts Email Marketing)");
+    const stop=suppressedSet();const ok=[];let outs=0,outsNew=0;const now=new Date().toISOString();
+    rows.slice(1).forEach(r=>{const e=String(r[ci]||"").trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))return;
+      if(String(r[ca]||"").trim().toLowerCase()==="true"){ok.push(e);return;}
+      outs++;if(stop.has(e))return;outsNew++;put("suppress",{id:e,email:e,reason:"squarespace opt-out",detail:"profiles.csv "+now.slice(0,10),at:now,by:USER});});
+    const organic=rows.slice(1).filter(r=>cs>=0&&/organic/i.test(String(r[cs]||""))&&String(r[ca]||"").toLowerCase()==="true").map(r=>String(r[ci]||"").trim().toLowerCase());
+    put("settings",{id:"newsletter",emails:[...new Set(ok)],organic:[...new Set(organic)],count:new Set(ok).size,optOuts:outs,importedAt:now,by:USER,file:f.name});
+    render();toast(new Set(ok).size+" on the newsletter · "+outs+" opt-outs ("+outsNew+" new) added to the unsubscribed list");
+  }).catch(e=>toast(String(e.message||e)));}
 function campOk(c){const stop=suppressedSet();return (c.leads||[]).filter(l=>l.flag==="ok"&&!stop.has(String(l.email||"").toLowerCase()));}
 function campFromOptions(st){const out=[];const me=(userEmail(USER)||"").split("@")[0]||"hello";
   (st&&st.identities||[]).forEach(i=>{if(!i.verified)return;if(i.type==="EMAIL_ADDRESS")out.push(i.name);else{out.push(me+"@"+i.name);out.push("hello@"+i.name);}});return [...new Set(out)];}
@@ -702,6 +717,7 @@ function fmtHourET(h){const et=((h-4)%24+24)%24;return (et%12||12)+(et<12?"am":"
 function automationCard(){const st=outboundSettings();const runs=(DB.runs||[]).slice().sort((a,b)=>String(b.at).localeCompare(a.at)).slice(0,6);
   let h='<div class="reccard" style="margin-bottom:14px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Automation '+(st.auto?'<span class="pill ok">On</span>':'<span class="pill">Off</span>')+'</p><p class="t2">A Supabase cron calls mail-run every hour, Mon–Fri, '+fmtHourET(st.startHour)+'–'+fmtHourET(st.endHour)+' Eastern. Each hour sends its share of every inbox\'s daily cap, so the day is spread out, not a burst.</p></div>'+(admin()?'<button class="btn '+(st.auto?'':'coral')+'" data-act="autotoggle">'+(st.auto?'Turn off':'Turn on')+'</button>':'')+'</div>';
   if(admin())h+='<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><span class="t2">Window (Eastern)</span><div class="chips">'+[[13,20,"9–4"],[14,21,"10–5"],[15,22,"11–6"]].map(w=>'<span class="chip'+(st.startHour==w[0]&&st.endHour==w[1]?" on":"")+'" data-act="autowin" data-v="'+w[0]+'-'+w[1]+'">'+w[2]+'</span>').join("")+'</div></div>';
+  if(admin()){const nr=newsletterRec();h+='<div class="row" style="gap:10px;margin-top:14px;flex-wrap:wrap"><div class="grow"><p class="t1">Squarespace newsletter list</p><p class="t2">'+(nr.importedAt?nr.count+' subscribers · '+(nr.optOuts||0)+' opt-outs kept out of every send · imported '+new Date(nr.importedAt).toLocaleDateString([], {month:"short",day:"numeric"}):'Not imported yet. Squarespace → Contacts → Export gives profiles.csv; its opt-outs go on the unsubscribed list and subscribers are flagged in Review.')+'</p></div><button class="btn" data-act="sqpick">'+svg("arrow")+' Import Squarespace export</button></div><input type="file" id="sqFile" accept=".csv,text/csv" style="display:none">';}
   h+='<div class="sectlabel" style="margin:16px 0 6px">Last runs</div>'+(runs.length?'<div class="list">'+runs.map(r=>'<div class="card"><div class="grow"><p class="t1" style="font-weight:550">'+esc(r.text||"")+(r.dry?' <span class="pill">preview</span>':'')+'</p><p class="t2">'+new Date(r.at).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})+'</p></div></div>').join("")+'</div>':'<p class="t2">No runs yet. Until mail-run is deployed and the cron is scheduled (supabase/cron.sql), use Run today\'s sends.</p>');
   return h+'</div>';}
 function senderSheet(id){const s=senders().find(x=>x.id===id);if(!s)return;const st=senderStats(s);const plan=buildPlan(1).days[0];const through=netLanes().filter(c=>(plan.byLaneSender[c.id]||{})[s.id]);
@@ -816,7 +832,8 @@ function campLeadsUI(c){
   h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">How these people know us <span style="font-weight:400;text-transform:none;letter-spacing:0">— AWS and the inbox providers both ask; it goes in the campaign record</span></div><div class="chips">'+BASIS_OPTS.map(o=>chip((c.basis||"").startsWith(o.split(" —")[0]),"campbasis",o,esc(o))).join("")+'</div><input class="f" id="campBasis" value="'+esc(c.basis||"")+'" placeholder="e.g. Met us at NSC 2026 · Grainger sellers we trained · asked for a quote on theautotq.com" style="margin-top:10px"></div>';
   if(leads.length){const ok=campOk(c).length,out=leads.length-ok;const cnt=campIndCounts(campOk(c));
     const held={};leads.forEach(l=>{if(l.flag!=="ok")held[l.flag]=(held[l.flag]||0)+1;});const heldTxt=Object.keys(held).map(k=>({missing:"no email",bad:"bad email",dupe:"duplicate",verify:"verify first",touched:"touched in "+TOUCH_DAYS+" days",enrolled:"in another campaign",suppressed:"unsubscribed",invalid:"undeliverable"}[k]||k)+" "+held[k]).join(" · ");
-    const unv=campOk(c).filter(l=>!l.vstatus).length;
+    const unv=campOk(c).filter(l=>!l.vstatus).length;const nl=newsletterSet();const onNl=nl.size?campOk(c).filter(l=>nl.has(String(l.email||"").toLowerCase())).length:0;
+    if(onNl)h+='<p class="t2" style="margin:0 0 8px">'+onNl+' of them also get the Squarespace newsletter — keep this sequence clear of a broadcast week.</p>';
     h+='<div class="row" style="gap:8px;margin:4px 0 8px;flex-wrap:wrap"><button class="btn" data-act="campverify">'+svg("check")+' Check '+unv+' emails with Apollo</button><span class="t2">1 credit each · drops undeliverable addresses before anything sends</span></div>';
     h+='<p style="margin:6px 0 10px"><b>'+ok+' will be emailed</b> · '+esc(c.listName||"")+(out?' · <b>'+out+' held back</b> ('+esc(heldTxt)+')':'')+' · '+Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]).slice(0,3).map(k=>indGroup(k)[1]+" "+cnt[k]).join(", ")+'</p>';
     const anySent=leads.some(l=>l.sent&&Object.keys(l.sent).length);
@@ -918,6 +935,7 @@ document.addEventListener("click",e=>{
   if(a==="campback"){curCampaign=null;render();window.scrollTo(0,0);return;}
   if(a==="campstep"){campStep=+t.dataset.v;render();const w=document.querySelector(".wiz");if(w)w.scrollIntoView({block:"start",behavior:"smooth"});return;}
   if(a==="camppick"){const fi=document.getElementById("campFile");if(fi)fi.click();return;}
+  if(a==="sqpick"){const fi=document.getElementById("sqFile");if(fi)fi.click();return;}
   if(a==="campdel"){const c=campaignById(id);if(c&&confirm('Delete "'+c.name+'"? Comments and the send log go with it.')){del("campaigns",c.id);curCampaign=null;closeInsp();render();toast("Deleted");}return;}
   if(a==="camppause"){const c=campaignById(id);if(c){c.paused=!c.paused;c.pausedBy=USER;saveCamp(c);closeInsp();render();toast(c.paused?"Paused — off the map until you resume it":"Resumed");}return;}
   const c=curCampaign?campaignById(curCampaign):null;
@@ -956,7 +974,7 @@ document.addEventListener("input",e=>{
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
 });
-document.addEventListener("change",e=>{if(e.target.id==="campFile")campHandleFile(e.target.files[0]);});
+document.addEventListener("change",e=>{if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeInsp();if(e.key==="Enter"&&e.target.id==="pwInput")verifyPw();if(e.key==="Enter"&&e.target.id==="otpCode")verifyOtp();});
 let __rw=window.innerWidth<900;window.addEventListener("resize",()=>{const nw=window.innerWidth<900;if(nw!==__rw){__rw=nw;if(USER&&authed())render();}});
 /* boot */
