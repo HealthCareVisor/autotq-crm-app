@@ -435,6 +435,22 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .ktiles .kpi.fill:hover,.ktiles .kpi.fill.on{filter:brightness(.92);box-shadow:0 0 0 3px var(--coral-t)}
 .chiprow{display:flex;gap:4px;flex-wrap:nowrap}
 .chiprow .qchip{min-height:26px;padding:0 8px;font-size:12px}
+.wki .txt{background:none;border:0;padding:0;text-align:left;font:inherit;min-width:0;cursor:pointer}
+.wkh{background:none;border:0;border-bottom:1px solid var(--line);width:100%;font:inherit;text-align:left;cursor:pointer;border-radius:6px 6px 0 0}
+.wkh:hover{background:var(--hover)}
+.wkday.past .wkh span{color:var(--muted)}
+.mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.mdow{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);padding:2px 6px 6px}
+.mcell{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-height:76px;padding:6px 7px;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:4px;min-width:0}
+.mcell:hover{background:var(--hover)}
+.mcell.today{border-color:rgba(216,90,48,.5);box-shadow:0 0 0 2px var(--coral-t)}
+.mcell.out{opacity:.45}
+.mnum{font-size:13px;font-weight:650;letter-spacing:-.01em}
+.mk{display:flex;gap:3px;flex-wrap:wrap}
+.mk i{font-style:normal;font-size:10.5px;font-weight:700;min-width:18px;height:18px;padding:0 5px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center}
+.mk i.calls{background:var(--info-b);color:var(--info-t)}.mk i.visits,.mk i.demos{background:var(--coral-t);color:var(--coral-tt)}.mk i.training{background:var(--ok-b);color:var(--ok-t)}.mk i.emails{background:var(--info-b);color:var(--info-t)}.mk i.notes,.mk i.quotes{background:var(--gray-b);color:var(--gray-t)}
+.mt{font-size:10.5px;color:var(--warn-t);font-weight:600;margin-top:auto}.mt.done{color:var(--hint);font-weight:500}
+@media(max-width:640px){.mgrid{gap:2px}.mcell{min-height:56px;padding:4px 5px;border-radius:7px}.mk i{min-width:15px;height:15px;font-size:9.5px;padding:0 3px}.mt{display:none}}
 .fold{margin:0}
 .fold summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0 10px;user-select:none}
 .fold summary::-webkit-details-marker{display:none}
@@ -1562,9 +1578,8 @@ function viewToday(){
    '<input type="date" class="qa-date" id="taskDue" value="'+T+'">'+
    '<button class="btn coral" data-act="addtask">Add</button>'+assignChipsHTML()+'</div>';
   let day='',attn='',fu='',lds='',conf='',outreach='',lists='';
-  day='<div class="lvhead" style="margin:4px 0 10px"><div class="sectlabel" style="margin:0">My day — '+tasks.filter(t=>!t.done).length+' open'+(dueToday?' · '+dueToday+' due':'')+'</div>'+
-     '<button class="btn sm" data-act="taskhistory" style="margin-left:auto">'+svg("clock")+' History</button></div>';
-  day+=tasks.length?'<div class="list">'+tasks.slice(0,12).map(taskRow).join("")+'</div>':'<div class="empty" style="padding:14px">Nothing on the list — add an action above.</div>';
+  /* iteration A: the week, Sunday first, on every Home. Admins see the rep they picked (or everyone), reps see their own. */
+  day=weekStripHTML(P==="admin"?(scopeRep||""):USER,logState.homeDay||T,{title:P==="admin"&&!scopeRep?"The week":"My week",nav:"homenav",dayNav:"homenav",extra:'<button class="btn sm" data-act="taskhistory">'+svg("clock")+' History</button>'});
   if(P!=="outreach"){
     const rows=attnRows(pool);
     if(rows.length)attn='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(P==="sales"?"My deals that need attention":"Deals that need attention")+' <span class="cnt">'+rows.length+'</span></div><button class="btn sm" data-act="nav" data-view="opps" style="margin-left:auto">Pipeline '+chev()+'</button></div><div class="list">'+rows.slice(0,8).map(attnRow).join("")+'</div>';
@@ -1599,7 +1614,8 @@ function viewToday(){
       '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="nav" data-view="leads">Leads</button><button class="btn sm" data-act="nav" data-view="team">Team</button>'+(campAccess()?'<button class="btn sm" data-act="nav" data-view="campaigns">Campaigns</button>':'')+'</div></div>';
   }
   const sec=(id,x)=>x?'<section class="hsec" id="'+id+'">'+x+'</section>':'';
-  h+='<div class="homegrid"><div class="hcol">'+sec("hs-day",day)+sec("hs-attn",attn)+sec("hs-fu",fu)+sec("hs-leads",lds)+'</div>'+
+  h+=sec("hs-day",day);
+  h+='<div class="homegrid"><div class="hcol">'+sec("hs-attn",attn)+sec("hs-fu",fu)+sec("hs-leads",lds)+'</div>'+
      '<div class="hcol">'+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
   return h;
 }
@@ -3267,12 +3283,14 @@ function actRow(a){
 }
 function viewActivity(){
   const q=actQueue();
-  const seg='<div class="seg" style="margin:0;max-width:240px"><button class="'+(actMode==="queue"?"on":"")+'" data-act="actmode" data-v="queue">Follow-ups</button><button class="'+(actMode==="week"?"on":"")+'" data-act="actmode" data-v="week">Week</button></div>';
+  const seg='<div class="seg" style="margin:0;max-width:420px">'+[["queue","Follow-ups"],["day","Day"],["week","Week"],["month","Month"]].map(x=>'<button class="'+(actMode===x[0]?"on":"")+'" data-act="actmode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
   const w=actWhoCur();
   const whoChips='<div class="qa-types"><span class="qchip'+(w===USER?" on":"")+'" data-act="actwho" data-v="'+USER+'">Mine</span><span class="qchip'+(!w?" on":"")+'" data-act="actwho" data-v="">Everyone</span>'+
     (profile()==="sales"?"":TEAM.filter(t=>t.id!=="laresa"&&t.id!==USER).map(t=>'<span class="qchip'+(w===t.id?" on":"")+'" data-act="actwho" data-v="'+t.id+'" style="'+(w===t.id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(t.id))+'</span>').join(""))+'</div>';
   let h='<div class="lvhead">'+seg+'<button class="btn sm coral" data-act="form" data-form="call" style="margin-left:auto">'+svg("plus")+' Log activity</button></div>'+whoChips;
-  if(actMode==="week")return h+actWeekHTML();
+  if(actMode==="week")return h+'<div style="margin-top:12px">'+weekStripHTML(w,actDate,{title:"Week",nav:"actnav",dayNav:"actnav"})+'</div>';
+  if(actMode==="month")return h+'<div style="margin-top:12px">'+monthGridHTML(w,actDate,"actnav")+'</div>';
+  if(actMode==="day")return h+'<div style="margin-top:12px">'+dayAgendaHTML(w,actDate,"actnav")+'</div>';
   const bucket=(v,l,n,cls)=>'<button class="'+(actBucket===v?"on":"")+'" data-act="actbucket" data-v="'+v+'">'+l+' <span class="cnt'+(cls&&n?' '+cls:'')+'">'+n+'</span></button>';
   h+='<div class="lvtabs" style="margin:10px 0">'+bucket("todo","To follow up",q.todo.length)+bucket("old","Old — never followed up",q.old.length,"warnc")+bucket("sched","Scheduled",q.sched.length)+bucket("done","Done",q.done.length)+'</div>';
   let list=q[actBucket]||[];
@@ -3287,24 +3305,69 @@ function viewActivity(){
   list.forEach(a=>{const d=String(a.date).slice(0,10);if(d!==cur){cur=d;out+='<div class="sectlabel" style="margin:16px 2px 8px">'+esc(fmtDay(a.date))+(since(a.date)>14?' <span class="pill warn">'+since(a.date)+' days ago</span>':'')+'</div>';}out+=actRow(a);});
   return h+out;
 }
-function actWeekHTML(){
-  const now=new Date();const mon=new Date(now.getFullYear(),now.getMonth(),now.getDate()-((now.getDay()+6)%7)+actWeekOff*7);
-  const days=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d);}
-  const from=ymd(days[0]),to=ymd(days[6]),T=todayStr();
-  const acts=(DB.activities||[]).filter(a=>a&&a.date&&actWhoOk(a)&&String(a.date).slice(0,10)>=from&&String(a.date).slice(0,10)<=to);
-  const w=actWhoCur();
-  const tasks=(DB.tasks||[]).filter(t=>!t.removed&&t.due>=from&&t.due<=to&&(w?(t.owner===w||(t.assignees||[]).includes(w)):true));
-  const tally={};acts.forEach(a=>{const g=actTypeGroup(a.type);tally[g]=(tally[g]||0)+1;});
-  let h='<div class="lvhead" style="margin:12px 0 10px"><button class="btn sm" data-act="actweek" data-v="-1">'+svg("chevL")+'</button><div class="sech">'+esc(days[0].toLocaleDateString(undefined,{month:"short",day:"numeric"}))+' – '+esc(days[6].toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}))+'</div><button class="btn sm" data-act="actweek" data-v="1">'+svg("chevR")+'</button>'+(actWeekOff?'<button class="btn sm ghost" data-act="actweek" data-v="0">This week</button>':'')+
-   '<span class="t2" style="margin-left:auto">'+acts.length+' logged · '+Object.keys(tally).map(k=>tally[k]+' '+k).join(" · ")+'</span></div>';
-  h+='<div class="wk">'+days.map(d=>{const k=ymd(d);
-    const da=acts.filter(a=>String(a.date).slice(0,10)===k).sort((a,b)=>new Date(a.date)-new Date(b.date));
-    const dt=tasks.filter(t=>t.due===k);
-    return '<div class="wkday'+(k===T?' today':'')+'"><div class="wkh"><b>'+d.toLocaleDateString(undefined,{weekday:"short"})+'</b><span>'+d.getDate()+'</span>'+(da.length?'<em>'+da.length+'</em>':'')+'</div>'+
-      da.map(a=>{const p=person(a.pid);return '<button class="wki" data-act="actopen" data-id="'+a.id+'" title="'+esc(a.note||"")+'"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><span class="grow"><b>'+esc(p?p.name:(a.cid&&company(a.cid)?company(a.cid).name:actLabel(a.type,a)))+'</b><small>'+esc(actLabel(a.type,a))+(a.by&&!w?' · '+esc(shortName(a.by)):'')+'</small></span></button>';}).join("")+
-      dt.map(t=>'<div class="wki task'+(t.done?' done':'')+'"><span class="ic gray">'+svg("check")+'</span><span class="grow"><b>'+esc(t.title)+'</b><small>to-do · '+esc(shortName(t.owner))+'</small></span></div>').join("")+
-      (!da.length&&!dt.length?'<p class="t2" style="padding:6px 2px">—</p>':'')+'</div>';}).join("")+'</div>';
+/* ---------- the calendar everyone shares (Max picked iteration A, 2026-10-16): Sunday first, to-dos tick off in place,
+   tap anything to edit it or move its follow-up; the Activity tab zooms Month → Week → Day ---------- */
+let actDate=todayStr();
+const DOW7=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function dAdd(ymdS,n){const p=ymdS.split("-");const d=new Date(+p[0],+p[1]-1,+p[2]+n);return ymd(d);}
+function weekOf(ymdS){const p=ymdS.split("-");const d=new Date(+p[0],+p[1]-1,+p[2]);const sun=new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());return Array.from({length:7},(_,i)=>{const x=new Date(sun);x.setDate(sun.getDate()+i);return ymd(x);});}
+function calActs(who,from,to){return (DB.activities||[]).filter(a=>a&&a.date&&(!who||a.by===who)&&String(a.date).slice(0,10)>=from&&String(a.date).slice(0,10)<=to);}
+function calTasks(who,from,to){return (DB.tasks||[]).filter(t=>!t.removed&&t.due>=from&&t.due<=to&&(who?taskFor(t,who):true));}
+function calTaskRow(t){return '<div class="wki task'+(t.done?' done':'')+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button><button class="grow txt" data-act="edittask" data-id="'+t.id+'" title="Edit or move this to-do"><b>'+esc(t.title)+'</b><small>'+esc(taskTypeMeta(t.type)[2])+(t.pid&&person(t.pid)?' · '+esc(person(t.pid).name):'')+(t.owner!==USER?' · '+esc(shortName(t.owner)):'')+'</small></button></div>';}
+function calActRow(a,showBy){const p=person(a.pid);return '<button class="wki" data-act="editact" data-id="'+a.id+'" title="Edit this entry or set its follow-up"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><span class="grow"><b>'+esc(p?p.name:(a.cid&&company(a.cid)?company(a.cid).name:actLabel(a.type,a)))+'</b><small>'+esc(actLabel(a.type,a))+(a.note?' · '+esc(a.note):'')+(showBy&&a.by?' · '+esc(shortName(a.by)):'')+'</small></span>'+(actState(a)==="sched"?'<span class="pill info" style="font-size:10px">'+svg("clock")+'</span>':actState(a)==="old"?'<span class="pill warn" style="font-size:10px">!</span>':'')+'</button>';}
+/* one week, Sun → Sat. who = a team id or "" for everyone; anchor = any day in the week */
+function weekStripHTML(who,anchor,opts){
+  opts=opts||{};const days=weekOf(anchor),T=todayStr();
+  const acts=calActs(who,days[0],days[6]),tasks=calTasks(who,days[0],days[6]);
+  const open=tasks.filter(t=>!t.done).length;
+  let h='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(opts.title||"My week")+' <span class="cnt">'+open+' to do · '+acts.length+' logged</span></div>'+
+   '<span class="t2" style="margin-left:4px">'+esc(fmtDay(days[0]).replace(/, \d{4}$/,""))+' – '+esc(fmtDay(days[6]))+'</span>'+
+   '<div class="row" style="gap:6px;margin-left:auto"><button class="btn sm" data-act="'+opts.nav+'" data-v="-7">'+svg("chevL")+'</button>'+(days.includes(T)?'':'<button class="btn sm ghost" data-act="'+opts.nav+'" data-v="today">This week</button>')+'<button class="btn sm" data-act="'+opts.nav+'" data-v="7">'+svg("chevR")+'</button>'+(opts.extra||"")+'</div></div>';
+  h+='<div class="wk">'+days.map((d,i)=>{const da=acts.filter(a=>String(a.date).slice(0,10)===d).sort((a,b)=>new Date(a.date)-new Date(b.date)),dt=tasks.filter(t=>t.due===d).sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+    const slipped=d<T&&dt.some(t=>!t.done);
+    return '<div class="wkday'+(d===T?' today':d<T?' past':'')+'"><button class="wkh" data-act="'+(opts.dayNav||opts.nav)+'" data-v="day:'+d+'" title="Open this day"><b>'+DOW7[i]+'</b><span>'+parseInt(d.slice(8),10)+'</span>'+(da.length?'<em>'+da.length+'</em>':'')+'</button>'+
+      (dt.length?'<div class="wksep">To do'+(slipped?' <span class="pill warn" style="font-size:10px">slipped</span>':'')+'</div>'+dt.map(calTaskRow).join(""):'')+
+      (da.length?'<div class="wksep">Logged</div>'+da.map(a=>calActRow(a,!who)).join(""):'')+
+      (!dt.length&&!da.length?'<p class="t2" style="padding:6px 3px">—</p>':'')+'</div>';}).join("")+'</div>';
   return h;
+}
+/* a month at a glance: how many of each kind per day; tap a day to open it */
+function monthGridHTML(who,anchor,nav){
+  const y=+anchor.slice(0,4),m=+anchor.slice(5,7)-1;const first=new Date(y,m,1);
+  const start=new Date(y,m,1-first.getDay());const T=todayStr();
+  const from=ymd(start),to=ymd(new Date(start.getFullYear(),start.getMonth(),start.getDate()+41));
+  const acts=calActs(who,from,to),tasks=calTasks(who,from,to);
+  const byDay={};acts.forEach(a=>{const k=String(a.date).slice(0,10);(byDay[k]=byDay[k]||{a:[],t:[]}).a.push(a);});tasks.forEach(t=>{(byDay[t.due]=byDay[t.due]||{a:[],t:[]}).t.push(t);});
+  const title=first.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  const tally={};acts.filter(a=>String(a.date).slice(0,7)===anchor.slice(0,7)).forEach(a=>{const g=actTypeGroup(a.type);tally[g]=(tally[g]||0)+1;});
+  let h='<div class="lvhead" style="margin:0 0 10px"><div class="sech">'+esc(title)+'</div><span class="t2">'+(Object.keys(tally).length?Object.keys(tally).map(k=>tally[k]+" "+k).join(" · "):"nothing logged")+'</span>'+
+   '<div class="row" style="gap:6px;margin-left:auto"><button class="btn sm" data-act="'+nav+'" data-v="-1m">'+svg("chevL")+'</button>'+(anchor.slice(0,7)===T.slice(0,7)?'':'<button class="btn sm ghost" data-act="'+nav+'" data-v="today">This month</button>')+'<button class="btn sm" data-act="'+nav+'" data-v="1m">'+svg("chevR")+'</button></div></div>';
+  h+='<div class="mgrid">'+DOW7.map(d=>'<div class="mdow">'+d+'</div>').join("");
+  for(let i=0;i<42;i++){const d=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);const k=ymd(d);const x=byDay[k]||{a:[],t:[]};const out=d.getMonth()!==m;
+    const kinds={};x.a.forEach(a=>{const g=actTypeGroup(a.type);kinds[g]=(kinds[g]||0)+1;});
+    const open=x.t.filter(t=>!t.done).length;
+    h+='<button class="mcell'+(k===T?' today':'')+(out?' out':'')+'" data-act="'+nav+'" data-v="day:'+k+'"><span class="mnum">'+d.getDate()+'</span>'+
+      (Object.keys(kinds).length?'<span class="mk">'+Object.keys(kinds).map(g=>'<i class="'+g+'" title="'+kinds[g]+' '+g+'">'+kinds[g]+'</i>').join("")+'</span>':'')+
+      (open?'<span class="mt">'+open+' to do</span>':x.t.length?'<span class="mt done">'+x.t.length+' done</span>':'')+'</button>';}
+  return h+'</div>';
+}
+/* one day: the to-dos, then everything logged, each tappable */
+function dayAgendaHTML(who,day,nav){
+  const T=todayStr();const acts=calActs(who,day,day).sort((a,b)=>new Date(a.date)-new Date(b.date)),tasks=calTasks(who,day,day).sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  const label=day===T?"Today":day===dAdd(T,1)?"Tomorrow":day===dAdd(T,-1)?"Yesterday":fmtDay(day);
+  let h='<div class="lvhead" style="margin:0 0 10px"><div class="sech">'+esc(label)+'</div><span class="t2">'+esc(DOW7[new Date(+day.slice(0,4),+day.slice(5,7)-1,+day.slice(8)).getDay()])+' · '+esc(fmtDay(day))+'</span>'+
+   '<div class="row" style="gap:6px;margin-left:auto"><button class="btn sm" data-act="'+nav+'" data-v="-1">'+svg("chevL")+'</button>'+(day===T?'':'<button class="btn sm ghost" data-act="'+nav+'" data-v="today">Today</button>')+'<button class="btn sm" data-act="'+nav+'" data-v="1">'+svg("chevR")+'</button></div></div>';
+  h+='<div class="sectlabel" style="margin-top:4px">To do <span class="cnt">'+tasks.filter(t=>!t.done).length+'</span></div>';
+  h+=tasks.length?'<div class="list">'+tasks.map(taskRow).join("")+'</div>':'<div class="empty" style="padding:12px">Nothing planned'+(day>=T?' — add an action on Home':'')+'.</div>';
+  h+='<div class="sectlabel">Logged <span class="cnt">'+acts.length+'</span></div>';
+  h+=acts.length?acts.map(actRow).join(""):'<div class="empty" style="padding:12px">Nothing logged'+(day===T?' yet':'')+'.</div>';
+  return h;
+}
+function calNav(v){ /* shared ‹ › handler: "today", ±n days, ±1m months, "day:YYYY-MM-DD" */
+  if(v==="today")return todayStr();
+  if(v.indexOf("day:")===0)return v.slice(4);
+  if(/m$/.test(v)){const n=parseInt(v,10);const y=+actDate.slice(0,4),m=+actDate.slice(5,7)-1+n;return ymd(new Date(y,m,Math.min(+actDate.slice(8),28)));}
+  return dAdd(actDate,parseInt(v,10));
 }
 function actFollowupForm(aid){
   const a=(DB.activities||[]).find(x=>x.id===aid);if(!a)return;
@@ -4109,25 +4172,61 @@ function peopleSugItemsF(q,act,filter){q=String(q||"").trim().toLowerCase();if(q
 function formActivity(id){
   const a=(DB.activities||[]).find(x=>x.id===id);
   if(!a){toast("Couldn't open that entry");return;}
-  logState.actId=id;logState.actType=a.type||"note";
-  const types=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["training","school","Train"],["demo","box","Demo"],["note","note","Note"]];
+  logState.actId=id;logState.actType=a.type||"note";logState.actWith=a.with||"";
+  const types=LOG_TYPES.slice();
   if(!types.some(t=>t[0]===logState.actType))types.push([logState.actType,"note",titlecase(logState.actType)]);
-  openSheet('<h2>Edit logged activity</h2>'+
-   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">Logged by '+esc(a.by?teamById(a.by).name:"—")+' · '+esc(fmtDay(a.date))+'</p>'+
+  const p=person(a.pid),tk=actFuTask(a),st=actState(a);
+  openSheet('<h2>'+esc(actLabel(a.type,a))+(p?' · '+esc(p.name):'')+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">Logged by '+esc(a.by?teamById(a.by).name:"—")+' · '+esc(fmtDay(a.date))+(p&&p.branch?' · '+esc(p.branch):'')+'</p>'+
+   '<label class="fl">Follow up</label>'+
+   (st==="done"&&!tk?'<p class="t2" style="margin:0 0 4px">'+(a.closed?'Marked done':'Followed up already')+' · <button class="lnk" data-act="actreopen" data-id="'+a.id+'">reopen</button></p>'
+    :'<div class="row" style="gap:8px;flex-wrap:wrap"><div class="qa-types">'+[[0,"Today"],[1,"Tomorrow"],[3,"In 3 days"],[7,"Next week"]].map(d=>'<span class="qchip" data-act="actfuquick" data-v="'+d[0]+'">'+d[1]+'</span>').join("")+'</div>'+
+     '<input class="f" id="actFuDue" type="date" value="'+esc(tk&&!tk.done?tk.due:"")+'" style="margin:0;width:160px;flex:none">'+
+     (tk&&!tk.done?'<button class="btn sm ghost" data-act="actfuclear">'+svg("x")+' Clear</button>':'')+'</div>'+
+     '<p class="t2" style="margin:6px 0 0">'+(tk&&!tk.done?'On your day for '+esc(tk.due)+' — pick another day to move it.':'Pick a day and it lands on your day as a to-do.')+'</p>')+
    '<label class="fl">Type</label><div class="tiles" id="actTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.actType?' on':'')+'" data-act="setActType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
+   '<div id="actWith" style="display:'+(logState.actType==="visit"?"block":"none")+'"><label class="fl">Who came along</label><div class="chips" id="actWithChips">'+VISIT_WITH.map(w=>'<span class="chip'+(logState.actWith===w[0]?" on":"")+'" data-act="setActWith" data-v="'+w[0]+'">'+w[1]+'</span>').join("")+'</div></div>'+
    '<label class="fl">Date</label><input class="f" id="actDate" type="date" value="'+esc(localDay(a.date))+'">'+
    '<label class="fl">Note</label><textarea class="f" id="actNote" rows="3">'+esc(a.note||"")+'</textarea>'+
-   '<button class="btn coral block" data-act="saveact" style="margin-top:18px">Save changes</button>'+
+   '<button class="btn coral block" data-act="saveact" style="margin-top:18px">Save</button>'+
+   (st!=="done"?'<button class="btn block" data-act="actdone" data-id="'+a.id+'" style="margin-top:8px">'+svg("check")+' Mark done — nothing more to do</button>':'')+
    '<button class="btn block" data-act="delact" style="margin-top:8px;color:var(--dang-t)">Delete this entry</button>');
 }
 function saveActivity(){
   const a=(DB.activities||[]).find(x=>x.id===logState.actId);if(!a)return;
-  a.type=logState.actType||a.type;
+  a.type=logState.actType||a.type;a.norm=2;
+  if(a.type==="visit")a.with=logState.actWith||"";else delete a.with;
+  if(a.type!=="call")delete a.vm;
   a.note=document.getElementById("actNote").value.trim();
   const d=document.getElementById("actDate").value;
   if(d&&d!==localDay(a.date))a.date=d+"T12:00:00.000Z";
-  save();closeSheet();render();toast("Activity updated");
+  /* follow-up day: new → a to-do on that day; existing → moved */
+  const fuEl=document.getElementById("actFuDue");const due=fuEl?fuEl.value:"";
+  if(due){ensureTasks();let tk=actFuTask(a);
+    if(tk&&!tk.done){tk.due=due;}
+    else{const p=person(a.pid);tk={id:uid(),owner:USER,title:"Follow up"+(p?" with "+p.name:"")+(a.note?" — "+a.note.slice(0,60):""),type:"call",due:due,done:false,createdAt:new Date().toISOString(),pid:a.pid||null,actId:a.id};DB.tasks.unshift(tk);a.fuTask=tk.id;}
+    a.closed=false;}
+  save();closeSheet();render();toast(due?"Saved — follow-up on "+due:"Activity updated");
+}
+/* to-dos: tap one on the calendar to retitle it or move it to another day */
+function formEditTask(id){
+  const t=(DB.tasks||[]).find(x=>x.id===id);if(!t)return;logState.taskEditId=id;logState.taskEditType=t.type||"todo";
+  const types=[["call","Call"],["email","Email"],["demo","Demo"],["train","Train"],["followup","Follow-up"],["todo","To-do"]];
+  openSheet('<h2>To-do</h2>'+(t.pid&&person(t.pid)?'<p class="t2" style="margin:0 0 4px">With '+esc(person(t.pid).name)+'</p>':'')+
+   '<label class="fl">What</label><input class="f" id="tkTitle" value="'+esc(t.title)+'" autocomplete="off">'+
+   '<label class="fl">Kind</label><div class="qa-types" id="tkType">'+types.map(x=>'<span class="qchip'+(logState.taskEditType===x[0]?" on":"")+'" data-act="tktype" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>'+
+   '<label class="fl">Day</label><div class="qa-types" style="margin-bottom:6px">'+[[0,"Today"],[1,"Tomorrow"],[3,"In 3 days"],[7,"Next week"]].map(d=>'<span class="qchip" data-act="tkquick" data-v="'+d[0]+'">'+d[1]+'</span>').join("")+'</div>'+
+   '<input class="f" id="tkDue" type="date" value="'+esc(t.due||todayStr())+'">'+
+   '<button class="btn coral block" data-act="savetask" style="margin-top:18px">Save</button>'+
+   '<button class="btn block" data-act="toggletask" data-id="'+t.id+'" style="margin-top:8px">'+svg("check")+' '+(t.done?"Mark not done":"Mark done")+'</button>'+
+   '<button class="btn block" data-act="deltask" data-id="'+t.id+'" style="margin-top:8px;color:var(--dang-t)">Remove (kept in History)</button>');
+}
+function saveEditTask(){
+  const t=(DB.tasks||[]).find(x=>x.id===logState.taskEditId);if(!t)return;
+  const title=val("tkTitle");if(!title){toast("Give it a title");return;}
+  t.title=title;t.type=logState.taskEditType||t.type;t.due=(document.getElementById("tkDue")||{}).value||t.due;
+  save();closeSheet();render();toast("Saved");
 }
 function formLog(prefillPid,prefillType){
   const types=LOG_TYPES;
@@ -6356,11 +6455,15 @@ document.addEventListener("click",e=>{
   if(a==="delact"){const ax=(DB.activities||[]).find(x=>x.id===logState.actId);
     if(ax&&confirm("Delete this logged "+ax.type+"?")){DB.activities=DB.activities.filter(x=>x.id!==logState.actId);save();closeSheet();render();toast("Deleted");}return;}
   if(a==="logemail"){formLog(id,"email");return;}
+  if(a==="setActWith"){logState.actWith=t.dataset.v;document.querySelectorAll("#actWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="actfuquick"){const d=document.getElementById("actFuDue");if(d)d.value=dAdd(todayStr(),parseInt(t.dataset.v,10));return;}
+  if(a==="tktype"){logState.taskEditType=t.dataset.v;document.querySelectorAll("#tkType .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="tkquick"){const d=document.getElementById("tkDue");if(d)d.value=dAdd(todayStr(),parseInt(t.dataset.v,10));return;}
   if(a==="setType"){logState.logType=t.dataset.v;document.querySelectorAll("#logTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));
     const w=document.getElementById("logWith");if(w)w.style.display=t.dataset.v==="visit"?"block":"none";
     const vm=document.getElementById("outVm");if(vm){vm.style.display=t.dataset.v==="call"?"":"none";if(t.dataset.v!=="call"&&logState.outcome==="Left voicemail"){logState.outcome="Interested";document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v==="Interested"));}}return;}
   if(a==="setWith"){logState.logWith=t.dataset.v;document.querySelectorAll("#logWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
-  if(a==="setActType"){logState.actType=t.dataset.v;document.querySelectorAll("#actTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="setActType"){logState.actType=t.dataset.v;document.querySelectorAll("#actTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));const w=document.getElementById("actWith");if(w)w.style.display=t.dataset.v==="visit"?"block":"none";return;}
   if(a==="setOut"){logState.outcome=t.dataset.v;document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="map"){closeSheet();pushNav();mapState=null;view="map";render();window.scrollTo(0,0);return;}
   if(a==="mapstate"){mapState=t.dataset.st;render();return;}
@@ -6380,7 +6483,11 @@ document.addEventListener("click",e=>{
   if(a==="actbucket"){actBucket=t.dataset.v;actType="";render();return;}
   if(a==="acttype"){actType=t.dataset.v;render();return;}
   if(a==="actwho"){actWho=t.dataset.v;render();return;}
-  if(a==="actweek"){actWeekOff=t.dataset.v==="0"?0:actWeekOff+parseInt(t.dataset.v,10);render();return;}
+  if(a==="actnav"){const v=t.dataset.v;actDate=calNav(v);if(v.indexOf("day:")===0)actMode="day";render();return;}
+  if(a==="homenav"){const v=t.dataset.v;if(v.indexOf("day:")===0){pushNav();actDate=v.slice(4);actMode="day";if(profile()!=="sales")actWho=logState.homeRep||actWhoCur();view="activity";render();window.scrollTo(0,0);return;}logState.homeDay=v==="today"?todayStr():dAdd(logState.homeDay||todayStr(),parseInt(v,10));render();return;}
+  if(a==="edittask"){formEditTask(id);return;}
+  if(a==="savetask"){saveEditTask();return;}
+  if(a==="actfuclear"){const x=(DB.activities||[]).find(y=>y.id===logState.actId);if(x){const tk=actFuTask(x);if(tk){tk.removed=true;tk.removedAt=new Date().toISOString();tk.removedBy=USER;}x.fuTask=null;save();formActivity(x.id);}return;}
   if(a==="actfu"){actFollowupForm(id);return;}
   if(a==="afutype"){logState.afuType=t.dataset.v;document.querySelectorAll("#afuType .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="afudue"){const d=document.getElementById("afuDue");if(d)d.value=ymd(new Date(Date.now()+parseInt(t.dataset.v,10)*86400000));return;}
