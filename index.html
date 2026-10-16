@@ -3741,8 +3741,10 @@ function viewInsights(){
 
 /* ---------- ADD ---------- */
 function addHub(){
-  const items=[["card","camera","Business card"],["quote","tag","Quote"],["opportunity","chart","Opportunity"],["distributor","ware","Distributor"],["enduser","build","End-user"],["rep","user","Rep / contact"],["training","school","Training"],["demo","box","Demo unit"],["call","phone","Call / note"]];
-  openSheet('<h2>Add to CRM</h2><div class="hubgrid">'+items.map(i=>'<button class="hub" data-act="form" data-form="'+i[0]+'"><span class="hubic">'+svg(i[1])+'</span><b>'+i[2]+'</b></button>').join("")+'</div>');
+  /* five things you can add (Max, 2026-10-16: "every Add + feature simpler"). Training and demos are log types;
+     a business card is just a faster way to fill in a contact; end-user and distributor are one Account form. */
+  const items=[["call","phone","Log activity","call · email · visit · training · demo"],["opportunity","chart","Opportunity","a deal in the pipeline"],["quote","tag","Quote","price it and send it"],["contact","user","Contact","a person — snap their card if you have it"],["account","ware","Account","an end-user or a distributor"]];
+  openSheet('<h2>Add to CRM</h2><div class="hubgrid">'+items.map(i=>'<button class="hub" data-act="form" data-form="'+i[0]+'"><span class="hubic">'+svg(i[1])+'</span><b>'+i[2]+'</b><small style="font-size:12px;color:var(--muted);font-weight:400;margin-top:-6px">'+i[3]+'</small></button>').join("")+'</div>');
 }
 function formLogAcct(cid){
   const c=company(cid);if(!c)return;logState.logCid=cid;logState.logType="note";
@@ -3776,6 +3778,28 @@ function renderFill(name){
 function saveDist(){const info=logState.dist;if(!info){toast("Type a company name");return;}
   DB.companies.unshift({id:uid(),name:info.name,type:"distributor",city:info.city,state:info.state,industry:info.industry,website:info.website,territory:regionFromState(info.state)});
   save();logState.dist=null;closeSheet();pushNav();view="accounts";render();toast(info.name+" added");}
+/* one Account form: End-user | Distributor, the name (the lookup fills city/state/website), distributor stage chips */
+function formAccount(kind,keep){
+  logState.acctKind=kind||logState.acctKind||"enduser";if(!keep){logState.dist=null;logState.acctStage="";}
+  const k=logState.acctKind,name=keep?((document.getElementById("dName")||{}).value||""):"";
+  openSheet('<h2>New account</h2>'+
+   '<div class="seg" style="margin:2px 0 12px"><button class="'+(k==="enduser"?"on":"")+'" data-act="acctkind" data-v="enduser">End-user</button><button class="'+(k==="distributor"?"on":"")+'" data-act="acctkind" data-v="distributor">Distributor</button></div>'+
+   '<label class="fl">Company name</label><input class="f" id="dName" value="'+esc(name)+'" placeholder="Start typing — known companies fill themselves in" autocomplete="off"><div id="dFill"></div>'+
+   (k==="distributor"?'<label class="fl">Where are they with us?</label><div class="qa-types" id="acctStage">'+[["potential","Potential"],["setup","Set up"],["stocking","Stocking"]].map(x=>'<span class="qchip'+(logState.acctStage===x[0]?" on":"")+'" data-act="acctstage" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>':'')+
+   '<button class="btn coral block" data-act="saveAcct" style="margin-top:18px">Add '+(k==="distributor"?"distributor":"end-user")+'</button>');
+  if(name)renderFill(name);
+}
+function saveAccount(){
+  const typed=(document.getElementById("dName")||{value:""}).value.trim();
+  if(!typed){toast("Type the company name");return;}
+  const info=logState.dist||lookup(typed);
+  const dup=DB.companies.find(c=>c.name.toLowerCase()===info.name.toLowerCase());
+  if(dup){toast(dup.name+" is already in Accounts");closeSheet();pushNav();curCompany=dup.id;view="roster";render();return;}
+  const k=logState.acctKind||"enduser";
+  const rec={id:uid(),name:info.name,type:k,city:info.city||"",state:info.state||"",industry:info.industry||"",website:info.website||"",territory:regionFromState(info.state),owner:USER,sourcedBy:""};
+  if(k==="distributor"){rec.dstatus=logState.acctStage==="stocking"?"setup":(logState.acctStage||"potential");if(logState.acctStage==="stocking")rec.stage="Stocking";}
+  DB.companies.unshift(rec);save();logState.dist=null;closeSheet();pushNav();curCompany=rec.id;view="roster";render();window.scrollTo(0,0);toast(rec.name+" added");
+}
 function formSimpleCompany(type,label){
   openSheet('<h2>Add '+label+'</h2><label class="fl">Company name</label><input class="f" id="dName" placeholder="Start typing…" autocomplete="off"><div id="dFill"></div>'+
    '<button class="btn coral block" data-act="saveEnd" data-type="'+type+'" style="margin-top:18px">Add '+label+'</button>');
@@ -3841,14 +3865,16 @@ function formOpp(id,prefillCid){
    '<label class="fl">Amount ($)</label><input class="f" id="oAmt" inputmode="numeric" value="'+(o&&o.amount?o.amount:"")+'" placeholder="15200">'+
    '<label class="fl"># of units</label><input class="f" id="oUnits" inputmode="numeric" value="'+(o&&o.units?o.units:"")+'" placeholder="40">'+
    '<label class="fl">Expected close date</label><input class="f" id="oClose" type="date" value="'+(o&&o.closeDate?esc(o.closeDate):"")+'">'+
-   '<label class="fl">Deal type</label><select class="f" id="oType">'+dtypes.map(t=>'<option'+(o&&o.dealType===t?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
-   '<label class="fl">State</label><input class="f" id="oLoc" value="'+(o?esc(o.state||""):"")+'" placeholder="TN" maxlength="2">'+
-   '<label class="fl">Probability reason <span style="font-weight:400;color:var(--hint)">('+(o?oppProb(o):OPP_PROB["Prospecting"])+'%)</span></label>'+
-   '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, distributor involved, reviewing 50-unit rollout for Q4" autocomplete="off">'+
    '<label class="fl">Next action</label><input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing manager" autocomplete="off">'+
    '<label class="fl">Next action date</label><input class="f" id="oNextAD" type="date" value="'+(o?esc(o.nextActionDate||""):"")+'">'+
+   /* the rest folds away — state fills itself from the account, deal type defaults to End User Order */
+   '<details class="fold" style="margin-top:8px"'+((o&&(o.probReason||o.lastContact||(o.dealType&&o.dealType!=="End User Order")))?' open':'')+'><summary><span class="sectlabel" style="margin:0;font-size:13px">More details</span><span class="fchev">'+chev()+'</span></summary>'+
+   '<label class="fl">Deal type</label><select class="f" id="oType">'+dtypes.map(t=>'<option'+(o&&o.dealType===t?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
+   '<label class="fl">State <span style="font-weight:400;color:var(--hint)">(blank = the account&#39;s)</span></label><input class="f" id="oLoc" value="'+(o?esc(o.state||""):"")+'" placeholder="TN" maxlength="2">'+
+   '<label class="fl">Probability reason <span style="font-weight:400;color:var(--hint)">('+(o?oppProb(o):OPP_PROB["Prospecting"])+'%)</span></label>'+
+   '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, distributor involved, reviewing 50-unit rollout for Q4" autocomplete="off">'+
    '<label class="fl">Last contact'+(o&&oppLastTouch(o)?' <span style="font-weight:400;color:var(--hint)">(auto: '+esc(oppLastTouch(o))+')</span>':'')+'</label>'+
-   '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'">'+
+   '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'"></details>'+
    '<label class="fl">People on this deal <span style="font-weight:400;color:var(--hint)">— the distributor rep, man-rep, buyer… add as many as you like</span></label><div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
    '<div class="row" style="gap:8px;align-items:flex-start"><div style="flex:2;min-width:0">'+comboField("oConQ","Type a person to attach…","")+'</div>'+
    '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
@@ -3875,7 +3901,7 @@ function saveOpp(){
   const data={name:name,accountId:cid||null,accountName:c?c.name:val("oCidQ"),
     stage:logState.oppStage||"Prospecting",amount:parseFloat(val("oAmt"))||0,
     units:parseInt(val("oUnits"),10)||0,closeDate:document.getElementById("oClose").value||"",
-    dealType:document.getElementById("oType").value,state:val("oLoc").toUpperCase().slice(0,2),
+    dealType:document.getElementById("oType").value,state:(val("oLoc")||(c&&c.state)||(logState.oppDistCid&&(company(logState.oppDistCid)||{}).state)||"").toUpperCase().slice(0,2),
     rep:repTxt,note:val("oNotes"),contacts:(logState.oppContacts||[]).slice(),
     probReason:val("oProbWhy"),nextAction:val("oNextA"),nextActionDate:document.getElementById("oNextAD").value||"",
     touchesExtra:existing?(existing.touchesExtra||0):0,lastContact:document.getElementById("oLastC").value||"",
@@ -3966,8 +3992,8 @@ function saveRep(){const name=document.getElementById("rName").value.trim();
 const BC_FIELDS=[["bcName","name"],["bcTitle","title"],["bcCoQ","company"],["bcEmail","email"],["bcPhone","phone"],["bcMobile","mobile"],["bcCity","city"],["bcState","state"]];
 function formCard(){
   logState.bc={blob:null,cid:null,kind:"enduser",card:null};
-  openSheet('<h2>Business card</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">Snap the card — the details fill themselves in. Then add your note.</p>'+
-   '<label class="btn coral block" for="bcFile" style="cursor:pointer">'+svg("camera")+' Take or upload a photo or PDF scan</label>'+
+  openSheet('<h2>New contact</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">Type what you know — or snap their business card and it fills itself in.</p>'+
+   '<label class="btn block" for="bcFile" style="cursor:pointer;margin-bottom:4px">'+svg("camera")+' Snap or upload their card</label>'+
    '<input type="file" id="bcFile" accept="image/*,application/pdf,.pdf" style="display:none"><div id="bcPrev"></div>'+
    '<label class="fl">Name</label><input class="f" id="bcName" placeholder="Full name" autocomplete="off">'+
    '<label class="fl">Title</label><input class="f" id="bcTitle" placeholder="e.g. Safety Manager" autocomplete="off">'+
@@ -6258,8 +6284,11 @@ document.addEventListener("click",e=>{
     if(f==="opportunity")formOpp(null);
     else if(f==="quote")formQuote(null,null);
     else if(f==="card")formCard();
-    else if(f==="distributor")formDistributor();else if(f==="enduser")formSimpleCompany("enduser","end-user");
-    else if(f==="rep")formRep();else formLog(null,f==="call"?"call":f);return;}
+    else if(f==="distributor"||f==="enduser"||f==="account")formAccount(f==="distributor"?"distributor":"enduser");
+    else if(f==="rep"||f==="contact")formCard();else formLog(null,f==="call"?"call":f);return;}
+  if(a==="acctkind"){logState.acctKind=t.dataset.v;formAccount(logState.acctKind,true);return;}
+  if(a==="acctstage"){logState.acctStage=logState.acctStage===t.dataset.v?"":t.dataset.v;document.querySelectorAll("#acctStage .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.acctStage));return;}
+  if(a==="saveAcct"){saveAccount();return;}
   if(a==="person"){closeSheet();pushNav();curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="invitemadd"){collectInvItems();logState.invItems=logState.invItems||[];logState.invItems.push({sku:"",qty:1,unit:""});formOrder(logState.invEditId||null,true);return;}
   if(a==="invitemdel"){collectInvItems();logState.invItems.splice(+t.dataset.i,1);formOrder(logState.invEditId||null,true);return;}
