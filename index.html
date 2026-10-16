@@ -1364,7 +1364,7 @@ function orderUnits(o){const k=kitQty(o.items);if(k)return k;let u=0;String(o.no
 function oppHasDist(o){return !!(o.distributorId||oppDistLabel(o)||o.direct);}
 function oppIsDirect(o){return !!o.direct||oppDistLabel(o)==="Direct";}
 function teamAccessFor(u){return ["max","hannah","kellan","jamie"].includes(u);}
-function campAccessFor(u){return u==="max"||u==="hannah";}
+function campAccessFor(u){return false;} /* Campaigns retired from the CRM 2026-10-16 (Max: handled separately); viewCampaignsHub stays in the file */
 function teamAccess(){return teamAccessFor(USER);}
 function campAccess(){return campAccessFor(USER);}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
@@ -1380,7 +1380,7 @@ function railGroups(u){
     ["Manage",[["team","users","Team"]]]];
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
   const g=[];
-  const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(campAccessFor(u))mg.push(["campaigns","plane","Campaigns"]);if(mg.length)g.push(["Manage",mg]);
+  const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(mg.length)g.push(["Manage",mg]); /* Campaigns tab removed 2026-10-16 — handled outside the CRM */
   g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["export","dl","Lists"]]],
     ["Insight",[["insight","spark","Insight"],["map","pin","Field Map"],["conf","cal","Conferences"]]]);
@@ -1643,7 +1643,7 @@ function viewToday(){
     const cl=(DB.confLeads||[]),called=cl.filter(l=>(l.touches||[]).some(t=>String(t.date||"").slice(0,10)>=W)).length;
     outreach='<div class="sectlabel">Outreach this week</div><div class="card"><div class="facts">'+
       '<div><b>Leads added</b><span>'+added+'</span></div><div><b>To categorize</b><span>'+toCat.length+'</span></div><div><b>Handed to sales</b><span>'+handedWk.length+(perRep.some(r=>r[1])?' <small style="color:var(--muted)">'+perRep.filter(r=>r[1]).map(r=>shortName(r[0])+" "+r[1]).join(" · ")+'</small>':'')+'</span></div><div><b>Conf leads called</b><span>'+called+'</span></div></div>'+
-      '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="nav" data-view="leads">Leads</button><button class="btn sm" data-act="nav" data-view="team">Team</button>'+(campAccess()?'<button class="btn sm" data-act="nav" data-view="campaigns">Campaigns</button>':'')+'</div></div>';
+      '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="nav" data-view="leads">Leads</button><button class="btn sm" data-act="nav" data-view="team">Team</button>'+'</div></div>';
   }
   const sec=(id,x)=>x?'<section class="hsec" id="'+id+'">'+x+'</section>':'';
   h+=sec("hs-day",day);
@@ -4425,7 +4425,6 @@ function helpSheet(){
    ["Field Map","US map — flip between demos in the field and distributor reps by state. Tap a state."],
    ["Conferences","Shows with lead lists link straight to the call list."],
    ["Team","Admin: each sales person's Sold, Quoted, Touches, Opportunities and Open pipeline for any date range, the rank by sales person, and Hannah's KPIs."],
-   ["Campaigns","Max + Hannah: every campaign with its materials, results and the contacts it produced — tag outcomes, send a lead to a rep, export the contacts to Excel."],
    ["Shipping","Back office: what still has to go out the door, one record per box. Prints the packing slip; billable freight lands on the order so Invoicing sees it."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
@@ -4522,7 +4521,7 @@ function viewList(id){
    '<div class="qa-types" style="margin-top:12px"><span class="t2" style="align-self:center">Push to</span>'+
     TEAM.filter(t=>t.id!==USER&&t.id!=="laresa").map(t=>{const r=userRegion(t.id);
      return '<span class="qchip'+(l.assignee===t.id?" on":"")+'" data-act="listpush" data-id="'+l.id+'" data-v="'+t.id+'">'+esc(t.name.split(" ")[0]+(t.id==="johnm"?" M.":t.id==="john"?" C.":""))+(r?' ('+r+')':'')+'</span>';}).join("")+'</div>'+
-   '<button class="btn sm coral" data-act="listtocamp" data-id="'+l.id+'" style="margin-top:12px">'+svg("plane")+' Push to Campaign — email everyone on this list</button></div>';
+   '</div>';
   h+='<div class="list">'+l.items.map((it,i)=>{
     const bits=[];
     if(F.has("company")&&it.company)bits.push(esc(it.company));
