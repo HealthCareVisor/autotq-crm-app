@@ -3183,15 +3183,22 @@ function oppCard(o){
 /* Pipeline → Excel (Max, 2026-10-16): a little sheet where you tick the columns, then a CSV of exactly what's showing
    (tab, person chips, search, column filters, sort) — Excel opens it straight away. The picks are remembered. */
 const PIPE_FIELDS=[
- ["name","Opportunity",o=>o.name||""],["lead","Lead / end user",o=>oppAcctLabel(o)==="—"?"":oppAcctLabel(o)],["dist","Closing distributor",o=>oppIsDirect(o)?"Direct":oppDistLabel(o)],
- ["rep","Golden Hour sales person",o=>oppGhRep(o)?teamById(oppGhRep(o)).name:""],["region","Region",o=>oppRegion(o)||""],["state","State",o=>o.state||""],
- ["stage","Stage",o=>o.stage||""],["amount","Amount",o=>o.amount||0],["units","Units",o=>o.units||0],["prob","Probability %",o=>oppProb(o)],["weighted","Weighted",o=>Math.round(oppWeighted(o))],
- ["close","Close date",o=>o.closeDate||""],["next","Next action",o=>o.nextAction||""],["nextd","Next action date",o=>o.nextActionDate||""],["last","Last touch",o=>oppLastTouch(o)||""],["touches","Touches",o=>oppTouches(o)],
- ["type","Deal type",o=>o.dealType||""],["people","People on the deal",o=>oppFoldPeople(o).map(c=>{const p=person(c.pid);return p?p.name+" ("+c.role+")":"";}).filter(Boolean).join("; ")],["chrep","Channel rep",o=>o.rep||""],
- ["why","Probability reason",o=>o.probReason||""],["notes","Notes",o=>o.note||""],["created","Created",o=>String(o.createdAt||"").slice(0,10)],["owner","Entered by",o=>o.owner?teamById(o.owner).name:""]
+ ["name","Opportunity",o=>o.name||""],
+ ["lead","Lead / end user",o=>oppAcctLabel(o)==="—"?"":oppAcctLabel(o)],
+ ["dist","Closing distributor",o=>oppIsDirect(o)?"Direct":oppDistLabel(o)],
+ ["rep","Sales person",o=>oppGhRep(o)?teamById(oppGhRep(o)).name:""],
+ ["where","Territory",o=>[oppRegion(o),o.state].filter(Boolean).join(" · ")],
+ ["stage","Stage",o=>[(OPP_SHORT[o.stage]||o.stage||"")+" "+oppProb(o)+"%",o.dealType&&o.dealType!=="End User Order"?o.dealType:""].filter(Boolean).join(" · ")],
+ ["amount","Amount",o=>o.amount||0],
+ ["units","Units",o=>o.units||0],
+ ["next","Next action",o=>[o.nextAction,o.nextActionDate].filter(Boolean).join(" — ")],
+ ["last","Last touch",o=>{const t=oppTouches(o),l=oppLastTouch(o);return l?l+" · "+t+" touch"+(t===1?"":"es"):(t?t+" touch"+(t===1?"":"es"):"");}],
+ ["people","People on the deal",o=>{const ps=oppFoldPeople(o).map(c=>{const p=person(c.pid);return p?p.name+" ("+c.role+")":"";}).filter(Boolean);const rn=String(o.rep||"").split(" (")[0].trim().toLowerCase();if(rn&&!ps.some(x=>x.toLowerCase().indexOf(rn)===0))ps.push(o.rep+" (channel rep)");if(o.owner)ps.push("entered by "+teamById(o.owner).name+(o.createdAt?" "+String(o.createdAt).slice(0,10):""));return ps.join("; ");}],
+ ["close","Close date",o=>o.closeDate||""],
+ ["notes","Notes",o=>[o.probReason?"Why "+oppProb(o)+"%: "+o.probReason:"",o.note||""].filter(Boolean).join(" — ")]
 ];
-const PIPE_DEFAULT=["name","lead","dist","rep","region","stage","amount","units","close","next"];
-function pipeFieldSel(){try{const v=JSON.parse(localStorage.getItem("autotq_pipe_fields")||"null");if(Array.isArray(v)&&v.length)return v;}catch(e){}return PIPE_DEFAULT.slice();}
+const PIPE_DEFAULT=["name","lead","dist","rep","where","stage","amount","units","next","last","close"];
+function pipeFieldSel(){const ok=new Set(PIPE_FIELDS.map(f=>f[0]));try{const v=JSON.parse(localStorage.getItem("autotq_pipe_fields")||"null");if(Array.isArray(v)){const w=v.filter(x=>ok.has(x));if(w.length)return w;}}catch(e){}return PIPE_DEFAULT.slice();}
 function pipeExportForm(){
   const sel=new Set(pipeFieldSel());const n=(logState.pipeShow||[]).length;
   openSheet('<h2>Export to Excel</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">'+n+' deal'+(n===1?"":"s")+' — the ones showing right now. Tick the columns you want.</p>'+
