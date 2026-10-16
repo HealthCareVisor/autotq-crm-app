@@ -751,7 +751,7 @@ const NAV=[["net","The net"],["camp","Campaigns"],["sched","Schedule"],["leads",
 function needsMe(){return campaigns().filter(c=>c.status==="review"&&campIsReviewer()&&!(c.approvals||{})[USER]).length;}
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
-  if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="signout" style="margin-top:14px">Sign out</button></div>';return;}
+  if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home"||view==="web")view="net";
   const me=teamById(USER);const n=needsMe();
   const titles={net:"",camp:curCampaign?"":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
