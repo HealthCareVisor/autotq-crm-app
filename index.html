@@ -917,6 +917,7 @@ document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&e.target&&e.target.id==="listQ"){e.preventDefault();listBuildNow();return;}
   if(e.key==="Escape"&&document.getElementById("scrim").classList.contains("open")){closeSheet();return;}
   if(e.key==="/"&&!e.metaKey&&!e.ctrlKey&&!e.altKey){const ae=document.activeElement;
     if(ae&&(/INPUT|TEXTAREA|SELECT/.test(ae.tagName)||ae.isContentEditable))return;
@@ -3394,23 +3395,51 @@ function actFollowupSave(){
 }
 
 /* ---------- LISTS — pick, show, call (Max, 2026-10-16: "should be easy") ---------- */
+/* Lists = one box (Max, 2026-10-16): "All Grainger reps in Arkansas", "set-up distributors TX", "end-users Central",
+   "man-reps in Florida and Georgia", "Ritz safety". listRead() works out who / where / which account; the chips under the
+   results say what it understood so a miss is obvious. */
+function listRead(q){
+  const orig=q;let txt=" "+q.toLowerCase().replace(/[,;/]+/g," ")+" ";
+  const f={who:"",acctCid:null,acctTxt:"",dstatus:"",states:[],region:"",q:""};
+  for(const nm in STATE_NAMES){const k=" "+nm+" ";while(txt.includes(k)){f.states.push(STATE_NAMES[nm]);txt=txt.replace(k," ");}}
+  const CODES=new Set(Object.values(STATE_NAMES));
+  (orig.match(/\b[A-Z]{2}\b/g)||[]).forEach(cd=>{if(CODES.has(cd)&&!f.states.includes(cd)){f.states.push(cd);txt=txt.replace(new RegExp("\\b"+cd.toLowerCase()+"\\b")," ");}});
+  if(/\beast\b/.test(txt)){f.region="East";txt=txt.replace(/\beast\b/," ");}
+  else if(/\bcentral\b/.test(txt)){f.region="Central";txt=txt.replace(/\bcentral\b/," ");}
+  else if(/\bwest\b/.test(txt)){f.region="West";txt=txt.replace(/\bwest\b/," ");}
+  if(/\bset[- ]?up\b|\bstocking\b|\bactive\b/.test(txt)){f.dstatus="setup";txt=txt.replace(/\bset[- ]?up\b|\bstocking\b|\bactive\b/g," ");}
+  else if(/\bpotential\b|\bprospect(ive)?\b/.test(txt)){f.dstatus="potential";txt=txt.replace(/\bpotential\b|\bprospect(ive)?\b/g," ");}
+  if(/\bend[- ]?users?\b|\bcustomers?\b/.test(txt)){f.who="enduser";txt=txt.replace(/\bend[- ]?users?\b|\bcustomers?\b/g," ");}
+  else if(/\bman[- ]?reps?\b|\bmanufacturer'?s? reps?\b/.test(txt)){f.who="manrep";txt=txt.replace(/\bman[- ]?reps?\b|\bmanufacturer'?s? reps?\b/g," ");}
+  else if(/\bdistributors?\b|\bdist reps?\b|\bsellers?\b/.test(txt)){f.who="distrep";txt=txt.replace(/\bdistributors?\b|\bdist reps?\b|\bsellers?\b/g," ");}
+  else if(/\beveryone\b|\ball contacts\b|\banyone\b/.test(txt)){f.who="all";txt=txt.replace(/\beveryone\b|\ball contacts\b|\banyone\b/g," ");}
+  /* an account name anywhere in what's left: longest match wins, "grainger" finds "Grainger" and "W.W. Grainger, Inc." alike */
+  let best=null;
+  DB.companies.forEach(co=>{const full=" "+(co.name||"").toLowerCase().replace(/[.,']/g,"")+" ";const first=" "+(co.name||"").toLowerCase().replace(/[.,']/g,"").split(/\s+/)[0]+" ";
+    const t2=txt.replace(/[.,']/g,"");
+    if(full.trim().length>=3&&t2.includes(full.trim())&&(!best||full.length>best.n.length))best={c:co,n:full,hit:full.trim()};
+    else if(!best&&first.trim().length>=5&&t2.includes(first)&&co.type==="distributor")best={c:co,n:first,hit:first.trim()};});
+  if(best){f.acctCid=best.c.id;f.acctTxt=best.c.name;txt=(" "+txt.replace(/[.,']/g,"")+" ").replace(best.hit," ");if(!f.who&&best.c.type==="distributor")f.who="distrep";}
+  f.q=txt.replace(/\b(all|reps?|of|the|in|at|and|list|call|contacts?|people|our|with|from|for|me|a|an|to|who|that|are|is|give|show|get|need|want|please)\b/g," ").replace(/\s+/g," ").trim();
+  if(!f.who&&!f.acctCid&&f.dstatus)f.who="distrep";
+  if(!f.who&&!f.acctCid)f.who="all";
+  return f;
+}
+function listReadChips(f){
+  const who={distrep:"Distributor reps",enduser:"End-users",manrep:"Man-reps",all:"Everyone"}[f.who]||"";
+  return [f.acctTxt?f.acctTxt+(f.who==="distrep"?" reps":""):who,f.acctTxt&&f.who&&f.who!=="distrep"?who:"",f.dstatus?(f.dstatus==="setup"?"set-up":"potential"):"",f.states.join(", "),f.region,f.q?'"'+f.q+'"':""].filter(Boolean);
+}
 function viewLists(){
-  const setups=DB.companies.filter(c=>c.type==="distributor"&&distStatus(c)==="setup").sort((a,b)=>a.name.localeCompare(b.name));
-  const who=logState.lsWho||"distrep";
-  const chip=(k,v,l)=>'<span class="qchip'+((logState[k]||"")===v?" on":"")+'" data-act="lschip" data-k="'+k+'" data-v="'+esc(v)+'">'+esc(l)+'</span>';
-  let h='<div class="reccard">'+
-   '<label class="fl" style="margin-top:0">Who</label><div class="qa-types">'+[["distrep","Distributor reps"],["enduser","End-users"],["manrep","Man-reps"],["all","Everyone"]].map(x=>'<span class="qchip'+(who===x[0]?" on":"")+'" data-act="lschip" data-k="lsWho" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>'+
-   (who==="distrep"||who==="all"?'<label class="fl">Distributor</label><div class="qa-types">'+chip("listDist","","Any")+setups.map(c=>chip("listDist",c.id,c.name)).join("")+'</div>':'')+
-   '<label class="fl">Where</label><div class="row" style="gap:8px;flex-wrap:wrap"><input class="f" id="listSt" style="margin:0;width:170px;flex:none" value="'+esc(logState.listSt||"")+'" placeholder="State — TX or TX, OK" autocomplete="off">'+
-   '<div class="qa-types">'+chip("lsRegion","","Any region")+["East","Central","West"].map(r=>chip("lsRegion",r,r)).join("")+'</div></div>'+
-   '<label class="fl">Name or company contains <span style="font-weight:400;color:var(--hint)">(optional)</span></label><input class="f" id="listQ" value="'+esc(logState.listQ||"")+'" placeholder="e.g. safety" autocomplete="off">'+
-   '<button class="btn coral" data-act="listbuild" style="margin-top:12px">Show the list</button>';
+  let h='<div class="reccard"><label class="fl" style="margin-top:0">Who do you want to call?</label>'+
+   '<div style="display:flex;gap:8px"><input class="f" id="listQ" style="margin:0" value="'+esc(logState.listQ||"")+'" placeholder="e.g. All Grainger reps in Arkansas · set-up distributors TX · end-users Central" autocomplete="off">'+
+   '<button class="btn coral" data-act="listbuild" style="flex:none">Show</button></div>'+
+   '<p class="t2" style="margin:8px 2px 0;white-space:normal">Say who (a distributor, end-users, man-reps, everyone), where (a state or East / Central / West) and anything else to match. Press Enter.</p>';
   const R=logState.listResults;
   if(R){
     h+='<div class="lvhead" style="margin:16px 0 8px"><div class="sectlabel" style="margin:0">'+R.objs.filter((o,i)=>!R.excluded.has(i)).length+' of '+R.objs.length+' picked</div>'+
-     (R.chips.length?'<div class="qa-types" style="margin-left:10px">'+R.chips.map(c=>'<span class="qchip on" style="pointer-events:none">'+esc(c)+'</span>').join("")+'</div>':'')+
+     (R.chips.length?'<div class="qa-types" style="margin-left:10px"><span class="t2">I read that as</span>'+R.chips.map(x=>'<span class="qchip on" style="pointer-events:none">'+esc(x)+'</span>').join("")+'</div>':'')+
      (R.objs.length?'<button class="btn sm ghost" data-act="listall" style="margin-left:auto">'+(R.excluded.size?'Pick all':'Clear picks')+'</button>':'')+'</div>';
-    if(!R.objs.length){h+='<div class="empty" style="padding:14px">Nobody matches that — widen it.</div></div>';return h+savedListsHTML();}
+    if(!R.objs.length){h+='<div class="empty" style="padding:14px">Nobody matches that. Try fewer words, or a state code like TX.</div></div>';return h+savedListsHTML();}
     h+='<div class="card" style="padding:6px 4px;max-height:360px;overflow:auto">'+R.objs.map((p,i)=>{const on=!R.excluded.has(i);
       return '<div class="tk" style="margin:2px 8px;padding:8px 10px'+(on?'':';opacity:.45')+'"><button class="chk'+(on?" on":"")+'" data-act="listrow" data-i="'+i+'">'+(on?svg("check"):"")+'</button>'+
       '<div class="grow"><p class="t1" style="font-size:13.5px">'+esc(p.name)+'</p><p class="t2">'+esc((company(p.cid)||{}).name||p.branch||"")+(personStates(p).length?' · '+esc(personStates(p).join(" ")):'')+(p.phone?'':' · <span style="color:var(--dang-t)">no number</span>')+'</p></div></div>';}).join("")+'</div>';
@@ -3422,17 +3451,14 @@ function viewLists(){
   return h+savedListsHTML();
 }
 function listBuildNow(){
-  const who=logState.lsWho||"distrep";
-  logState.listSt=(document.getElementById("listSt")||{value:logState.listSt||""}).value.trim();
   logState.listQ=(document.getElementById("listQ")||{value:logState.listQ||""}).value.trim();
-  expF={mode:"contacts",acctCid:(who==="distrep"||who==="all")?(logState.listDist||null):null,acctTxt:"",types:who==="all"?[]:[who],dstatus:"",states:logState.listSt.toUpperCase(),region:logState.lsRegion||"",needEmail:false,needPhone:false,q:logState.listQ.toLowerCase()};
+  if(!logState.listQ){toast("Say who you want to call");return;}
+  const f=listRead(logState.listQ);
+  expF={mode:"contacts",acctCid:f.acctCid,acctTxt:"",types:f.who==="all"?[]:[f.who],dstatus:f.dstatus,states:f.states.join(", "),region:f.region,needEmail:false,needPhone:false,q:f.q.toLowerCase()};
   const d=expRows();
-  const distName=expF.acctCid?((company(expF.acctCid)||{}).name||""):"";
-  const whoL={distrep:"Distributor reps",enduser:"End-users",manrep:"Man-reps",all:"Everyone"}[who];
-  const bits=[distName||whoL];if(logState.listSt)bits.push(logState.listSt.toUpperCase());if(logState.lsRegion)bits.push(logState.lsRegion);if(logState.listQ)bits.push('"'+logState.listQ+'"');
+  const chips=listReadChips(f);
   const dt=new Date();
-  logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:bits.join(" — ")+" · "+dt.toLocaleDateString(undefined,{month:"short",day:"numeric"}),
-    chips:[distName?distName+" reps":whoL,logState.listSt.toUpperCase(),logState.lsRegion,logState.listQ?'"'+logState.listQ+'"':""].filter(Boolean)};
+  logState.listResults={objs:d.objs,excluded:new Set(),fields:new Set(["company","phone","email","state"]),name:chips.join(" — ")+" · "+dt.toLocaleDateString(undefined,{month:"short",day:"numeric"}),chips:chips};
   render();
 }
 
@@ -6483,8 +6509,6 @@ document.addEventListener("click",e=>{
   if(a==="saveLog"){saveLog();return;}
   if(a==="export"){exportCSV();return;}
   if(a==="listbuild"){listBuildNow();return;}
-  if(a==="lschip"){const k=t.dataset.k,v=t.dataset.v;logState.listSt=(document.getElementById("listSt")||{value:logState.listSt||""}).value;logState.listQ=(document.getElementById("listQ")||{value:logState.listQ||""}).value;
-    logState[k]=(k==="lsWho")?v:(logState[k]===v?"":v);if(k==="lsWho"&&v!=="distrep"&&v!=="all")logState.listDist="";if(logState.listResults)listBuildNow();else render();return;}
   if(a==="listall"){const R=logState.listResults;if(R){if(R.excluded.size)R.excluded=new Set();else R.objs.forEach((o,i)=>R.excluded.add(i));render();}return;}
   /* Activity tab */
   if(a==="homerep"){logState.homeRep=t.dataset.v;render();return;}
@@ -6622,7 +6646,6 @@ document.addEventListener("input",e=>{
   if(e.target.id==="elBuyQ"){logState.elBuyCid=null;sugRender("elBuyQ",acctSugItems(e.target.value,"pickElBuy",["distributor"]));return;}
   if(/^lnote_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.note=e.target.value;it.noteAt=new Date().toISOString();clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
-  if(e.target.id==="listSt"){logState.listSt=e.target.value;return;}
   if(e.target.id==="listQ"){logState.listQ=e.target.value;return;}
   if(/^lphone_/.test(e.target.id||"")){const parts=e.target.id.split("_");const l=(DB.lists||[]).find(x=>x.id===parts[1]);const it=l&&l.items[+parts[2]];
     if(it){it.phone=e.target.value.trim();it.phoneAt=new Date().toISOString();
