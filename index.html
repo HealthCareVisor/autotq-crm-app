@@ -3084,7 +3084,6 @@ function oppCard(o){
    '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
      (o.units?'<span>'+o.units+'u</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
-     '<span class="pill gray" style="font-size:10.5px">Touches: '+oppTouches(o)+'</span>'+
      (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
      (o.stage==="Closed Won"?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
@@ -3834,8 +3833,7 @@ function formOpp(id,prefillCid){
   const repChips=GH_REPS.concat(["jamie","max"]).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
    '<label class="fl">Opportunity name <span style="font-weight:400;color:var(--hint)">— account + what it is, e.g. "Grainger East run rate"</span></label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Grainger East run rate" autocomplete="off">'+
-   '<label class="fl">Lead / end user <span style="font-weight:400;color:var(--hint)">— who the product is for (Conagra)</span></label>'+comboField("oCidQ","Type the end-user or account…",selCid?((company(selCid)||{}).name||""):"")+
-   '<label class="fl">Lead / end user (if not in Accounts yet)</label><input class="f" id="oAcctName" value="'+(o?esc(o.accountName||""):"")+'" placeholder="prospect not in Accounts yet" autocomplete="off">'+
+   '<label class="fl">Lead / end user <span style="font-weight:400;color:var(--hint)">— who the product is for (Conagra); ours pop up, a new name is fine</span></label>'+comboField("oCidQ","Type the end-user or account…",selCid?((company(selCid)||{}).name||""):(o?o.accountName||"":""))+
    '<label class="fl">Closing distributor <span style="font-weight:400;color:var(--hint)">— who the PO comes through (Grainger)</span></label>'+comboField("oDistQ","Type a distributor…",(o&&o.distributorId?((company(o.distributorId)||{}).name||""):(o?o.distributorName||"":""))+"")+
    '<label class="chkrow"><input type="checkbox" id="oDirect"'+(o&&o.direct?" checked":"")+'> Direct sale — no distributor on this one</label>'+
    '<label class="fl">Golden Hour sales person</label><div class="chips" id="oGhRep">'+repChips+'</div>'+
@@ -3849,8 +3847,6 @@ function formOpp(id,prefillCid){
    '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, distributor involved, reviewing 50-unit rollout for Q4" autocomplete="off">'+
    '<label class="fl">Next action</label><input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing manager" autocomplete="off">'+
    '<label class="fl">Next action date</label><input class="f" id="oNextAD" type="date" value="'+(o?esc(o.nextActionDate||""):"")+'">'+
-   '<label class="fl">Extra touches <span style="font-weight:400;color:var(--hint)">('+(o?oppActivityPool(o).length:0)+' logged · '+(o?oppTouches(o):0)+' total)</span></label>'+
-   '<input class="f" id="oTouchX" inputmode="numeric" value="'+(o&&o.touchesExtra?o.touchesExtra:"")+'" placeholder="0">'+
    '<label class="fl">Last contact'+(o&&oppLastTouch(o)?' <span style="font-weight:400;color:var(--hint)">(auto: '+esc(oppLastTouch(o))+')</span>':'')+'</label>'+
    '<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'">'+
    '<label class="fl">People on this deal <span style="font-weight:400;color:var(--hint)">— the distributor rep, man-rep, buyer… add as many as you like</span></label><div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
@@ -3876,13 +3872,13 @@ function saveOpp(){
   logState.oppDistRepPid=firstRole("Distributor rep")||null;
   const manrepSel=firstRole("Man-rep")||"";
   let repTxt=manrepSel&&person(manrepSel)?person(manrepSel).name:(logState.oppDistRepPid&&person(logState.oppDistRepPid)?person(logState.oppDistRepPid).name:(existing?existing.rep||"":""));
-  const data={name:name,accountId:cid||null,accountName:c?c.name:val("oAcctName"),
+  const data={name:name,accountId:cid||null,accountName:c?c.name:val("oCidQ"),
     stage:logState.oppStage||"Prospecting",amount:parseFloat(val("oAmt"))||0,
     units:parseInt(val("oUnits"),10)||0,closeDate:document.getElementById("oClose").value||"",
     dealType:document.getElementById("oType").value,state:val("oLoc").toUpperCase().slice(0,2),
     rep:repTxt,note:val("oNotes"),contacts:(logState.oppContacts||[]).slice(),
     probReason:val("oProbWhy"),nextAction:val("oNextA"),nextActionDate:document.getElementById("oNextAD").value||"",
-    touchesExtra:parseInt(val("oTouchX"),10)||0,lastContact:document.getElementById("oLastC").value||"",
+    touchesExtra:existing?(existing.touchesExtra||0):0,lastContact:document.getElementById("oLastC").value||"",
     distributorId:distSel||null,
     distributorName:distSel?((company(distSel)||{}).name||""):distTxt,
     distRepPid:logState.oppDistRepPid||null,
@@ -6297,11 +6293,11 @@ document.addEventListener("click",e=>{
   if(a==="pickOppManrep"){const p=person(t.dataset.id);if(p){logState.oppManrepPid=p.id;const i=document.getElementById("oManrepQ");if(i)i.value=personLabel(p);sugRender("oManrepQ",[]);}return;}
   if(a==="pickIvAcct"){const c=company(t.dataset.id);if(c){const i=document.getElementById("ivAcct");if(i)i.value=c.name;sugRender("ivAcct",[]);}return;}
   if(a==="pickBf"){const c=company(t.dataset.id);if(c){const i=document.getElementById("bfSearch");if(i)i.value=c.name;sugRender("bfSearch",[]);}return;}
-  if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const an=document.getElementById("oAcctName");if(an)an.value="";}return;}
+  if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
   if(a==="leadtoopp"){const l=myLeadById(id);if(!l)return;const c=bcMatchCompany(l.company||"");formOpp(null,c?c.id:null);logState.oppFromLead=l.id;
-    setTimeout(()=>{const n=document.getElementById("oName");if(n&&!n.value)n.value=(l.company||l.name)+" — first order";const an=document.getElementById("oAcctName");if(an&&!c)an.value=l.company||l.name;const st=document.getElementById("oLoc");if(st&&!st.value&&l.state)st.value=l.state;const nt=document.getElementById("oNotes");if(nt)nt.value="From lead "+l.name+(l.conf?" ("+l.conf+")":"");},30);return;}
+    setTimeout(()=>{const n=document.getElementById("oName");if(n&&!n.value)n.value=(l.company||l.name)+" — first order";const an=document.getElementById("oCidQ");if(an&&!c)an.value=l.company||l.name;const st=document.getElementById("oLoc");if(st&&!st.value&&l.state)st.value=l.state;const nt=document.getElementById("oNotes");if(nt)nt.value="From lead "+l.name+(l.conf?" ("+l.conf+")":"");},30);return;}
   if(a==="leadcat"){e.stopPropagation();const l=myLeadById(id);if(l){l.cat=t.dataset.v;l.catAt=new Date().toISOString();l.catBy=USER;if(l.cat!=="handed"&&l.assignee&&t.dataset.v==="dead")l.assignee=null;save();render();if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="leadhand"){e.stopPropagation();const l=myLeadById(id);if(l){leadHand(l,t.dataset.v);save();render();toast(l.assignee?l.name+" → "+teamById(l.assignee).name:"Taken back");if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="openlead"){formLeadRec(id);return;}
