@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F5F1">
+<title>AutoTQ Marketing</title>
+<style>
+/* AutoTQ Marketing — the operation as a transit map. Porcelain ground, hairline rules, Inter at one UI size with rank
+   by weight and case, six line inks at 6px with round caps, stations as ringed circles. Coral fills only the primary
+   action and the live dot. */
+@font-face{font-family:"Inter";font-style:normal;font-weight:100 900;font-display:swap;src:url("assets/inter-latin.woff2") format("woff2")}
+:root{
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ground:#FBFBFA; --paper:#FFFFFF; --panel:#F4F3F0; --rule:#E6E4DF; --rule-2:#EFEEEA; --rule-3:#D6D3CC;
+  --ink:#17171A; --ink-2:#4B4A48; --ink-3:#75736E; --ink-4:#A09D96;
+  --coral:#D85A30; --coral-ink:#B8481F; --coral-wash:#FBEDE7;
+  --l1:#D85A30; --l2:#2F6DB5; --l3:#4E7A2E; --l4:#8E3D64; --l5:#B7791F; --l6:#1C7C7A;
+  --ok:#2F6A19; --ok-wash:#E9F3E3; --warn:#85530A; --warn-wash:#FBF0DA; --bad:#A7302A; --bad-wash:#FCEBEA; --info:#1F5C9E; --info-wash:#E7EFFA;
+  --sh-1:0 1px 1px rgba(23,23,26,.04),0 1px 3px rgba(23,23,26,.05); --sh-2:0 2px 4px rgba(23,23,26,.05),0 14px 32px -16px rgba(23,23,26,.22); --sh-3:0 24px 60px -24px rgba(23,23,26,.35),0 8px 20px -10px rgba(23,23,26,.14);
+  --ring:0 0 0 3px rgba(216,90,48,.22); --r:10px; --r-lg:14px; --r-xl:20px; --ease:cubic-bezier(.2,.8,.2,1); --ui:13.5px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:var(--ui);line-height:1.45;-webkit-font-smoothing:antialiased;font-feature-settings:"calt" 0,"ss01" 0}
+button{font-family:inherit;cursor:pointer;color:inherit;font-size:inherit}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:2px}
+::selection{background:rgba(216,90,48,.18)}
+input,textarea{caret-color:var(--coral);accent-color:var(--coral)}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px;border-radius:4px}
+input:focus-visible,textarea:focus-visible{outline:none}
+*{scrollbar-width:thin;scrollbar-color:#CFCCC4 transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#D3D0C8;border-radius:99px;border:3px solid transparent;background-clip:content-box}::-webkit-scrollbar-track{background:transparent}
+.num{font-variant-numeric:tabular-nums}
+/* ---- shell ---- */
+.top{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;height:54px;padding:0 20px;background:rgba(251,251,250,.86);backdrop-filter:saturate(140%) blur(14px);-webkit-backdrop-filter:saturate(140%) blur(14px);border-bottom:1px solid var(--rule)}
+.top .brand{display:flex;align-items:center;gap:9px;font-weight:650;letter-spacing:-.012em}
+.top .brand svg{width:15px;height:22px;color:var(--coral)}
+.top .brand small{font-weight:500;color:var(--ink-3);margin-left:2px}
+.seg{display:inline-flex;background:var(--panel);border-radius:11px;padding:3px;gap:2px}
+.seg button{border:0;background:none;min-height:30px;padding:0 14px;border-radius:8px;font-weight:550;color:var(--ink-3);white-space:nowrap;position:relative;transition:color .15s}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(23,23,26,.10),0 0 0 .5px rgba(23,23,26,.05)}
+.seg button .cnt{position:absolute;top:1px;right:3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--ink);color:#fff;font-size:10.5px;font-weight:700;line-height:16px;text-align:center}
+.top .right{display:flex;align-items:center;justify-content:flex-end;gap:14px}
+.live{display:inline-flex;align-items:center;gap:7px;color:var(--ink-3);font-size:12.5px}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(47,106,25,.14)}
+.live[data-state=off] i{background:var(--ink-4);box-shadow:none}.live[data-state=up] i{background:var(--warn)}
+.av{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex:none}
+button.av{border:0;padding:0}
+.main{max-width:1280px;margin:0 auto;padding:22px 24px 90px}
+.ph{display:flex;align-items:baseline;gap:14px;margin:4px 0 16px}
+.ph h1{font-size:20px;font-weight:650;margin:0;letter-spacing:-.014em}
+.ph p{margin:0;color:var(--ink-3)}
+.grow{flex:1;min-width:0}.row{display:flex;align-items:center;gap:12px}
+.t1{font-weight:600;letter-spacing:-.006em;margin:0;color:var(--ink)}
+.t2{font-size:12.5px;color:var(--ink-3);margin:2px 0 0}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.mark{fill:currentColor;flex:none}
+/* ---- the net (transit map) ---- */
+.netwrap{position:relative;background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-xl);box-shadow:var(--sh-1);overflow:hidden}
+svg.net{width:100%;height:auto;display:block;font-family:var(--font)}
+svg.net .col{font-size:11px;letter-spacing:.09em;fill:var(--ink-4);font-weight:600}
+svg.net .line{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;transition:opacity .35s var(--ease),stroke-width .25s}
+svg.net .line.ghost{stroke-width:3;stroke-dasharray:1 9;opacity:.55}
+svg.net .plate{cursor:pointer}svg.net .plate rect{fill:var(--paper);stroke:var(--rule-3);stroke-width:1;transition:stroke .2s}
+svg.net .plate:hover rect{stroke:var(--ink-3)}
+svg.net .plate .pt{font-size:13px;font-weight:650}svg.net .plate .ps{font-size:11.5px;fill:var(--ink-3)}
+svg.net .plate .pn{font-size:22px;font-weight:650;fill:var(--ink);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+svg.net .station{cursor:pointer}svg.net .station circle{fill:var(--paper);stroke:var(--ink);stroke-width:2.5;transition:stroke-width .2s}
+svg.net .station:hover circle{stroke-width:3.5}
+svg.net .station .st{font-size:12.5px;font-weight:600;fill:var(--ink)}svg.net .station .ss{font-size:11px;fill:var(--ink-3)}
+svg.net .station.hold circle{stroke:var(--bad)}svg.net .station.idle circle{stroke:var(--ink-4);stroke-width:2}
+svg.net .stop{cursor:pointer}
+svg.net .stop .tt{font-size:11.5px;font-weight:600;fill:var(--ink)}svg.net .stop .ts{font-size:11px;fill:var(--ink-3)}
+svg.net .train{opacity:.95}
+svg.net .dim{opacity:.10;transition:opacity .35s var(--ease)}
+svg.net .lbl{font-size:11.5px;fill:var(--ink-3)}
+.legend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--rule);background:var(--ground)}
+.legend .lg{display:inline-flex;align-items:center;gap:8px;min-height:32px;padding:0 12px 0 10px;border:1px solid var(--rule);background:var(--paper);border-radius:999px;font-weight:550;color:var(--ink-2);transition:border-color .15s,background .15s}
+.legend .lg:hover{border-color:var(--rule-3)}.legend .lg.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.legend .lg i{width:10px;height:10px;border-radius:50%;flex:none}.legend .lg b{font-weight:650}.legend .lg small{color:inherit;opacity:.7}
+.legend .spacer{flex:1}
+.vroute{padding:6px 0 14px}
+.vplate{display:flex;align-items:center;gap:12px;width:100%;border:1px solid var(--rule-3);background:var(--paper);border-radius:14px;padding:10px 14px;text-align:left;font:inherit}
+.vplate small{display:block;color:var(--ink-3);font-size:12px}
+.vline{position:relative;margin:0 0 0 22px;padding:10px 0 0 0;border-left:6px solid var(--c);border-radius:0 0 0 6px}
+.vline.ghost{border-left-style:dotted;border-left-width:3px;margin-left:23.5px}
+.vst{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:6px 0 6px 14px;text-align:left;font:inherit;position:relative}
+.vst i{position:absolute;left:-15px;width:18px;height:18px;border-radius:50%;background:var(--paper);border:2.5px solid var(--ink)}
+.vst.stop i{left:-10px;width:5px;height:22px;border-radius:3px;background:var(--c);border:0}
+.vst small{color:var(--ink-3)}
+/* ---- inspector drawer ---- */
+#scrim{position:fixed;inset:0;background:rgba(23,23,26,.18);opacity:0;pointer-events:none;transition:opacity .25s;z-index:40}
+#scrim.open{opacity:1;pointer-events:auto}
+#insp{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);background:var(--paper);box-shadow:var(--sh-3);transform:translateX(104%);transition:transform .32s var(--ease);z-index:41;overflow:auto;padding:22px 22px 32px}
+#insp.open{transform:none}
+#insp h2{font-size:17px;font-weight:650;margin:0 36px 4px 0;letter-spacing:-.012em}
+.inspx{position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:9px;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--ink-2)}.inspx:hover{background:var(--panel)}
+.insp-line{height:6px;border-radius:99px;margin:14px 0 16px}
+/* ---- components ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:0 13px;border:1px solid var(--rule-3);background:var(--paper);color:var(--ink);border-radius:var(--r);font-weight:550;white-space:nowrap;transition:background .15s,border-color .15s,transform .12s var(--ease)}
+.btn:hover{background:var(--panel)}.btn:active{transform:translateY(.5px)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn svg.i{width:15px;height:15px;stroke-width:2}
+.btn.sm{min-height:28px;padding:0 10px;font-size:12.5px;border-radius:8px}
+.btn.coral{background:var(--coral);border-color:var(--coral);color:#fff;font-weight:600}.btn.coral:hover{background:var(--coral-ink);border-color:var(--coral-ink)}
+.btn.block{display:flex;width:100%;min-height:44px;border-radius:12px;white-space:normal}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--ink-2)}.btn.ghost:hover{background:var(--panel)}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--coral-ink);padding:0 4px;min-height:0;font-weight:600}.btn.quiet:hover{background:transparent;text-decoration:underline}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;line-height:16px;padding:2px 8px;border-radius:6px;white-space:nowrap;background:var(--panel);color:var(--ink-2);vertical-align:middle}
+.pill.warn{background:var(--warn-wash);color:var(--warn)}.pill.dang{background:var(--bad-wash);color:var(--bad)}.pill.ok{background:var(--ok-wash);color:var(--ok)}.pill.info{background:var(--info-wash);color:var(--info)}.pill.coral{background:var(--coral-wash);color:var(--coral-ink)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border:1px solid var(--rule-3);background:var(--paper);border-radius:999px;font-size:12.5px;font-weight:550;color:var(--ink-2);cursor:pointer;user-select:none;transition:background .15s,border-color .15s,color .15s}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);padding:13px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+button.card{width:100%;font:inherit;text-align:left;transition:border-color .15s,box-shadow .15s}
+button.card:hover{border-color:var(--rule-3);box-shadow:var(--sh-2)}
+.card.block{display:block}
+.list{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
+.list>.card{margin:0;border:0;border-radius:0;border-top:1px solid var(--rule-2)}.list>:first-child{border-top:0}.list>button.card:hover{background:var(--ground);box-shadow:none}
+.reccard{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);padding:16px 18px}
+.sech{font-size:15px;font-weight:650;letter-spacing:-.012em;margin:24px 0 10px}
+.sectlabel{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+.empty{text-align:center;color:var(--ink-3);padding:40px 20px;line-height:1.55}
+.tk{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-top:1px solid var(--rule-2)}.tk:first-of-type{border-top:0}.tk>b{width:86px;flex:none;color:var(--ink-3);font-weight:600}
+label.fl{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin:14px 0 6px}
+input.f,textarea.f{width:100%;border:1px solid var(--rule-3);background:var(--paper);border-radius:var(--r);padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input.f:hover,textarea.f:hover{border-color:var(--ink-4)}input.f:focus,textarea.f:focus{border-color:var(--coral);box-shadow:var(--ring)}
+textarea.f{min-height:72px;resize:vertical;line-height:1.5}
+.wiz{display:flex;gap:6px;margin:14px 0 16px;flex-wrap:wrap}
+.wiz button{flex:1;min-width:120px;border:1px solid var(--rule);background:var(--paper);border-radius:11px;padding:10px 12px;font-weight:600;color:var(--ink-3);text-align:left}
+.wiz button.on{border-color:var(--ink);color:var(--ink)}.wiz button.done{color:var(--ok)}
+.tablewrap{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:auto}
+table.lv{width:100%;border-collapse:collapse}
+table.lv th{text-align:left;font-size:11.5px;font-weight:600;letter-spacing:.03em;color:var(--ink-3);padding:10px 12px;border-bottom:1px solid var(--rule);white-space:nowrap;position:sticky;top:0;background:var(--paper);z-index:1}
+table.lv td{padding:9px 12px;border-bottom:1px solid var(--rule-2);white-space:nowrap;vertical-align:top}table.lv tr:last-child td{border-bottom:0}
+table.lv td.wrap{white-space:normal;min-width:260px}.lvname{font-weight:600}
+.dropzone{border:1.5px dashed var(--rule-3);border-radius:16px;padding:28px 18px;text-align:center;color:var(--ink-3);background:var(--paper);cursor:pointer}.dropzone:hover{border-color:var(--coral)}.dropzone svg{width:24px;height:24px;color:var(--ink-4)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-weight:550;padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ease);z-index:99;box-shadow:var(--sh-3)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+/* schedule board */
+.sched th.dc,.sched td.dc{text-align:center;min-width:46px;padding:8px 4px;font-variant-numeric:tabular-nums}
+.sched .we{background:var(--ground);color:var(--ink-4)}.sched .today{box-shadow:inset 0 0 0 2px var(--coral-wash)}.sched th.today{color:var(--coral-ink)}
+.sched .cell{display:inline-block;min-width:30px;padding:3px 7px;border-radius:7px;color:#fff;font-size:12px;font-weight:650}.sched .cell.soft{background:var(--panel);color:var(--ink-2)}
+.sched tr.tot td{background:var(--ground);font-weight:600}.sched a{text-decoration:none}.sched a:hover{text-decoration:underline}
+.sched .bar{height:6px;border-radius:99px;background:var(--panel);overflow:hidden}.sched .bar i{display:block;height:100%;border-radius:99px}
+.sched .lane{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+/* route cards (campaign list) + route header (one campaign) */
+.route{display:grid;grid-template-columns:minmax(220px,1.1fr) minmax(0,2fr) auto;gap:16px;align-items:center;padding:14px 18px}
+.route .trk{position:relative;height:40px}
+.route .trk .ln{position:absolute;left:0;right:0;top:17px;height:6px;border-radius:99px}
+.route .trk .sp{position:absolute;top:12px;width:16px;height:16px;border-radius:50%;background:var(--paper);border:2.5px solid currentColor;transform:translateX(-50%)}
+.route .trk .sp.done{background:currentColor}
+.route .trk .tl{position:absolute;top:30px;font-size:11px;color:var(--ink-3);transform:translateX(-50%);white-space:nowrap}
+/* login */
+.login{max-width:380px;margin:12vh auto 0;padding:0 20px}
+.login .logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:650;justify-content:center;letter-spacing:-.014em}.login .logo svg{width:20px;height:30px;color:var(--coral)}
+.login .tag{text-align:center;color:var(--ink-3);margin:4px 0 26px}
+.login .who{color:var(--ink-3);text-align:center;margin-bottom:12px}
+.ubtn{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--paper);padding:12px 14px;text-align:left;font:inherit}
+.ubtn:hover{background:var(--ground)}.ubtn .uav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex:none}
+.ubtn b{display:block;font-size:14.5px}.ubtn small{color:var(--ink-3);font-size:12.5px}
+#loginMsg{font-size:13px;color:var(--ink-3);text-align:center;min-height:18px;margin-top:12px}
+@media (prefers-reduced-motion:reduce){#insp{transition:none}}
+@media (max-width:900px){
+  .top{grid-template-columns:1fr auto;grid-template-areas:"brand right" "nav nav";height:auto;padding:8px 12px 8px;gap:8px 8px}
+  .top .brand{grid-area:brand}.top .right{grid-area:right}.top .seg{grid-area:nav;width:100%;justify-content:space-between}.seg button{padding:0 8px;font-size:12.5px;flex:1}
+  .top .brand small{display:none}
+  .main{padding:14px 14px 80px}
+  .route{grid-template-columns:1fr;gap:10px}
+  #insp{top:auto;left:0;right:0;width:100%;max-height:82vh;border-radius:18px 18px 0 0;transform:translateY(104%)}
+}
+</style>
+</head>
+<body>
+<div id="screen"></div>
+<div id="scrim" data-act="closesheet"></div><aside id="insp" aria-label="Details"></aside>
+<div class="toast" id="toast"></div>
+<script>
+/* ===== AutoTQ Marketing — the marketing hub, separate from the CRM, same shared database. =====
+   Reads the team's lead data (conference leads, contacts, accounts, call lists) straight from Supabase with the
+   signed-in teammate's token; the row-level allowlist is the lock. Campaigns, review comments, to-dos and logged
+   emails are written back as the same records the CRM uses, so both apps show the same thing. */
+const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
+const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-"; // publishable key — safe in the page; data access is gated by RLS on the user's token
+const SKEY="autotq_mkt_session_v1", UKEY="autotq_mkt_user", DKEY="autotq_mkt_db_v1";
+const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
+const TEAM=[
+ {id:"max",name:"Max Herbst",role:"Strategic Account Manager",c:"#D85A30"},
+ {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
+ {id:"jamie",name:"Jamie Saltzman",role:"Commercial Strategy",c:"#3B6D11"},
+ {id:"kellan",name:"Kellan",role:"Business Development",c:"#6B4FA3"},
+ {id:"john",name:"John Cornejo",role:"Channel Sales — Central",c:"#185FA5"},
+ {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
+ {id:"tim",name:"Tim Ford",role:"Channel Sales — West",c:"#B7791F"},
+ {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}];
+const CAMP_REVIEWERS=["jamie","hannah"];
+const SALES_FROM="salessupport@goldenhourmedical.com";
+const SITE_URL="https://theautotq.com/";
+const PULL_COLLECTIONS=["confLeads","people","companies","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"];
+const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
+const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
+const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
+const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",california:"CA",colorado:"CO",connecticut:"CT",delaware:"DE",florida:"FL",georgia:"GA",hawaii:"HI",idaho:"ID",illinois:"IL",indiana:"IN",iowa:"IA",kansas:"KS",kentucky:"KY",louisiana:"LA",maine:"ME",maryland:"MD",massachusetts:"MA",michigan:"MI",minnesota:"MN",mississippi:"MS",missouri:"MO",montana:"MT",nebraska:"NE",nevada:"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND",ohio:"OH",oklahoma:"OK",oregon:"OR",pennsylvania:"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD",tennessee:"TN",texas:"TX",utah:"UT",vermont:"VT",virginia:"VA",washington:"WA","west virginia":"WV",wisconsin:"WI",wyoming:"WY"};
+const SVG={plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',check:'<polyline points="5 12 10 17 19 7"/>',back:'<polyline points="15 6 9 12 15 18"/>',
+ plane:'<path d="M10 16l-6 2 1-4-3-6 3 1 5-5a2 2 0 013 3l-5 5 1 5-2 1-2-5z"/>',chevR:'<polyline points="9.5 6 15.5 12 9.5 18"/>',x:'<line x1="6.5" y1="6.5" x2="17.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="6.5" y2="17.5"/>',
+ cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>',dl:'<path d="M12 4v11"/><polyline points="8 11 12 15 16 11"/><line x1="5" y1="20" x2="19" y2="20"/>',
+ home:'<path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',file:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
+ user:'<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.2-5.5 7-5.5s7 1.9 7 5.5"/>',spark:'<path d="M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6z"/>',book:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19a2 2 0 012-2h13"/>'};
+const BRAND_MARK='<svg class="mark" viewBox="0 0 157 227" aria-hidden="true"><path d="M152.6,23.5 148.1,15.8 143.1,10.8 136.8,6.5 126.2,3 114.6,3 17.1,28.5 14.8,30.8 14,35.1 25.5,68 30,72.8 33.9,72.8 44.5,69.1 64.6,64.9 91.2,64.9 102.9,67 116.6,70.9 124.2,70.9 137.6,66.5 141.1,64.1 149.9,55 154.9,43.1 154.9,30.8Z"/><circle cx="77.5" cy="150" r="66" fill="none" stroke="currentColor" stroke-width="18"/></svg>';
+function svg(n,cls){return '<svg class="i '+(cls||"")+'" viewBox="0 0 24 24" aria-hidden="true">'+(SVG[n]||"")+'</svg>';}
+function chev(){return svg("chevR","chev");}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function pad2(n){return (n<10?"0":"")+n;}
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
+function initials(s){return String(s||"").split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();}
+function teamById(id){return TEAM.find(t=>t.id===id)||{name:"—",c:"#888"};}
+function userEmail(u){return Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===u)||"";}
+function shortName(id){const n=teamById(id).name.split(" ")[0];return n+(id==="johnm"?" M.":id==="john"?" C.":"");}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2200);}
+function openSheet(html){openInsp(html);}
+function closeSheet(){closeInsp();}
+function regionFromState(st){st=(st||"").trim().toUpperCase().slice(0,2);if(!st)return "";return EAST_STATES.has(st)?"East":(CENTRAL_STATES.has(st)?"Central":"West");}
+
+/* ---------- session + data ---------- */
+let SESSION=null;try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
+let USER=null, DB={}, view="home", curCampaign=null, campStep=1, mktTab="campaigns", leadsQ="", leadsConf="";
+const logState={otpEmail:null,pwEmail:null,setPw:null};
+const SYNC={lastPull:"1970-01-01T00:00:00Z",dirty:{},timer:null,pushing:false,state:"off",booted:false};
+function authed(){return !!(SESSION&&SESSION.access_token);}
+function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
+function admin(){return USER==="max"||USER==="kellan";}
+function loadLocal(){try{const r=JSON.parse(localStorage.getItem(DKEY)||"null");if(r&&r.db){DB=r.db;SYNC.lastPull=r.lastPull||SYNC.lastPull;}}catch(e){}PULL_COLLECTIONS.concat(["activities"]).forEach(c=>{DB[c]=DB[c]||[];});}
+function saveLocal(){try{localStorage.setItem(DKEY,JSON.stringify({db:DB,lastPull:SYNC.lastPull}));}catch(e){/* quota — the server copy is the real one */}}
+async function supa(path,opts){
+  opts=opts||{};const h=Object.assign({"apikey":SUPA_KEY,"Authorization":"Bearer "+(SESSION?SESSION.access_token:""),"Content-Type":"application/json"},opts.headers||{});
+  let res=await fetch(SUPA_URL+path,Object.assign({},opts,{headers:h}));
+  if(res.status===401&&await refreshSession()){h.Authorization="Bearer "+SESSION.access_token;res=await fetch(SUPA_URL+path,Object.assign({},opts,{headers:h}));}
+  return res;
+}
+async function refreshSession(){
+  if(!SESSION||!SESSION.refresh_token)return false;
+  try{const res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:SESSION.refresh_token})});
+    if(!res.ok){saveSession(null);USER=null;render();return false;}saveSession(await res.json());return true;}catch(e){return false;}
+}
+function syncDot(state){SYNC.state=state;const el=document.getElementById("syncdot");if(el){el.dataset.state=state;el.lastChild.textContent=state==="off"?"Offline":state==="up"?"Saving…":"Live";}}
+/* writes: put(coll, record) saves locally and upserts to the shared records table (same shape the CRM pushes) */
+function put(coll,rec){DB[coll]=DB[coll]||[];const i=DB[coll].findIndex(r=>String(r.id)===String(rec.id));if(i>-1)DB[coll][i]=rec;else DB[coll].push(rec);
+  SYNC.dirty[coll+"|"+rec.id]={collection:coll,id:String(rec.id),data:rec,deleted:false};saveLocal();clearTimeout(SYNC.timer);SYNC.timer=setTimeout(pushDirty,500);}
+function del(coll,id){DB[coll]=(DB[coll]||[]).filter(r=>String(r.id)!==String(id));SYNC.dirty[coll+"|"+id]={collection:coll,id:String(id),data:{id:id},deleted:true};saveLocal();clearTimeout(SYNC.timer);SYNC.timer=setTimeout(pushDirty,300);}
+async function pushDirty(){
+  if(SYNC.pushing||!authed())return;const keys=Object.keys(SYNC.dirty);if(!keys.length)return;
+  SYNC.pushing=true;syncDot("up");
+  try{const rows=keys.map(k=>Object.assign({updated_by:USER||""},SYNC.dirty[k]));
+    const res=await supa("/rest/v1/records?on_conflict=collection,id",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(rows)});
+    if(res.ok){keys.forEach(k=>delete SYNC.dirty[k]);syncDot("ok");}else{syncDot("off");toast("Couldn't save to the team database ("+res.status+") — kept locally, will retry");}
+  }catch(e){syncDot("off");}
+  SYNC.pushing=false;
+}
+async function pullChanges(full){
+  if(!authed())return;
+  try{let changed=false;const from=full?"1970-01-01T00:00:00Z":SYNC.lastPull;let maxTs=SYNC.lastPull,offset=0,page=0;
+    const colls="("+PULL_COLLECTIONS.join(",")+")";
+    while(page<40){
+      const res=await supa("/rest/v1/records?collection=in."+colls+"&updated_at=gte."+encodeURIComponent(from)+"&order=updated_at.asc,collection.asc,id.asc&limit=1000&offset="+offset);
+      if(!res.ok){syncDot("off");return;}
+      const rows=await res.json();
+      rows.forEach(r=>{if(r.updated_at>maxTs)maxTs=r.updated_at;if(SYNC.dirty[r.collection+"|"+r.id])return;
+        const arr=DB[r.collection]=DB[r.collection]||[];const i=arr.findIndex(x=>String(x.id)===String(r.id));
+        if(r.deleted){if(i>-1){arr.splice(i,1);changed=true;}return;}
+        const s=JSON.stringify(r.data);if(i>-1){if(JSON.stringify(arr[i])!==s){arr[i]=r.data;changed=true;}}else{arr.push(r.data);changed=true;}});
+      if(rows.length<1000)break;offset+=1000;page++;}
+    SYNC.lastPull=maxTs;saveLocal();syncDot("ok");
+    if(changed){const ae=document.activeElement;if(!ae||!/INPUT|TEXTAREA/.test(ae.tagName))render();}
+  }catch(e){syncDot("off");}
+}
+async function bootSync(){await pullChanges(!(DB.people||[]).length);SYNC.booted=true;if(Object.keys(SYNC.dirty).length)pushDirty();setInterval(pullChanges,10000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});}
+function company(id){return (DB.companies||[]).find(c=>c.id===id);}
+function person(id){return (DB.people||[]).find(p=>p.id===id);}
+function personStates(p){if(Array.isArray(p.states)&&p.states.length)return p.states;if(p.state)return [p.state];const c=company(p.cid);return c&&c.state?[c.state]:[];}
+function contactType(p){const c=company(p.cid);if(!c)return "enduser";if(c.type==="manrep"||c.type==="partner")return "manrep";if(c.type==="distributor")return "distrep";return "enduser";}
+function distStatus(c){if(c.dstatus)return c.dstatus;return (((c.units||0)>0)||((c.orders||0)>0))?"setup":"potential";}
+function myLists(){return (DB.lists||[]).filter(l=>!l.removed);}
+function confLeadLists(){const by={};(DB.confLeads||[]).forEach(l=>{(by[l.conf]=by[l.conf]||[]).push(l);});
+  return Object.keys(by).map(conf=>{const ls=by[conf];return {conf,total:ls.length,contacted:ls.filter(l=>l.contacted).length,tocall:ls.filter(l=>!l.contacted&&l.segment!=="Set Aside").length,hot:ls.filter(l=>l.temp==="Hot").length};}).sort((a,b)=>b.total-a.total);}
+
+/* ---------- login (same Supabase auth as the CRM: password, or an emailed code) ---------- */
+function renderLogin(){
+  const step=logState.setPw?"setpw":(logState.otpEmail?"code":(logState.pwEmail?"pw":"email"));
+  let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div>';
+  if(step==="email")h+='<div class="who">Tap your name to sign in</div><div class="list">'+TEAM.map(t=>{const em=userEmail(t.id);return em?'<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span class="grow"><b>'+t.name+'</b><small>'+esc(em)+'</small></span>'+chev()+'</button>':"";}).join("")+'</div><p id="loginMsg"></p>';
+  else if(step==="pw")h+='<div class="who">Password for<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div><input class="f" id="pwInput" type="password" placeholder="Password" autocomplete="current-password"><button class="btn coral block" data-act="verifypw" style="margin-top:14px">Sign in</button><button class="btn block ghost" data-act="sendotp" data-email="'+esc(logState.pwEmail)+'" style="margin-top:8px">Email me a code instead</button><button class="btn block ghost" data-act="otpback" style="margin-top:4px">Different account</button><p id="loginMsg"></p>';
+  else if(step==="setpw")h+='<div class="who">You\'re in. Set a password for next time, or skip.</div><input class="f" id="pw1" type="password" placeholder="New password (8+ characters)"><input class="f" id="pw2" type="password" placeholder="Retype it" style="margin-top:8px"><button class="btn coral block" data-act="setpwsave" style="margin-top:14px">Save password</button><button class="btn block ghost" data-act="setpwskip" style="margin-top:8px">Skip for now</button><p id="loginMsg"></p>';
+  else h+='<div class="who">Enter the code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div><input class="f" id="otpCode" inputmode="numeric" maxlength="12" placeholder="Code" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:6px;font-weight:700"><button class="btn coral block" data-act="verifyotp" style="margin-top:14px">Sign in</button><button class="btn block ghost" data-act="otpback" style="margin-top:8px">Back</button><p id="loginMsg"></p>';
+  document.getElementById("screen").innerHTML=h+"</div>";
+  const f=document.getElementById("pwInput")||document.getElementById("otpCode")||document.getElementById("pw1");if(f)setTimeout(()=>f.focus(),60);
+}
+function loginMsg(m,bad){const el=document.getElementById("loginMsg");if(el){el.textContent=m;el.style.color=bad?"var(--dang-t)":"var(--muted)";}}
+function signedIn(j,email){saveSession(j);USER=TEAM_EMAILS[((j.user&&j.user.email)||email).toLowerCase()]||"";localStorage.setItem(UKEY,USER);logState.pwEmail=null;logState.otpEmail=null;}
+async function verifyPw(){const pw=(document.getElementById("pwInput")||{}).value||"";if(!pw){loginMsg("Enter your password",true);return;}loginMsg("Signing in…");
+  try{const res=await fetch(SUPA_URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:logState.pwEmail,password:pw})});const j=await res.json();
+    if(!res.ok||!j.access_token){loginMsg("Wrong password — try again, or use an email code",true);return;}signedIn(j,logState.pwEmail);view="home";render();bootSync();}catch(e){loginMsg("Network problem — try again",true);}}
+async function sendOtp(email){loginMsg("Sending code…");
+  try{const res=await fetch(SUPA_URL+"/auth/v1/otp",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({email:email,create_user:false})});
+    if(!res.ok){const j=await res.json().catch(()=>({}));loginMsg(j.msg||j.error_description||"Couldn't send the code — try again",true);return;}logState.otpEmail=email;renderLogin();loginMsg("Code sent — check your email (and spam, the first time).");}catch(e){loginMsg("Network problem — try again",true);}}
+async function verifyOtp(){const code=((document.getElementById("otpCode")||{}).value||"").replace(/\D/g,"");if(code.length<6){loginMsg("Enter the full code from the email",true);return;}loginMsg("Checking…");
+  try{const res=await fetch(SUPA_URL+"/auth/v1/verify",{method:"POST",headers:{"apikey":SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify({type:"email",email:logState.otpEmail,token:code})});const j=await res.json();
+    if(!res.ok||!j.access_token){loginMsg(j.msg||j.error_description||"That code didn't work — check it or send a fresh one",true);return;}signedIn(j,logState.otpEmail);logState.setPw=true;renderLogin();bootSync();}catch(e){loginMsg("Network problem — try again",true);}}
+async function setPwSave(){const p1=(document.getElementById("pw1")||{}).value||"",p2=(document.getElementById("pw2")||{}).value||"";if(p1.length<8){loginMsg("Use at least 8 characters",true);return;}if(p1!==p2){loginMsg("Those don't match",true);return;}
+  const res=await supa("/auth/v1/user",{method:"PUT",body:JSON.stringify({password:p1})});if(!res.ok){loginMsg("Couldn't save it — try again",true);return;}logState.setPw=null;view="home";render();toast("Password updated");}
+
+/* ---------- marketing model (mirrors the CRM's Marketing tab; records are interchangeable) ---------- */
+const CAMP_STATUS=[["draft","Draft","gray"],["review","In review","warn"],["approved","Approved","info"],["active","Running","ok"],["done","Done","gray"]];
+const IND_GROUPS=[
+ ["ems","EMS & Fire","training","The cuff rides to the hospital with the patient; Golden Hour Medical replaces it free.",/\bems\b|\bfire\b|ambulance|paramedic|rescue|\bmedic/i],
+ ["law","Law Enforcement","industry-law-enforcement","Police arrived 4 minutes before EMS on average across 43 tourniquet applications in Aurora, CO (JSOM).",/police|sheriff|law enforcement|public safety|patrol/i],
+ ["campuses","Campuses","industry-campuses","27 tourniquets were applied at the Boston Marathon bombing. Every one was improvised.",/universit|college|campus/i],
+ ["schools","Faith & Schools","industry-faith-schools","99,073 public schools in the United States, with about 49 million students (NCES).",/\bschool|church|ministr|diocese|academy|\bisd\b/i],
+ ["venues","Sports & Entertainment","industry-venues","The Florida Panthers put 13 AutoTQ units in their arena.",/arena|stadium|sports|entertainment|hockey|athletic/i],
+ ["maritime","Maritime & Fishing","industry-maritime","88.8 fatal injuries per 100,000 fishing and hunting workers in 2024; 3.3 for all workers (BLS).",/marine|maritime|fishing|vessel|\bport\b|shipping|offshore/i],
+ ["manufacturing","Manufacturing","industry-manufacturing","Employers reported 1,348 amputations in manufacturing in 2024 (OSHA).",/manufactur|aerospace|petrochem|\bplant\b|stamping|automotive|foundry|steel|chemical|packaging/i],
+ ["construction","Construction & Energy","industry-construction","1,034 workplace deaths in construction in 2024, the most of any private industry (BLS).",/construct|utilit|energy|solar|mining|\boil\b|\bgas\b|electric|agricultur|contractor|builders/i],
+ ["warehousing","Warehousing & Logistics","industry-warehousing","84 work-related deaths involving forklifts in 2024 (NSC).",/warehous|logistic|transport|trucking|trades|wholesale|retail|distribution|freight|supply/i],
+ ["public","Parks & Public Spaces","industry-public-spaces","More than 5 million people have been trained to control bleeding through Stop the Bleed, in all 50 states (ACS).",/government|public admin|administration|county|city of|municipal|parks|\btown\b|village|judicial/i],
+ ["general","Workplace","industries","You are about twice as likely to need a tourniquet at work as an AED.",/./]];
+function indGroup(k){return IND_GROUPS.find(g=>g[0]===k)||IND_GROUPS[IND_GROUPS.length-1];}
+function indGroupFor(l){for(const src of [l.industryRaw||"",[l.company,l.title].filter(Boolean).join(" ")]){if(!src)continue;for(const g of IND_GROUPS){if(g[0]!=="general"&&g[4].test(src))return g[0];}}return "general";}
+const CAMP_TEMPLATES={
+ enduser:{name:"End-user · by industry",who:"Safety managers and buyers",steps:[
+  {day:1,subject:"Next to the AED at {{company}}?",body:"{{first_name}} — you're about twice as likely to need a tourniquet at work as an AED, and windlass tourniquets fail 78–84% of the time for first-time users.\n\nAutoTQ is the automatic one: tighten, press Inflate, it does the rest. 92% of adults got it right on the first try after a 30-second demo.\n\nHere's how {{industry}} sites set it up: {{industry_page}}\n\nWorth a 10-minute look?\n{{rep}}"},
+  {day:4,subject:"Re: Next to the AED at {{company}}?",body:"{{first_name}} — one number from your world: {{industry_stat}}\n\nThe Florida Panthers, FAU and Lee County put AutoTQ next to their AEDs. Each took days, not quarters.\n\nWant a demo unit sent to {{city}}? I can ship one this week.\n{{rep}}"},
+  {day:10,subject:"Re: Next to the AED at {{company}}?",body:"Last note from me. If bleeding control is on the list this year, I'd rather you have the information now than after an incident.\n\nOne page: {{industry_page}}\n\nReply \"send it\" and a demo unit is on the way.\n{{rep}}"}]},
+ distrep:{name:"Distributor rep",who:"Sellers at Grainger, Fastenal, Ritz…",steps:[
+  {day:1,subject:"Your customers are asking about bleeding control",body:"{{first_name}} — anywhere your customer has an AED, AutoTQ belongs next to it. It's the automatic tourniquet: no windlass, no training, 92% first-try success.\n\nTwo things to make it easy to sell:\n• The one-card pitch (60 seconds): {{industry_page}}\n• A 15-minute training: "+SITE_URL+"training\n\nFinish the training and I'll ship you a demo unit for your bag.\n{{rep}}"},
+  {day:5,subject:"Re: Your customers are asking about bleeding control",body:"{{first_name}} — quick follow-up. Which of your accounts has AEDs on the wall and nothing for bleeding? That's the first conversation.\n\nI can join the call or send the demo unit straight to the customer.\n{{rep}}"},
+  {day:12,subject:"Re: Your customers are asking about bleeding control",body:"Closing the loop. If a demo unit would help you this quarter, reply \"send it\" with your address and it ships this week.\n{{rep}}"}]},
+ ems:{name:"EMS / Fire",who:"Paramedics, EMTs, chiefs",steps:[
+  {day:1,subject:"Great meeting you at {{conference}}",body:"{{first_name}} — good to meet you at {{conference}}.\n\nThe part most crews ask about: the cuff rides to the hospital with the patient, you keep the inflator, and we replace the cuff free. Report a use here: "+SITE_URL+"report\n\nIf you want a unit to run through your protocol review, reply \"send it\".\n{{rep}}"},
+  {day:6,subject:"Re: Great meeting you at {{conference}}",body:"{{first_name}} — one more thing from the show: the public-access angle. Anywhere your district already has an AED, AutoTQ next to it gives bystanders something that works before you arrive.\n\nHappy to send the one-pager for your medical director.\n{{rep}}"},
+  {day:12,subject:"Re: Great meeting you at {{conference}}",body:"Last note from me. Training is free and open: "+SITE_URL+"training. If it's useful later, I'm one reply away.\n{{rep}}"}]},
+ blank:{name:"Start blank",who:"",steps:[{day:1,subject:"",body:""}]}};
+const CAMP_TOKENS=["first_name","company","title","city","industry","industry_page","industry_stat","conference","rep"];
+function campDefaultSteps(k){return JSON.parse(JSON.stringify((CAMP_TEMPLATES[k]||CAMP_TEMPLATES.enduser).steps));}
+function campaigns(){return (DB.campaigns||[]).filter(c=>c&&c.id);}
+function campaignById(id){return campaigns().find(c=>c.id===id);}
+function campStatus(c){return CAMP_STATUS.find(s=>s[0]===(c.status||"draft"))||CAMP_STATUS[0];}
+function campStatusTag(c){const s=campStatus(c);return '<span class="pill '+s[2]+'">'+s[1]+'</span>';}
+function campFlagTag(f,l){return f==="suppressed"?'<span class="pill dang">Unsubscribed</span>':f==="touched"?'<span class="pill warn" title="'+esc(l&&l.touched?l.touched.how+" "+l.touched.at:"")+'">Touched '+esc(l&&l.touched?l.touched.at.slice(5):"")+'</span>':f==="enrolled"?'<span class="pill info">In: '+esc((l&&l.enrolledIn||"").slice(0,18))+'</span>':f==="invalid"?'<span class="pill dang">Undeliverable</span>':f==="ok"?(l&&l.risky?'<span class="pill warn">Ready · guessed</span>':l&&l.vstatus?'<span class="pill ok">Ready · verified</span>':'<span class="pill ok">Ready</span>'):f==="missing"?'<span class="pill">No email</span>':f==="dupe"?'<span class="pill warn">Duplicate</span>':f==="verify"?'<span class="pill warn">Verify email</span>':'<span class="pill dang">Bad email</span>';}
+function campOk(c){return (c.leads||[]).filter(l=>l.flag==="ok");}
+function campReady(c,step){if(step===1)return campOk(c).length>0;if(step===2)return (c.steps||[]).some(s=>(s.subject||"").trim()&&(s.body||"").trim());if(step===3)return ["approved","active","done"].includes(c.status);return c.status==="active"||c.status==="done";}
+const BASIS_OPTS=["Met us at a show","Customer or distributor in the CRM","Asked us (inbound)","Other — say how"];
+const SPAMMY=/\b(free|guarantee|act now|limited time|winner|100%|\$\$\$|click here|urgent|no obligation)\b/i;
+function campChecks(c){ // the SES terms, as checks a reviewer can read. hard = blocks approval; soft = shown
+  const first=campOk(c)[0];const steps=c.steps||[];const out=[];
+  const add=(ok,hard,text)=>out.push({ok,hard,text});
+  add(!!(c.basis&&c.basis.trim()),true,c.basis?"They know us: "+c.basis:"Say how these people know us (Audience step)");
+  add(steps.length>0&&steps.every(st=>(st.subject||"").trim()&&(st.body||"").trim()),true,"Every email has a subject and a message");
+  const leftover=first?steps.some(st=>/\{\{[^}]*\}\}/.test(campFill(st.subject,first,c)+campFill(st.body,first,c))):false;add(!leftover,true,leftover?"A token is not filling in (check {{…}} spelling)":"All personalization tokens fill in");
+  add(!steps.some(st=>(st.subject||"").length>80||(st.subject||"")===(st.subject||"").toUpperCase()&&/[A-Z]{4}/.test(st.subject||"")),false,"Subjects are short and not ALL CAPS");
+  add(!steps.some(st=>SPAMMY.test(st.subject||"")||SPAMMY.test(st.body||"")),false,"No spam-filter trigger words");
+  add(true,false,"Unsubscribe link, List-Unsubscribe headers and our postal address go on every email automatically");
+  add(true,false,"Replies go to a real mailbox: "+(c.replyTo||userEmail(USER)||SALES_FROM));
+  const ok=campOk(c),ver=ok.filter(l=>l.vstatus).length;add(ok.length===0||ver/ok.length>=0.5,false,ok.length?(ver+" of "+ok.length+" addresses checked with Apollo"+(ver/ok.length<0.5?" — check the rest before sending":"")):"no one to email yet");
+  const risky=ok.filter(l=>/^(info|sales|admin|office|contact|support|hello)@/i.test(l.email||"")).length;add(risky===0,false,risky?risky+" role addresses (info@, sales@…) — these complain most":"No role addresses (info@, sales@…)");
+  return out;}
+function campHardOk(c){return campChecks(c).every(x=>x.ok||!x.hard);}
+function campIsReviewer(){return admin()||CAMP_REVIEWERS.includes(USER);}
+function campCanSend(c){return admin()&&["approved","active"].includes(c.status)&&Object.keys(c.approvals||{}).length>0;}
+function campVariant(step,l,i){const alts=(step&&step.alts||[]).filter(a=>(a.subject||"").trim()||(a.body||"").trim());if(!alts.length)return {v:0,subject:step.subject,body:step.body};
+  const key=String(l.email||"").toLowerCase();let h=0;for(const ch of key)h=(h*31+ch.charCodeAt(0))>>>0;const v=h%(alts.length+1);if(!v)return {v:0,subject:step.subject,body:step.body};const a=alts[v-1];return {v,subject:a.subject||step.subject,body:a.body||step.body};}
+function campVariantStat(c,i,v){const ls=(c.leads||[]).filter(l=>l.sent&&l.sent[i]&&((l.var||{})[i]||0)===v);const r=ls.filter(l=>l.outcome&&l.outcome!=="no").length;return ls.length?ls.length+" sent · "+r+" replied ("+Math.round(100*r/ls.length)+"%)":"not sent yet";}
+function campFill(t,l,c,s){const g=indGroup(l.ind||indGroupFor(l));const me=s?{name:s.name||teamById(s.owner||USER).name}:teamById(USER);
+  return String(t||"").replace(/\{\{\s*first_name\s*\}\}/g,l.first||"there").replace(/\{\{\s*last_name\s*\}\}/g,l.last||"").replace(/\{\{\s*company\s*\}\}/g,l.company||"your team").replace(/\{\{\s*title\s*\}\}/g,l.title||"")
+   .replace(/\{\{\s*city\s*\}\}/g,l.city||"you").replace(/\{\{\s*industry\s*\}\}/g,g[1].toLowerCase()).replace(/\{\{\s*industry_page\s*\}\}/g,SITE_URL+g[2]).replace(/\{\{\s*industry_stat\s*\}\}/g,g[3])
+   .replace(/\{\{\s*conference\s*\}\}/g,(c&&c.aud&&c.aud.conf)||l.conf||"the show").replace(/\{\{\s*rep\s*\}\}/g,me.name||"");}
+function saveCamp(c){c.updatedAt=new Date().toISOString();put("campaigns",c);}
+function newCampaign(aud,name){const c={id:uid(),name:(name||"New campaign")+" · "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],aud:aud||{src:"conf"},template:"enduser",steps:campDefaultSteps("enduser"),review:[],approvals:{},channel:"ses",from:"",fromName:"",replyTo:userEmail(USER)||SALES_FROM,dailyCap:50,basis:(aud&&aud.src==="conf"&&aud.conf)?"Met us at "+aud.conf:""};
+  if(aud&&aud.src&&aud.src!=="file")campBuildAudience(c);saveCamp(c);curCampaign=c.id;campStep=1;view="camp";render();window.scrollTo(0,0);if(c.leads.length)toast(campOk(c).length+" people will be emailed");return c;}
+/* audiences */
+function campLeadFromPerson(p,src){const c=company(p.cid);const parts=(p.name||"").trim().split(/\s+/);
+  const l={first:parts[0]||"",last:parts.slice(1).join(" "),company:(c&&c.name)||p.branch||"",title:p.role||"",email:(p.email||"").trim(),city:p.city||"",state:(personStates(p)[0]||""),pid:p.id,cid:p.cid||null,src:src,industryRaw:(c&&c.industry)||""};l.ind=indGroupFor(l);return l;}
+function campLeadFromConf(x){const parts=(x.name||"").trim().split(/\s+/);const m=/Industry:\s*([^|·]+)/.exec(x.notes||"");
+  const l={first:parts[0]||"",last:parts.slice(1).join(" "),company:x.company||"",title:x.title||"",email:(x.email||"").trim(),city:x.city||"",state:x.state||"",refId:x.id,pid:x.refPid||null,conf:x.conf,src:"conf",industryRaw:m?m[1].trim():"",segment:x.segment,region:x.region,temp:x.temp};
+  l.ind=indGroupFor(l);if(/verify before sending/i.test(x.notes||""))l.verify=true;return l;}
+function campFlagLeads(leads){const seen=new Set();leads.forEach(l=>{const e=(l.email||"").toLowerCase();const valid=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);l.flag=!e?"missing":!valid?"bad":l.verify?"verify":seen.has(e)?"dupe":"ok";if(l.flag==="ok")seen.add(e);});return leads;}
+function parseListQuery(q){
+  const orig=q||"";let txt=" "+orig.toLowerCase().replace(/[,;]+/g," ")+" ";const f={acctCid:null,acctTxt:"",types:[],dstatus:"",states:[],region:"",q:""};const sts=new Set();
+  for(const nm in STATE_NAMES){const k=" "+nm+" ";while(txt.includes(k)){sts.add(STATE_NAMES[nm]);txt=txt.replace(k," ");}}
+  const CODES=new Set(Object.values(STATE_NAMES));(orig.match(/\b[A-Z]{2}\b/g)||[]).forEach(c=>{if(CODES.has(c)){sts.add(c);txt=txt.replace(new RegExp("\\b"+c.toLowerCase()+"\\b")," ");}});
+  if(/\beast\b/.test(txt)){f.region="East";txt=txt.replace(/\beast\b/," ");}else if(/\bcentral\b/.test(txt)){f.region="Central";txt=txt.replace(/\bcentral\b/," ");}else if(/\bwest\b/.test(txt)){f.region="West";txt=txt.replace(/\bwest\b/," ");}
+  if(/\bset[- ]?up\b|\bstocking\b/.test(txt)){f.dstatus="setup";txt=txt.replace(/\bset[- ]?up\b|\bstocking\b/g," ");}else if(/\bpotential\b/.test(txt)){f.dstatus="potential";txt=txt.replace(/\bpotential\b/," ");}
+  if(/\bdistributors?\b/.test(txt)){f.types.push("distrep");txt=txt.replace(/\bdistributors?\b/g," ");}if(/\bend[- ]?users?\b/.test(txt)){f.types.push("enduser");txt=txt.replace(/\bend[- ]?users?\b/g," ");}if(/\bman[- ]?reps?\b/.test(txt)){f.types.push("manrep");txt=txt.replace(/\bman[- ]?reps?\b/g," ");}
+  let best=null;(DB.companies||[]).forEach(c=>{const n=" "+(c.name||"").toLowerCase()+" ";if(n.trim().length>=3&&txt.includes(n.trim())&&(!best||n.length>best.n.length))best={c,n};});
+  if(best){f.acctCid=best.c.id;f.acctTxt=best.c.name;txt=txt.replace(best.n.trim()," ");}
+  f.states=[...sts];f.q=txt.replace(/\b(all|reps?|of|the|in|at|and|list|call|contacts?|everyone|every|our|with|people)\b/g," ").replace(/\s+/g," ").trim();return f;}
+function contactsFor(f){let ps=(DB.people||[]).slice();
+  if(f.acctCid)ps=ps.filter(p=>p.cid===f.acctCid);if(f.types.length)ps=ps.filter(p=>f.types.includes(contactType(p)));
+  if(f.dstatus)ps=ps.filter(p=>{const c=company(p.cid);return c&&c.type==="distributor"&&distStatus(c)===f.dstatus;});
+  if(f.states.length)ps=ps.filter(p=>personStates(p).some(x=>f.states.includes(String(x).toUpperCase().slice(0,2))));
+  if(f.region)ps=ps.filter(p=>personStates(p).some(x=>regionFromState(x)===f.region));
+  if(f.q)ps=ps.filter(p=>((p.name||"")+" "+(p.role||"")+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(f.q));
+  return ps.sort((a,b)=>(a.name||"").localeCompare(b.name||""));}
+function campBuildAudience(c){const a=c.aud||{};let leads=[];
+  if(a.src==="conf"){let ls=(DB.confLeads||[]).filter(x=>x.conf===a.conf&&x.segment!=="Set Aside");
+    if(a.segments&&a.segments.length)ls=ls.filter(x=>a.segments.includes(x.segment));if(a.regions&&a.regions.length)ls=ls.filter(x=>a.regions.includes(x.region));
+    if(a.fresh)ls=ls.filter(x=>!x.contacted&&!x.lastEmail);leads=ls.map(campLeadFromConf);if(a.inds&&a.inds.length)leads=leads.filter(l=>a.inds.includes(l.ind));}
+  else if(a.src==="list"){const L=myLists().find(x=>x.id===a.listId);leads=L?(L.items||[]).map(it=>{const p=it.pid?person(it.pid):null;return p?campLeadFromPerson(p,"list"):null;}).filter(Boolean):[];}
+  else if(a.src==="contacts"){leads=contactsFor(parseListQuery(a.query||"")).map(p=>campLeadFromPerson(p,"contacts"));}
+  else return;
+  if(a.inds&&a.inds.length&&a.src!=="conf")leads=leads.filter(l=>a.inds.includes(l.ind));
+  c.leads=campFlagLeads(leads);campApplyGuards(c);c.listName=campAudienceLabel(c);}
+function campAudienceLabel(c){const a=c.aud||{};
+  if(a.src==="conf")return (a.conf||"Conference")+(a.segments&&a.segments.length?" · "+a.segments.join("/"):"")+(a.inds&&a.inds.length?" · "+a.inds.map(k=>indGroup(k)[1]).join(", "):"")+(a.regions&&a.regions.length?" · "+a.regions.join("/"):"");
+  if(a.src==="list"){const L=myLists().find(x=>x.id===a.listId);return "Call list: "+(L?L.name:"—");}if(a.src==="contacts")return 'Contacts: "'+(a.query||"")+'"';return c.listName||"Uploaded file";}
+function campIndCounts(leads){const n={};leads.forEach(l=>{n[l.ind]=(n[l.ind]||0)+1;});return n;}
+/* file upload (CSV only here — Excel exports as CSV in one click) */
+function csvRows(text){const rows=[];let row=[],cell="",q=false;for(let i=0;i<text.length;i++){const ch=text[i];
+  if(q){if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=ch;}else if(ch==='"')q=true;else if(ch===","){row.push(cell);cell="";}
+  else if(ch==="\n"||ch==="\r"){if(ch==="\r"&&text[i+1]==="\n")i++;row.push(cell);cell="";if(row.some(x=>String(x).trim()!==""))rows.push(row);row=[];}else cell+=ch;}
+  row.push(cell);if(row.some(x=>String(x).trim()!==""))rows.push(row);return rows;}
+function campHandleFile(f){if(!f)return;const c=campaignById(curCampaign);if(!c)return;
+  f.text().then(t=>{const rows=csvRows(t);if(!rows.length)throw new Error("Empty file");const hdr=rows[0].map(h=>String(h||"").trim().toLowerCase());
+    const col=res=>{for(let i=0;i<hdr.length;i++)if(res.some(r=>r.test(hdr[i])))return i;return -1;};
+    const iE=col([/e-?mail/]),iF=col([/first\s*_?name|^first$/]),iL=col([/last\s*_?name|^last$/]),iN=col([/^(full\s*)?name$|contact\s*name/]),iC=col([/company|account|organi[sz]ation|employer/]),iT=col([/title|role|position/]),iCity=col([/city/]),iI=col([/industry/]);
+    if(iE<0)throw new Error("No Email column found");
+    const leads=rows.slice(1).map(r=>{let first=iF>-1?String(r[iF]||"").trim():"",last=iL>-1?String(r[iL]||"").trim():"";if(!first&&iN>-1){const p=String(r[iN]||"").trim().split(/\s+/);first=p[0]||"";last=p.slice(1).join(" ");}
+      const l={first,last,company:iC>-1?String(r[iC]||"").trim():"",title:iT>-1?String(r[iT]||"").trim():"",email:String(r[iE]||"").trim(),city:iCity>-1?String(r[iCity]||"").trim():"",industryRaw:iI>-1?String(r[iI]||"").trim():"",src:"file"};l.ind=indGroupFor(l);return l;}).filter(l=>l.first||l.email||l.company);
+    c.leads=campFlagLeads(leads);campApplyGuards(c);c.listName=f.name;c.aud={src:"file"};saveCamp(c);render();toast(campOk(c).length+" people will be emailed");}).catch(e=>toast(e.message||"Couldn't read that file"));}
+/* outbound through SES: status, suppression, delivery events */
+let MAILOUT_STATUS=null, MAILOUT_AT=0;
+async function mailOutStatus(force){ if(MAILOUT_STATUS&&!force&&Date.now()-MAILOUT_AT<60000)return MAILOUT_STATUS;
+  try{const r=await supa(MAILOUT+"?action=status",{method:"POST",body:JSON.stringify({action:"status"})});const b=await r.json().catch(()=>({}));MAILOUT_STATUS=r.ok?b:{ok:false,error:b.error||("HTTP "+r.status)};}
+  catch(e){MAILOUT_STATUS={ok:false,error:"not reachable"};}MAILOUT_AT=Date.now();return MAILOUT_STATUS;}
+function suppressedSet(){return new Set((DB.suppress||[]).map(x=>String(x.email||x.id||"").toLowerCase()));}
+function campOk(c){const stop=suppressedSet();return (c.leads||[]).filter(l=>l.flag==="ok"&&!stop.has(String(l.email||"").toLowerCase()));}
+function campFromOptions(st){const out=[];const me=(userEmail(USER)||"").split("@")[0]||"hello";
+  (st&&st.identities||[]).forEach(i=>{if(!i.verified)return;if(i.type==="EMAIL_ADDRESS")out.push(i.name);else{out.push(me+"@"+i.name);out.push("hello@"+i.name);}});return [...new Set(out)];}
+function campMsgIds(c){const ids=new Set();(c.leads||[]).forEach(l=>{Object.values(l.msg||{}).forEach(id=>ids.add(id));});return ids;}
+function campDelivery(c){const ids=campMsgIds(c);const n={delivery:0,bounce:0,complaint:0,open:0,click:0};const seen=new Set();
+  (DB.mailEvents||[]).forEach(e=>{if(!ids.has(e.msgId))return;const k=e.type+"|"+e.msgId+"|"+e.to;if(seen.has(k))return;seen.add(k);if(n[e.type]!=null)n[e.type]++;});return n;}
+/* sends */
+function campDaysSince(iso){return iso?Math.floor((Date.now()-new Date(iso).getTime())/86400000):null;}
+function campDue(c,i){const steps=c.steps||[];const s=steps[i];if(!s)return [];return campOk(c).filter(l=>{const sent=l.sent||{};if(sent[i])return false;if(i===0)return true;const prev=sent[i-1];if(!prev)return false;return campDaysSince(prev)>=Math.max(0,(s.day||1)-(steps[i-1].day||1));});}
+function campSentCount(c,i){return campOk(c).filter(l=>l.sent&&l.sent[i]).length;}
+function campTextHTML(txt){return '<div style="font:15px/1.55 Arial,Helvetica,sans-serif;color:#16181B;max-width:600px">'+esc(txt).split(/\n{2,}/).map(p=>'<p style="margin:0 0 14px">'+p.replace(/\n/g,"<br>").replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" style="color:#C8102E">$1</a>')+'</p>').join("")+'</div>';}
+let NOTIFY_READY=null;
+async function notifyReady(){ // probe the mail function with a request that cannot send anything
+  if(NOTIFY_READY===false)throw new Error("the mail function needs a redeploy");if(NOTIFY_READY)return true;
+  const r=await supa("/functions/v1/send-invoice",{method:"POST",body:JSON.stringify({action:"notify",to:"probe@example.invalid",html:"",invoice:{invNo:"🔒",items:[null]}})});const b=await r.json().catch(()=>({}));
+  if(r.status===400&&String(b.error||"")==="html required"){NOTIFY_READY=true;return true;}if(r.status===500){NOTIFY_READY=false;throw new Error("the mail function needs a redeploy");}
+  throw new Error(b.error||b.message||("HTTP "+r.status));}
+async function sendHtmlMail(p){const r=await supa("/functions/v1/send-invoice",{method:"POST",body:JSON.stringify({action:"notify",from:p.from||"",to:p.to,cc:p.cc||[],subject:p.subject,html:p.html})});const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));return b;}
+async function campSendStep(i){
+  const c=campaignById(curCampaign);if(!c)return;if(!campCanSend(c)){toast("Needs a reviewer's approval first");return;}
+  const due=campDue(c,i);if(!due.length){toast("Nobody is due for this email today");return;}
+  const cap=Math.max(1,parseInt(c.dailyCap,10)||50);const batch=due.slice(0,cap);const s=c.steps[i];const ses=(c.channel||"ses")==="ses";
+  const fromAddr=ses?(c.from||""):SALES_FROM;
+  if(ses&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromAddr)){toast("Pick a Send-from address first");return;}
+  if(!confirm('Send "'+campFill(s.subject,batch[0],c).replace(/^Re: /,"")+'" to '+batch.length+' people now from '+fromAddr+'?'+(due.length>batch.length?' ('+(due.length-batch.length)+' more stay in the queue for tomorrow.)':'')))return;
+  const btn=document.getElementById("campSend"+i);if(btn){btn.disabled=true;btn.textContent="Sending…";}
+  const stamp=(l,msgId)=>{l.sent=l.sent||{};l.sent[i]=new Date().toISOString();l.var=l.var||{};l.var[i]=campVariant(s,l,i).v;if(msgId){l.msg=l.msg||{};l.msg[i]=msgId;}
+    const note="Campaign email "+(i+1)+" — "+campFill(s.subject,l,c)+" · "+c.name;
+    if(l.pid||l.cid)put("activities",{id:uid(),type:"email",pid:l.pid||null,cid:l.cid||null,note:note,date:todayStr(),by:USER});
+    if(l.pid){const p=person(l.pid);if(p){p.last=todayStr();put("people",p);}}
+    if(l.refId){const x=(DB.confLeads||[]).find(y=>y.id===l.refId);if(x){x.lastEmail=todayStr();x.notes=((x.notes||"")+" | "+todayStr()+": "+note).slice(0,4000);put("confLeads",x);}}};
+  let n=0,fail=null,skipped=0;
+  if(ses){
+    try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:fromAddr,fromName:c.fromName||teamById(USER).name,replyTo:c.replyTo||userEmail(USER)||SALES_FROM,campaign:c.name,
+        items:batch.map(l=>{const vv=campVariant(s,l,i);return {to:l.email,subject:campFill(vv.subject,l,c),html:campTextHTML(campFill(vv.body,l,c)),text:campFill(vv.body,l,c),ref:l.refId||l.pid||""};})})});
+      const b=await r.json().catch(()=>({}));
+      if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+      (b.results||[]).forEach(res=>{const l=batch.find(x=>String(x.email).toLowerCase()===res.to);if(!l)return;if(res.msgId){stamp(l,res.msgId);n++;}else if(res.skipped){skipped++;if(res.skipped==="suppressed"){l.flag="suppressed";}}else if(res.error&&!fail)fail=new Error(res.error);});
+    }catch(e){if(btn){btn.disabled=false;btn.textContent="Send now";}openSheet('<h2>Nothing sent</h2><p style="color:var(--muted);font-size:14px">The outbound mail function didn\'t take it ('+esc(e.message)+'). The campaign stays approved. Check the SES status card on this page.</p>');return;}
+  }else{
+    try{await notifyReady();}catch(e){if(btn){btn.disabled=false;btn.textContent="Send now";}openSheet('<h2>Nothing sent</h2><p style="color:var(--muted);font-size:14px">Email isn\'t connected right now ('+esc(e.message)+'). The campaign stays approved; try again when the mail function is up.</p>');return;}
+    const cc=userEmail(USER)?[userEmail(USER)]:[];
+    for(const l of batch){try{await sendHtmlMail({from:SALES_FROM,to:l.email,cc:cc,subject:campFill(s.subject,l,c),html:campTextHTML(campFill(s.body,l,c))});}catch(e){fail=e;break;}stamp(l,null);n++;}
+  }
+  if(n){c.status="active";c.launchedAt=c.launchedAt||new Date().toISOString();(c.sendLog=c.sendLog||[]).push({step:i,at:new Date().toISOString(),count:n,by:USER,from:fromAddr,channel:ses?"ses":"inbox"});}
+  if(campOk(c).length&&campOk(c).every(l=>c.steps.every((_,k)=>l.sent&&l.sent[k])))c.status="done";
+  saveCamp(c);render();toast((n+" sent")+(skipped?", "+skipped+" skipped (unsubscribed or bounced before)":"")+(fail?" · stopped: "+(fail.message||"send failed"):""));}
+async function campSimTest(){const c=campaignById(curCampaign);if(!c||!c.from){toast("Pick a Send-from address first");return;}const s=c.steps[0];const me=campOk(c)[0]||{first:"Test",company:"AutoTQ",email:"test@example.com"};
+  const tos=["success@simulator.amazonses.com","bounce@simulator.amazonses.com","complaint@simulator.amazonses.com"];toast("Sending 3 simulator emails…");
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:c.from,fromName:c.fromName||teamById(USER).name,replyTo:c.replyTo||userEmail(USER)||SALES_FROM,campaign:"simulator-test",items:tos.map(t=>({to:t,subject:"[test] "+campFill(s.subject,me,c),html:campTextHTML(campFill(s.body,me,c)),text:campFill(s.body,me,c)}))})});const b=await r.json().catch(()=>({}));
+    if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));c.simTest={at:new Date().toISOString(),ids:(b.results||[]).map(x=>x.msgId).filter(Boolean)};saveCamp(c);toast(b.sent+" simulator emails accepted by SES — watch the events");setTimeout(()=>{pullChanges();render();},20000);}
+  catch(e){toast("Simulator test failed: "+e.message);}}
+function campSimEvents(c){if(!c.simTest)return "";const ids=new Set(c.simTest.ids||[]);const ev=(DB.mailEvents||[]).filter(e=>ids.has(e.msgId));if(!ev.length)return '<p class="t2">Simulator test sent '+new Date(c.simTest.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+' — waiting for SES events…</p>';
+  return '<p class="t2">Simulator events: '+ev.map(e=>e.type).sort().join(", ")+'</p>';}
+/* review */
+function campSendForReview(){const c=campaignById(curCampaign);if(!c)return;if(!campReady(c,1)){toast("Build the audience first");campStep=1;render();return;}if(!(c.basis&&c.basis.trim())){toast("Say how these people know us first");campStep=1;render();return;}if(!campReady(c,2)){toast("Write the emails first");campStep=2;render();return;}
+  c.status="review";c.reviewAskedAt=new Date().toISOString();c.reviewAskedBy=USER;
+  if(!(DB.tasks||[]).some(t=>t.campId===c.id&&!t.done&&!t.removed))put("tasks",{id:uid(),owner:USER,title:"Review campaign: "+c.name,type:"review",due:todayStr(),done:false,createdAt:new Date().toISOString(),assignees:CAMP_REVIEWERS.slice(),campId:c.id});
+  saveCamp(c);campStep=3;render();toast("Sent to Jamie and Hannah for review");}
+function campApprove(){const c=campaignById(curCampaign);if(!c||!campIsReviewer())return;if(!campHardOk(c)){toast("Fix the red checks first");return;}c.approvals=c.approvals||{};c.approvals[USER]=new Date().toISOString();if(c.status==="draft"||c.status==="review")c.status="approved";
+  (DB.tasks||[]).forEach(t=>{if(t.campId===c.id&&!t.done){t.done=true;t.doneAt=new Date().toISOString();t.doneBy=USER;put("tasks",t);}});saveCamp(c);render();toast("Approved — "+(admin()?"ready to send":"Max can send it now"));}
+function campUnapprove(){const c=campaignById(curCampaign);if(!c)return;c.approvals={};if(c.status==="approved")c.status="review";saveCamp(c);render();}
+function campComment(){const c=campaignById(curCampaign);const ta=document.getElementById("campNote");if(!c||!ta||!ta.value.trim())return;(c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:ta.value.trim(),step:campStep});ta.value="";saveCamp(c);render();}
+function campTouched(c){if(c.status==="approved"&&Object.keys(c.approvals||{}).length){c.approvals={};c.status="review";(c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:"Edited after approval — needs another look.",sys:true});}}
+
+/* ---------- outbound engine: senders + warmup, already-touched index, verification, the daily plan ---------- */
+const RAMP=[20,35,50,75,100,150,200]; // per sender per day; moves up one step after each clean sending day
+const TOUCH_DAYS=30;                   // anyone touched (call, email, meeting) inside this window is left alone
+const DEFAULT_SENDERS=[ // seeded once; saved to the shared `senders` collection when Max first edits them
+ {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-kellan",email:"kellan@autotq.net",name:"Kellan",owner:"kellan",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"AutoTQ",owner:"max",pool:"A"},
+ {id:"s-johnm",email:"johnm@auto-tq.com",name:"John Morrison",owner:"johnm",pool:"B"},{id:"s-john",email:"john@auto-tq.com",name:"John Cornejo",owner:"john",pool:"B"},{id:"s-tim",email:"tim@auto-tq.com",name:"Tim Ford",owner:"tim",pool:"B"}];
+function senders(){const live=(DB.senders||[]).filter(s=>s&&s.id);return live.length?live:DEFAULT_SENDERS.map(s=>Object.assign({log:{},paused:false,hold:false},s));}
+function senderDomainOk(s){const st=MAILOUT_STATUS;if(!st||!st.ok)return null;const d=s.email.split("@")[1];return (st.identities||[]).some(i=>i.verified&&(i.name===d||i.name===s.email));}
+function senderDay(s){return Object.keys(s.log||{}).filter(d=>(s.log[d].sent||0)>0).length;} // clean sending days so far
+function senderCap(s,offset){if(s.paused)return 0;const day=senderDay(s)+(offset||0)-((s.hold&&!offset)?1:0);return RAMP[Math.max(0,Math.min(RAMP.length-1,day))];}
+function senderSentToday(s){return ((s.log||{})[todayStr()]||{}).sent||0;}
+function senderLeft(s){return Math.max(0,senderCap(s,0)-senderSentToday(s));}
+function senderStats(s,date){const ids=new Set();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{Object.keys(l.msg||{}).forEach(k=>{if((l.by||{})[k]===s.email)ids.add(l.msg[k]);});}));
+  const n={delivery:0,bounce:0,complaint:0};(DB.mailEvents||[]).forEach(e=>{if(ids.has(e.msgId)&&(!date||String(e.at||"").slice(0,10)===date)&&n[e.type]!=null)n[e.type]++;});return n;}
+function senderHealth(s){const st=senderStats(s);const sent=Object.values(s.log||{}).reduce((a,d)=>a+(d.sent||0),0);if(!sent)return {label:"New",cls:"gray"};
+  const b=st.bounce/sent,c=st.complaint/sent;if(c>=0.001||b>=0.03)return {label:"Hold",cls:"dang"};if(b>=0.02)return {label:"Watch",cls:"warn"};return {label:"Healthy",cls:"ok"};}
+function saveSender(s){if(!s.log)s.log={};put("senders",s);}
+/* already touched: one map of email -> {at, how} across everything the team has done */
+function touchedMap(){const m=new Map();const hit=(email,at,how)=>{if(!email||!at)return;const k=String(email).toLowerCase();const prev=m.get(k);if(!prev||at>prev.at)m.set(k,{at:String(at).slice(0,10),how});};
+  (DB.confLeads||[]).forEach(l=>{if(l.lastEmail)hit(l.email,l.lastEmail,"emailed");if(l.contacted)hit(l.email,(l.contactedAt||l.lastCall||l.updatedAt||"2026-01-01"),"called");});
+  const byPid={};(DB.people||[]).forEach(p=>{byPid[p.id]=p;if(p.last&&p.email)hit(p.email,p.last,"contact");});
+  (DB.activities||[]).forEach(a=>{const p=a.pid?byPid[a.pid]:null;if(p&&p.email&&/email|call|voicemail|meeting|quote/.test(a.type||""))hit(p.email,a.date,a.type);});
+  campaigns().forEach(c=>(c.leads||[]).forEach(l=>{Object.values(l.sent||{}).forEach(at=>hit(l.email,at,"campaign: "+c.name));}));
+  return m;}
+function enrolledMap(exceptId){const m=new Map();campaigns().forEach(c=>{if(c.id===exceptId||c.status==="done")return;(c.leads||[]).forEach(l=>{if(l.flag==="ok")m.set(String(l.email).toLowerCase(),c.name);});});return m;}
+function campApplyGuards(c){ // after flags: drop the already-touched, the enrolled-elsewhere, the suppressed
+  const t=touchedMap(),en=enrolledMap(c.id),stop=suppressedSet(),cut=new Date(Date.now()-TOUCH_DAYS*86400000).toISOString().slice(0,10);
+  (c.leads||[]).forEach(l=>{if(l.flag!=="ok")return;const k=String(l.email).toLowerCase();
+    if(stop.has(k)){l.flag="suppressed";return;}const tt=t.get(k);if(tt&&tt.at>=cut&&!(l.sent&&Object.keys(l.sent).length)){l.flag="touched";l.touched=tt;return;}
+    if(en.has(k)){l.flag="enrolled";l.enrolledIn=en.get(k);}});}
+/* verification through Apollo (people/bulk_match by email, 10 per call, ~1 credit per match) */
+async function campVerify(c){
+  const todo=(c.leads||[]).filter(l=>l.flag==="ok"&&!l.vstatus);if(!todo.length){toast("Everyone here is already checked");return;}
+  if(!confirm("Check "+todo.length+" addresses with Apollo? Up to "+todo.length+" credits."))return;
+  toast("Checking "+todo.length+"…");let done=0,bad=0;
+  for(let i=0;i<todo.length;i+=10){const chunk=todo.slice(i,i+10);
+    try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"verify",emails:chunk.map(l=>l.email)})});const b=await r.json().catch(()=>({}));
+      if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+      (b.results||[]).forEach(res=>{const l=chunk.find(x=>String(x.email).toLowerCase()===res.email);if(!l)return;l.vstatus=res.status;l.vat=todayStr();
+        if(/unavailable|bounced|invalid/.test(res.status)){l.flag="invalid";bad++;}else if(res.status==="guessed")l.risky=true;done++;});
+      saveCamp(c);}
+    catch(e){toast("Stopped: "+e.message);break;}}
+  render();toast(done+" checked · "+bad+" dropped as undeliverable");}
+/* the plan: who goes out on which day, through which inbox */
+function campAutoPause(){campaigns().forEach(c=>{if(c.paused||c.status==="done")return;const d=campDelivery(c);const sent=(c.sendLog||[]).reduce((a,e)=>a+(e.count||0),0);if(sent>=50&&(d.complaint/sent>=0.001||d.bounce/sent>=0.03)){c.paused=true;c.pausedBy="auto";c.pausedWhy=d.complaint/sent>=0.001?"complaints above 0.1%":"bounces above 3%";(c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:"Paused automatically: "+c.pausedWhy+". Check the list and the message, then resume.",sys:true});saveCamp(c);}});}
+function planLanes(){campAutoPause();return campaigns().filter(c=>["approved","active"].includes(c.status)&&!c.paused&&c.basis&&campOk(c).length).sort((a,b)=>(a.priority||5)-(b.priority||5)||String(a.createdAt).localeCompare(b.createdAt));}
+function buildPlan(days){ // simulation from today: each lane's leads walk the steps; capacity = the senders' ramps
+  const lanes=planLanes(),S=senders().filter(s=>!s.paused),out={days:[],lanes:{},senders:{}};const today=new Date();today.setHours(0,0,0,0);
+  const state=lanes.map(c=>({c,leads:campOk(c).map(l=>({sent:Object.assign({},l.sent||{})})),steps:c.steps||[]}));
+  for(let d=0;d<days;d++){const date=new Date(today.getTime()+d*86400000);const ds=date.toISOString().slice(0,10);const wk=date.getDay();const col={date:ds,total:0,byLane:{},bySender:{},byLaneSender:{},weekend:wk===0||wk===6};
+    if(!col.weekend){let caps=S.map(s=>({s,left:Math.max(0,senderCap(s,d)-(d===0?senderSentToday(s):0))}));
+      // which leads are due today per lane (step 1 = unsent, later = gap passed, measured from the simulated send day)
+      const due=state.map(st=>st.leads.filter(l=>{for(let i=0;i<st.steps.length;i++){if(l.sent[i])continue;if(i===0)return l._i=0,true;const prev=l.sent[i-1];if(!prev)return false;const gap=(st.steps[i].day||1)-(st.steps[i-1].day||1);return (Math.floor((date-new Date(prev))/86400000)>=gap)?(l._i=i,true):false;}return false;}));
+      let moved=true;while(moved){moved=false;for(let li=0;li<state.length;li++){const q=due[li];if(!q.length)continue;const cap=caps.find(x=>x.left>0);if(!cap)break;const l=q.shift();l.sent[l._i]=ds+"T12:00:00Z";cap.left--;moved=true;
+        const lid=state[li].c.id;col.byLane[lid]=(col.byLane[lid]||0)+1;col.bySender[cap.s.id]=(col.bySender[cap.s.id]||0)+1;(col.byLaneSender[lid]=col.byLaneSender[lid]||{})[cap.s.id]=((col.byLaneSender[lid]||{})[cap.s.id]||0)+1;col.total++;}}}
+    out.days.push(col);}
+  lanes.forEach(c=>{const st=state.find(x=>x.c.id===c.id);out.lanes[c.id]={remaining:st.leads.filter(l=>!(c.steps||[]).every((_,k)=>l.sent[k])).length,finishDay:(()=>{for(let d=out.days.length-1;d>=0;d--)if(out.days[d].byLane[c.id])return out.days[d].date;return null;})()};});
+  return out;}
+/* run today's sends across lanes, rotating inboxes */
+async function runToday(){
+  if(!admin()){toast("Max runs the day's sends");return;}const st=await mailOutStatus();if(!st||!st.ok){openSheet('<h2>Outbound isn\'t connected</h2><p style="color:var(--muted);font-size:14px">'+esc((st&&st.error)||"mail-out not reachable")+'. Finish SETUP_SES.md first.</p>');return;}
+  const lanes=planLanes().filter(c=>campCanSend(c));const S=senders().filter(s=>!s.paused&&senderLeft(s)>0&&senderDomainOk(s));
+  if(!lanes.length){toast("No approved campaign has anyone due");return;}if(!S.length){toast("No verified inbox has room today");return;}
+  const plan=buildPlan(1).days[0];const total=plan.total;if(!total){toast("Nothing due today");return;}
+  if(!confirm("Send "+total+" emails now across "+lanes.length+" campaign"+(lanes.length>1?"s":"")+" and "+S.length+" inboxes?"))return;
+  let sent=0,si=0;
+  for(const c of lanes){for(let i=0;i<(c.steps||[]).length;i++){let due=campDue(c,i);while(due.length){const s=S[si%S.length];si++;const room=senderLeft(s);if(!room){if(S.every(x=>!senderLeft(x)))break;continue;}
+      const batch=due.splice(0,Math.min(room,25));const n=await campSendBatch(c,i,batch,s);sent+=n;if(n<batch.length)break;}}}
+  render();toast(sent+" sent today");}
+async function campSendBatch(c,i,batch,s){
+  const step=c.steps[i];const owner=teamById(s.owner||USER);
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:s.email,fromName:s.name||owner.name,replyTo:userEmail(s.owner)||userEmail(USER)||SALES_FROM,campaign:c.name,
+      items:batch.map(l=>{const vv=campVariant(step,l,i);return {to:l.email,subject:campFill(vv.subject,l,c,s),html:campTextHTML(campFill(vv.body,l,c,s)),text:campFill(vv.body,l,c,s),ref:l.refId||l.pid||""};})})});
+    const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));let n=0;
+    (b.results||[]).forEach(res=>{const l=batch.find(x=>String(x.email).toLowerCase()===res.to);if(!l)return;
+      if(res.msgId){l.sent=l.sent||{};l.sent[i]=new Date().toISOString();l.msg=l.msg||{};l.msg[i]=res.msgId;l.by=l.by||{};l.by[i]=s.email;l.var=l.var||{};l.var[i]=campVariant(step,l,i).v;n++;
+        const note="Campaign email "+(i+1)+" — "+campFill(step.subject,l,c,s)+" · "+c.name+" · from "+s.email;
+        if(l.pid||l.cid)put("activities",{id:uid(),type:"email",pid:l.pid||null,cid:l.cid||null,note:note,date:todayStr(),by:USER});
+        if(l.pid){const p=person(l.pid);if(p){p.last=todayStr();put("people",p);}}
+        if(l.refId){const x=(DB.confLeads||[]).find(y=>y.id===l.refId);if(x){x.lastEmail=todayStr();x.notes=((x.notes||"")+" | "+todayStr()+": "+note).slice(0,4000);put("confLeads",x);}}}
+      else if(res.skipped==="suppressed")l.flag="suppressed";});
+    s.log=s.log||{};s.log[todayStr()]=s.log[todayStr()]||{sent:0};s.log[todayStr()].sent+=n;saveSender(s);
+    if(n){c.status="active";c.launchedAt=c.launchedAt||new Date().toISOString();(c.sendLog=c.sendLog||[]).push({step:i,at:new Date().toISOString(),count:n,by:USER,from:s.email,channel:"ses"});}
+    if(campOk(c).length&&campOk(c).every(l=>c.steps.every((_,k)=>l.sent&&l.sent[k])))c.status="done";saveCamp(c);return n;}
+  catch(e){toast("Stopped on "+s.email+": "+e.message);return 0;}}
+
+/* ---------- the net: the operation as a transit map ---------- */
+const LINE_INKS=["#D85A30","#2F6DB5","#4E7A2E","#8E3D64","#B7791F","#1C7C7A"];
+function laneInk(col){return String(col).toUpperCase()==='#D85A30'?'#B8481F':col;} // coral at 13px needs the deeper ink for 4.5:1
+function laneColor(c,i){return c.color||LINE_INKS[(i!=null?i:campaigns().indexOf(c))%LINE_INKS.length];}
+function campColor(c){return laneColor(c,campaigns().indexOf(c));}
+let netFocus=null; // {type:"lane"|"station", id}
+const REDUCED=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function trainsHTML(d,col,n,dur,begin){let h='';for(let t=0;t<n;t++)h+=REDUCED?'<circle class="train" r="4.5" fill="'+col+'" data-path="'+d+'" data-f="'+((t+0.5)/n).toFixed(3)+'"/>':'<circle class="train" r="4.5" fill="'+col+'"><animateMotion dur="'+dur+'s" begin="'+(begin-t*(dur/n)).toFixed(2)+'s" repeatCount="indefinite" path="'+d+'"/></circle>';return h;}
+function placeStaticTrains(){if(!REDUCED)return;document.querySelectorAll('svg.net .train[data-path]').forEach(el=>{const svg=el.ownerSVGElement;const pth=document.createElementNS('http://www.w3.org/2000/svg','path');pth.setAttribute('d',el.dataset.path);svg.appendChild(pth);const pt=pth.getPointAtLength(pth.getTotalLength()*(+el.dataset.f));svg.removeChild(pth);el.setAttribute('cx',pt.x);el.setAttribute('cy',pt.y);});}
+function laneShort(c){return ((c.aud&&c.aud.conf)||c.name||"").replace(/ — .*$/,"").slice(0,22);}
+function netLanes(){return campaigns().filter(c=>c.status!=="done"&&!c.paused&&campOk(c).length);}
+function fmtShort(ds){const d=new Date(ds+"T12:00:00");return d.toLocaleDateString(undefined,{weekday:"short",day:"numeric"});}
+/* one lane's route: plate → the stations it rides through today → its stops. Bends only at 45°. */
+function routePath(x0,y0,stations,x1,y1,xS,off){ // stations: array of y at xS; off = this line's parallel offset at the trunk
+  const k=22,xT=xS+(off||0);let d="M"+x0+","+y0;
+  if(stations.length){const sy=stations[0],ey=stations[stations.length-1];
+    const dy=sy-y0,xb=xT-Math.abs(dy)-k;d+=" H"+Math.max(x0+20,xb)+" L"+xT+","+sy;
+    const yx=ey+40;d+=" V"+yx; // the trunk runs through the stations it serves, then clears the last label
+    const xo=xS+210;d+=" H"+xo+" L"+(xo+Math.abs(y1-yx))+","+y1+" H"+x1; // leave past the station labels, then bend
+  }else{const dy=y1-y0;const xm=(x0+x1)/2;d+=" H"+(xm-Math.abs(dy)/2)+" L"+(xm+Math.abs(dy)/2)+","+y1+" H"+x1;}
+  return d;}
+function haltBanner(){const st=outboundSettings();return st.haltedWhy?'<div class="reccard" style="margin-bottom:12px;border-color:var(--bad)"><p class="t1" style="color:var(--bad)">Sending halted: '+esc(st.haltedWhy)+'</p><p class="t2">The guardrail turned automation off at '+new Date(st.haltedAt).toLocaleString()+'. Check the lists and the message, then clear the halt and turn automation back on.</p>'+(admin()?'<button class="btn sm" data-act="clearhalt" style="margin-top:8px">Clear the halt</button>':'')+'</div>':'';}
+function viewNet(){
+  if(window.innerWidth<900)return viewNetNarrow();
+  const plan=buildPlan(1).days[0]||{byLane:{},bySender:{},byLaneSender:{},total:0};
+  const lanes=netLanes(),S=senders().filter(s=>!s.paused);
+  const liveIds=new Set(planLanes().map(c=>c.id));
+  const W=1240,rowH=78,n=Math.max(lanes.length,S.length,3),H=70+rowH*n;const xP=36,xPw=232,xS=640,xE=[900,1020,1140];
+  const yL=i=>84+rowH*i+(n-lanes.length)*rowH/2,yS=j=>84+rowH*j+(n-S.length)*rowH/2;
+  const f=netFocus;const laneOn=c=>!f||(f.type==="lane"&&f.id===c.id)||(f.type==="station"&&(plan.byLaneSender[c.id]||{})[f.id]);
+  const stOn=s=>!f||(f.type==="station"&&f.id===s.id)||(f.type==="lane"&&(plan.byLaneSender[f.id]||{})[s.id]);
+  let g='';
+  // lines first (under everything)
+  lanes.forEach((c,i)=>{const col=laneColor(c,i);const live=liveIds.has(c.id)&&(plan.byLane[c.id]||0)>0;
+    const used=S.map((s,j)=>({s,j,n:(plan.byLaneSender[c.id]||{})[s.id]||0})).filter(x=>x.n>0);
+    const d=routePath(xP+xPw,yL(i),used.map(x=>yS(x.j)),xE[xE.length-1]+14,yL(i),xS,(i-(lanes.length-1)/2)*9);
+    g+='<path class="line'+(live?"":" ghost")+(laneOn(c)?"":" dim")+'" d="'+d+'" stroke="'+col+'" data-act="netlane" data-id="'+c.id+'"/>';
+    if(live&&laneOn(c))g+=trainsHTML(d,col,Math.min(6,Math.max(1,Math.round((plan.byLane[c.id]||0)/20))),7+i*0.6,0);
+  });
+  // plates
+  lanes.forEach((c,i)=>{const y=yL(i),col=laneColor(c,i),nToday=plan.byLane[c.id]||0,ok=campOk(c).length,sent=(c.sendLog||[]).reduce((a,e)=>a+(e.count||0),0);
+    g+='<g class="plate'+(laneOn(c)?"":" dim")+'" data-act="netlane" data-id="'+c.id+'" transform="translate('+xP+','+(y-30)+')"><rect width="'+xPw+'" height="60" rx="14"/>'+
+     '<text x="18" y="24" class="pt" fill="'+laneInk(col)+'">'+esc(laneShort(c))+'</text><text x="18" y="43" class="ps">'+ok+' people · '+esc(campStatus(c)[1].toLowerCase())+(sent?' · '+sent+' sent':'')+'</text>'+
+     '<text x="'+(xPw-14)+'" y="38" class="pn" text-anchor="end">'+nToday+'</text></g>';});
+  // stations
+  S.forEach((s,j)=>{const y=yS(j),nToday=plan.bySender[s.id]||0,hl=senderHealth(s),through=lanes.filter(c=>(plan.byLaneSender[c.id]||{})[s.id]).length;
+    g+='<g class="station'+(hl.cls==="dang"?" hold":"")+(nToday?"":" idle")+(stOn(s)?"":" dim")+'" data-act="netstation" data-id="'+s.id+'" transform="translate('+xS+','+y+')"><circle r="'+(through>1?13:10)+'"/>'+
+     '<text x="22" y="-2" class="st">'+esc(s.email.split("@")[0])+'<tspan class="ss"> @'+esc(s.email.split("@")[1])+'</tspan></text><text x="22" y="15" class="ss">'+nToday+' / '+senderCap(s,0)+' today · day '+(senderDay(s)+1)+(hl.label!=="Healthy"&&hl.label!=="New"?' · '+hl.label.toLowerCase():'')+'</text></g>';});
+  // stops (each lane's emails)
+  lanes.forEach((c,i)=>{const y=yL(i),col=laneColor(c,i);(c.steps||[]).slice(0,3).forEach((st,k)=>{const sentK=campSentCount(c,k);
+    g+='<g class="stop'+(laneOn(c)?"":" dim")+'" data-act="netstop" data-id="'+c.id+'" data-v="'+k+'" transform="translate('+xE[k]+','+y+')"><rect x="-2.5" y="-11" width="5" height="22" rx="2.5" fill="'+col+'"'+(sentK?'':' opacity=".45"')+'/><rect x="-14" y="-16" width="28" height="48" fill="transparent"/><text x="0" y="-15" class="tt" text-anchor="middle">Day '+(st.day||1)+'</text><text x="0" y="24" class="ts" text-anchor="middle">'+sentK+' sent</text></g>';});});
+  if(!lanes.length)g+='<text x="'+(W/2)+'" y="'+(H/2)+'" text-anchor="middle" class="lbl">No campaigns on the map yet. Start one below — it appears here as a line.</text>';
+  const head='<text x="'+xP+'" y="40" class="col">CAMPAIGNS</text><text x="'+xS+'" y="40" class="col" text-anchor="middle">INBOXES</text><text x="'+xE[1]+'" y="40" class="col" text-anchor="middle">EMAILS</text>';
+  let h=haltBanner()+'<div class="netwrap"><svg class="net" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Campaigns to inboxes to emails">'+head+g+'</svg>';
+  h+='<div class="legend"><button class="lg'+(!f?" on":"")+'" data-act="netall"><i style="background:currentColor"></i>Everything <small>'+plan.total+' today</small></button>'+
+   lanes.map((c,i)=>'<button class="lg'+(f&&f.type==="lane"&&f.id===c.id?" on":"")+'" data-act="netlane" data-id="'+c.id+'"><i style="background:'+laneColor(c,i)+'"></i>'+esc(laneShort(c))+' <small>'+(plan.byLane[c.id]||0)+'</small></button>').join("")+
+   '<span class="spacer"></span>'+(admin()?'<button class="btn coral" data-act="runtoday">'+svg("plane")+' Run today\'s sends · '+plan.total+'</button>':'')+'</div></div>';
+  // under the map: what needs you, and where to start
+  const rev=campaigns().filter(c=>c.status==="review"&&campIsReviewer()&&!(c.approvals||{})[USER]);
+  if(rev.length){h+='<div class="sech">Needs you</div><div class="list">'+rev.map(c=>'<button class="card" data-act="campopen" data-id="'+c.id+'" data-step="3"><span class="sched lane" style="background:'+campColor(c)+';width:10px;height:10px;border-radius:50%;display:inline-block"></span><div class="grow"><p class="t1">Review: '+esc(c.name)+'</p><p class="t2">'+campOk(c).length+' people · '+(c.steps||[]).length+' emails · asked by '+esc(teamById(c.reviewAskedBy||c.by).name)+'</p></div><span class="pill warn">Needs you</span>'+svg("chevR")+'</button>').join("")+'</div>';}
+  h+=scoutHTML();
+  const sets=outboundSettings();
+  h+='<div class="row" style="gap:10px;margin-top:22px;flex-wrap:wrap"><span class="pill '+(sets.auto?"ok":"")+'">Automation '+(sets.auto?"on":"off")+'</span><span class="pill">'+S.length+' inboxes</span><span class="pill">'+(DB.confLeads||[]).filter(l=>!l.contacted&&!l.lastEmail&&l.segment!=="Set Aside").length+' leads never touched</span><span class="pill">'+(DB.suppress||[]).length+' unsubscribed</span></div>';
+  h+='<div class="sech">Start a line</div><div class="list">'+confLeadLists().map(x=>{const ls=(DB.confLeads||[]).filter(l=>l.conf===x.conf);const em=ls.filter(l=>!l.contacted&&!l.lastEmail&&l.segment!=="Set Aside").length;
+    return '<button class="card" data-act="campnewfrom" data-v="'+esc(x.conf)+'"><div class="grow"><p class="t1">'+esc(x.conf)+'</p><p class="t2">'+x.total+' leads · <b>'+em+' never touched</b></p></div>'+svg("chevR")+'</button>';}).join("")+'</div>';
+  return h;
+}
+function viewNetNarrow(){ // phone: each line runs top to bottom — plate, the inboxes it rides, its stops
+  const plan=buildPlan(1).days[0]||{byLane:{},bySender:{},byLaneSender:{},total:0};const lanes=netLanes(),S=senders().filter(s=>!s.paused);const liveIds=new Set(planLanes().map(c=>c.id));
+  let h='<div class="netwrap" style="padding:14px 14px 4px">';
+  if(!lanes.length)h+='<p class="empty" style="padding:24px 8px">No campaigns on the map yet. Start one below — it appears here as a line.</p>';
+  lanes.forEach((c,i)=>{const col=laneColor(c,i),n=plan.byLane[c.id]||0,live=liveIds.has(c.id)&&n>0;const used=S.filter(s=>(plan.byLaneSender[c.id]||{})[s.id]);
+    h+='<div class="vroute" style="--c:'+col+'"><button class="vplate" data-act="netlane" data-id="'+c.id+'"><span class="grow"><b style="color:'+laneInk(col)+'">'+esc(laneShort(c))+'</b><small>'+campOk(c).length+' people · '+esc(campStatus(c)[1].toLowerCase())+'</small></span><span class="num" style="font-size:22px;font-weight:650;letter-spacing:-.02em">'+n+'</span></button>'+
+     '<div class="vline'+(live?"":" ghost")+'">'+(used.length?used.map(s=>'<button class="vst" data-act="netstation" data-id="'+s.id+'"><i></i><span class="grow"><b>'+esc(s.email.split("@")[0])+'</b> <small>@'+esc(s.email.split("@")[1])+' · '+((plan.byLaneSender[c.id]||{})[s.id]||0)+' today</small></span></button>').join(""):'<p class="t2" style="margin:0 0 0 26px">'+(liveIds.has(c.id)?"no inbox has room today":"waiting for a reviewer")+'</p>')+
+     (c.steps||[]).slice(0,3).map((st,k)=>'<button class="vst stop" data-act="netstop" data-id="'+c.id+'" data-v="'+k+'"><i></i><span class="grow"><b>Day '+(st.day||1)+'</b> <small>'+esc(campFill((st.subject||"").replace(/^Re: /,""),campOk(c)[0]||{},c).slice(0,30))+' · '+campSentCount(c,k)+' sent</small></span></button>').join("")+'</div></div>';});
+  h+='<div class="legend" style="margin:8px -14px 0;border-radius:0 0 20px 20px"><span class="pill coral">'+plan.total+' today</span><span class="pill">'+S.length+' inboxes</span><span class="spacer"></span>'+(admin()?'<button class="btn coral" data-act="runtoday">'+svg("plane")+' Run today · '+plan.total+'</button>':'')+'</div></div>';
+  const rev=campaigns().filter(c=>c.status==="review"&&campIsReviewer()&&!(c.approvals||{})[USER]);
+  if(rev.length){h+='<div class="sech">Needs you</div><div class="list">'+rev.map(c=>'<button class="card" data-act="campopen" data-id="'+c.id+'" data-step="3"><div class="grow"><p class="t1">Review: '+esc(c.name)+'</p><p class="t2">'+campOk(c).length+' people · '+(c.steps||[]).length+' emails</p></div><span class="pill warn">Needs you</span>'+svg("chevR")+'</button>').join("")+'</div>';}
+  h+=scoutHTML();
+  h+='<div class="sech">Start a line</div><div class="list">'+confLeadLists().map(x=>{const ls=(DB.confLeads||[]).filter(l=>l.conf===x.conf);const em=ls.filter(l=>!l.contacted&&!l.lastEmail&&l.segment!=="Set Aside").length;return '<button class="card" data-act="campnewfrom" data-v="'+esc(x.conf)+'"><div class="grow"><p class="t1">'+esc(x.conf)+'</p><p class="t2">'+x.total+' leads · <b>'+em+' never touched</b></p></div>'+svg("chevR")+'</button>';}).join("")+'</div>';
+  return h;}
+/* the inspector: one campaign, one inbox, one email */
+function openInsp(html){const el=document.getElementById("insp");el.innerHTML='<button class="inspx" data-act="closesheet" aria-label="Close">'+svg("x")+'</button>'+html;el.classList.add("open");document.getElementById("scrim").classList.add("open");}
+function closeInsp(){document.getElementById("insp").classList.remove("open");document.getElementById("scrim").classList.remove("open");}
+function laneInsp(c){const plan=buildPlan(1).days[0];const d=campDelivery(c);const ok=campOk(c).length,steps=c.steps||[];const sent=steps.map((_,k)=>campSentCount(c,k));const replies=(c.leads||[]).filter(l=>l.outcome&&l.outcome!=="no").length;
+  openInsp('<h2>'+esc(c.name)+'</h2><p class="t2">'+esc(campAudienceLabel(c))+'</p><div class="insp-line" style="background:'+campColor(c)+'"></div>'+
+   '<p class="num" style="margin:0 0 12px"><b>'+ok+'</b> people · <b>'+((plan&&plan.byLane[c.id])||0)+'</b> today · <b>'+replies+'</b> replies'+(sent[0]?' ('+Math.round(100*replies/sent[0])+'% of email 1)':'')+'</p>'+
+   steps.map((s,k)=>'<div class="tk"><b>Day '+(s.day||1)+'</b><div class="grow"><p class="t1" style="font-weight:600">'+esc(s.subject)+'</p><p class="t2">'+sent[k]+' of '+ok+' sent'+(s.alts&&s.alts.length?' · '+(s.alts.length+1)+' variants':'')+'</p></div></div>').join("")+
+   (Object.values(d).some(x=>x)?'<div class="tk"><b>Delivery</b><span>'+d.delivery+' delivered · '+d.open+' opened · '+d.click+' clicked · '+d.bounce+' bounced · '+d.complaint+' complaints</span></div>':'')+
+   '<div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn coral" data-act="campopen" data-id="'+c.id+'">Open</button>'+(c.status==="review"&&campIsReviewer()?'<button class="btn" data-act="campopen" data-id="'+c.id+'" data-step="3">Review</button>':'')+(admin()&&campCanSend(c)?'<button class="btn" data-act="campopen" data-id="'+c.id+'" data-step="4">Send</button>':'')+(admin()?'<button class="btn ghost" data-act="camppause" data-id="'+c.id+'">'+(c.paused?"Resume":"Pause")+'</button>':'')+'</div>');}
+function stopInsp(c,k){const s=(c.steps||[])[k];if(!s)return;const first=campOk(c)[0];
+  openInsp('<h2>Email '+(k+1)+' · day '+(s.day||1)+'</h2><p class="t2">'+esc(c.name)+(first?' · as '+esc(first.first+" at "+first.company)+' reads it':'')+'</p><div class="insp-line" style="background:'+campColor(c)+'"></div>'+
+   '<p style="margin:0 0 6px;font-weight:650">'+esc(first?campFill(s.subject,first,c):s.subject)+'</p><p style="white-space:pre-wrap;color:var(--ink-2);margin:0">'+esc(first?campFill(s.body,first,c):s.body)+'</p>'+
+   (s.alts&&s.alts.length?'<div class="sech" style="font-size:13px;margin:16px 0 6px">Variants</div>'+s.alts.map((a,j)=>'<div class="tk"><b>'+String.fromCharCode(66+j)+'</b><div class="grow"><p class="t1" style="font-weight:600">'+esc(a.subject||s.subject)+'</p><p class="t2">'+campVariantStat(c,k,j+1)+'</p></div></div>').join("")+'<div class="tk"><b>A</b><div class="grow"><p class="t2">'+campVariantStat(c,k,0)+'</p></div></div>':'')+
+   '<div class="row" style="gap:8px;margin-top:16px"><button class="btn coral" data-act="campopen" data-id="'+c.id+'" data-step="2">Edit this email</button></div>');}
+/* ---------- Schedule (monday-style board) ---------- */
+function viewSchedule(){
+  const plan=buildPlan(21),lanes=planLanes(),S=senders();const days=plan.days;
+  let h='<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">'+(admin()?'<button class="btn coral" data-act="runtoday">'+svg("plane")+' Run today\'s sends · '+(days[0]?days[0].total:0)+'</button>':'')+'<span class="pill">'+S.filter(s=>!s.paused).length+' inboxes · '+S.filter(s=>!s.paused).reduce((a,s)=>a+senderLeft(s),0)+' left today</span><span class="pill">'+lanes.length+' lanes running</span><span class="pill">'+TOUCH_DAYS+'-day no-double-touch rule on</span></div>';
+  h+=haltBanner()+automationCard();
+  if(!lanes.length)h+='<div class="empty" style="padding:22px">No approved campaigns yet. Approve one and it appears here as a lane.</div>';
+  h+='<div class="tablewrap sched"><table class="lv"><thead><tr><th style="min-width:240px">Campaign</th><th>Status</th><th>Owner</th><th style="min-width:150px">Progress</th><th>Left</th><th>Done by</th>'+days.map(d=>'<th class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+fmtShort(d.date)+'</th>').join("")+'</tr></thead><tbody>';
+  lanes.forEach(c=>{const ok=campOk(c).length,done=ok?Math.round(100*campOk(c).reduce((a,l)=>a+Object.keys(l.sent||{}).length,0)/(ok*(c.steps||[]).length)):0;const L=plan.lanes[c.id]||{};
+    h+='<tr><td class="lvname"><span class="lane" style="background:'+campColor(c)+'"></span><a href="#" data-act="campopen" data-id="'+c.id+'">'+esc(c.name)+'</a><div class="t2" style="margin-left:18px">'+esc(campAudienceLabel(c))+' · '+ok+' people · '+(c.steps||[]).length+' emails</div></td><td>'+campStatusTag(c)+'</td><td><span class="av" style="background:'+teamById(c.by).c+'">'+initials(teamById(c.by).name)+'</span></td><td><div class="bar"><i style="width:'+done+'%;background:'+campColor(c)+'"></i></div><div class="t2">'+done+'%</div></td><td class="num">'+(L.remaining||0)+'</td><td>'+(L.finishDay?fmtShort(L.finishDay):"—")+'</td>'+
+      days.map(d=>{const n=d.byLane[c.id]||0;return '<td class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+(n?'<span class="cell" style="background:'+campColor(c)+'">'+n+'</span>':'')+'</td>';}).join("")+'</tr>';});
+  h+='<tr class="tot"><td class="lvname">Total</td><td colspan="5"></td>'+days.map(d=>'<td class="dc'+(d.weekend?" we":"")+'"><b>'+(d.total||"")+'</b></td>').join("")+'</tr></tbody></table></div>';
+  h+='<div class="sech">Inboxes · warmup ramp '+RAMP.join(" → ")+' a day</div><div class="tablewrap sched"><table class="lv"><thead><tr><th style="min-width:240px">Inbox</th><th>Pool</th><th>Health</th><th>Warm day</th><th>Cap today</th><th>Sent today</th>'+days.map(d=>'<th class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+fmtShort(d.date)+'</th>').join("")+'</tr></thead><tbody>';
+  S.forEach(s=>{const hl=senderHealth(s);const ok=senderDomainOk(s);
+    h+='<tr style="'+(s.paused?"opacity:.5":"")+'"><td class="lvname"><a href="#" data-act="sender" data-id="'+s.id+'">'+esc(s.email)+'</a><div class="t2">'+esc(s.name||"")+(ok===false?' · <span style="color:var(--bad)">domain not verified in SES</span>':ok===null?' · SES status unknown':'')+'</div></td><td><span class="pill">'+esc(s.pool||"A")+'</span></td><td><span class="pill '+hl.cls+'">'+hl.label+'</span>'+(s.paused?' <span class="pill dang">Paused</span>':'')+'</td><td class="num">'+(senderDay(s)+1)+'</td><td class="num">'+senderCap(s,0)+'</td><td class="num">'+senderSentToday(s)+'</td>'+
+      days.map(d=>{const n=d.bySender[s.id]||0;return '<td class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+(n?'<span class="cell soft">'+n+'</span>':'')+'</td>';}).join("")+'</tr>';});
+  h+='</tbody></table></div><p class="t2" style="margin-top:8px">A simulation from today: weekends off, each inbox climbs the ramp one step per clean day, lanes are filled in priority order. Change a campaign\'s emails or audience and the plan changes with it.</p>';
+  return h;
+}
+function outboundSettings(){return (DB.settings||[]).find(x=>x.id==="outbound")||{id:"outbound",auto:false,startHour:14,endHour:21};}
+function fmtHourET(h){const et=((h-4)%24+24)%24;return (et%12||12)+(et<12?"am":"pm");}
+function automationCard(){const st=outboundSettings();const runs=(DB.runs||[]).slice().sort((a,b)=>String(b.at).localeCompare(a.at)).slice(0,6);
+  let h='<div class="reccard" style="margin-bottom:14px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Automation '+(st.auto?'<span class="pill ok">On</span>':'<span class="pill">Off</span>')+'</p><p class="t2">A Supabase cron calls mail-run every hour, Mon–Fri, '+fmtHourET(st.startHour)+'–'+fmtHourET(st.endHour)+' Eastern. Each hour sends its share of every inbox\'s daily cap, so the day is spread out, not a burst.</p></div>'+(admin()?'<button class="btn '+(st.auto?'':'coral')+'" data-act="autotoggle">'+(st.auto?'Turn off':'Turn on')+'</button>':'')+'</div>';
+  if(admin())h+='<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><span class="t2">Window (Eastern)</span><div class="chips">'+[[13,20,"9–4"],[14,21,"10–5"],[15,22,"11–6"]].map(w=>'<span class="chip'+(st.startHour==w[0]&&st.endHour==w[1]?" on":"")+'" data-act="autowin" data-v="'+w[0]+'-'+w[1]+'">'+w[2]+'</span>').join("")+'</div></div>';
+  h+='<div class="sectlabel" style="margin:16px 0 6px">Last runs</div>'+(runs.length?'<div class="list">'+runs.map(r=>'<div class="card"><div class="grow"><p class="t1" style="font-weight:550">'+esc(r.text||"")+(r.dry?' <span class="pill">preview</span>':'')+'</p><p class="t2">'+new Date(r.at).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})+'</p></div></div>').join("")+'</div>':'<p class="t2">No runs yet. Until mail-run is deployed and the cron is scheduled (supabase/cron.sql), use Run today\'s sends.</p>');
+  return h+'</div>';}
+function senderSheet(id){const s=senders().find(x=>x.id===id);if(!s)return;const st=senderStats(s);const plan=buildPlan(1).days[0];const through=netLanes().filter(c=>(plan.byLaneSender[c.id]||{})[s.id]);
+  openInsp('<h2>'+esc(s.email)+'</h2><p class="t2">'+esc(s.name||"")+' · pool '+esc(s.pool||"A")+' · replies to '+esc(userEmail(s.owner)||"—")+'</p><div class="insp-line" style="background:var(--ink)"></div>'+
+   '<p class="num" style="margin:0 0 12px">Warm day <b>'+(senderDay(s)+1)+'</b> · cap <b>'+senderCap(s,0)+'</b>/day · <b>'+(plan.bySender[s.id]||0)+'</b> today ('+senderSentToday(s)+' sent so far) · '+st.bounce+' bounced · '+st.complaint+' complaints</p>'+
+   (through.length?'<div class="sectlabel">Carries today</div>'+through.map(c=>'<div class="tk"><span class="sched lane" style="background:'+campColor(c)+';width:10px;height:10px;border-radius:50%;display:inline-block;margin-top:4px"></span><div class="grow"><p class="t1" style="font-weight:600">'+esc(laneShort(c))+'</p><p class="t2">'+(plan.byLaneSender[c.id]||{})[s.id]+' emails</p></div></div>').join(""):'')+
+   '<label class="fl">Display name</label><input class="f" id="sName" data-sid="'+s.id+'" value="'+esc(s.name||"")+'"><label class="fl">Owner (replies go to their real inbox)</label><div class="chips">'+TEAM.filter(t=>t.id!=="laresa").map(t=>'<span class="chip'+(s.owner===t.id?" on":"")+'" data-act="sowner" data-id="'+s.id+'" data-v="'+t.id+'">'+esc(t.name.split(" ")[0])+'</span>').join("")+'</div>'+
+   '<div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn" data-act="spause" data-id="'+s.id+'">'+(s.paused?"Resume":"Pause")+'</button><button class="btn" data-act="shold" data-id="'+s.id+'">'+(s.hold?"Release hold":"Hold the ramp a day")+'</button><button class="btn ghost" data-act="sreset" data-id="'+s.id+'" style="color:var(--bad)">Restart warmup</button></div>');}
+/* ---------- the scout: reads every lead group and proposes the next lines ---------- */
+// Rule-based, runs in the page on every render: no model call, no cost. Each suggestion is a ready-to-start campaign
+// (audience + sequence + name) with the reasons and an expected yield, so the hub proposes and a person approves.
+const SCOUT_RATES={fresh:0.04,warm:0.025,stale:0.015,distrep:0.06,ems:0.03}; // expected reply share of email 1 — planning numbers, not promises
+function scoutGroups(){
+  const t=touchedMap(),en=enrolledMap(null),stop=suppressedSet(),cut=new Date(Date.now()-TOUCH_DAYS*86400000).toISOString().slice(0,10);
+  const free=l=>{const k=String(l.email||"").toLowerCase();if(!k||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(k)||stop.has(k)||en.has(k))return false;const tt=t.get(k);return !(tt&&tt.at>=cut);};
+  const out=[];
+  // conference leads: by show × segment, then the biggest industry groups inside the end-user slice
+  confLeadLists().forEach(x=>{const ls=(DB.confLeads||[]).filter(l=>l.conf===x.conf&&l.segment!=="Set Aside");const start=((DB.conf||[]).find(c=>String(c.name||"").toLowerCase().includes(x.conf.split(" ")[0].toLowerCase()))||{}).start||"";
+    const age=start?Math.floor((Date.now()-new Date(start))/86400000):null;const temp=age==null?"warm":age<45?"fresh":age<120?"warm":"stale";
+    const eu=ls.filter(l=>l.segment==="End User"),dr=ls.filter(l=>l.segment==="Distributor/Rep");
+    const isEms=/ems|fire/i.test(x.conf);
+    const euFree=eu.filter(free);if(euFree.length>=8)out.push({key:"conf|"+x.conf+"|eu",title:x.conf+" — end-users",why:[euFree.length+" of "+eu.length+" never touched and not in a lane",age!=null?(age+" days since the show · "+temp):"show date unknown"],n:euFree.length,rate:isEms?SCOUT_RATES.ems:SCOUT_RATES[temp],template:isEms?"ems":"enduser",aud:{src:"conf",conf:x.conf,segments:["End User"],fresh:true},group:"Conference leads"});
+    const drFree=dr.filter(free);if(drFree.length>=5)out.push({key:"conf|"+x.conf+"|dr",title:x.conf+" — distributor reps",why:[drFree.length+" sellers who stopped at the booth","rep track: pitch card + training + demo unit"],n:drFree.length,rate:SCOUT_RATES.distrep,template:"distrep",aud:{src:"conf",conf:x.conf,segments:["Distributor/Rep"],fresh:true},group:"Conference leads"});
+    const cnt=campIndCounts(euFree.map(campLeadFromConf));Object.keys(cnt).filter(k=>k!=="general"&&cnt[k]>=25).sort((a,b)=>cnt[b]-cnt[a]).slice(0,2).forEach(k=>out.push({key:"conf|"+x.conf+"|"+k,title:x.conf+" — "+indGroup(k)[1].toLowerCase(),why:[cnt[k]+" "+indGroup(k)[1].toLowerCase()+" leads, one industry page and stat for all of them"],n:cnt[k],rate:(isEms?SCOUT_RATES.ems:SCOUT_RATES[temp])*1.15,template:"enduser",aud:{src:"conf",conf:x.conf,segments:["End User"],inds:[k],fresh:true},group:"Conference leads · by industry"}));
+  });
+  // CRM contacts: distributor sellers never emailed, by distributor
+  const byDist={};(DB.people||[]).forEach(p=>{if(contactType(p)!=="distrep"||!free(p))return;const c=company(p.cid);if(!c)return;(byDist[c.id]=byDist[c.id]||{c,ps:[]}).ps.push(p);});
+  Object.values(byDist).filter(x=>x.ps.length>=12).sort((a,b)=>b.ps.length-a.ps.length).slice(0,4).forEach(x=>out.push({key:"dist|"+x.c.id,title:x.c.name+" reps",why:[x.ps.length+" sellers in the CRM, none emailed in "+TOUCH_DAYS+" days",distStatus(x.c)==="setup"?"set-up distributor — they can quote today":"potential distributor — pitch + training"],n:x.ps.length,rate:SCOUT_RATES.distrep,template:"distrep",aud:{src:"contacts",query:x.c.name+" distributor reps"},group:"Distributor reps"}));
+  // end-user contacts by region, never emailed
+  ["East","Central","West"].forEach(r=>{const ps=(DB.people||[]).filter(p=>contactType(p)==="enduser"&&free(p)&&personStates(p).some(st=>regionFromState(st)===r));if(ps.length>=20)out.push({key:"eu|"+r,title:"End-users · "+r,why:[ps.length+" end-user contacts never emailed",r==="East"?"John Morrison's territory":r==="Central"?"John Cornejo's territory":"Tim Ford's territory"],n:ps.length,rate:SCOUT_RATES.stale,template:"enduser",aud:{src:"contacts",query:"end-users "+r.toLowerCase()},group:"CRM book"});});
+  // follow-through: opened or clicked but never replied → a different angle
+  campaigns().forEach(c=>{const ids=new Set();(c.leads||[]).forEach(l=>Object.values(l.msg||{}).forEach(id=>ids.add(id)));if(!ids.size)return;const engaged=new Set((DB.mailEvents||[]).filter(e=>ids.has(e.msgId)&&(e.type==="open"||e.type==="click")).map(e=>e.to));
+    const warm=(c.leads||[]).filter(l=>engaged.has(String(l.email).toLowerCase())&&!l.outcome&&c.steps.every((_,k)=>l.sent&&l.sent[k]));if(warm.length>=5)out.push({key:"warm|"+c.id,title:"Opened, never replied — "+laneShort(c),why:[warm.length+" people opened or clicked every email and said nothing","a short, different angle beats a fourth nudge"],n:warm.length,rate:0.05,template:"blank",aud:{src:"file"},leads:warm,group:"Follow-through"});});
+  const have=new Set(campaigns().map(c=>c.scoutKey).filter(Boolean));
+  return out.filter(s=>!have.has(s.key)).map(s=>Object.assign(s,{replies:Math.round(s.n*s.rate),cost:+(s.n*3*0.0001+s.n*0.02).toFixed(2),score:s.n*s.rate*(s.group==="Follow-through"?1.3:1)})).sort((a,b)=>b.score-a.score);
+}
+function scoutHTML(){const sg=scoutGroups();if(!sg.length)return '';
+  let h='<div class="sech">The scout suggests</div><p class="t2" style="margin:-6px 0 10px">Read from every lead group right now: who is untouched and not in a lane, how long since the show. Reply figures are planning estimates (people × an assumed reply rate by warmth: fresh show 4%, warm 2.5%, stale 1.5%, distributor reps 6%, EMS 3%), not results. Start one and it opens as a draft for review.</p><div class="list">';
+  sg.slice(0,6).forEach(s=>{h+='<div class="card"><div class="grow"><p class="t1">'+esc(s.title)+' <span class="pill">'+esc(s.group)+'</span></p><p class="t2">'+s.why.map(esc).join(" · ")+'</p></div><div style="text-align:right;min-width:190px"><p class="t1 num">'+s.n+' people · '+esc(CAMP_TEMPLATES[s.template].name)+'</p><p class="t2 num">planning estimate: ~'+s.replies+' replies at '+Math.round(s.rate*100)+'% · ~$'+s.cost.toFixed(2)+' (SES + verification)</p></div><button class="btn coral sm" data-act="scoutstart" data-v="'+esc(s.key)+'">Start this line</button></div>';});
+  return h+'</div>';}
+function scoutStart(key){const s=scoutGroups().find(x=>x.key===key);if(!s)return;const c=newCampaign(s.aud,s.title);c.scoutKey=key;c.template=s.template;c.steps=campDefaultSteps(s.template);
+  if(s.leads){c.leads=campFlagLeads(JSON.parse(JSON.stringify(s.leads)).map(l=>{delete l.sent;delete l.msg;delete l.by;delete l.var;return l;}));c.listName="Opened, never replied";}
+  (c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:"Suggested by the scout: "+s.why.join("; ")+". Expected ~"+s.replies+" replies from "+s.n+" people.",sys:true});saveCamp(c);render();}
+
+/* ---------- views ---------- */
+const NAV=[["net","The net"],["camp","Campaigns"],["sched","Schedule"],["leads","Leads"],["playbook","Playbook"]];
+function needsMe(){return campaigns().filter(c=>c.status==="review"&&campIsReviewer()&&!(c.approvals||{})[USER]).length;}
+function render(){
+  if(!USER||!authed()||logState.setPw){renderLogin();return;}
+  if(view==="home"||view==="web")view="net";
+  const me=teamById(USER);const n=needsMe();
+  const titles={net:"",camp:curCampaign?"":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
+  const subs={net:"",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Jamie and Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const body=view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
+  document.getElementById("screen").innerHTML='<header class="top"><div class="brand">'+BRAND_MARK+'<span>AutoTQ<small>Marketing</small></span></div><nav class="seg" aria-label="Sections">'+NAV.map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+x[1]+(x[0]==="camp"&&n?'<span class="cnt">'+n+'</span>':'')+'</button>').join("")+'</nav>'+
+   '<div class="right"><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="me" title="'+esc(me.name)+' · sign out">'+initials(me.name)+'</button></div></header>'+
+   '<main class="main">'+(titles[view]?'<div class="ph"><h1>'+titles[view]+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main>';
+  placeStaticTrains();
+}
+function viewCampaigns(){
+  const c=curCampaign?campaignById(curCampaign):null;if(c)return campWizard(c);
+  let h='<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap"><button class="btn coral" data-act="campnew">'+svg("plus")+' New campaign</button><div class="chips">'+[["campaigns","All"],["audiences","Audiences"]].map(t=>'<span class="chip'+(mktTab===t[0]?" on":"")+'" data-act="mkttab" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div></div>';
+  if(mktTab==="audiences")return h+campAudiencesHTML();
+  const list=campaigns().slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  if(!list.length)return h+'<div class="empty">No campaigns yet. Start one above — it goes to Jamie and Hannah for review before anything sends.</div>';
+  CAMP_STATUS.forEach(s=>{const rows=list.filter(x=>(x.status||"draft")===s[0]);if(!rows.length)return;
+    h+='<div class="sech">'+s[1]+' · '+rows.length+'</div><div class="list">'+rows.map(x=>{const ok=campOk(x).length,steps=x.steps||[],col=campColor(x),appr=Object.keys(x.approvals||{}).map(shortName);
+      const stops=steps.map((st,k)=>{const p=steps.length>1?(k/(steps.length-1))*86+7:50;const sent=campSentCount(x,k);return '<span class="sp'+(sent&&sent>=ok?" done":"")+'" style="left:'+p+'%;color:'+col+'"></span><span class="tl" style="left:'+p+'%">Day '+(st.day||1)+(sent?' · '+sent:'')+'</span>';}).join("");
+      return '<button class="card route" data-act="campopen" data-id="'+x.id+'"><div><p class="t1">'+esc(x.name)+'</p><p class="t2">'+esc(campAudienceLabel(x))+' · '+ok+' people'+(appr.length?' · approved by '+appr.join(" + "):'')+(x.paused?' · <b style="color:var(--bad)">paused</b>':'')+'</p></div><div class="trk"><span class="ln" style="background:'+col+';opacity:.35"></span>'+stops+'</div><div class="row" style="gap:8px">'+campStatusTag(x)+svg("chevR")+'</div></button>';}).join("")+'</div>';});
+  return h;
+}
+function campAudiencesHTML(){
+  let h='<div class="sech" style="margin-top:4px">Conference leads</div><div class="list">'+confLeadLists().map(x=>{const ls=(DB.confLeads||[]).filter(l=>l.conf===x.conf);const eu=ls.filter(l=>l.segment==="End User").length,dr=ls.filter(l=>l.segment==="Distributor/Rep").length,em=ls.filter(l=>!l.contacted&&!l.lastEmail&&l.segment!=="Set Aside").length;const cnt=campIndCounts(ls.filter(l=>l.segment!=="Set Aside").map(campLeadFromConf));
+    return '<button class="card" data-act="campnewfrom" data-v="'+esc(x.conf)+'"><div class="grow"><p class="t1">'+esc(x.conf)+'</p><p class="t2">'+x.total+' leads · '+eu+' end-user · '+dr+' distributor/rep · <b>'+em+' never touched</b><br>'+Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]).slice(0,5).map(k=>indGroup(k)[1]+" "+cnt[k]).join(" · ")+'</p></div>'+svg("chevR")+'</button>';}).join("")+'</div>';
+  const Ls=myLists();h+='<div class="sech">Call lists</div>'+(Ls.length?'<div class="list">'+Ls.map(L=>'<button class="card" data-act="campnewlist" data-id="'+L.id+'"><div class="grow"><p class="t1">'+esc(L.name)+'</p><p class="t2">'+(L.items||[]).length+' people · '+(L.items||[]).filter(it=>{const p=it.pid?person(it.pid):null;return p&&p.email;}).length+' with email</p></div>'+svg("chevR")+'</button>').join("")+'</div>':'<div class="empty" style="padding:18px">No saved call lists yet — build one in the CRM under Records › Lists.</div>');
+  h+='<div class="sech">Contacts</div><div class="reccard"><p class="t2">'+(DB.people||[]).length+' contacts · '+(DB.people||[]).filter(p=>p.email).length+' with an email. Describe the list in plain words.</p><div class="row" style="margin-top:10px;gap:8px"><input class="f" id="campQ" placeholder="All end-users in Florida · Grainger reps TX · potential distributors"><button class="btn coral" data-act="campnewq">Build</button></div></div>';
+  return h;
+}
+/* one campaign = its own web: the route of this line alone */
+function laneRouteSVG(c){
+  const S=senders().filter(s=>!s.paused);const plan=buildPlan(1).days[0];const used=S.filter(s=>(plan.byLaneSender[c.id]||{})[s.id]);const col=campColor(c);const steps=c.steps||[];
+  const W=1200,H=Math.max(150,52*Math.max(used.length,1)+70);const xP=24,xS=470,xE=[760,910,1060],yMid=H/2+14;const ySt=j=>60+52*j+(H-60-52*used.length)/2+10;
+  const d=routePath(xP+232,yMid,used.map((_,j)=>ySt(j)),xE[Math.min(2,steps.length-1)]+14,yMid,xS);
+  let g='<path class="line'+(campCanSend(c)?"":" ghost")+'" d="'+d+'" stroke="'+col+'"/>';
+  if(plan.byLane[c.id])g+=trainsHTML(d,col,Math.min(5,Math.max(1,Math.round(plan.byLane[c.id]/20))),7,0);
+  g+='<g class="plate" data-act="campstep" data-v="1" transform="translate('+xP+','+(yMid-30)+')"><rect width="232" height="60" rx="14"/><text x="18" y="24" class="pt" fill="'+laneInk(col)+'">Audience</text><text x="18" y="43" class="ps">'+esc(campAudienceLabel(c)).slice(0,34)+'</text><text x="218" y="38" class="pn" text-anchor="end">'+campOk(c).length+'</text></g>';
+  (used.length?used:[]).forEach((s,j)=>{g+='<g class="station" data-act="sender" data-id="'+s.id+'" transform="translate('+xS+','+ySt(j)+')"><circle r="10"/><text x="20" y="-2" class="st">'+esc(s.email.split("@")[0])+'<tspan class="ss"> @'+esc(s.email.split("@")[1])+'</tspan></text><text x="20" y="15" class="ss">'+((plan.byLaneSender[c.id]||{})[s.id]||0)+' today</text></g>';});
+  if(!used.length)g+='<text x="'+xS+'" y="'+(yMid-22)+'" class="lbl" text-anchor="middle">'+(campCanSend(c)?"no inbox has room today":"inboxes join once a reviewer approves")+'</text>';
+  steps.slice(0,3).forEach((st,k)=>{const sent=campSentCount(c,k);g+='<g class="stop" data-act="campstep" data-v="2" transform="translate('+xE[k]+','+yMid+')"><rect x="-2.5" y="-11" width="5" height="22" rx="2.5" fill="'+col+'"'+(sent?'':' opacity=".45"')+'/><rect x="-14" y="-16" width="28" height="48" fill="transparent"/><text x="0" y="-15" class="tt" text-anchor="middle">Day '+(st.day||1)+'</text><text x="0" y="24" class="ts" text-anchor="middle">'+esc(campFill((st.subject||"").replace(/^Re: /,""),campOk(c)[0]||{},c).slice(0,24))+'</text></g>';});
+  return '<div class="netwrap" style="margin-bottom:14px"><svg class="net" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg"><text x="'+xP+'" y="36" class="col">WHO</text><text x="'+xS+'" y="36" class="col" text-anchor="middle">THROUGH</text><text x="'+xE[1]+'" y="36" class="col" text-anchor="middle">WHAT</text>'+g+'</svg></div>';}
+function campWizard(c){
+  const steps=[[1,"Audience"],[2,"Emails"],[3,"Review"],[4,"Send"]];
+  let h='<div class="row" style="margin:2px 0 12px;gap:10px;flex-wrap:wrap"><button class="btn sm ghost" data-act="campback">'+svg("back")+' Campaigns</button><input class="f" id="campName" value="'+esc(c.name)+'" placeholder="Name this campaign" style="max-width:380px;font-weight:650;padding:7px 10px">'+campStatusTag(c)+(c.paused?'<span class="pill dang">Paused — complaints or bounces too high</span>':'')+(c.status==="draft"||admin()?'<button class="btn sm ghost" data-act="campdel" data-id="'+c.id+'" style="margin-left:auto;color:var(--bad)">Delete</button>':'')+'</div>';
+  h+=laneRouteSVG(c);
+  h+='<div class="wiz">'+steps.map(s=>'<button class="'+(campStep===s[0]?"on":(campReady(c,s[0])?"done":""))+'" data-act="campstep" data-v="'+s[0]+'">'+(campReady(c,s[0])?svg("check")+" ":"")+s[0]+'. '+s[1]+'</button>').join("")+'</div>';
+  return h+(campStep===1?campLeadsUI(c):campStep===2?campEmailsUI(c):campStep===3?campReviewUI(c):campSendUI(c));
+}
+function campLeadsUI(c){
+  const a=c.aud||(c.aud={src:""});const leads=c.leads||[];const chip=(on,act,v,label)=>'<span class="chip'+(on?" on":"")+'" data-act="'+act+'" data-v="'+esc(v)+'">'+label+'</span>';
+  let h='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Where the people come from</div><div class="chips">'+[["conf","Conference leads"],["list","Call list"],["contacts","Contacts"],["file","Upload a CSV"]].map(s=>chip(a.src===s[0],"campsrc",s[0],s[1])).join("")+'</div>';
+  if(a.src==="conf"){h+='<div class="sectlabel" style="margin-top:14px">Show</div><div class="chips">'+confLeadLists().map(x=>chip(a.conf===x.conf,"campaud:conf",x.conf,esc(x.conf))).join("")+'</div>';
+    if(a.conf){const ls=(DB.confLeads||[]).filter(x=>x.conf===a.conf&&x.segment!=="Set Aside");const segs=["End User","Distributor/Rep"],regs=["East","Central","West","International"];
+      h+='<div class="sectlabel" style="margin-top:14px">Who</div><div class="chips">'+segs.map(s=>chip((a.segments||[]).includes(s),"campaud:segments",s,s+" "+ls.filter(x=>x.segment===s).length)).join("")+'</div>';
+      const cnt=campIndCounts(ls.map(campLeadFromConf));h+='<div class="sectlabel" style="margin-top:14px">Industry group <span style="font-weight:400;text-transform:none;letter-spacing:0">— none picked = everyone</span></div><div class="chips">'+IND_GROUPS.filter(g=>cnt[g[0]]).map(g=>chip((a.inds||[]).includes(g[0]),"campaud:inds",g[0],esc(g[1])+" "+cnt[g[0]])).join("")+'</div>';
+      h+='<div class="sectlabel" style="margin-top:14px">Region</div><div class="chips">'+regs.map(r=>chip((a.regions||[]).includes(r),"campaud:regions",r,r+" "+ls.filter(x=>x.region===r).length)).join("")+chip(!!a.fresh,"campaud:fresh","1","Never touched only")+'</div>';}}
+  else if(a.src==="list")h+='<div class="sectlabel" style="margin-top:14px">Saved call list</div><div class="chips">'+myLists().map(L=>chip(a.listId===L.id,"campaud:listId",L.id,esc(L.name)+" "+(L.items||[]).length)).join("")+'</div>';
+  else if(a.src==="contacts")h+='<div class="sectlabel" style="margin-top:14px">Describe the list</div><input class="f" id="campAudQ" value="'+esc(a.query||"")+'" placeholder="All end-users in Florida · Grainger reps TX · potential distributors">';
+  else if(a.src==="file")h+='<div class="dropzone" data-act="camppick" style="margin-top:12px">'+svg("dl")+'<p style="margin:8px 0 2px;font-weight:600;color:var(--ink)">'+(leads.length?'Swap the list — drop a new CSV here':'Drop a CSV, or tap to choose')+'</p><p style="margin:0;font-size:12.5px">Needs an Email column. Name, Company, Title, City and Industry make the personalization work.</p></div><input type="file" id="campFile" accept=".csv,text/csv" style="display:none">';
+  if(a.src&&a.src!=="file")h+='<button class="btn coral" data-act="campbuild" style="margin-top:14px">'+(leads.length?"Rebuild audience":"Build audience")+'</button>';
+  h+='</div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">How these people know us <span style="font-weight:400;text-transform:none;letter-spacing:0">— AWS and the inbox providers both ask; it goes in the campaign record</span></div><div class="chips">'+BASIS_OPTS.map(o=>chip((c.basis||"").startsWith(o.split(" —")[0]),"campbasis",o,esc(o))).join("")+'</div><input class="f" id="campBasis" value="'+esc(c.basis||"")+'" placeholder="e.g. Met us at NSC 2026 · Grainger sellers we trained · asked for a quote on theautotq.com" style="margin-top:10px"></div>';
+  if(leads.length){const ok=campOk(c).length,out=leads.length-ok;const cnt=campIndCounts(campOk(c));
+    const held={};leads.forEach(l=>{if(l.flag!=="ok")held[l.flag]=(held[l.flag]||0)+1;});const heldTxt=Object.keys(held).map(k=>({missing:"no email",bad:"bad email",dupe:"duplicate",verify:"verify first",touched:"touched in "+TOUCH_DAYS+" days",enrolled:"in another campaign",suppressed:"unsubscribed",invalid:"undeliverable"}[k]||k)+" "+held[k]).join(" · ");
+    const unv=campOk(c).filter(l=>!l.vstatus).length;
+    h+='<div class="row" style="gap:8px;margin:4px 0 8px;flex-wrap:wrap"><button class="btn" data-act="campverify">'+svg("check")+' Check '+unv+' emails with Apollo</button><span class="t2">1 credit each · drops undeliverable addresses before anything sends</span></div>';
+    h+='<p style="margin:6px 0 10px"><b>'+ok+' will be emailed</b> · '+esc(c.listName||"")+(out?' · <b>'+out+' held back</b> ('+esc(heldTxt)+')':'')+' · '+Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]).slice(0,3).map(k=>indGroup(k)[1]+" "+cnt[k]).join(", ")+'</p>';
+    const anySent=leads.some(l=>l.sent&&Object.keys(l.sent).length);
+    h+='<div class="tablewrap" style="margin-top:6px;max-height:520px"><table class="lv"><thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Industry page</th><th>Email</th><th></th>'+(anySent?'<th>Outcome</th>':'')+'</tr></thead><tbody>'+leads.slice(0,500).map((l,i)=>'<tr'+(l.flag!=="ok"?' style="opacity:.45"':'')+'><td class="lvname">'+esc((l.first+" "+l.last).trim()||"—")+'</td><td>'+esc(l.company||"—")+'</td><td>'+esc(l.title||"—")+'</td><td>'+esc(indGroup(l.ind)[1])+'</td><td>'+esc(l.email||"—")+'</td><td>'+campFlagTag(l.flag,l)+'</td>'+(anySent?'<td>'+(l.sent&&Object.keys(l.sent).length?['replied','meeting','quote','no'].map(o=>'<span class="chip'+(l.outcome===o?" on":"")+'" style="min-height:24px;padding:0 8px;font-size:11.5px" data-act="leadout" data-v="'+i+'" data-o="'+o+'">'+o+'</span>').join(" "):'')+'</td>':'')+'</tr>').join("")+'</tbody></table></div>'+(leads.length>500?'<p class="t2" style="text-align:center;margin-top:6px">Showing the first 500 of '+leads.length+'.</p>':'');
+    if(ok)h+='<button class="btn coral block" data-act="campstep" data-v="2" style="margin-top:14px">Looks right — write the emails '+svg("chevR")+'</button>';}
+  return h;
+}
+function campEmailsUI(c){
+  if(!c.steps||!c.steps.length){c.steps=campDefaultSteps(c.template);saveCamp(c);}const first=campOk(c)[0];
+  let h='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Start from a sequence</div><div class="chips">'+Object.keys(CAMP_TEMPLATES).map(k=>'<span class="chip'+(c.template===k?" on":"")+'" data-act="camptpl" data-v="'+k+'">'+esc(CAMP_TEMPLATES[k].name)+'</span>').join("")+'</div><p class="t2" style="margin-top:8px">Picking one replaces the emails below. {{industry}}, {{industry_page}} and {{industry_stat}} fill per person from the Playbook table. A variant B/C splits that email\'s sends evenly so you can see which subject earns replies.</p></div>';
+  c.steps.forEach((s,i)=>{
+    h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="margin-bottom:8px"><b>Email '+(i+1)+'</b><span class="t2" style="margin:0">sends on day</span><input class="f" data-cfield="day" data-ci="'+i+'" value="'+(s.day||1)+'" inputmode="numeric" style="width:56px;text-align:center;padding:6px">'+(c.steps.length>1?'<button class="btn sm ghost" data-act="campdelstep" data-v="'+i+'" style="margin-left:auto;color:var(--bad)">Remove</button>':'')+'</div>'+
+     '<label class="fl">Subject · A</label><input class="f" data-cfield="subject" data-ci="'+i+'" value="'+esc(s.subject||"")+'" placeholder="Subject line"><label class="fl">Message · A</label><textarea class="f" data-cfield="body" data-ci="'+i+'" rows="8" placeholder="{{first_name}} — …">'+esc(s.body||"")+'</textarea>';
+    (s.alts||[]).forEach((a,j)=>{const L=String.fromCharCode(66+j);h+='<div class="row" style="margin-top:14px"><b>Variant '+L+'</b><span class="t2" style="margin:0">'+campVariantStat(c,i,j+1)+'</span><button class="btn sm ghost" data-act="campdelalt" data-ci="'+i+'" data-v="'+j+'" style="margin-left:auto;color:var(--bad)">Remove</button></div><label class="fl" style="margin-top:6px">Subject · '+L+'</label><input class="f" data-afield="subject" data-ci="'+i+'" data-aj="'+j+'" value="'+esc(a.subject||"")+'" placeholder="A different subject"><label class="fl">Message · '+L+' <span style="font-weight:400;color:var(--ink-4)">(blank = same as A)</span></label><textarea class="f" data-afield="body" data-ci="'+i+'" data-aj="'+j+'" rows="5">'+esc(a.body||"")+'</textarea>';});
+    h+='<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><div class="chips">'+CAMP_TOKENS.map(t=>'<span class="chip" data-act="camptoken" data-v="'+t+'" data-ci="'+i+'">{{'+t+'}}</span>').join("")+'</div>'+((s.alts||[]).length<2?'<button class="btn sm" data-act="campaddalt" data-ci="'+i+'" style="margin-left:auto">'+svg("plus")+' Variant '+String.fromCharCode(66+(s.alts||[]).length)+'</button>':'')+'</div></div>';});
+  h+='<button class="btn block" data-act="campaddstep" style="margin-bottom:14px">'+svg("plus")+' Add a follow-up</button>';
+  if(first){h+='<div class="sech">Preview — as '+esc(first.first||first.email)+' ('+esc(indGroup(first.ind)[1])+') will read it</div>';c.steps.forEach(s=>{h+='<div class="reccard" style="margin-bottom:10px"><p class="t2" style="margin:0 0 4px">Day '+(s.day||1)+'</p><b>'+esc(campFill(s.subject,first,c))+'</b><p style="white-space:pre-wrap;color:var(--ink-2);margin:8px 0 0">'+esc(campFill(s.body,first,c))+'</p></div>';});}
+  return h+'<button class="btn coral block" data-act="campstep" data-v="3" style="margin-top:6px">Emails are ready — send for review '+svg("chevR")+'</button>';
+}
+function campReviewUI(c){
+  const appr=Object.keys(c.approvals||{});const first=campOk(c)[0];
+  let h='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:10px">'+campStatusTag(c)+'<span class="t2" style="margin:0">'+(appr.length?'Approved by '+appr.map(u=>teamById(u).name+" · "+new Date(c.approvals[u]).toLocaleDateString()).join(", "):(c.status==="review"?'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or "):'Not sent for review yet'))+'</span></div>'+
+   '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">'+(c.status==="draft"?'<button class="btn coral" data-act="campreview">Send for review</button>':'')+(campIsReviewer()&&!(c.approvals||{})[USER]&&c.status!=="done"?'<button class="btn coral" data-act="campapprove">'+svg("check")+' Approve</button>':'')+(appr.length&&c.status!=="done"&&campIsReviewer()?'<button class="btn ghost" data-act="campunapprove">Pull approval</button>':'')+(campReady(c,3)&&admin()?'<button class="btn" data-act="campstep" data-v="4">Go to Send '+svg("chevR")+'</button>':'')+'</div></div>';
+  const chk=campChecks(c);h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Deliverability check</div>'+chk.map(x=>'<div class="tk" style="padding:6px 0"><span class="pill '+(x.ok?"ok":x.hard?"dang":"warn")+'" style="width:22px;justify-content:center">'+(x.ok?"✓":"!")+'</span><span>'+esc(x.text)+'</span></div>').join("")+'</div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">What goes out</div><div class="tk"><b>Who</b><span>'+campOk(c).length+' people · '+esc(campAudienceLabel(c))+'</span></div><div class="tk"><b>From</b><span>'+((c.channel||"ses")==="ses"?'the AutoTQ inbox pool ('+senders().filter(s=>!s.paused).map(s=>esc(s.email)).join(", ")+') · replies to each rep\'s real address · unsubscribe link on every email':(esc(SALES_FROM)+', '+esc(teamById(USER).name)+' cc\'d'))+' · up to '+(c.dailyCap||50)+' a day</span></div>'+(c.steps||[]).map(s=>'<div class="tk"><b>Day '+(s.day||1)+'</b><span><b>'+esc(first?campFill(s.subject,first,c):s.subject)+'</b><br><span style="white-space:pre-wrap;color:var(--ink-3)">'+esc(first?campFill(s.body,first,c):s.body)+'</span></span></div>').join("")+'</div>';
+  h+='<div class="sech">Comments</div><div class="list">'+((c.review||[]).length?(c.review||[]).map(r=>'<div class="card block'+(r.sys?'" style="opacity:.7':'')+'"><p class="t2" style="margin:0 0 3px"><b style="color:'+teamById(r.by).c+'">'+esc(teamById(r.by).name)+'</b> · '+new Date(r.at).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})+(r.step?' · on '+["","Audience","Emails","Review","Send"][r.step]:'')+'</p><p style="white-space:pre-wrap;margin:0">'+esc(r.text)+'</p></div>').join(""):'<div class="empty" style="padding:16px">No comments yet.</div>')+'</div>';
+  return h+'<div class="reccard" style="margin-top:10px"><textarea class="f" id="campNote" rows="3" placeholder="Leave a note for the team — a line to change, a question, a go-ahead"></textarea><button class="btn" data-act="campcomment" style="margin-top:8px">Post</button></div>';
+}
+function campSendUI(c){
+  if(!admin())return '<div class="empty">Max sends approved campaigns from here. Your part is the Review step.</div>';const can=campCanSend(c);let h='';
+  if(!can)h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Locked until a reviewer approves</p><p class="t2">'+(c.status==="draft"?'Send it for review first.':c.status==="done"?'Every email has gone out.':'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or ")+'.')+'</p></div>';
+  const ses=(c.channel||"ses")==="ses";const st=MAILOUT_STATUS;
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Send through</div><div class="chips"><span class="chip'+(ses?" on":"")+'" data-act="campchan" data-v="ses">AutoTQ inbox pool (SES)</span><span class="chip'+(!ses?" on":"")+'" data-act="campchan" data-v="inbox">Our inbox · '+esc(SALES_FROM)+'</span></div>';
+  if(ses){
+    if(!st)h+='<p class="t2" style="margin-top:12px">Checking the outbound mail function…</p>';
+    else if(!st.ok)h+='<div class="tk" style="margin-top:12px;border:0"><span class="pill dang">Not connected</span><span class="t2" style="margin:0">'+esc(st.error||"")+' — set up SES + deploy mail-out (SETUP_SES.md). Sends stay locked until it answers.</span></div>';
+    else{const ids=(st.identities||[]);
+      h+='<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><span class="pill '+(st.production?"ok":"warn")+'">'+(st.production?"Production":"Sandbox — verified recipients only")+'</span><span class="pill">'+(st.quota&&st.quota.sentToday!=null?Math.round(st.quota.sentToday)+" / "+Math.round(st.quota.perDay||0)+" today":"")+'</span><span class="pill">'+(st.suppressed||0)+' suppressed</span>'+ids.map(i=>'<span class="pill '+(i.verified?"ok":"warn")+'">'+esc(i.name)+(i.dkim&&i.dkim!=="SUCCESS"?" · DKIM "+esc(i.dkim).toLowerCase():"")+'</span>').join("")+'<button class="btn sm ghost" data-act="sesrefresh">Refresh</button></div>';
+      h+='<p class="t2" style="margin-top:10px">Day-by-day sends rotate through the inbox pool (Schedule › Inboxes). For a one-off batch from a single address, set it here:</p><div class="row" style="gap:10px;margin-top:6px;flex-wrap:wrap"><div class="grow" style="min-width:200px"><label class="fl" style="margin-top:0">From address</label><input class="f" id="campFrom" value="'+esc(c.from||"")+'" placeholder="max@autotq.net"></div><div class="grow" style="min-width:160px"><label class="fl" style="margin-top:0">Display name</label><input class="f" id="campFromName" value="'+esc(c.fromName||"")+'" placeholder="'+esc(teamById(USER).name)+'"></div><div class="grow" style="min-width:200px"><label class="fl" style="margin-top:0">Replies go to</label><input class="f" id="campReplyTo" value="'+esc(c.replyTo||userEmail(USER)||"")+'" placeholder="'+esc(userEmail(USER))+'"></div></div>'+(campFromOptions(st).length?'<div class="chips" style="margin-top:8px">'+campFromOptions(st).map(o=>'<span class="chip'+(c.from===o?" on":"")+'" data-act="campfrom" data-v="'+esc(o)+'">'+esc(o)+'</span>').join("")+'</div>':'');}
+    if(!st)setTimeout(async()=>{await mailOutStatus();if(view==="camp"&&curCampaign===c.id&&campStep===4)render();},50);
+  }
+  h+='</div>';
+  if(ses&&st&&st.ok)h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Test the plumbing first</p><p class="t2">Sends Email 1 to Amazon\'s mailbox simulator as a delivery, a bounce and a complaint. Nothing reaches a person; the three events should appear below within a minute.</p></div><button class="btn" data-act="campsim"'+(c.from?'':' disabled')+'>Run simulator test</button></div></div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:10px"><b>Daily cap</b><input class="f" id="campCap" value="'+(c.dailyCap||50)+'" inputmode="numeric" style="width:70px;text-align:center;padding:6px"><span class="t2" style="margin:0">per click. New sending domain: 50/day for two weeks, then double each week.</span></div></div>';
+  const d=campDelivery(c);if(Object.values(d).some(x=>x))h+='<p class="t2" style="margin:0 0 10px">'+d.delivery+' delivered · '+d.open+' opened · '+d.click+' clicked · '+d.bounce+' bounced · '+d.complaint+' complaints</p>';
+  (c.steps||[]).forEach((s,i)=>{const due=campDue(c,i),sent=campSentCount(c,i),total=campOk(c).length;h+='<div class="reccard" style="margin-bottom:10px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Email '+(i+1)+' · day '+(s.day||1)+'</p><p class="t2">'+esc(s.subject)+'</p><p class="t2 num"><b style="color:var(--ink)">'+sent+'</b> of '+total+' sent · <b style="color:var(--ink)">'+due.length+'</b> due now ('+(i?'day '+(s.day||1)+' after the last':'everyone new')+')</p></div><button class="btn coral" id="campSend'+i+'" data-act="campsend" data-v="'+i+'"'+(can&&due.length&&(!ses||(st&&st.ok&&c.from))?'':' disabled')+'>Send now</button></div></div>';});
+  h+=campSimEvents(c);
+  if((c.sendLog||[]).length)h+='<div class="sech">Send log</div><div class="list">'+c.sendLog.slice().reverse().map(e=>'<div class="card"><div class="grow"><p class="t1">'+(e.step>=0?'Email '+(e.step+1):'The day\'s run')+' → '+e.count+' people</p><p class="t2">'+new Date(e.at).toLocaleString()+' · '+esc(e.by==="mail-run"?"automation":teamById(e.by).name)+(e.from?' · from '+esc(e.from):'')+'</p></div></div>').join("")+'</div>';
+  return h;
+}
+function viewLeads(){
+  const confs=confLeadLists();let ls=(DB.confLeads||[]);if(leadsConf)ls=ls.filter(l=>l.conf===leadsConf);
+  const q=leadsQ.trim().toLowerCase();if(q)ls=ls.filter(l=>[l.name,l.company,l.title,l.email,l.city,l.state,l.notes].join(" ").toLowerCase().includes(q));
+  ls=ls.slice().sort((a,b)=>String(a.conf).localeCompare(b.conf)||String(a.company||"").localeCompare(b.company||""));
+  let h='<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px"><div class="chips"><span class="chip'+(!leadsConf?" on":"")+'" data-act="leadsconf" data-v="">All '+(DB.confLeads||[]).length+'</span>'+confs.map(x=>'<span class="chip'+(leadsConf===x.conf?" on":"")+'" data-act="leadsconf" data-v="'+esc(x.conf)+'">'+esc(x.conf)+' '+x.total+'</span>').join("")+'</div><input class="f" id="leadsQ" value="'+esc(leadsQ)+'" placeholder="Search name, company, email, notes" style="max-width:340px;margin-left:auto"></div>';
+  h+='<div class="tablewrap" style="max-height:70vh"><table class="lv"><thead><tr><th>Show</th><th>Name</th><th>Company</th><th>Title</th><th>Segment</th><th>Industry page</th><th>State</th><th>Email</th><th>Status</th><th>Notes</th></tr></thead><tbody>'+ls.slice(0,600).map(l=>{const g=indGroup(indGroupFor(campLeadFromConf(l)));
+    return '<tr><td>'+esc(l.conf)+'</td><td class="lvname">'+esc(l.name||"—")+'</td><td>'+esc(l.company||"—")+'</td><td>'+esc(l.title||"—")+'</td><td>'+esc(l.segment||"")+'</td><td>'+esc(g[1])+'</td><td>'+esc(l.state||"")+'</td><td>'+(l.email?'<a href="mailto:'+esc(l.email)+'">'+esc(l.email)+'</a>':"—")+'</td><td>'+(l.lastEmail?'<span class="pill info">Emailed '+esc(l.lastEmail)+'</span>':l.contacted?'<span class="pill ok">Contacted</span>':'<span class="pill">Not touched</span>')+(l.temp&&l.temp!=="New"?' <span class="pill warn">'+esc(l.temp)+'</span>':'')+'</td><td class="wrap" style="font-size:12.5px;color:var(--ink-3)">'+esc((l.notes||"").slice(0,180))+'</td></tr>';}).join("")+'</tbody></table></div>'+(ls.length>600?'<p class="t2" style="text-align:center;margin-top:6px">Showing 600 of '+ls.length+' — narrow the search.</p>':'');
+  return h;
+}
+function viewPlaybook(){
+  let h='<div class="reccard" style="margin-bottom:12px"><p class="t1" style="font-size:16px">The laundry load</p><p class="t2" style="margin-top:4px">Fix → Clean → Segment → Flow → Campaign → Arm reps → Text → Measure → Recycle</p><p style="color:var(--ink-2);margin:10px 0 0">Every lead gets 3 emails in 10 days, then a call. Only the industry line, the stat and the page link change. From the AutoTQ inbox pool, replies to the rep. Nothing sends until a reviewer approves.</p></div>';
+  h+='<div class="sech">Sequences</div><div class="list">'+Object.keys(CAMP_TEMPLATES).filter(k=>k!=="blank").map(k=>{const t=CAMP_TEMPLATES[k];return '<div class="card block"><p class="t1">'+esc(t.name)+' <span class="pill">'+t.steps.map(s=>"day "+s.day).join(" · ")+'</span></p><p class="t2">'+esc(t.who)+'</p>'+t.steps.map((s,i)=>'<p style="font-size:13px;margin:8px 0 0"><b>'+(i+1)+'. '+esc(s.subject)+'</b><br><span style="color:var(--ink-3);white-space:pre-wrap">'+esc(s.body)+'</span></p>').join("")+'</div>';}).join("")+'</div>';
+  h+='<div class="sech">Industry → page → stat</div><div class="tablewrap"><table class="lv"><thead><tr><th>Group</th><th>Page</th><th>Lead stat</th></tr></thead><tbody>'+IND_GROUPS.map(g=>'<tr><td class="lvname">'+esc(g[1])+'</td><td><a href="'+SITE_URL+g[2]+'" target="_blank" rel="noopener">'+esc(g[2])+'</a></td><td class="wrap">'+esc(g[3])+'</td></tr>').join("")+'</tbody></table></div>';
+  return h+'<div class="sech">Tokens</div><div class="chips">'+CAMP_TOKENS.map(t=>'<span class="chip">{{'+t+'}}</span>').join("")+'</div>';
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-act]");if(!t)return;const a=t.dataset.act,id=t.dataset.id;
+  if(a==="closesheet"){closeInsp();return;}
+  if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
+  if(a==="verifypw"){verifyPw();return;}if(a==="sendotp"){sendOtp(t.dataset.email);return;}if(a==="verifyotp"){verifyOtp();return;}
+  if(a==="otpback"){logState.pwEmail=null;logState.otpEmail=null;renderLogin();return;}
+  if(a==="setpwsave"){setPwSave();return;}if(a==="setpwskip"){logState.setPw=null;view="net";render();return;}
+  if(a==="me"){if(confirm("Sign out of AutoTQ Marketing?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}return;}
+  if(a==="nav"){view=t.dataset.v;if(view==="camp")curCampaign=null;netFocus=null;closeInsp();render();window.scrollTo(0,0);return;}
+  if(a==="mkttab"){mktTab=t.dataset.v;render();return;}
+  if(a==="leadsconf"){leadsConf=t.dataset.v;render();return;}
+  /* the net */
+  if(a==="netall"){netFocus=null;closeInsp();render();return;}
+  if(a==="netlane"){const c=campaignById(id);if(!c)return;netFocus=(netFocus&&netFocus.type==="lane"&&netFocus.id===id)?null:{type:"lane",id:id};render();if(netFocus)laneInsp(c);else closeInsp();return;}
+  if(a==="netstation"){netFocus=(netFocus&&netFocus.type==="station"&&netFocus.id===id)?null:{type:"station",id:id};render();if(netFocus)senderSheet(id);else closeInsp();return;}
+  if(a==="netstop"){const c=campaignById(id);if(c)stopInsp(c,+t.dataset.v);return;}
+  if(a==="runtoday"){runToday();return;}
+  if(a==="autotoggle"){const st=outboundSettings();st.auto=!st.auto;st.by=USER;st.at=new Date().toISOString();put("settings",st);render();toast(st.auto?"Automation on — the cron sends inside the window":"Automation off — nothing sends by itself");return;}
+  if(a==="autowin"){const st=outboundSettings();const [a1,b1]=t.dataset.v.split("-").map(Number);st.startHour=a1;st.endHour=b1;put("settings",st);render();return;}
+  if(a==="sender"){e.preventDefault();senderSheet(id);return;}
+  if(a==="sowner"){const sd=senders().find(x=>x.id===id);if(sd){sd.owner=t.dataset.v;saveSender(sd);senderSheet(id);}return;}
+  if(a==="spause"){const sd=senders().find(x=>x.id===id);if(sd){sd.paused=!sd.paused;saveSender(sd);closeInsp();render();}return;}
+  if(a==="shold"){const sd=senders().find(x=>x.id===id);if(sd){sd.hold=!sd.hold;saveSender(sd);senderSheet(id);}return;}
+  if(a==="sreset"){const sd=senders().find(x=>x.id===id);if(sd&&confirm("Restart "+sd.email+" at day 1 of the ramp?")){sd.log={};sd.hold=false;saveSender(sd);closeInsp();render();}return;}
+  /* campaigns */
+  if(a==="scoutstart"){scoutStart(t.dataset.v);return;}
+  if(a==="campnew"){newCampaign({src:"conf"},"New campaign");return;}
+  if(a==="campnewfrom"){newCampaign({src:"conf",conf:t.dataset.v,segments:["End User"],fresh:true},t.dataset.v+" — end-users");return;}
+  if(a==="campnewlist"){const L=myLists().find(x=>x.id===id);newCampaign({src:"list",listId:id},L?L.name:"Call list");return;}
+  if(a==="campnewq"){const q=((document.getElementById("campQ")||{}).value||"").trim();if(!q){toast("Describe the list first");return;}newCampaign({src:"contacts",query:q},q);return;}
+  if(a==="campopen"){e.preventDefault();closeInsp();curCampaign=id;campStep=+(t.dataset.step||1);view="camp";render();window.scrollTo(0,0);return;}
+  if(a==="campback"){curCampaign=null;render();window.scrollTo(0,0);return;}
+  if(a==="campstep"){campStep=+t.dataset.v;render();const w=document.querySelector(".wiz");if(w)w.scrollIntoView({block:"start",behavior:"smooth"});return;}
+  if(a==="camppick"){const fi=document.getElementById("campFile");if(fi)fi.click();return;}
+  if(a==="campdel"){const c=campaignById(id);if(c&&confirm('Delete "'+c.name+'"? Comments and the send log go with it.')){del("campaigns",c.id);curCampaign=null;closeInsp();render();toast("Deleted");}return;}
+  if(a==="camppause"){const c=campaignById(id);if(c){c.paused=!c.paused;c.pausedBy=USER;saveCamp(c);closeInsp();render();toast(c.paused?"Paused — off the map until you resume it":"Resumed");}return;}
+  const c=curCampaign?campaignById(curCampaign):null;
+  if(a==="campsrc"&&c){c.aud={src:t.dataset.v};if(t.dataset.v!=="file"){c.leads=[];c.listName="";}saveCamp(c);render();return;}
+  if(a.startsWith("campaud:")&&c){const k=a.slice(8),v=t.dataset.v;c.aud=c.aud||{};if(k==="conf"||k==="listId"){c.aud[k]=v;if(k==="conf"){c.aud.segments=["End User"];c.aud.inds=[];c.aud.regions=[];c.basis="Met us at "+v;}}else if(k==="fresh")c.aud.fresh=!c.aud.fresh;else{const arr=c.aud[k]=c.aud[k]||[];const i=arr.indexOf(v);if(i>-1)arr.splice(i,1);else arr.push(v);}saveCamp(c);render();return;}
+  if(a==="campbuild"&&c){if(c.aud&&c.aud.src==="contacts"){const q=document.getElementById("campAudQ");if(q)c.aud.query=q.value;}campBuildAudience(c);campTouched(c);saveCamp(c);render();toast(campOk(c).length+" people will be emailed");return;}
+  if(a==="camptpl"&&c){c.template=t.dataset.v;c.steps=campDefaultSteps(t.dataset.v);campTouched(c);saveCamp(c);render();return;}
+  if(a==="campaddstep"&&c){const lastDay=Math.max.apply(null,c.steps.map(s=>s.day||1));c.steps.push({day:lastDay+4,subject:"",body:""});campTouched(c);saveCamp(c);render();return;}
+  if(a==="campdelstep"&&c&&c.steps.length>1){c.steps.splice(+t.dataset.v,1);campTouched(c);saveCamp(c);render();return;}
+  if(a==="campaddalt"&&c){const s=c.steps[+t.dataset.ci];if(s){(s.alts=s.alts||[]).push({subject:"",body:""});campTouched(c);saveCamp(c);render();}return;}
+  if(a==="campdelalt"&&c){const s=c.steps[+t.dataset.ci];if(s&&s.alts){s.alts.splice(+t.dataset.v,1);campTouched(c);saveCamp(c);render();}return;}
+  if(a==="camptoken"&&c){const ci=+t.dataset.ci;const ta=document.querySelector('textarea[data-cfield="body"][data-ci="'+ci+'"]');if(ta){const tok="{{"+t.dataset.v+"}}";const st=ta.selectionStart!=null?ta.selectionStart:ta.value.length;ta.value=ta.value.slice(0,st)+tok+ta.value.slice(ta.selectionEnd!=null?ta.selectionEnd:st);c.steps[ci].body=ta.value;campTouched(c);saveCamp(c);ta.focus();ta.selectionStart=ta.selectionEnd=st+tok.length;}return;}
+  if(a==="leadout"&&c){const l=c.leads[+t.dataset.v];if(l){l.outcome=l.outcome===t.dataset.o?"":t.dataset.o;l.outcomeAt=todayStr();saveCamp(c);render();}return;}
+  if(a==="campverify"&&c){campVerify(c);return;}
+  if(a==="campbasis"&&c){c.basis=t.dataset.v.replace(/ — say how$/,"");if(c.aud&&c.aud.conf&&/show/.test(t.dataset.v))c.basis="Met us at "+c.aud.conf;campTouched(c);saveCamp(c);render();return;}
+  if(a==="campsim"){campSimTest();return;}
+  if(a==="clearhalt"){const st=outboundSettings();delete st.haltedWhy;delete st.haltedAt;put("settings",st);render();toast("Halt cleared — turn automation on when you are ready");return;}
+  if(a==="campreview"){campSendForReview();return;}if(a==="campapprove"){campApprove();return;}if(a==="campunapprove"){campUnapprove();return;}if(a==="campcomment"){campComment();return;}
+  if(a==="campsend"){campSendStep(+t.dataset.v);return;}
+  if(a==="campchan"&&c){c.channel=t.dataset.v;saveCamp(c);render();return;}
+  if(a==="campfrom"&&c){c.from=t.dataset.v;saveCamp(c);render();return;}
+  if(a==="sesrefresh"){MAILOUT_STATUS=null;render();return;}
+});
+document.addEventListener("input",e=>{
+  const el=e.target;const c=curCampaign?campaignById(curCampaign):null;
+  if(el.id==="leadsQ"){leadsQ=el.value;clearTimeout(window.__lq);window.__lq=setTimeout(()=>{render();const q=document.getElementById("leadsQ");if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length);}},250);return;}
+  if(el.id==="sName"){const sd=senders().find(x=>x.id===el.dataset.sid);if(sd){sd.name=el.value;clearTimeout(window.__sn);window.__sn=setTimeout(()=>saveSender(sd),500);}return;}
+  if(!c)return;
+  if(el.id==="campName"){c.name=el.value;saveCamp(c);return;}
+  if(el.id==="campCap"){c.dailyCap=Math.max(1,parseInt(el.value,10)||50);saveCamp(c);return;}
+  if(el.id==="campFrom"){c.from=el.value.trim();saveCamp(c);return;}
+  if(el.id==="campFromName"){c.fromName=el.value;saveCamp(c);return;}
+  if(el.id==="campReplyTo"){c.replyTo=el.value.trim();saveCamp(c);return;}
+  if(el.id==="campAudQ"){c.aud=c.aud||{};c.aud.query=el.value;saveCamp(c);return;}
+  if(el.id==="campBasis"){c.basis=el.value;clearTimeout(window.__cb);window.__cb=setTimeout(()=>{campTouched(c);saveCamp(c);},500);return;}
+  if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
+  if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
+});
+document.addEventListener("change",e=>{if(e.target.id==="campFile")campHandleFile(e.target.files[0]);});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeInsp();if(e.key==="Enter"&&e.target.id==="pwInput")verifyPw();if(e.key==="Enter"&&e.target.id==="otpCode")verifyOtp();});
+let __rw=window.innerWidth<900;window.addEventListener("resize",()=>{const nw=window.innerWidth<900;if(nw!==__rw){__rw=nw;if(USER&&authed())render();}});
+/* boot */
+loadLocal();
+USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
+view="net";render();
+if(USER&&authed())bootSync();
+
+</script>
+</body>
+</html>
