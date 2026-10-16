@@ -438,6 +438,7 @@ button.rephead:hover{filter:brightness(.95)}
 .ktiles .kpi.fill:hover,.ktiles .kpi.fill.on{filter:brightness(.92);box-shadow:0 0 0 3px var(--coral-t)}
 .chiprow{display:flex;gap:4px;flex-wrap:nowrap}
 .chiprow .qchip{min-height:26px;padding:0 8px;font-size:12px}
+.qchip.auto{border-style:dashed;background:transparent}
 .wki .txt{background:none;border:0;padding:0;text-align:left;font:inherit;min-width:0;cursor:pointer}
 .wkh{background:none;border:0;border-bottom:1px solid var(--line);width:100%;font:inherit;text-align:left;cursor:pointer;border-radius:6px 6px 0 0}
 .wkh:hover{background:var(--hover)}
@@ -1597,11 +1598,11 @@ function viewToday(){
   const pool=P==="sales"?mine:(scopeRep?allOpen.filter(o=>oppGhRep(o)===scopeRep):allOpen);
   const qMe=actQueueFor(USER),qAll=actQueueFor(scopeRep||"");
   ensureLeads();const leads=DB.leads.filter(l=>!l.removed);
-  const toCat=leads.filter(l=>leadCat(l)==="new"),handedWk=leads.filter(l=>l.handedAt&&String(l.handedAt).slice(0,10)>=W),forMe=leads.filter(l=>l.assignee===USER&&!(l.touches&&l.touches.length));
+  const toCat=leads.filter(l=>leadCat(l)==="new"),handedWk=leads.filter(l=>l.handedAt&&String(l.handedAt).slice(0,10)>=W),forMe=leads.filter(l=>leadRep(l)===USER&&!(l.touches||[]).some(t=>t.by===USER));
   const confs=confLeadLists(),toCall=confs.reduce((s,c)=>s+c.tocall,0);
   const wonMonth=myOpps().filter(o=>o.stage==="Closed Won"&&String(o.closeDate||o.createdAt||"").slice(0,7)===T.slice(0,7));
   let h='';
-  if(P==="sales")h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["New leads for me",forMe.length,"handed off, not touched yet",forMe.length?"warn":""]]);
+  if(P==="sales")h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["From outreach",forMe.length,"leads you have not touched yet"+(listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length?" · "+listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length+" call list":""),forMe.length?"warn":""]]);
   else if(P==="outreach")h+=kpiRow([["Leads to categorize",toCat.length,"new, uncategorized",toCat.length?"warn":""],["Handed to sales",handedWk.length,"this week"],["Conf leads to call",toCall,confs.length+" show list"+(confs.length===1?"":"s")],["Follow-ups waiting",qMe.todo.length+qMe.old.length,"mine"]]);
   else{
     /* admins see the team's actions, not a pipeline (Max, 2026-10-16); the pipeline has its own tab */
@@ -1624,7 +1625,7 @@ function viewToday(){
   if(P==="sales"){
     const q=qMe.old.concat(qMe.todo).slice(0,5);
     if(q.length)fu='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">Follow-ups waiting <span class="cnt">'+(qMe.todo.length+qMe.old.length)+'</span></div><button class="btn sm" data-act="nav" data-view="activity" style="margin-left:auto">Activity '+chev()+'</button></div>'+q.map(actRow).join("");
-    if(forMe.length)lds='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">New leads for me <span class="cnt">'+forMe.length+'</span></div><button class="btn sm" data-act="nav" data-view="leads" style="margin-left:auto">Leads '+chev()+'</button></div><div class="list">'+forMe.slice(0,6).map(leadHomeRow).join("")+'</div>';
+    lds=fromOutreachHTML(USER,{link:true,always:true});
   }
   if(P==="outreach"){
     lds='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">Leads to categorize <span class="cnt">'+toCat.length+'</span></div><button class="btn sm" data-act="nav" data-view="leads" style="margin-left:auto">All leads '+chev()+'</button></div>'+
@@ -1675,6 +1676,7 @@ function viewTeammate(id){
    '<div class="facts"><div><b>Last active</b><span>'+esc(lastActive(id))+'</span></div><div><b>Today</b><span>'+fmtMins(uT.mins)+'</span></div><div><b>This week</b><span>'+fmtMins(uW.mins)+' · '+uW.days+' day'+(uW.days===1?"":"s")+'</span></div><div><b>All time</b><span>'+fmtMins(uAll.mins)+' · '+uAll.days+' day'+(uAll.days===1?"":"s")+(uAll.first?' · first seen '+esc(fmtDay(uAll.first)):'')+'</span></div></div></div>';
   h+=kpiRow([["Actions this week",wk.length,""],["This month",mo.length,""],["All time",all.length,Object.keys(kinds).map(k=>kinds[k]+" "+k).join(" · ")],["Follow-ups waiting",q.todo.length+q.old.length,q.old.length+" stale",q.old.length?"warn":""]]);
   h+='<section style="margin:4px 0 18px">'+weekStripHTML(id,logState.tmDay||T,{title:t.name.split(" ")[0]+"\u2019s week",nav:"tmnav",dayNav:"tmnav"})+'</section>';
+  if(profile(id)==="sales")h+='<section style="margin:0 0 18px">'+fromOutreachHTML(id,{always:true,who:t.name.split(" ")[0],showDone:true,max:12})+'</section>';
   if(uAll.rows.length){h+='<div class="sectlabel">Time in the CRM <span class="cnt">last 14 days</span></div><div class="tablewrap" style="margin-bottom:18px"><table class="lv"><thead><tr><th>Day</th><th>Time</th><th>First</th><th>Last</th><th>Where</th></tr></thead><tbody>'+
     uAll.rows.slice(0,14).map(r=>{const tm=x=>x?new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"—";const vs=Object.keys(r.views||{}).sort((a,b)=>r.views[b]-r.views[a]).slice(0,4).map(v=>({today:"Home",opps:"Pipeline",activity:"Activity",leads:"Leads",quotes:"Quotes",accounts:"Accounts",contacts:"Contacts",export:"Lists",team:"Team",person:"Contact pages",roster:"Account pages",invoicing:"Invoicing"}[v]||v));
      return '<tr><td>'+esc(fmtDay(r.day))+'</td><td class="num">'+fmtMins(r.mins)+'</td><td>'+tm(r.first)+'</td><td>'+tm(r.last)+'</td><td>'+esc(vs.join(", "))+'</td></tr>';}).join("")+'</tbody></table></div>';}
@@ -1698,7 +1700,8 @@ function attnRows(pool){return pool.filter(oppIsOpen).map(o=>({o:o,is:dealIssues
 function attnRow(x){const o=x.o;return '<button class="card" data-act="editopp" data-id="'+o.id+'"><div class="row"><span class="ic '+(x.is.some(i=>i[0]==="dang")?"coral":"warn")+'">'+svg("chart")+'</span>'+
   '<div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">'+esc(oppAcctLabel(o))+(oppDistLabel(o)?' · via '+esc(oppDistLabel(o)):'')+' · '+money(o.amount||0)+' · '+esc(OPP_SHORT[o.stage]||o.stage)+(profile()!=="sales"&&oppGhRep(o)?' · '+esc(shortName(oppGhRep(o))):'')+'</p></div>'+
   '<span class="chips" style="justify-content:flex-end">'+x.is.map(i=>'<span class="pill '+i[0]+'">'+i[1]+'</span>').join("")+'</span>'+chev()+'</div></button>';}
-function leadHomeRow(l){return '<button class="card" data-act="openlead" data-id="'+esc(l.id)+'"><div class="row"><span class="ic info">'+svg("spark")+'</span><div class="grow"><p class="t1">'+esc(l.name)+'</p><p class="t2">'+esc([l.company,l.title,l.conf].filter(Boolean).join(" · "))+(l.handedBy?' · from '+esc(shortName(l.handedBy)):'')+'</p></div>'+leadCatTag(leadCat(l))+chev()+'</div></button>';}
+function leadHomeRow(l){const t=leadLastTouch(l);const from=l.handedBy||(profile(l.by||"")==="outreach"?l.by:"");
+  return '<button class="card" data-act="openlead" data-id="'+esc(l.id)+'"><div class="row"><span class="ic info">'+svg("spark")+'</span><div class="grow"><p class="t1">'+esc(l.name)+(l.state?' <span style="color:var(--muted);font-weight:500">· '+esc(l.state)+'</span>':'')+'</p><p class="t2">'+esc([l.company,l.title,l.conf].filter(Boolean).join(" · "))+(from?' · from '+esc(shortName(from)):'')+'</p>'+(t&&t.note?'<p class="t2" style="white-space:normal;color:var(--ink-2)">'+esc(titlecase(t.method||"note"))+' '+esc(t.date)+(t.by?' ('+esc(shortName(t.by))+')':'')+': '+esc(t.note.replace(/^CRM Note:\s*/i,"").replace(/\s+/g," ").slice(0,150))+'</p>':'')+'</div>'+leadCatTag(leadCat(l))+chev()+'</div></button>';}
 /* Quotes fold up on Home instead of having their own tab (Max, 2026-10-16); the full Quotes page is one tap away */
 function homeQuotesHTML(){
   const qs=quotesAll(),open=qs.filter(q=>{const s=quoteState(q);return s==="draft"||s==="sent";});
@@ -2669,6 +2672,9 @@ function leadTempTag(t){
 function leadRegion(l){if(l.region==="International"&&!l.state)return "International";return l.state?regionFromState(l.state):(l.region||"");}
 /* Lead categories + hand-off (Max, 2026-10-16): outreach categorizes, sales works what's handed to them */
 const LEAD_CATS=[["new","New"],["qualified","Qualified"],["handed","Handed off"],["nurture","Nurture"],["dead","Not a fit"]];
+/* who a lead is for: handed to someone, else (for an outreach lead with a state) the territory's rep — that is how Kellan has
+   been routing them in practice ("John M has meeting with him", "planned meeting 21st w Tim") */
+function leadRep(l){if(l.assignee)return l.assignee;if(profile(l.by||"")==="outreach"&&l.state){const r=repForRegion(regionFromState(l.state));return r&&r!=="house"?r:null;}return null;}
 function leadCat(l){return l.cat||(l.assignee?"handed":(l.promoted?"qualified":"new"));}
 function leadCatTag(c){const cls={new:"warn",qualified:"info",handed:"ok",nurture:"gray",dead:"dang"}[c]||"gray";return '<span class="pill '+cls+'">'+(LEAD_CATS.find(x=>x[0]===c)||["","—"])[1]+'</span>';}
 function leadHand(l,rep){
@@ -2680,7 +2686,8 @@ function leadChipsHTML(l){
   return '<div class="chiprow">'+LEAD_CATS.map(x=>'<span class="qchip'+(c===x[0]?" on":"")+'" data-act="leadcat" data-id="'+esc(l.id)+'" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
 }
 function leadHandChipsHTML(l){
-  return '<div class="chiprow">'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>{const t=teamById(id);return '<span class="qchip'+(l.assignee===id?" on":"")+'" data-act="leadhand" data-id="'+esc(l.id)+'" data-v="'+id+'" style="'+(l.assignee===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+'</span>';}).join("")+'</div>';
+  const auto=!l.assignee&&leadRep(l);
+  return '<div class="chiprow">'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>{const t=teamById(id);return '<span class="qchip'+(l.assignee===id?" on":(auto===id?" on auto":""))+'" title="'+(auto===id?"by territory — tap to confirm":"")+'" data-act="leadhand" data-id="'+esc(l.id)+'" data-v="'+id+'" style="'+(l.assignee===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+'</span>';}).join("")+'</div>';
 }
 function leadVal(l,key){
   if(key==="name")return (l.name||"").toLowerCase();
@@ -2822,8 +2829,8 @@ function viewLeads(){
   if(!logState.leadsFInit){logState.leadsFInit=true;leadsF=profile()==="sales"?"mine":"";}
   let pool=all.filter(l=>{
     if(!leadsF)return true;
-    if(leadsF==="mine")return l.assignee===USER;
-    if(leadsF.indexOf("rep:")===0)return l.assignee===leadsF.slice(4);
+    if(leadsF==="mine")return leadRep(l)===USER;
+    if(leadsF.indexOf("rep:")===0)return leadRep(l)===leadsF.slice(4);
     if(leadsF==="untouched")return !(l.touches&&l.touches.length);
     if(leadsF.indexOf("cat:")===0)return leadCat(l)===leadsF.slice(4);
     return true;});
@@ -2836,13 +2843,14 @@ function viewLeads(){
   const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
   let h='';
   const sales=profile()==="sales";
-  h+='<div class="lvhead"><div class="lvtabs">'+(GH_REPS.includes(USER)?chip("mine","Handed to me",all.filter(l=>l.assignee===USER).length):'')+chip("","All",all.length)+
+  h+='<div class="lvhead"><div class="lvtabs">'+(GH_REPS.includes(USER)?chip("mine","For me",all.filter(l=>leadRep(l)===USER).length):'')+chip("","All",all.length)+
      (sales?'':LEAD_CATS.map(c=>chip("cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]).length)).join(""))+
      chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+'</div>'+
-     (sales?'':'<div class="qa-types" style="width:100%"><span class="lbl">Sales person</span>'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>'<span class="qchip'+(leadsF==="rep:"+id?" on":"")+'" data-act="leadsfilter" data-v="rep:'+id+'">'+esc(shortName(id))+' '+all.filter(l=>l.assignee===id).length+'</span>').join("")+'</div>')+
+     (sales?'':'<div class="qa-types" style="width:100%"><span class="lbl">Sales person</span>'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>'<span class="qchip'+(leadsF==="rep:"+id?" on":"")+'" data-act="leadsfilter" data-v="rep:'+id+'">'+esc(shortName(id))+' '+all.filter(l=>leadRep(l)===id).length+'</span>').join("")+'</div>')+
      '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
      '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
-  if(!pool.length)return h+'<div class="empty">'+(leadsF==="mine"?'Nothing handed to you yet — outreach sends leads here.':'No leads here.')+'</div>';
+  if(sales){const pl=listsPushedTo(USER);if(pl.length)h+='<div class="sectlabel" style="margin-top:4px">Call lists from outreach <span class="cnt">'+pl.filter(l=>l.items.some(x=>!x.done)).length+' open</span></div><div class="list">'+pl.map(pushedListCard).join("")+'</div><div class="sectlabel">Leads</div>';}
+  if(!pool.length)return h+'<div class="empty">'+(leadsF==="mine"?'Nothing for you yet. Kellan&#39;s leads in your territory and anything handed to you land here.':'No leads here.')+'</div>';
   const th=(k,l)=>thSort("myleads",k,l);
   h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Source")+th("state","State")+(sales?'<th>Category</th>':th("cat","Category"))+(sales?'':'<th>Sales person</th>')+th("last","Last contact")+th("touches","Touches")+'</tr></thead><tbody>'+
    pool.map(l=>{const t=leadLastTouch(l);
@@ -4560,6 +4568,25 @@ function personSheetHTML(pid){
 }
 function myLists(){ensureLists();return DB.lists.filter(l=>!l.removed);}
 const LIST_FIELDS=[["company","Company"],["role","Role"],["phone","Phone"],["email","Email"],["city","City"],["state","State"]];
+/* what outreach pushed to a rep: call lists assigned to them + leads for them (Max, 2026-10-16) */
+function listsPushedTo(id){return myLists().filter(l=>l.assignee===id);}
+function leadsHandedTo(id){ensureLeads();return DB.leads.filter(l=>!l.removed&&leadRep(l)===id);}
+function pushedListCard(l){const done=l.items.filter(x=>x.done).length,pct=l.items.length?Math.round(done/l.items.length*100):0;
+  return '<button class="card" data-act="listgo" data-id="'+l.id+'"><div class="row"><span class="ic coral">'+svg("phone")+'</span>'+
+   '<div class="grow"><p class="t1">'+esc(l.name)+'</p><p class="t2">'+(l.items.length-done)+' left to call · '+l.items.length+' people · from '+esc(shortName(l.by))+(l.createdAt?' · '+esc(String(l.createdAt).slice(0,10)):'')+'</p></div>'+
+   '<span class="pill '+(pct===100?"ok":"coral")+'">'+pct+'%</span>'+chev()+'</div><div class="bar"><i style="width:'+pct+'%"></i></div></button>';}
+function fromOutreachHTML(id,opts){
+  opts=opts||{};const ls=listsPushedTo(id),lds=leadsHandedTo(id).sort((a,b)=>String(b.handedAt||b.createdAt||"").localeCompare(String(a.handedAt||a.createdAt||"")));
+  const openLs=ls.filter(l=>l.items.some(x=>!x.done)),doneLs=ls.filter(l=>!l.items.some(x=>!x.done));
+  const fresh=lds.filter(l=>!(l.touches||[]).some(t=>t.by===id));
+  const who=opts.who?" to "+esc(opts.who):"";
+  if(!ls.length&&!lds.length)return opts.always?'<div class="sectlabel">From outreach</div><div class="empty" style="padding:14px">Nothing pushed over'+who+' yet. Kellan&#39;s call lists and leads land here.</div>':'';
+  let h='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">From outreach <span class="cnt">'+(openLs.length?openLs.length+' call list'+(openLs.length===1?"":"s"):'')+(openLs.length&&lds.length?' · ':'')+(lds.length?lds.length+' lead'+(lds.length===1?"":"s")+(fresh.length?' · '+fresh.length+' not touched yet':''):'')+'</span></div>'+(opts.link?'<button class="btn sm" data-act="nav" data-view="leads" style="margin-left:auto">Leads '+chev()+'</button>':'')+'</div>';
+  if(openLs.length)h+='<div class="list">'+openLs.map(pushedListCard).join("")+'</div>';
+  if(lds.length)h+='<div class="list">'+lds.slice(0,opts.max||8).map(leadHomeRow).join("")+'</div>'+(lds.length>(opts.max||8)?'<p class="t2" style="margin:-6px 2px 10px">'+(lds.length-(opts.max||8))+' more under Leads</p>':'');
+  if(doneLs.length&&opts.showDone)h+='<p class="t2" style="margin:-4px 2px 10px">'+doneLs.length+' finished list'+(doneLs.length===1?"":"s")+' from outreach</p>';
+  return h;
+}
 function savedListsHTML(){
   const ls=myLists();
   if(!ls.length)return '';
@@ -6666,6 +6693,7 @@ document.addEventListener("click",e=>{
     const nl={id:uid(),name:nm,by:USER,assignee:null,createdAt:new Date().toISOString(),query:logState.listQ||"",fields:[...R.fields],
       items:picked.map(p=>({pid:p.id,name:p.name,company:(company(p.cid)||{}).name||p.branch||"",role:p.role||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""}))};
     DB.lists.unshift(nl);logState.listResults=null;logState.listQ="";save();pushNav();curList=nl.id;render();window.scrollTo(0,0);toast('"'+nm+'" saved — '+nl.items.length+' people');return;}
+  if(a==="listgo"){pushNav();view="export";curList=t.dataset.id;listQ="";render();window.scrollTo(0,0);return;}
   if(a==="listopen"){pushNav();curList=t.dataset.id;render();window.scrollTo(0,0);return;}
   if(a==="listback"){curList=null;render();return;}
   if(a==="listdone"){const l=(DB.lists||[]).find(x=>x.id===t.dataset.id);const it=l&&l.items[+t.dataset.i];
