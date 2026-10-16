@@ -626,9 +626,8 @@ function campTouched(c){if(c.status==="approved"&&Object.keys(c.approvals||{}).l
 /* ---------- outbound engine: senders + warmup, already-touched index, verification, the daily plan ---------- */
 const RAMP=[20,35,50,75,100,150,200]; // per sender per day; moves up one step after each clean sending day
 const TOUCH_DAYS=30;                   // anyone touched (call, email, meeting) inside this window is left alone
-const DEFAULT_SENDERS=[ // seeded once; saved to the shared `senders` collection when Max first edits them
- {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-kellan",email:"kellan@autotq.net",name:"Kellan",owner:"kellan",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"AutoTQ",owner:"max",pool:"A"},
- {id:"s-johnm",email:"johnm@auto-tq.com",name:"John Morrison",owner:"johnm",pool:"B"},{id:"s-john",email:"john@auto-tq.com",name:"John Cornejo",owner:"john",pool:"B"},{id:"s-tim",email:"tim@auto-tq.com",name:"Tim Ford",owner:"tim",pool:"B"}];
+const DEFAULT_SENDERS=[ // seeded once; saved to the shared `senders` collection when Max first edits them. Only Max and Hannah use the hub.
+ {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"AutoTQ",owner:"max",pool:"A"},{id:"s-hannah",email:"hannah@auto-tq.com",name:"Hannah Herbst",owner:"hannah",pool:"B"}];
 function senders(){const live=(DB.senders||[]).filter(s=>s&&s.id);return live.length?live:DEFAULT_SENDERS.map(s=>Object.assign({log:{},paused:false,hold:false},s));}
 function senderDomainOk(s){const st=MAILOUT_STATUS;if(!st||!st.ok)return null;const d=s.email.split("@")[1];return (st.identities||[]).some(i=>i.verified&&(i.name===d||i.name===s.email));}
 function senderDay(s){return Object.keys(s.log||{}).filter(d=>(s.log[d].sent||0)>0).length;} // clean sending days so far
