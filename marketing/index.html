@@ -193,7 +193,8 @@ const TEAM=[
  {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
  {id:"tim",name:"Tim Ford",role:"Channel Sales — West",c:"#B7791F"},
  {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}];
-const CAMP_REVIEWERS=["jamie","hannah"];
+const CAMP_REVIEWERS=["hannah"];const HUB_USERS=["max","hannah"]; // Max 2026-10-16: only Hannah and I have access
+function hubUser(){return HUB_USERS.includes(USER);};
 const SALES_FROM="salessupport@goldenhourmedical.com";
 const SITE_URL="https://theautotq.com/";
 const PULL_COLLECTIONS=["confLeads","people","companies","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"];
@@ -229,7 +230,7 @@ const logState={otpEmail:null,pwEmail:null,setPw:null};
 const SYNC={lastPull:"1970-01-01T00:00:00Z",dirty:{},timer:null,pushing:false,state:"off",booted:false};
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
-function admin(){return USER==="max"||USER==="kellan";}
+function admin(){return USER==="max";}
 function loadLocal(){try{const r=JSON.parse(localStorage.getItem(DKEY)||"null");if(r&&r.db){DB=r.db;SYNC.lastPull=r.lastPull||SYNC.lastPull;}}catch(e){}PULL_COLLECTIONS.concat(["activities"]).forEach(c=>{DB[c]=DB[c]||[];});}
 function saveLocal(){try{localStorage.setItem(DKEY,JSON.stringify({db:DB,lastPull:SYNC.lastPull}));}catch(e){/* quota — the server copy is the real one */}}
 async function supa(path,opts){
@@ -288,7 +289,7 @@ function confLeadLists(){const by={};(DB.confLeads||[]).forEach(l=>{(by[l.conf]=
 function renderLogin(){
   const step=logState.setPw?"setpw":(logState.otpEmail?"code":(logState.pwEmail?"pw":"email"));
   let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div>';
-  if(step==="email")h+='<div class="who">Tap your name to sign in</div><div class="list">'+TEAM.map(t=>{const em=userEmail(t.id);return em?'<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span class="grow"><b>'+t.name+'</b><small>'+esc(em)+'</small></span>'+chev()+'</button>':"";}).join("")+'</div><p id="loginMsg"></p>';
+  if(step==="email")h+='<div class="who">Tap your name to sign in</div><div class="list">'+TEAM.filter(t=>HUB_USERS.includes(t.id)).map(t=>{const em=userEmail(t.id);return em?'<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span class="grow"><b>'+t.name+'</b><small>'+esc(em)+'</small></span>'+chev()+'</button>':"";}).join("")+'</div><p id="loginMsg"></p>';
   else if(step==="pw")h+='<div class="who">Password for<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div><input class="f" id="pwInput" type="password" placeholder="Password" autocomplete="current-password"><button class="btn coral block" data-act="verifypw" style="margin-top:14px">Sign in</button><button class="btn block ghost" data-act="sendotp" data-email="'+esc(logState.pwEmail)+'" style="margin-top:8px">Email me a code instead</button><button class="btn block ghost" data-act="otpback" style="margin-top:4px">Different account</button><p id="loginMsg"></p>';
   else if(step==="setpw")h+='<div class="who">You\'re in. Set a password for next time, or skip.</div><input class="f" id="pw1" type="password" placeholder="New password (8+ characters)"><input class="f" id="pw2" type="password" placeholder="Retype it" style="margin-top:8px"><button class="btn coral block" data-act="setpwsave" style="margin-top:14px">Save password</button><button class="btn block ghost" data-act="setpwskip" style="margin-top:8px">Skip for now</button><p id="loginMsg"></p>';
   else h+='<div class="who">Enter the code we emailed to<br><b style="color:var(--ink)">'+esc(logState.otpEmail)+'</b></div><input class="f" id="otpCode" inputmode="numeric" maxlength="12" placeholder="Code" autocomplete="one-time-code" style="text-align:center;font-size:26px;letter-spacing:6px;font-weight:700"><button class="btn coral block" data-act="verifyotp" style="margin-top:14px">Sign in</button><button class="btn block ghost" data-act="otpback" style="margin-top:8px">Back</button><p id="loginMsg"></p>';
@@ -490,7 +491,7 @@ function campSimEvents(c){if(!c.simTest)return "";const ids=new Set(c.simTest.id
 function campSendForReview(){const c=campaignById(curCampaign);if(!c)return;if(!campReady(c,1)){toast("Build the audience first");campStep=1;render();return;}if(!(c.basis&&c.basis.trim())){toast("Say how these people know us first");campStep=1;render();return;}if(!campReady(c,2)){toast("Write the emails first");campStep=2;render();return;}
   c.status="review";c.reviewAskedAt=new Date().toISOString();c.reviewAskedBy=USER;
   if(!(DB.tasks||[]).some(t=>t.campId===c.id&&!t.done&&!t.removed))put("tasks",{id:uid(),owner:USER,title:"Review campaign: "+c.name,type:"review",due:todayStr(),done:false,createdAt:new Date().toISOString(),assignees:CAMP_REVIEWERS.slice(),campId:c.id});
-  saveCamp(c);campStep=3;render();toast("Sent to Jamie and Hannah for review");}
+  saveCamp(c);campStep=3;render();toast("Sent to Hannah for review");}
 function campApprove(){const c=campaignById(curCampaign);if(!c||!campIsReviewer())return;if(!campHardOk(c)){toast("Fix the red checks first");return;}c.approvals=c.approvals||{};c.approvals[USER]=new Date().toISOString();if(c.status==="draft"||c.status==="review")c.status="approved";
   (DB.tasks||[]).forEach(t=>{if(t.campId===c.id&&!t.done){t.done=true;t.doneAt=new Date().toISOString();t.doneBy=USER;put("tasks",t);}});saveCamp(c);render();toast("Approved — "+(admin()?"ready to send":"Max can send it now"));}
 function campUnapprove(){const c=campaignById(curCampaign);if(!c)return;c.approvals={};if(c.status==="approved")c.status="review";saveCamp(c);render();}
@@ -750,10 +751,11 @@ const NAV=[["net","The net"],["camp","Campaigns"],["sched","Schedule"],["leads",
 function needsMe(){return campaigns().filter(c=>c.status==="review"&&campIsReviewer()&&!(c.approvals||{})[USER]).length;}
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
+  if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="signout" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home"||view==="web")view="net";
   const me=teamById(USER);const n=needsMe();
   const titles={net:"",camp:curCampaign?"":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={net:"",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Jamie and Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={net:"",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
   document.getElementById("screen").innerHTML='<header class="top"><div class="brand">'+BRAND_MARK+'<span>AutoTQ<small>Marketing</small></span></div><nav class="seg" aria-label="Sections">'+NAV.map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+x[1]+(x[0]==="camp"&&n?'<span class="cnt">'+n+'</span>':'')+'</button>').join("")+'</nav>'+
    '<div class="right"><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="me" title="'+esc(me.name)+' · sign out">'+initials(me.name)+'</button></div></header>'+
@@ -765,7 +767,7 @@ function viewCampaigns(){
   let h='<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap"><button class="btn coral" data-act="campnew">'+svg("plus")+' New campaign</button><div class="chips">'+[["campaigns","All"],["audiences","Audiences"]].map(t=>'<span class="chip'+(mktTab===t[0]?" on":"")+'" data-act="mkttab" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div></div>';
   if(mktTab==="audiences")return h+campAudiencesHTML();
   const list=campaigns().slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
-  if(!list.length)return h+'<div class="empty">No campaigns yet. Start one above — it goes to Jamie and Hannah for review before anything sends.</div>';
+  if(!list.length)return h+'<div class="empty">No campaigns yet. Start one above — it goes to Hannah for review before anything sends.</div>';
   CAMP_STATUS.forEach(s=>{const rows=list.filter(x=>(x.status||"draft")===s[0]);if(!rows.length)return;
     h+='<div class="sech">'+s[1]+' · '+rows.length+'</div><div class="list">'+rows.map(x=>{const ok=campOk(x).length,steps=x.steps||[],col=campColor(x),appr=Object.keys(x.approvals||{}).map(shortName);
       const stops=steps.map((st,k)=>{const p=steps.length>1?(k/(steps.length-1))*86+7:50;const sent=campSentCount(x,k);return '<span class="sp'+(sent&&sent>=ok?" done":"")+'" style="left:'+p+'%;color:'+col+'"></span><span class="tl" style="left:'+p+'%">Day '+(st.day||1)+(sent?' · '+sent:'')+'</span>';}).join("");
@@ -961,7 +963,7 @@ let __rw=window.innerWidth<900;window.addEventListener("resize",()=>{const nw=wi
 loadLocal();
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
 view="net";render();
-if(USER&&authed())bootSync();
+if(USER&&authed()&&hubUser())bootSync();
 
 </script>
 </body>
