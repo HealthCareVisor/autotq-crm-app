@@ -636,6 +636,7 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
 </style>
 </head>
 <body>
@@ -865,7 +866,7 @@ function company(id){return DB.companies.find(c=>c.id===id);}
 function teamById(id){if(id==="house")return {id:"house",name:"House",role:"Before the reps joined",c:"#A9A59C"};return TEAM.find(t=>t.id===id)||{name:"—",c:"#888"};}
 function emailOf(p){const c=company(p.cid);return p.name.toLowerCase().replace(/\s+/g,".")+"@"+((c&&c.website)||"company.com");}
 
-const SVG={
+const SVG={sheet:'<rect x="3" y="4" width="18" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M3 15h18M9 4v16M15 4v16" fill="none" stroke="currentColor" stroke-width="2"/>',sun:'<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
  home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h13V10"/>',
  users:'<circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 3-5 6-5s6 1.7 6 5"/><path d="M16 5.5a3 3 0 010 5.6"/><path d="M21 20c0-2.6-1.6-4.2-3.5-4.7"/>',
  chart:'<line x1="4" y1="20" x2="20" y2="20"/><rect x="5" y="11" width="3" height="7"/><rect x="10.5" y="5" width="3" height="13"/><rect x="16" y="14" width="3" height="4"/>',
@@ -3179,6 +3180,35 @@ function oppCard(o){
    (o.nextAction?'<div class="pnext">'+svg("arrow")+'<span>'+esc(o.nextAction)+(o.nextActionDate?' — '+esc(o.nextActionDate.slice(5)):'')+'</span>'+((o.nextActionDate&&o.nextActionDate<todayStr()&&oppIsOpen(o))?'<span title="Next action is past due" style="color:var(--dang-t);display:inline-flex">'+svg("alert")+'</span>':'')+'</div>':'')+
    '<div class="pv"><span>'+money(o.amount||0)+' <small style="color:var(--muted);font-weight:500;font-size:12px">'+oppProb(o)+'%</small></span>'+adv+'</div></div>';
 }
+/* Pipeline → Excel (Max, 2026-10-16): a little sheet where you tick the columns, then a CSV of exactly what's showing
+   (tab, person chips, search, column filters, sort) — Excel opens it straight away. The picks are remembered. */
+const PIPE_FIELDS=[
+ ["name","Opportunity",o=>o.name||""],["lead","Lead / end user",o=>oppAcctLabel(o)==="—"?"":oppAcctLabel(o)],["dist","Closing distributor",o=>oppIsDirect(o)?"Direct":oppDistLabel(o)],
+ ["rep","Golden Hour sales person",o=>oppGhRep(o)?teamById(oppGhRep(o)).name:""],["region","Region",o=>oppRegion(o)||""],["state","State",o=>o.state||""],
+ ["stage","Stage",o=>o.stage||""],["amount","Amount",o=>o.amount||0],["units","Units",o=>o.units||0],["prob","Probability %",o=>oppProb(o)],["weighted","Weighted",o=>Math.round(oppWeighted(o))],
+ ["close","Close date",o=>o.closeDate||""],["next","Next action",o=>o.nextAction||""],["nextd","Next action date",o=>o.nextActionDate||""],["last","Last touch",o=>oppLastTouch(o)||""],["touches","Touches",o=>oppTouches(o)],
+ ["type","Deal type",o=>o.dealType||""],["people","People on the deal",o=>oppFoldPeople(o).map(c=>{const p=person(c.pid);return p?p.name+" ("+c.role+")":"";}).filter(Boolean).join("; ")],["chrep","Channel rep",o=>o.rep||""],
+ ["why","Probability reason",o=>o.probReason||""],["notes","Notes",o=>o.note||""],["created","Created",o=>String(o.createdAt||"").slice(0,10)],["owner","Entered by",o=>o.owner?teamById(o.owner).name:""]
+];
+const PIPE_DEFAULT=["name","lead","dist","rep","region","stage","amount","units","close","next"];
+function pipeFieldSel(){try{const v=JSON.parse(localStorage.getItem("autotq_pipe_fields")||"null");if(Array.isArray(v)&&v.length)return v;}catch(e){}return PIPE_DEFAULT.slice();}
+function pipeExportForm(){
+  const sel=new Set(pipeFieldSel());const n=(logState.pipeShow||[]).length;
+  openSheet('<h2>Export to Excel</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">'+n+' deal'+(n===1?"":"s")+' — the ones showing right now. Tick the columns you want.</p>'+
+   '<div class="row" style="gap:8px;margin-bottom:8px"><button class="btn sm" data-act="pipexall" data-v="1">All</button><button class="btn sm" data-act="pipexall" data-v="0">None</button><button class="btn sm ghost" data-act="pipexall" data-v="d">The usual</button></div>'+
+   '<div class="qa-types" id="pipeFields" style="gap:6px">'+PIPE_FIELDS.map(f=>'<span class="qchip'+(sel.has(f[0])?" on":"")+'" data-act="pipexf" data-v="'+f[0]+'">'+f[1]+'</span>').join("")+'</div>'+
+   '<button class="btn coral block" data-act="pipexgo" style="margin-top:18px">'+svg("sheet")+' Download for Excel</button>'+
+   '<p style="text-align:center;color:var(--hint);font-size:12.5px;margin-top:9px">A .csv — double-click opens it in Excel. Your column picks are remembered.</p>');
+}
+function pipeExportCsv(){
+  const sel=pipeFieldSel();const fields=PIPE_FIELDS.filter(f=>sel.includes(f[0]));
+  if(!fields.length){toast("Tick at least one column");return;}
+  const ids=logState.pipeShow||[];const rows=ids.map(id=>(DB.opps||[]).find(o=>o.id===id)).filter(Boolean);
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const csv="\ufeff"+[fields.map(f=>f[1])].concat(rows.map(o=>fields.map(f=>f[2](o)))).map(r=>r.map(q).join(",")).join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="autotq_pipeline_"+(oppFilter||"open")+"_"+todayStr()+".csv";a.click();
+  closeSheet();toast("Exported "+rows.length+" deal"+(rows.length===1?"":"s"));
+}
 function kpiRow(items){return '<div class="kpis">'+items.map(k=>'<div class="kpi'+(k[3]?' '+k[3]:'')+'"><b>'+k[0]+'</b><span>'+k[1]+'</span><small>'+(k[2]||"")+'</small></div>').join("")+'</div>';}
 function oppKpis(list,tab){
   /* totals for the tab that's showing (after filters) — Open, Won and Lost never mix (Max, 2026-10-16) */
@@ -3222,8 +3252,10 @@ function viewOpps(){
   h+='<div class="lvhead"><div class="lvtabs">'+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+'</div>'+
    '<div class="seg" style="margin:0;max-width:280px">'+(oppFilter==="open"?'<button class="'+(vw==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button>':'')+'<button class="'+(vw==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button><button class="'+(vw==="fcast"?"on":"")+'" data-act="oppview" data-v="fcast">Forecast</button></div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search pipeline…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
+   '<button class="btn sm" data-act="pipexport" title="Export what\'s showing to Excel">'+svg("sheet")+' Excel</button>'+
    '<button class="btn sm coral" data-act="addopp">'+svg("plus")+' New</button></div>';
   h+=pipeFilterBar(tabPool);
+  logState.pipeShow=show.map(o=>o.id); /* what the Excel button exports */
   if(vw==="fcast")return h+viewForecast(show);
   if(!show.length)return h+'<div class="empty">'+(pool.length?'Nothing here'+((pipeF.region||pipeF.rep||pipeF.dist||q)?' with these filters.':'.'):'The pipeline is a clean slate — add deals as you confirm real numbers.<br><br><button class="btn coral" data-act="addopp">'+svg("plus")+' Add your first opportunity</button>')+'</div>';
   if(vw==="list"){
@@ -3231,6 +3263,7 @@ function viewOpps(){
     show=show.filter(o=>Object.keys(f).every(k=>fltMatch(oppFltVal(o,k),f[k])));
     const s=sortState.opps;
     show=show.slice().sort((a,b)=>cmpv(oppVal(a,s.key),oppVal(b,s.key))*s.dir);
+    logState.pipeShow=show.map(o=>o.id);
     return h+oppTableHTML(show,true);
   }
   const cols=OPP_STAGES.slice(0,4);
@@ -6426,6 +6459,10 @@ document.addEventListener("click",e=>{
   if(a==="oppview"){oppView=t.dataset.v;render();return;}
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
   if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
+  if(a==="pipexport"){pipeExportForm();return;}
+  if(a==="pipexf"){let sel=pipeFieldSel();sel=sel.includes(t.dataset.v)?sel.filter(x=>x!==t.dataset.v):sel.concat([t.dataset.v]);try{localStorage.setItem("autotq_pipe_fields",JSON.stringify(sel));}catch(e){}t.classList.toggle("on");return;}
+  if(a==="pipexall"){const v=t.dataset.v;const sel=v==="1"?PIPE_FIELDS.map(f=>f[0]):v==="0"?[]:PIPE_DEFAULT.slice();try{localStorage.setItem("autotq_pipe_fields",JSON.stringify(sel));}catch(e){}document.querySelectorAll("#pipeFields .qchip").forEach(x=>x.classList.toggle("on",sel.includes(x.dataset.v)));return;}
+  if(a==="pipexgo"){pipeExportCsv();return;}
   if(a==="pipef"){pipeF.rep=t.dataset.v;if(view!=="opps"){pushNav();view="opps";oppFilter="open";}e.stopPropagation();render();return;}
   if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on?tm.c:"";x.style.color=on?tm.c:"";});return;}
   if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
