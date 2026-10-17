@@ -514,7 +514,7 @@ function contactsFor(f){let ps=(DB.people||[]).slice();
   return ps.sort((a,b)=>(a.name||"").localeCompare(b.name||""));}
 function campBuildAudience(c){const a=c.aud||{};let leads=[];
   if(a.src==="conf"){let ls=(DB.confLeads||[]).filter(x=>x.conf===a.conf&&x.segment!=="Set Aside");
-    if(a.segments&&a.segments.length)ls=ls.filter(x=>a.segments.includes(x.segment));if(a.regions&&a.regions.length)ls=ls.filter(x=>a.regions.includes(x.region));
+    if(a.segments&&a.segments.length)ls=ls.filter(x=>a.segments.includes(x.segment||"End User"));if(a.regions&&a.regions.length)ls=ls.filter(x=>!x.region||a.regions.includes(x.region));
     if(a.fresh)ls=ls.filter(x=>!x.contacted&&!x.lastEmail);leads=ls.map(campLeadFromConf);if(a.inds&&a.inds.length)leads=leads.filter(l=>a.inds.includes(l.ind));}
   else if(a.src==="list"){const L=myLists().find(x=>x.id===a.listId);leads=L?(L.items||[]).map(it=>{const p=it.pid?person(it.pid):null;return p?campLeadFromPerson(p,"list"):null;}).filter(Boolean):[];}
   else if(a.src==="contacts"){leads=contactsFor(parseListQuery(a.query||"")).map(p=>campLeadFromPerson(p,"contacts"));}
@@ -1061,9 +1061,9 @@ function campLeadsUI(c){
   let h='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Where the people come from</div><div class="chips">'+[["conf","Conference leads"],["list","Call list"],["contacts","Contacts"],["apollo","Find new people"],["file","Upload a CSV"]].map(s=>chip(a.src===s[0],"campsrc",s[0],s[1])).join("")+'</div>';
   if(a.src==="conf"){h+='<div class="sectlabel" style="margin-top:14px">Show</div><div class="chips">'+confLeadLists().map(x=>chip(a.conf===x.conf,"campaud:conf",x.conf,esc(x.conf))).join("")+'</div>';
     if(a.conf){const ls=(DB.confLeads||[]).filter(x=>x.conf===a.conf&&x.segment!=="Set Aside");const segs=["End User","Distributor/Rep"],regs=["East","Central","West","International"];
-      h+='<div class="sectlabel" style="margin-top:14px">Who</div><div class="chips">'+segs.map(s=>chip((a.segments||[]).includes(s),"campaud:segments",s,s+" "+ls.filter(x=>x.segment===s).length)).join("")+'</div>';
+      h+='<div class="sectlabel" style="margin-top:14px">Who</div><div class="chips">'+segs.map(s=>chip((a.segments||[]).includes(s),"campaud:segments",s,s+" "+ls.filter(x=>(x.segment||"End User")===s).length)).join("")+'</div>';
       const cnt=campIndCounts(ls.map(campLeadFromConf));h+='<div class="sectlabel" style="margin-top:14px">Industry group <span style="font-weight:400;text-transform:none;letter-spacing:0">— none picked = everyone</span></div><div class="chips">'+IND_GROUPS.filter(g=>cnt[g[0]]).map(g=>chip((a.inds||[]).includes(g[0]),"campaud:inds",g[0],esc(g[1])+" "+cnt[g[0]])).join("")+'</div>';
-      h+='<div class="sectlabel" style="margin-top:14px">Region</div><div class="chips">'+regs.map(r=>chip((a.regions||[]).includes(r),"campaud:regions",r,r+" "+ls.filter(x=>x.region===r).length)).join("")+chip(!!a.fresh,"campaud:fresh","1","Never touched only")+'</div>';}}
+      h+='<div class="sectlabel" style="margin-top:14px">Region</div><div class="chips">'+regs.map(r=>chip((a.regions||[]).includes(r),"campaud:regions",r,r+" "+ls.filter(x=>(x.region||"East")===r).length)).join("")+chip(!!a.fresh,"campaud:fresh","1","Never touched only")+'</div>';}}
   else if(a.src==="list")h+='<div class="sectlabel" style="margin-top:14px">Saved call list</div><div class="chips">'+myLists().map(L=>chip(a.listId===L.id,"campaud:listId",L.id,esc(L.name)+" "+(L.items||[]).length)).join("")+'</div>';
   else if(a.src==="contacts")h+='<div class="sectlabel" style="margin-top:14px">Describe the list</div><input class="f" id="campAudQ" value="'+esc(a.query||"")+'" placeholder="All end-users in Florida · Grainger reps TX · potential distributors">';
   else if(a.src==="apollo")h+=campApolloUI(c,a);
