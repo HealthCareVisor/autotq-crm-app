@@ -311,6 +311,7 @@ const TEAM=[
 const CAMP_REVIEWERS=["hannah"];const HUB_USERS=["max","hannah"]; // Max 2026-10-16: only Hannah and I have access
 function hubUser(){return HUB_USERS.includes(USER);};
 const SALES_FROM="salessupport@goldenhourmedical.com";
+const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
 const PULL_COLLECTIONS=["confLeads","people","companies","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"];
@@ -432,7 +433,7 @@ const IND_GROUPS=[
  ["ems","EMS & Fire","training","The cuff rides to the hospital with the patient; Golden Hour Medical replaces it free.",/\bems\b|\bfire\b|ambulance|paramedic|rescue|\bmedic/i],
  ["law","Law Enforcement","industry-law-enforcement","Police arrived 4 minutes before EMS on average across 43 tourniquet applications in Aurora, CO (JSOM).",/police|sheriff|law enforcement|public safety|patrol/i],
  ["campuses","Campuses","industry-campuses","27 tourniquets were applied at the Boston Marathon bombing. Every one was improvised.",/universit|college|campus/i],
- ["schools","Faith & Schools","industry-faith-schools","99,073 public schools in the United States, with about 49 million students (NCES).",/\bschool|church|ministr|diocese|academy|\bisd\b/i],
+ ["schools","Faith & Schools","industry-faith-schools","99,073 public schools in the United States, with about 49 million students (NCES).",/\bschool|church|\bministr|diocese|academy|\bisd\b/i],
  ["venues","Sports & Entertainment","industry-venues","The Florida Panthers put 13 AutoTQ units in their arena.",/arena|stadium|sports|entertainment|hockey|athletic/i],
  ["maritime","Maritime & Fishing","industry-maritime","88.8 fatal injuries per 100,000 fishing and hunting workers in 2024; 3.3 for all workers (BLS).",/marine|maritime|fishing|vessel|\bport\b|shipping|offshore/i],
  ["manufacturing","Manufacturing","industry-manufacturing","Employers reported 1,348 amputations in manufacturing in 2024 (OSHA).",/manufactur|aerospace|petrochem|\bplant\b|stamping|automotive|foundry|steel|chemical|packaging/i],
@@ -441,7 +442,7 @@ const IND_GROUPS=[
  ["public","Parks & Public Spaces","industry-public-spaces","More than 5 million people have been trained to control bleeding through Stop the Bleed, in all 50 states (ACS).",/government|public admin|administration|county|city of|municipal|parks|\btown\b|village|judicial/i],
  ["general","Workplace","industries","A severe limb bleed can take a life in about five minutes; the median ambulance arrives in seven (Stop the Bleed · Mell 2017).",/./]];
 function indGroup(k){return IND_GROUPS.find(g=>g[0]===k)||IND_GROUPS[IND_GROUPS.length-1];}
-function indGroupFor(l){for(const src of [l.industryRaw||"",[l.company,l.title].filter(Boolean).join(" ")]){if(!src)continue;for(const g of IND_GROUPS){if(g[0]!=="general"&&g[4].test(src))return g[0];}}return "general";}
+function indGroupFor(l){for(const src of [(l.industryRaw||"").replace(/\(except public admin\.?\)/i,""),[l.company,l.title].filter(Boolean).join(" ")]){if(!src)continue;for(const g of IND_GROUPS){if(g[0]!=="general"&&g[4].test(src))return g[0];}}return "general";}
 const CAMP_TEMPLATES={ // sequences from AutoTQ_Outbound_Playbook.html (2026-10-17). Safe wording only: never "2x an AED", "78–84% fail", "92%", "FDA approved". {{video}} = the 90-second confidence VSL (VIDEO_URL).
  enduser:{name:"End-user · by industry",who:"Safety managers and buyers — industry page + stat, demo-unit offer",steps:[
   {day:1,subject:"Next to the AED at {{company}}?",body:"{{first_name}} — in studies of untrained adults, fewer than one in four get a windlass tourniquet on correctly. That's the design, not your team.\n\nAutoTQ is the automatic one: cuff above the bleed, press Inflate, the inflator sets the pressure and talks you through it. 36 of 36 first-time users got it on, 33 with no help.\n\nHere's how {{industry}} sites set it up: {{industry_page}}\n\nWorth a 10-minute look?\n{{rep}}"},
@@ -513,7 +514,7 @@ function campChecks(c){ // the SES terms, as checks a reviewer can read. hard = 
   add(!steps.some(st=>(st.subject||"").length>80||(st.subject||"")===(st.subject||"").toUpperCase()&&/[A-Z]{4}/.test(st.subject||"")),false,"Subjects are short and not ALL CAPS");
   add(!steps.some(st=>SPAMMY.test(st.subject||"")||SPAMMY.test(st.body||"")),false,"No spam-filter trigger words");
   add(true,false,"Unsubscribe link, List-Unsubscribe headers and our postal address go on every email automatically");
-  add(true,false,"Replies go to a real mailbox: "+(c.replyTo||userEmail(USER)||SALES_FROM));
+  add(true,false,"Every reply goes to "+REPLY_TO);
   const ok=campOk(c),ver=ok.filter(l=>l.vstatus).length;add(ok.length===0||ver/ok.length>=0.5,false,ok.length?(ver+" of "+ok.length+" addresses checked with Apollo"+(ver/ok.length<0.5?" — check the rest before sending":"")):"no one to email yet");
   const nl=newsletterSet();const onNl=nl.size?ok.filter(l=>nl.has(String(l.email||"").toLowerCase())).length:0;if(onNl)add(true,false,onNl+" also get the Squarespace newsletter — don't send in the same week as a broadcast");
   const risky=ok.filter(l=>/^(info|sales|admin|office|contact|support|hello)@/i.test(l.email||"")).length;add(risky===0,false,risky?risky+" role addresses (info@, sales@…) — these complain most":"No role addresses (info@, sales@…)");
@@ -529,7 +530,7 @@ function campFill(t,l,c,s){const g=indGroup(l.ind||indGroupFor(l));const me=s?{n
    .replace(/\{\{\s*city\s*\}\}/g,l.city||"you").replace(/\{\{\s*industry\s*\}\}/g,g[1].toLowerCase()).replace(/\{\{\s*industry_page\s*\}\}/g,SITE_URL+g[2]).replace(/\{\{\s*industry_stat\s*\}\}/g,g[3])
    .replace(/\{\{\s*conference\s*\}\}/g,(c&&c.aud&&c.aud.conf)||l.conf||"the show").replace(/\{\{\s*rep\s*\}\}/g,me.name||"").replace(/\{\{\s*video\s*\}\}/g,m=>VIDEO_URL||m);}
 function saveCamp(c){c.updatedAt=new Date().toISOString();put("campaigns",c);}
-function newCampaign(aud,name){const c={id:uid(),name:(name||"New campaign")+" · "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],aud:aud||{src:"conf"},template:"enduser",steps:campDefaultSteps("enduser"),review:[],approvals:{},channel:"ses",from:"",fromName:"",replyTo:userEmail(USER)||SALES_FROM,dailyCap:50,basis:(aud&&aud.src==="conf"&&aud.conf)?"Met us at "+aud.conf:""};
+function newCampaign(aud,name){const c={id:uid(),name:(name||"New campaign")+" · "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],aud:aud||{src:"conf"},template:"enduser",steps:campDefaultSteps("enduser"),review:[],approvals:{},channel:"ses",from:"",fromName:"",replyTo:REPLY_TO,dailyCap:50,basis:(aud&&aud.src==="conf"&&aud.conf)?"Met us at "+aud.conf:""};
   if(aud&&aud.src&&aud.src!=="file")campBuildAudience(c);saveCamp(c);curCampaign=c.id;campStep=1;view="camp";render();window.scrollTo(0,0);if(c.leads.length)toast(campOk(c).length+" people will be emailed");return c;}
 /* audiences */
 function campLeadFromPerson(p,src){const c=company(p.cid);const parts=(p.name||"").trim().split(/\s+/);
@@ -634,7 +635,7 @@ async function campSendStep(i){
     if(l.refId){const x=(DB.confLeads||[]).find(y=>y.id===l.refId);if(x){x.lastEmail=todayStr();x.notes=((x.notes||"")+" | "+todayStr()+": "+note).slice(0,4000);put("confLeads",x);}}};
   let n=0,fail=null,skipped=0;
   if(ses){
-    try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:fromAddr,fromName:c.fromName||teamById(USER).name,replyTo:c.replyTo||userEmail(USER)||SALES_FROM,campaign:c.name,campaignId:c.id,
+    try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:fromAddr,fromName:c.fromName||teamById(USER).name,replyTo:REPLY_TO,campaign:c.name,campaignId:c.id,
         items:batch.map(l=>{const vv=campVariant(s,l,i);return {to:l.email,subject:campFill(vv.subject,l,c),html:campTextHTML(campFill(vv.body,l,c)),text:campFill(vv.body,l,c),ref:l.refId||l.pid||""};})})});
       const b=await r.json().catch(()=>({}));
       if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
@@ -650,7 +651,7 @@ async function campSendStep(i){
   saveCamp(c);render();toast((n+" sent")+(skipped?", "+skipped+" skipped (unsubscribed or bounced before)":"")+(fail?" · stopped: "+(fail.message||"send failed"):""));}
 async function campSimTest(){const c=campaignById(curCampaign);if(!c||!c.from){toast("Pick a Send-from address first");return;}const s=c.steps[0];const me=campOk(c)[0]||{first:"Test",company:"AutoTQ",email:"test@example.com"};
   const tos=["success@simulator.amazonses.com","bounce@simulator.amazonses.com","complaint@simulator.amazonses.com"];toast("Sending 3 simulator emails…");
-  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:c.from,fromName:c.fromName||teamById(USER).name,replyTo:c.replyTo||userEmail(USER)||SALES_FROM,campaign:"simulator-test",items:tos.map(t=>({to:t,subject:"[test] "+campFill(s.subject,me,c),html:campTextHTML(campFill(s.body,me,c)),text:campFill(s.body,me,c)}))})});const b=await r.json().catch(()=>({}));
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:c.from,fromName:c.fromName||teamById(USER).name,replyTo:REPLY_TO,campaign:"simulator-test",items:tos.map(t=>({to:t,subject:"[test] "+campFill(s.subject,me,c),html:campTextHTML(campFill(s.body,me,c)),text:campFill(s.body,me,c)}))})});const b=await r.json().catch(()=>({}));
     if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));c.simTest={at:new Date().toISOString(),ids:(b.results||[]).map(x=>x.msgId).filter(Boolean)};saveCamp(c);toast(b.sent+" simulator emails accepted by SES — watch the events");setTimeout(()=>{pullChanges();render();},20000);}
   catch(e){toast("Simulator test failed: "+e.message);}}
 function campSimEvents(c){if(!c.simTest)return "";const ids=new Set(c.simTest.ids||[]);const ev=(DB.mailEvents||[]).filter(e=>ids.has(e.msgId));if(!ev.length)return '<p class="t2">Simulator test sent '+new Date(c.simTest.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+' — waiting for SES events…</p>';
@@ -671,7 +672,8 @@ const RAMP=[20,35,50,75,100,150,200]; // per sender per day; moves up one step a
 const TOUCH_DAYS=30;                   // anyone touched (call, email, meeting) inside this window is left alone
 const DEFAULT_SENDERS=[ // seeded once; saved to the shared `senders` collection when Max first edits them. Only Max and Hannah use the hub.
  {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"AutoTQ",owner:"max",pool:"A"},{id:"s-hannah",email:"hannah@auto-tq.com",name:"Hannah Herbst",owner:"hannah",pool:"B"}];
-function senders(){const live=(DB.senders||[]).filter(s=>s&&s.id);return live.length?live:DEFAULT_SENDERS.map(s=>Object.assign({log:{},paused:false,hold:false},s));}
+function senders(){const live=(DB.senders||[]).filter(s=>s&&s.id); // saved edits ride on top of the defaults, so saving one inbox never drops the others
+  return DEFAULT_SENDERS.map(d=>Object.assign({log:{},paused:false,hold:false},d,live.find(s=>s.id===d.id)||{})).concat(live.filter(s=>!DEFAULT_SENDERS.some(d=>d.id===s.id)));}
 function senderDomainOk(s){const st=MAILOUT_STATUS;if(!st||!st.ok)return null;const d=s.email.split("@")[1];return (st.identities||[]).some(i=>i.verified&&(i.name===d||i.name===s.email));}
 function senderDay(s){return Object.keys(s.log||{}).filter(d=>(s.log[d].sent||0)>0).length;} // clean sending days so far
 function senderCap(s,offset){if(s.paused)return 0;const day=senderDay(s)+(offset||0)-((s.hold&&!offset)?1:0);return RAMP[Math.max(0,Math.min(RAMP.length-1,day))];}
@@ -777,7 +779,7 @@ async function runToday(){
   render();toast(sent+" sent today");}
 async function campSendBatch(c,i,batch,s){
   const step=c.steps[i];const owner=teamById(s.owner||USER);
-  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:s.email,fromName:s.name||owner.name,replyTo:userEmail(s.owner)||userEmail(USER)||SALES_FROM,campaign:c.name,campaignId:c.id,
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:s.email,fromName:s.name||owner.name,replyTo:REPLY_TO,campaign:c.name,campaignId:c.id,
       items:batch.map(l=>{const vv=campVariant(step,l,i);return {to:l.email,subject:campFill(vv.subject,l,c,s),html:campTextHTML(campFill(vv.body,l,c,s)),text:campFill(vv.body,l,c,s),ref:l.refId||l.pid||""};})})});
     const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));let n=0;
     (b.results||[]).forEach(res=>{const l=batch.find(x=>String(x.email).toLowerCase()===res.to);if(!l)return;
@@ -1176,7 +1178,7 @@ function campSendUI(c){
     else if(!st.ok)h+='<div class="tk" style="margin-top:12px;border:0"><span class="pill dang">Not connected</span><span class="t2" style="margin:0">'+esc(st.error||"")+' — set up SES + deploy mail-out (SETUP_SES.md). Sends stay locked until it answers.</span></div>';
     else{const ids=(st.identities||[]);
       h+='<div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><span class="pill '+(st.production?"ok":"warn")+'">'+(st.production?"Production":"Sandbox — verified recipients only")+'</span><span class="pill">'+(st.quota&&st.quota.sentToday!=null?Math.round(st.quota.sentToday)+" / "+Math.round(st.quota.perDay||0)+" today":"")+'</span><span class="pill">'+(st.suppressed||0)+' suppressed</span>'+ids.map(i=>'<span class="pill '+(i.verified?"ok":"warn")+'">'+esc(i.name)+(i.dkim&&i.dkim!=="SUCCESS"?" · DKIM "+esc(i.dkim).toLowerCase():"")+'</span>').join("")+'<button class="btn sm ghost" data-act="sesrefresh">Refresh</button></div>';
-      h+='<p class="t2" style="margin-top:10px">Day-by-day sends rotate through the inbox pool (Schedule › Inboxes). For a one-off batch from a single address, set it here:</p><div class="row" style="gap:10px;margin-top:6px;flex-wrap:wrap"><div class="grow" style="min-width:200px"><label class="fl" style="margin-top:0">From address</label><input class="f" id="campFrom" value="'+esc(c.from||"")+'" placeholder="max@autotq.net"></div><div class="grow" style="min-width:160px"><label class="fl" style="margin-top:0">Display name</label><input class="f" id="campFromName" value="'+esc(c.fromName||"")+'" placeholder="'+esc(teamById(USER).name)+'"></div><div class="grow" style="min-width:200px"><label class="fl" style="margin-top:0">Replies go to</label><input class="f" id="campReplyTo" value="'+esc(c.replyTo||userEmail(USER)||"")+'" placeholder="'+esc(userEmail(USER))+'"></div></div>'+(campFromOptions(st).length?'<div class="chips" style="margin-top:8px">'+campFromOptions(st).map(o=>'<span class="chip'+(c.from===o?" on":"")+'" data-act="campfrom" data-v="'+esc(o)+'">'+esc(o)+'</span>').join("")+'</div>':'');}
+      h+='<p class="t2" style="margin-top:10px">Day-by-day sends rotate through the inbox pool (Schedule › Inboxes). For a one-off batch from a single address, set it here:</p><div class="row" style="gap:10px;margin-top:6px;flex-wrap:wrap"><div class="grow" style="min-width:200px"><label class="fl" style="margin-top:0">From address</label><input class="f" id="campFrom" value="'+esc(c.from||"")+'" placeholder="max@autotq.net"></div><div class="grow" style="min-width:160px"><label class="fl" style="margin-top:0">Display name</label><input class="f" id="campFromName" value="'+esc(c.fromName||"")+'" placeholder="'+esc(teamById(USER).name)+'"></div><div class="grow" style="min-width:200px"><label class="fl" style="margin-top:0">Replies go to</label><input class="f" id="campReplyTo" value="'+esc(REPLY_TO)+'" readonly title="Every reply goes to Max"></div></div>'+(campFromOptions(st).length?'<div class="chips" style="margin-top:8px">'+campFromOptions(st).map(o=>'<span class="chip'+(c.from===o?" on":"")+'" data-act="campfrom" data-v="'+esc(o)+'">'+esc(o)+'</span>').join("")+'</div>':'');}
     if(!st)setTimeout(async()=>{await mailOutStatus();if(view==="camp"&&curCampaign===c.id&&campStep===3)render();},50);
   }
   h+='</div>';
