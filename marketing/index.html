@@ -332,6 +332,9 @@ svg.usmap .nd.act circle.c{stroke:var(--coral);stroke-width:2.5}svg.usmap .nd.ac
 .frow{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--rule-2)}.frow .no{flex:none;width:22px;height:22px;box-sizing:border-box;border:1.6px solid;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700}.frow .nm{flex:1;min-width:0}.frow .nm b{display:block;font-weight:600}.frow .nm small{color:var(--ink-3);font-size:12px}.frow .perf{flex:none;width:auto;font-size:14px;color:var(--ink)}
 @media (max-width:700px){.kpis.k3 .kd,.kpis.k3 .kb{display:none}}
 @media (max-width:900px){.fleet .cn text.s{display:none}.fleet text.l1{font-size:22px}.fleet .hub text.s{font-size:16px}.fleet .ib text{font-size:14px}.frow{flex-wrap:wrap}.frow .perf{width:100%;justify-content:flex-start}}
+
+.kq{width:100%;height:6px;border-radius:3px;background:var(--rule-2);overflow:hidden;align-self:center}.kq i{display:block;height:100%;background:var(--coral);border-radius:3px}
+@media (max-width:700px){.kpis .kd,.kpis .kb{display:none}}
 </style>
 </head>
 <body>
@@ -1207,13 +1210,22 @@ function viewOverview(){
   if(sets.haltedWhy)o+='<div class="reccard" style="margin-bottom:14px"><p class="t1">Sending is halted</p><p class="t2">'+esc(sets.haltedWhy)+'. Open Schedule (under More) to look and resume.</p></div>';
   if(rev.length&&!focus)o+='<div class="reccard" style="margin-bottom:14px;display:flex;align-items:center;gap:12px"><p class="t1 grow" style="margin:0">'+rev.length+' campaign'+(rev.length===1?'':'s')+' waiting for your OK</p><button class="btn sm coral" data-act="nav" data-v="camp">Review</button></div>';
   const openRate=pct(st.opened,st.delivered||st.sent),prevOpen=pct(prev.opened,prev.delivered||prev.sent),bRate=pct(st.bounced,st.sent),prevB=pct(prev.bounced,prev.sent);
-  o+='<div class="kpis k3">'+kpiHTML("plane","Sent",st.sent.toLocaleString(),"emails",deltaTxt(st.sent,prev.sent,ovRange),miniBars(ser.map(x=>x.sends)))+
+  const Q=queueStats();const qPct=Q.total?Math.round(100*Q.sent/Q.total):0;
+  const qWhen=Q.finish?new Date(Q.finish+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}):"";
+  o+='<div class="kpis">'+kpiHTML("plane","Sent",st.sent.toLocaleString(),"emails",deltaTxt(st.sent,prev.sent,ovRange),miniBars(ser.map(x=>x.sends)))+
     kpiHTML("eye","Open rate",fmtPct(openRate),"",st.sent?deltaTxt(openRate,prevOpen,ovRange)+' · '+st.replies+' repl'+(st.replies===1?'y':'ies'):'<b>—</b> shows after the first send',miniBars(ser.map(x=>x.opens)))+
-    kpiHTML("alert","Bounce rate",fmtPct(bRate),"",st.sent?deltaTxt(bRate,prevB,ovRange,true)+' · stops itself at 4%':'<b>—</b> stops itself at 4%',miniBars(ser.map(x=>x.sends?pct(x.bounces,x.sends):0),(v)=>v>=4),bRate>=4?"bad":"")+'</div>';
+    kpiHTML("alert","Bounce rate",fmtPct(bRate),"",st.sent?deltaTxt(bRate,prevB,ovRange,true)+' · stops itself at 4%':'<b>—</b> stops itself at 4%',miniBars(ser.map(x=>x.sends?pct(x.bounces,x.sends):0),(v)=>v>=4),bRate>=4?"bad":"")+
+    kpiHTML("inbox","Left to send",Q.left.toLocaleString(),"of "+Q.total.toLocaleString(),'<b style="color:var(--ink-2)">'+Q.sent.toLocaleString()+' sent</b>'+(Q.left?(qWhen?' · last one goes out '+qWhen:''):' · all done')+(Q.paused?' · '+Q.paused+' paused':''),'<div class="kq" title="'+qPct+'% sent"><i style="width:'+qPct+'%"></i></div>')+'</div>';
   o+=fleetPanel();
   o+=focus?campPerfPanel(focus):actPanel()+activeCampPanel();
   return o;}
 function HOME_HARD(e){return !(e.type==="bounce"&&/transient/i.test(e.detail||""));} // a Transient bounce (full mailbox, busy server) is not a bad address
+function queueStats(){ // emails still to go in running campaigns: everyone sendable × the emails they haven't had
+  const cs=campaigns().filter(c=>["approved","active"].includes(c.status)&&(!ovCamp||c.id===ovCamp));let sent=0,left=0,paused=0;
+  cs.forEach(c=>{const n=(c.steps||[]).length;const ok=new Set(campOk(c));(c.leads||[]).forEach(l=>{const s=Object.keys(l.sent||{}).length;if(l.flag==="ok"||l.flag==="handed")sent+=s;
+    if(ok.has(l)&&!l.outcome){const k=Math.max(0,n-s);left+=k;if(c.paused)paused+=k;}});});
+  let finish=null;if(left-paused>0){try{const plan=buildPlan(60);cs.forEach(c=>{const f=((plan.lanes||{})[c.id]||{}).finishDay;if(f&&(!finish||f>finish))finish=f;});}catch(e){}}
+  return {sent,left,total:sent+left,paused,finish};}
 function activeCampPanel(){const list=campaigns().filter(c=>["approved","active"].includes(c.status)).sort((a,b)=>(a.paused?1:0)-(b.paused?1:0)||String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
   const others=campaigns().filter(c=>!["approved","active","done"].includes(c.status)).length;
   const row=c=>{const ppl=(c.leads||[]).filter(l=>l.flag==="ok"||l.flag==="handed");const steps=(c.steps||[]).length;const sent=ppl.reduce((a,l)=>a+Object.keys(l.sent||{}).length,0);const d=campDelivery(c);
