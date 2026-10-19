@@ -734,7 +734,7 @@ function campTouched(c){if(c.status==="approved"&&Object.keys(c.approvals||{}).l
 const RAMP=[20,35,50,75,100,150,200]; // per sender per day; moves up one step after each clean sending day
 const TOUCH_DAYS=30;                   // anyone touched (call, email, meeting) inside this window is left alone
 const DEFAULT_SENDERS=[ // seeded once; saved to the shared `senders` collection when Max first edits them. Only Max and Hannah use the hub.
- {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"AutoTQ",owner:"max",pool:"A"},{id:"s-hannah",email:"hannah@auto-tq.com",name:"Hannah Herbst",owner:"hannah",pool:"B"}];
+ {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hannah",email:"hannah@auto-tq.com",name:"Hannah Herbst",owner:"hannah",pool:"B"}];
 function senders(){const live=(DB.senders||[]).filter(s=>s&&s.id); // saved edits ride on top of the defaults, so saving one inbox never drops the others
   return DEFAULT_SENDERS.map(d=>Object.assign({log:{},paused:false,hold:false},d,live.find(s=>s.id===d.id)||{})).concat(live.filter(s=>!DEFAULT_SENDERS.some(d=>d.id===s.id)));}
 function senderDomainOk(s){const st=MAILOUT_STATUS;if(!st||!st.ok)return null;const d=s.email.split("@")[1];return (st.identities||[]).some(i=>i.verified&&(i.name===d||i.name===s.email));}
@@ -1164,13 +1164,21 @@ function activeCampPanel(){const list=campaigns().filter(c=>["approved","active"
   return '<div class="pan"><div class="ph2">'+svg("mail")+'Active campaigns<span class="t2" style="margin-left:4px">· '+list.length+' · tap one for its numbers</span>'+(others?'<span class="meta"><button class="btn sm ghost" data-act="nav" data-v="camp">'+others+' more in Campaigns</button></span>':'')+'</div>'+
     (list.length?list.map(row).join(""):'<div class="empty" style="padding:22px 16px">Nothing running. Approve a campaign under Campaigns and it shows up here.</div>')+'</div>';}
 let PERF_OPEN={}; // campaign id → which emails are open in its Performance panel
+function perfSample(c,s,k,ppl){const l=ppl.find(x=>x.sent&&x.sent[k])||ppl.find(x=>x.first&&x.company)||ppl[0]||{};const by=(l.by||{})[k];const snd=senders().find(x=>x.email===by)||senders().find(x=>!x.paused)||{name:"AutoTQ",email:""};
+  const v=(typeof campVariant==="function"&&(s.alts||[]).length)?campVariant(s,l,k):{subject:s.subject,body:s.body};return {l,snd,v};}
 function perfMsgHTML(c,s,k,ppl){ // the email as one real person on the list gets it
-  const l=ppl.find(x=>x.sent&&x.sent[k])||ppl.find(x=>x.first&&x.company)||ppl[0]||{};const by=(l.by||{})[k];const snd=senders().find(x=>x.email===by)||senders().find(x=>!x.paused)||{name:"AutoTQ",email:""};
-  const v=(typeof campVariant==="function"&&(s.alts||[]).length)?campVariant(s,l,k):{subject:s.subject,body:s.body};
+  const {l,snd,v}=perfSample(c,s,k,ppl);
   const link=x=>esc(x).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
   return '<div class="perfmsg"><p class="t2">How '+esc([l.first,l.last].filter(Boolean).join(" ")||"someone")+(l.company?' at '+esc(l.company):'')+' '+(l.sent&&l.sent[k]?'got it':'will get it')+((s.alts||[]).length?' · '+((s.alts||[]).length+1)+' versions of this email':'')+'</p>'+
     '<div class="mailcard"><div class="mh"><span>From</span>'+esc((snd.name||"")+(snd.email?" <"+snd.email+">":""))+'</div><div class="mh"><span>Reply to</span>'+esc(typeof REPLY_TO!=="undefined"?REPLY_TO:"")+'</div><div class="mh"><span>Subject</span><b>'+esc(campFill(v.subject||"",l,c,snd))+'</b></div>'+
-    '<div class="mb">'+link(campFill(v.body||"",l,c,snd))+'</div><div class="mf">Every email ends with an unsubscribe link and our mailing address.</div></div></div>';}
+    '<div class="mb">'+link(campFill(v.body||"",l,c,snd))+'</div><div class="mf">Every email ends with an unsubscribe link and our mailing address.</div></div>'+
+    (admin()&&snd.email?'<div class="row" style="gap:10px;margin-top:10px;align-items:center"><button class="btn sm" data-act="perftest" data-id="'+c.id+'" data-v="'+k+'">'+svg("plane")+' Send me a test</button><span class="t2" style="margin:0">Goes to '+esc(userEmail(USER)||"you")+' from '+esc(snd.email)+', built exactly like the real one</span></div>':'')+'</div>';}
+async function perfTest(cid,k){const c=campaignById(cid);if(!c)return;const ppl=(c.leads||[]).filter(l=>l.flag==="ok"||l.flag==="handed");const s=(c.steps||[])[k];if(!s)return;
+  const {l,snd,v}=perfSample(c,s,k,ppl);const to=userEmail(USER);if(!to||!snd.email){toast("No inbox to send from");return;}
+  const subject=campFill(v.subject||"",l,c,snd),body=campFill(v.body||"",l,c,snd);toast("Sending a test to "+to+"…");
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:snd.email,fromName:snd.name,replyTo:REPLY_TO,campaign:"test",items:[{to,subject,html:campTextHTML(body),text:body}]})});
+    const b=await r.json().catch(()=>({}));const res=(b.results||[])[0]||{};if(!r.ok||!b.ok||!res.msgId)throw new Error(b.error||res.skipped||res.error||("HTTP "+r.status));
+    toast("Sent — check "+to+" in a minute (it looks exactly like this)");}catch(e){toast("The test didn't send: "+e.message);}}
 function campPerfPanel(c){const op=PERF_OPEN[c.id]||(PERF_OPEN[c.id]=new Set([0]));const ppl=(c.leads||[]).filter(l=>l.flag==="ok"||l.flag==="handed");const steps=c.steps||[];const ev=(DB.mailEvents||[]).filter(HOME_HARD);
   const rows=steps.map((s,k)=>{const ids=new Set(ppl.map(l=>(l.msg||{})[k]).filter(Boolean));const n={delivery:new Set(),open:new Set(),click:new Set(),bounce:new Set()};
     ev.forEach(e=>{if(!ids.has(e.msgId)||!n[e.type])return;if(e.type==="click"&&/action=unsub/.test(e.detail||""))return;n[e.type].add(e.msgId);});
@@ -1415,6 +1423,7 @@ document.addEventListener("click",e=>{
   if(a==="ovrange"){ovRange=t.dataset.v;localStorage.setItem("autotq_mkt_range",ovRange);render();return;}
   if(a==="ovfocus"){ovCamp=ovCamp===t.dataset.id?"":t.dataset.id;view="over";sideOpen=false;render();window.scrollTo(0,0);return;}
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
+  if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
   if(a.indexOf("act")===0&&actHandle(a,t))return;
   if(a==="mapstate"){const k=t.dataset.v;const d=MAP_DATA[k];if(!d)return;const cs=campaigns().filter(c=>!ovCamp||c.id===ovCamp);const rows=[];cs.forEach(c=>(c.leads||[]).forEach(l=>{if(String(l.state||"").toUpperCase().slice(0,2)===k&&l.sent&&Object.keys(l.sent).length)rows.push({l,c});}));
