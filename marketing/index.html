@@ -335,6 +335,12 @@ svg.usmap .nd.act circle.c{stroke:var(--coral);stroke-width:2.5}svg.usmap .nd.ac
 
 .kq{width:100%;height:6px;border-radius:3px;background:var(--rule-2);overflow:hidden;align-self:center}.kq i{display:block;height:100%;background:var(--coral);border-radius:3px}
 @media (max-width:700px){.kpis .kd,.kpis .kb{display:none}}
+
+.ecols{display:flex;flex:none;gap:4px;margin-right:14px}.ecol{width:92px;display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.ecol small{font-size:11px;color:var(--ink-3)}.ecol b{font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}.ecol.zero b{color:var(--ink-3);font-weight:500}
+.ecol .eb{display:block;width:56px;height:3px;border-radius:2px;background:var(--rule-2);margin:3px 0 2px;overflow:hidden}.ecol .eb i{display:block;height:100%;background:var(--coral)}
+@media (max-width:1100px){.ecol{width:76px}}
+@media (max-width:700px){.actcamp{flex-wrap:wrap}.ecols{order:5;width:100%;margin:6px 0 0 20px;justify-content:flex-start}.ecol{align-items:flex-start;width:84px}}
 </style>
 </head>
 <body>
@@ -1228,8 +1234,11 @@ function queueStats(){ // emails still to go in running campaigns: everyone send
   return {sent,left,total:sent+left,paused,finish};}
 function activeCampPanel(){const list=campaigns().filter(c=>["approved","active"].includes(c.status)).sort((a,b)=>(a.paused?1:0)-(b.paused?1:0)||String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
   const others=campaigns().filter(c=>!["approved","active","done"].includes(c.status)).length;
+  const maxSteps=Math.max(0,...list.map(c=>(c.steps||[]).length)); // columns line up across rows
   const row=c=>{const ppl=(c.leads||[]).filter(l=>l.flag==="ok"||l.flag==="handed");const steps=(c.steps||[]).length;const sent=ppl.reduce((a,l)=>a+Object.keys(l.sent||{}).length,0);const d=campDelivery(c);
-    return '<button class="ibx actcamp" data-act="ovfocus" data-id="'+c.id+'"><i class="dot" style="background:'+(c.paused?"var(--ink-4)":campColor(c))+'"></i><span class="nm"><b>'+esc(c.name)+'</b><small>'+ppl.length+' people · '+sent+' of '+(ppl.length*steps)+' emails sent'+(c.paused?' · paused':'')+'</small></span>'+
+    const cols='<span class="ecols">'+Array.from({length:maxSteps},(_,k)=>{const s=(c.steps||[])[k];if(!s)return '<span class="ecol"></span>';const n=ppl.filter(l=>l.sent&&l.sent[k]).length;const w=ppl.length?Math.round(100*n/ppl.length):0;
+      return '<span class="ecol'+(n?'':' zero')+'"><small>Email '+(k+1)+'</small><b>'+n+' / '+ppl.length+'</b><i class="eb"><i style="width:'+w+'%"></i></i><small>'+(n?'sent':'day '+(s.day||1))+'</small></span>';}).join("")+'</span>';
+    return '<button class="ibx actcamp" data-act="ovfocus" data-id="'+c.id+'"><i class="dot" style="background:'+(c.paused?"var(--ink-4)":campColor(c))+'"></i><span class="nm"><b>'+esc(c.name)+'</b><small>'+ppl.length+' people · '+sent+' of '+(ppl.length*steps)+' emails sent'+(c.paused?' · paused':'')+'</small></span>'+cols+
       '<span class="perf num">'+(sent?'<span>'+fmtPct(pct(d.open,d.delivery||sent))+'<small>opened</small></span><span'+(pct(d.bounce,sent)>=3?' class="bad"':'')+'>'+fmtPct(pct(d.bounce,sent))+'<small>bounced</small></span>':'<span class="t2" style="font-weight:500">starts with the next run</span>')+'</span>'+svg("chevR")+'</button>';};
   return '<div class="pan"><div class="ph2">'+svg("mail")+'Active campaigns<span class="t2" style="margin-left:4px">· '+list.length+' · tap one for its numbers</span>'+(others?'<span class="meta"><button class="btn sm ghost" data-act="nav" data-v="camp">'+others+' more in Campaigns</button></span>':'')+'</div>'+
     (list.length?list.map(row).join(""):'<div class="empty" style="padding:22px 16px">Nothing running. Approve a campaign under Campaigns and it shows up here.</div>')+'</div>';}
