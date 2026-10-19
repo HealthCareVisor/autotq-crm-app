@@ -317,21 +317,21 @@ svg.usmap .nd.act circle.c{stroke:var(--coral);stroke-width:2.5}svg.usmap .nd.ac
 .mailcard .mf{margin-top:12px;font-size:12px;color:var(--ink-3)}
 
 /* Home network map (2026-10-19) */
-.fleet .fleetsvg{display:block;width:100%;height:auto;font-family:var(--font)}
+.fleet .fleetsvg{display:block;width:100%;max-width:960px;height:auto;margin:6px auto 0;font-family:var(--font)}
 .fleet .fe{fill:none;stroke:#2C2E34;stroke-width:1.3}.fleet .fe.on{stroke:#4A3A33}
 .fleet .fe2{fill:none;stroke:#24262B;stroke-width:1}.fleet .fe2.on{stroke:#34363C}
 .fleet .fdot{fill:var(--coral)}
 .fleet .fi{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .fleet .hub .b{fill:var(--coral)}.fleet .hub .g{fill:var(--coral);opacity:.14}
 .fleet .cn .b{fill:var(--panel);stroke:#3A3C42;stroke-width:1.5}.fleet .cn .ring{fill:none;stroke:#3FB950;stroke-width:2}.fleet .cn{cursor:pointer}.fleet .cn:hover .b{stroke:var(--ink-2)}
-.fleet .ib .ibb{fill:var(--panel);stroke:#3A3C42;stroke-width:1.2}
+.fleet .ib .ibb{fill:var(--panel);stroke-width:1.6}.fleet .ib text{font-size:10px;font-weight:700;fill:var(--ink)}
 .fleet .badge circle{fill:var(--coral)}.fleet .badge text{fill:#fff;font-size:10px;font-weight:700}
 .fleet text.l1{fill:var(--ink);font-size:12.5px;font-weight:600}.fleet text.l2{fill:var(--ink);font-size:11.5px;font-weight:600}.fleet text.s,.fleet tspan.s{fill:var(--ink-3);font-size:10.5px;font-weight:500}
 .flegend{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:10px 16px;border-top:1px solid var(--rule-2);font-size:12px;color:var(--ink-3)}
 .flegend span{display:inline-flex;align-items:center;gap:6px}.flegend i{width:8px;height:8px;border-radius:50%;display:inline-block}.flegend i.ring{border:2px solid #3FB950;width:6px;height:6px}.flegend .sep{width:1px;height:12px;background:var(--rule-2)}.flegend .grow{flex:1}
-.frow{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--rule-2)}.frow>i{width:8px;height:8px;border-radius:50%;flex:none}.frow .nm{flex:1;min-width:0}.frow .nm b{display:block;font-weight:600}.frow .nm small{color:var(--ink-3);font-size:12px}.frow .perf{flex:none;width:auto;font-size:14px;color:var(--ink)}
+.frow{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--rule-2)}.frow .no{flex:none;width:22px;height:22px;box-sizing:border-box;border:1.6px solid;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700}.frow .nm{flex:1;min-width:0}.frow .nm b{display:block;font-weight:600}.frow .nm small{color:var(--ink-3);font-size:12px}.frow .perf{flex:none;width:auto;font-size:14px;color:var(--ink)}
 @media (max-width:700px){.kpis.k3 .kd,.kpis.k3 .kb{display:none}}
-@media (max-width:900px){.fleet .ibl,.fleet .cn text.s{display:none}.fleet text.l1{font-size:24px}.fleet .hub text.s{font-size:18px}.frow{flex-wrap:wrap}.frow .perf{width:100%;justify-content:flex-start}}
+@media (max-width:900px){.fleet .cn text.s{display:none}.fleet text.l1{font-size:22px}.fleet .hub text.s{font-size:16px}.fleet .ib text{font-size:14px}.frow{flex-wrap:wrap}.frow .perf{width:100%;justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -1172,30 +1172,30 @@ function fRates(x){const d=x.deliv.size,s=x.sent;return {sent:s,deliv:s?Math.rou
 function fHealth(x){if(!x.sent)return "var(--ink-4)";const b=x.bounce.size/x.sent;return x.compl.size||b>=0.03?"var(--coral)":b>=0.02?"#E3A008":"#3FB950";}
 function fleetPanel(){const {rows,tot,S}=fleetData();const auto=outboundSettings().auto&&!outboundSettings().haltedWhy;const N=rows.length;const one=N===1;
   const narrow=window.innerWidth<700; // phones get a tall map
-  const W=narrow?700:1200,H=one?(narrow?420:320):(narrow?820:450),cx=one?(narrow?120:230):(narrow?350:600),cy=one?(narrow?210:160):(narrow?410:222);const rx1=narrow?185:262,ry1=narrow?250:108,rx2=narrow?300:440,ry2=narrow?370:186;
-  const short=e=>String(e||"").split("@")[0];let edges="",dots="",nodes="",labels="";
-  rows.forEach((r,i)=>{const run=r.c.status==="active"||r.c.status==="approved";const live=run&&!r.c.paused;
-    const a=one?0:(-Math.PI/2+2*Math.PI*(i+0.5)/N);const x=one?(narrow?360:560):cx+rx1*Math.cos(a),y=one?cy:cy+ry1*Math.sin(a);
-    const mx=(cx+x)/2+(one?0:-Math.sin(a)*22),my=(cy+y)/2+(one?0:Math.cos(a)*22);const d1='M'+cx+' '+cy+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+x.toFixed(1)+' '+y.toFixed(1);
+  const G=one?(narrow?{W:600,H:300,cx:90,cy:150,x1:300,x2:500,dy:80,ri:12}:{W:960,H:230,cx:230,cy:115,x1:480,x2:720,dy:60,ri:9})
+             :(narrow?{W:600,H:640,cx:300,cy:320,rx1:165,ry1:200,rx2:255,ry2:290,ri:12}:{W:960,H:310,cx:480,cy:152,rx1:205,ry1:78,rx2:320,ry2:140,ri:9});
+  const cx=G.cx,cy=G.cy;let edges="",dots="",nodes="";
+  rows.forEach((r,i)=>{const live=(r.c.status==="active"||r.c.status==="approved")&&!r.c.paused;
+    const a=one?0:(-Math.PI/2+2*Math.PI*(i+0.5)/N);const x=one?G.x1:cx+G.rx1*Math.cos(a),y=one?cy:cy+G.ry1*Math.sin(a);
+    const mx=(cx+x)/2+(one?0:-Math.sin(a)*18),my=(cy+y)/2+(one?0:Math.cos(a)*18);const d1='M'+cx+' '+cy+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+x.toFixed(1)+' '+y.toFixed(1);
     edges+='<path class="fe'+(live?' on':'')+'" d="'+d1+'"/>';
-    if(live&&auto)dots+='<circle class="fdot" r="2.6"><animateMotion dur="'+(2.2+0.25*i).toFixed(2)+'s" repeatCount="indefinite" path="'+d1+'"/></circle>';
-    const ems=S.map(s=>s.email);const spread=one?0:Math.min(0.34,Math.PI/N*0.62);
-    ems.forEach((em,j)=>{const x2=one?(narrow?600:860):cx+rx2*Math.cos(a+(j-1)*spread),y2=one?cy+(j-1)*(narrow?120:92):cy+ry2*Math.sin(a+(j-1)*spread);const ib=r.ib[em]||{sent:0,deliv:new Set(),open:new Set(),bounce:new Set(),compl:new Set()};const q=fRates(ib);
-      const right=one||x2>=cx;edges+='<path class="fe2'+(ib.sent?' on':'')+'" d="M'+x.toFixed(1)+' '+y.toFixed(1)+' L'+x2.toFixed(1)+' '+y2.toFixed(1)+'"/>';
-      nodes+='<g class="ib"><title>'+esc(em+" · "+q.sent+" sent · "+q.deliv+"% delivered · "+q.seen+"% seen · "+q.bounce+" bounced"+(q.compl?" · "+q.compl+" complaints":""))+'</title><circle cx="'+x2.toFixed(1)+'" cy="'+y2.toFixed(1)+'" r="9" class="ibb"/><circle cx="'+x2.toFixed(1)+'" cy="'+y2.toFixed(1)+'" r="4.2" style="fill:'+fHealth(ib)+'"/></g>';
-      const tx=right?x2+14:x2-14,an=right?"start":"end";
-      labels+='<text x="'+tx.toFixed(1)+'" y="'+(y2-2).toFixed(1)+'" text-anchor="'+an+'" class="l2 ibl">'+esc(short(em))+' <tspan class="s">· '+q.sent+' sent</tspan></text>'+
-        '<text x="'+tx.toFixed(1)+'" y="'+(y2+11).toFixed(1)+'" text-anchor="'+an+'" class="s ibl">'+(q.sent?q.deliv+'% delivered · '+q.seen+'% seen'+(q.bounce?' · '+q.bounce+' bounced':''):'nothing yet')+'</text>';});
-    nodes+='<g class="cn'+(live?' run':'')+'" data-act="ovfocus" data-id="'+r.c.id+'" tabindex="0"><title>'+esc(r.c.name)+'</title>'+(live?'<circle class="ring" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="25"/>':'')+'<circle class="b" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="20"/>'+fIcon("mail",x,y,18,"var(--ink)")+
-      (r.act?'<g class="badge"><circle cx="'+(x+17).toFixed(1)+'" cy="'+(y-17).toFixed(1)+'" r="8"/><text x="'+(x+17).toFixed(1)+'" y="'+(y-13.6).toFixed(1)+'" text-anchor="middle">'+r.act+'</text></g>':'')+
-      '<text x="'+x.toFixed(1)+'" y="'+(y+40).toFixed(1)+'" text-anchor="middle" class="l1">'+esc(narrow?fleetName(r.c).replace(/\s+20\d\d$/,"").split(" ").reduce((s,w)=>(s+" "+w).trim().length<=15?(s+" "+w).trim():s,""):fleetName(r.c))+'</text><text x="'+x.toFixed(1)+'" y="'+(y+53).toFixed(1)+'" text-anchor="middle" class="s">'+r.ppl+' people · '+r.sent+' sent'+(r.c.paused?' · paused':'')+'</text></g>';});
-  const hub='<g class="hub"><circle class="g" cx="'+cx+'" cy="'+cy+'" r="44"/><circle class="b" cx="'+cx+'" cy="'+cy+'" r="31"/>'+fIcon("pc",cx,cy,26,"#fff")+'<text x="'+cx+'" y="'+(cy+52)+'" text-anchor="middle" class="l1">'+esc(HUB_HOST.name)+'</text><text x="'+cx+'" y="'+(cy+(narrow?76:65))+'" text-anchor="middle" class="s">'+esc(HUB_HOST.sub)+'</text></g>';
-  const svgEl='<svg class="fleetsvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Network map: this computer, the running campaigns and the inboxes that send them">'+edges+dots+nodes+labels+hub+'</svg>';
-  const inboxRows=S.map(s=>{const q=fRates(tot[s.email]||{sent:0,deliv:new Set(),open:new Set(),bounce:new Set(),compl:new Set()});
-    return '<div class="frow"><i style="background:'+fHealth(tot[s.email]||{sent:0})+'"></i><span class="nm"><b>'+esc(s.email)+'</b><small>'+esc(s.name||"")+' · day '+(senderDay(s)+1)+' of the ramp · '+senderSentToday(s)+' / '+senderCap(s,0)+' today'+(s.paused?' · paused':'')+'</small></span><span class="perf num"><span>'+q.sent+'<small>sent</small></span><span>'+(q.sent?q.deliv+'%':'—')+'<small>delivered</small></span><span>'+(q.sent?q.seen+'%':'—')+'<small>seen</small></span><span'+(q.bounce?' class="bad"':'')+'>'+q.bounce+'<small>bounced</small></span></span></div>';}).join("");
-  return '<div class="pan fleet"><div class="ph2">'+svg("globe")+(ovCamp?'This campaign':'Outbound')+'<span class="t2" style="margin-left:4px">· '+(N?N+' campaign'+(N===1?'':'s')+' running through '+S.filter(s=>!s.paused).length+' inboxes':'nothing running')+(auto?'':' · Automation off')+'</span></div>'+
+    if(live&&auto)dots+='<circle class="fdot" r="2.4"><animateMotion dur="'+(2.2+0.25*i).toFixed(2)+'s" repeatCount="indefinite" path="'+d1+'"/></circle>';
+    const spread=one?0:Math.min(0.3,Math.PI/N*0.55);
+    S.forEach((s,j)=>{const x2=one?G.x2:cx+G.rx2*Math.cos(a+(j-1)*spread),y2=one?cy+(j-1)*G.dy:cy+G.ry2*Math.sin(a+(j-1)*spread);
+      const ib=r.ib[s.email]||{sent:0,deliv:new Set(),open:new Set(),bounce:new Set(),compl:new Set()};const q=fRates(ib);
+      edges+='<path class="fe2'+(ib.sent?' on':'')+'" d="M'+x.toFixed(1)+' '+y.toFixed(1)+' L'+x2.toFixed(1)+' '+y2.toFixed(1)+'"/>';
+      nodes+='<g class="ib"><title>'+esc("Inbox "+(j+1)+" · "+s.email+" · "+q.sent+" sent · "+q.deliv+"% delivered · "+q.seen+"% seen · "+q.bounce+" bounced"+(q.compl?" · "+q.compl+" complaints":""))+'</title><circle class="ibb" cx="'+x2.toFixed(1)+'" cy="'+y2.toFixed(1)+'" r="'+G.ri+'" style="stroke:'+fHealth(ib)+'"/><text x="'+x2.toFixed(1)+'" y="'+(y2+G.ri*0.37).toFixed(1)+'" text-anchor="middle">'+(j+1)+'</text></g>';});
+    const nm=narrow?fleetName(r.c).replace(/\s+20\d\d$/,"").split(" ").reduce((s,w)=>(s+" "+w).trim().length<=15?(s+" "+w).trim():s,""):fleetName(r.c);
+    nodes+='<g class="cn'+(live?' run':'')+'" data-act="ovfocus" data-id="'+r.c.id+'" tabindex="0"><title>'+esc(r.c.name)+'</title>'+(live?'<circle class="ring" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="21"/>':'')+'<circle class="b" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="17"/>'+fIcon("mail",x,y,15,"var(--ink)")+
+      (r.act?'<g class="badge"><circle cx="'+(x+15).toFixed(1)+'" cy="'+(y-15).toFixed(1)+'" r="7.5"/><text x="'+(x+15).toFixed(1)+'" y="'+(y-11.6).toFixed(1)+'" text-anchor="middle">'+r.act+'</text></g>':'')+
+      '<text x="'+x.toFixed(1)+'" y="'+(y+(narrow?44:34)).toFixed(1)+'" text-anchor="middle" class="l1">'+esc(nm)+'</text><text x="'+x.toFixed(1)+'" y="'+(y+46).toFixed(1)+'" text-anchor="middle" class="s">'+r.ppl+' people · '+r.sent+' sent'+(r.c.paused?' · paused':'')+'</text></g>';});
+  const hub='<g class="hub"><circle class="g" cx="'+cx+'" cy="'+cy+'" r="36"/><circle class="b" cx="'+cx+'" cy="'+cy+'" r="26"/>'+fIcon("pc",cx,cy,22,"#fff")+'<text x="'+cx+'" y="'+(cy+(narrow?54:43))+'" text-anchor="middle" class="l1">'+esc(HUB_HOST.name)+'</text><text x="'+cx+'" y="'+(cy+(narrow?76:55))+'" text-anchor="middle" class="s">'+esc(HUB_HOST.sub)+'</text></g>';
+  const svgEl='<svg class="fleetsvg" viewBox="0 0 '+G.W+' '+G.H+'" role="img" aria-label="Network map: this computer, the running campaigns and inboxes 1, 2 and 3 that send them">'+edges+dots+nodes+hub+'</svg>';
+  const inboxRows=S.map((s,j)=>{const T=tot[s.email]||{sent:0,deliv:new Set(),open:new Set(),bounce:new Set(),compl:new Set()};const q=fRates(T);
+    return '<div class="frow"><span class="no" style="border-color:'+fHealth(T)+'">'+(j+1)+'</span><span class="nm"><b>'+esc(s.email)+'</b><small>'+esc(s.name||"")+' · day '+(senderDay(s)+1)+' of the ramp · '+senderSentToday(s)+' / '+senderCap(s,0)+' today'+(s.paused?' · paused':'')+'</small></span><span class="perf num"><span>'+q.sent+'<small>sent</small></span><span>'+(q.sent?q.deliv+'%':'—')+'<small>delivered</small></span><span>'+(q.sent?q.seen+'%':'—')+'<small>seen</small></span><span'+(q.bounce?' class="bad"':'')+'>'+q.bounce+'<small>bounced</small></span></span></div>';}).join("");
+  return '<div class="pan fleet"><div class="ph2">'+svg("globe")+(ovCamp?'This campaign':'Outbound')+'<span class="t2" style="margin-left:4px">· '+(N?N+' campaign'+(N===1?'':'s')+' through inboxes 1–'+S.length:'nothing running')+(auto?'':' · Automation off')+'</span></div>'+
     (N?svgEl:'<div class="empty" style="padding:26px 16px">Nothing running. Approve a campaign under Campaigns and it branches off here.</div>')+
-    '<div class="flegend"><span><i class="ring"></i>Running</span><span><i style="background:var(--ink-4)"></i>Paused</span><span><i style="background:var(--coral)"></i>Needs you</span><span class="sep"></span><span><i style="background:#3FB950"></i>Inbox healthy</span><span><i style="background:#E3A008"></i>Watch</span><span><i style="background:var(--coral)"></i>Hold</span><span class="grow"></span><span class="t2" style="margin:0">'+(ovCamp?'':'Tap a campaign to show only its numbers.')+'</span></div>'+inboxRows+'</div>';}
+    '<div class="flegend"><span><i class="ring"></i>Running</span><span><i style="background:var(--coral)"></i>Needs you</span><span class="sep"></span><span><i style="background:#3FB950"></i>Inbox healthy</span><span><i style="background:#E3A008"></i>Watch</span><span><i style="background:var(--coral)"></i>Hold</span><span class="grow"></span><span class="t2" style="margin:0">'+(ovCamp?'':'Tap a campaign for its numbers.')+'</span></div>'+inboxRows+'</div>';}
 function viewOverview(){
   const h=RANGE_H[ovRange]||168;const focus=ovCamp?campaignById(ovCamp):null;if(ovCamp&&!focus)ovCamp="";
   const cs=campaigns().filter(c=>!ovCamp||c.id===ovCamp);const since=ovSince(h);
