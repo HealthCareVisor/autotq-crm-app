@@ -681,7 +681,32 @@ const SYNC={shadow:{},lastPull:"1970-01-01T00:00:00Z",dirty:{},timer:null,pushin
 function syncKey(coll,id){return coll+"|"+id;}
 function snapshotShadow(){SYNC.shadow={};SYNC_COLLECTIONS.forEach(coll=>(DB[coll]||[]).forEach(r=>{if(r&&r.id!=null)SYNC.shadow[syncKey(coll,r.id)]=JSON.stringify(r);}));}
 function loadSyncMeta(){try{const m=JSON.parse(localStorage.getItem("autotq_sync_meta")||"{}");SYNC.lastPull=m.lastPull||SYNC.lastPull;SYNC.dirty=m.dirty||{};}catch(e){}}
-function saveSyncMeta(){localStorage.setItem("autotq_sync_meta",JSON.stringify({lastPull:SYNC.lastPull,dirty:SYNC.dirty}));}
+function saveSyncMeta(){try{localStorage.setItem("autotq_sync_meta",JSON.stringify({lastPull:SYNC.lastPull,dirty:SYNC.dirty}));}catch(e){}}
+/* ---- the book's copy on this device: localStorage while it fits, IndexedDB once it doesn't.
+   Safari caps localStorage at ~5 MB and counts the book as UTF-16, so once the book passed ~2.5M
+   characters every setItem threw — save() died before queueChanges() and nothing reached the team
+   (John Morrison's Mac + iPhone, Oct 2026). A failed local write must never block the push. ---- */
+const CACHE_IDB_KEY="autotq_cache_idb";
+let cacheIDB=false,cacheTimer=null,cacheReady=Promise.resolve(),cacheLoading=false,bookDb=null;
+try{cacheIDB=localStorage.getItem(CACHE_IDB_KEY)==="1";}catch(e){}
+function bookStore(mode){
+  bookDb=bookDb||new Promise((res,rej)=>{const r=indexedDB.open("autotq_book",1);
+    r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
+  return bookDb.then(d=>d.transaction("kv",mode).objectStore("kv")).catch(e=>{bookDb=null;throw e;});
+}
+function bookGet(){return bookStore("readonly").then(st=>new Promise((res,rej)=>{const q=st.get(KEY);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error);}));}
+function bookPut(s){return bookStore("readwrite").then(st=>new Promise((res,rej)=>{const q=st.put(s,KEY);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);}));}
+function writeCache(now){
+  if(!cacheIDB){
+    try{localStorage.setItem(KEY,JSON.stringify(DB));return;}
+    catch(e){cacheIDB=true;try{localStorage.removeItem(KEY);localStorage.setItem(CACHE_IDB_KEY,"1");}catch(e2){}}
+  }
+  if(cacheLoading)return; // DB is still the empty starter book — don't write it over the stored copy
+  clearTimeout(cacheTimer);
+  const put=()=>{cacheTimer=null;bookPut(JSON.stringify(DB)).catch(()=>{});};
+  if(now)put();else cacheTimer=setTimeout(put,500);
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&cacheTimer)writeCache(true);});
 function queueChanges(){ // diff DB vs shadow → dirty queue
   if(!SYNC.booted)return;
   SYNC_COLLECTIONS.forEach(coll=>{
@@ -748,7 +773,7 @@ async function pullChanges(full){
     }
     SYNC.lastPull=maxTs;
     SYNC.online=true;saveSyncMeta();
-    if(changed){normOppStages();localStorage.setItem(KEY,JSON.stringify(DB));
+    if(changed){normOppStages();writeCache();
       const ae=document.activeElement;
       if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();}
     syncBadge("ok");
@@ -762,6 +787,7 @@ function syncBadge(state){
 }
 async function bootSync(){
   loadSyncMeta();
+  await cacheReady;             // the IndexedDB copy must land before the server rows merge onto it
   await pullChanges(true);      // full pull — server is the source of truth
   snapshotShadow();             // then baseline the shadow from merged state
   SYNC.booted=true;
@@ -859,8 +885,14 @@ function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orde
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
   return b;}
-function load(){try{const r=localStorage.getItem(KEY);if(r){DB=JSON.parse(r);if(window.REAL_DATA){if(!DB.opps&&window.REAL_DATA.opps)DB.opps=window.REAL_DATA.opps.slice();if(!DB.confLeads&&window.REAL_DATA.confLeads)DB.confLeads=window.REAL_DATA.confLeads.slice();if(!DB.skus&&window.REAL_DATA.skus)DB.skus=window.REAL_DATA.skus.slice();save();}return;}}catch(e){}DB=seed();save();}
-function save(){localStorage.setItem(KEY,JSON.stringify(DB));queueChanges();}
+function fillFromData(){if(window.REAL_DATA){if(!DB.opps&&window.REAL_DATA.opps)DB.opps=window.REAL_DATA.opps.slice();if(!DB.confLeads&&window.REAL_DATA.confLeads)DB.confLeads=window.REAL_DATA.confLeads.slice();if(!DB.skus&&window.REAL_DATA.skus)DB.skus=window.REAL_DATA.skus.slice();save();}}
+function load(){
+  if(cacheIDB){DB=seed();cacheLoading=true;
+    cacheReady=bookGet().then(s=>{cacheLoading=false;if(s){DB=JSON.parse(s);fillFromData();bootFixes();render();}})
+      .catch(()=>{}).then(()=>{cacheLoading=false;});return;}
+  try{const r=localStorage.getItem(KEY);if(r){DB=JSON.parse(r);fillFromData();return;}}catch(e){}DB=seed();save();}
+function save(){writeCache();queueChanges();}
+function bootFixes(){applyRosterCorrections();applyManrepPersonCoverage();applyPersonAddresses();}
 function person(id){return DB.people.find(p=>p.id===id);}
 function company(id){return DB.companies.find(c=>c.id===id);}
 function teamById(id){if(id==="house")return {id:"house",name:"House",role:"Before the reps joined",c:"#A9A59C"};return TEAM.find(t=>t.id===id)||{name:"—",c:"#888"};}
@@ -7019,7 +7051,7 @@ document.addEventListener("dblclick",e=>{
   table.classList.remove("fixedcols");table.querySelectorAll("thead th").forEach(x=>x.style.width="");
 });
 
-load();applyRosterCorrections();applyManrepPersonCoverage();applyPersonAddresses();
+load();bootFixes();
 // Arriving via a Supabase magic link: tokens land in the URL hash — capture them,
 // then route through the set-password screen like a code sign-in.
 let HASHLOGIN=false;
