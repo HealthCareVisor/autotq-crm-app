@@ -835,7 +835,8 @@ const ENRICH={
 function lookup(name){
   const k=name.trim().toLowerCase(); if(!k)return null;
   for(const key in ENRICH){if(k.includes(key))return Object.assign({guessed:false},ENRICH[key]);}
-  return {name:titlecase(name),website:k.replace(/[^a-z0-9]/g,"")+".com",industry:"—",city:"",state:"",kind:"Company",guessed:true};
+  const nm=name.trim().replace(/\s+/g," "); // typed capitals stay ("D&M", "ABC Safety LLC"); all-lowercase gets title case
+  return {name:/[A-Z]/.test(nm)?nm:titlecase(nm),website:k.replace(/[^a-z0-9]/g,"")+".com",industry:"—",city:"",state:"",kind:"Company",guessed:true};
 }
 function demoSeed(){
   const C=[
@@ -4126,11 +4127,11 @@ function renderFill(name){
   const box=document.getElementById("dFill");if(!box)return;
   if(!name.trim()){box.innerHTML="";logState.dist=null;return;}
   const info=lookup(name);logState.dist=info;
-  box.innerHTML='<div class="fill"><div class="row"><span class="ic info" style="border-radius:9px">'+initials(info.name)+'</span>'+
-   '<div class="grow"><p class="t1">'+info.name+'</p><p class="t2" style="color:var(--info-t)">'+info.website+'</p></div>'+
+  box.innerHTML='<div class="fill"><div class="row"><span class="ic info" style="border-radius:9px">'+esc(initials(info.name))+'</span>'+
+   '<div class="grow"><p class="t1">'+esc(info.name)+'</p><p class="t2" style="color:var(--info-t)">'+esc(info.website)+'</p></div>'+
    (info.guessed?'<span class="pill gray">New</span>':'<span class="pill ok">'+svg("check")+' Found</span>')+'</div>'+
-   '<div class="facts"><div><b>Industry</b><span>'+info.industry+'</span></div><div><b>HQ</b><span>'+((info.city?info.city+", ":"")+(info.state||"—"))+'</span></div>'+
-   '<div><b>Type</b><span>'+info.kind+'</span></div><div><b>Owner</b><span>'+teamById(USER).name.split(" ")[0]+'</span></div></div>'+
+   '<div class="facts"><div><b>Industry</b><span>'+esc(info.industry)+'</span></div><div><b>HQ</b><span>'+esc((info.city?info.city+", ":"")+(info.state||"—"))+'</span></div>'+
+   '<div><b>Type</b><span>'+esc(info.kind)+'</span></div><div><b>Owner</b><span>'+teamById(USER).name.split(" ")[0]+'</span></div></div>'+
    '<p style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--hint);margin:11px 0 0">'+svg("spark")+(info.guessed?'New company — confirm details':'Auto-filled — confirm or edit')+'</p></div>';
 }
 function saveDist(){const info=logState.dist;if(!info){toast("Type a company name");return;}
@@ -4144,7 +4145,7 @@ function formAccount(kind,keep){
    '<div class="seg" style="margin:2px 0 12px"><button class="'+(k==="enduser"?"on":"")+'" data-act="acctkind" data-v="enduser">End-user</button><button class="'+(k==="distributor"?"on":"")+'" data-act="acctkind" data-v="distributor">Distributor</button></div>'+
    '<label class="fl">Company name</label><input class="f" id="dName" value="'+esc(name)+'" placeholder="Start typing — known companies fill themselves in" autocomplete="off"><div id="dFill"></div>'+
    (k==="distributor"?'<label class="fl">Where are they with us?</label><div class="qa-types" id="acctStage">'+[["potential","Potential"],["setup","Set up"],["stocking","Stocking"]].map(x=>'<span class="qchip'+(logState.acctStage===x[0]?" on":"")+'" data-act="acctstage" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>':'')+
-   '<button class="btn coral block" data-act="saveAcct" style="margin-top:18px">Add '+(k==="distributor"?"distributor":"end-user")+'</button>');
+   '<button class="btn coral block" data-act="saveNewAcct" style="margin-top:18px">Add '+(k==="distributor"?"distributor":"end-user")+'</button>');
   if(name)renderFill(name);
 }
 function saveAccount(){
@@ -6762,7 +6763,7 @@ document.addEventListener("click",e=>{
     else if(f==="rep"||f==="contact")formCard();else formLog(null,f==="call"?"call":f);return;}
   if(a==="acctkind"){logState.acctKind=t.dataset.v;formAccount(logState.acctKind,true);return;}
   if(a==="acctstage"){logState.acctStage=logState.acctStage===t.dataset.v?"":t.dataset.v;document.querySelectorAll("#acctStage .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.acctStage));return;}
-  if(a==="saveAcct"){saveAccount();return;}
+  if(a==="saveNewAcct"){saveAccount();return;} // not "saveAcct" — that one is the Edit account sheet's and is claimed first
   if(a==="person"){closeSheet();pushNav();curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="invitemadd"){collectInvItems();logState.invItems=logState.invItems||[];logState.invItems.push({sku:"",qty:1,unit:""});formOrder(logState.invEditId||null,true);return;}
   if(a==="invitemdel"){collectInvItems();logState.invItems.splice(+t.dataset.i,1);formOrder(logState.invEditId||null,true);return;}
