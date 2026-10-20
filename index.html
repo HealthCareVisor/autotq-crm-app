@@ -1023,6 +1023,8 @@ function render(){
   if(!logState.landed){logState.landed=true;if(view==="today")applyRoleDefaults();} /* admins land on Team (Max, 2026-10-16) */
   if(view==="invoicing"&&!invAccess())view="today";
   if(view==="team"&&!teamAccess())view="today";
+  if(ownOnly()&&TEAM_VIEWS.includes(view))view="today";
+  if(ownOnly()&&view==="fcast"){view="opps";oppView="fcast";}
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
@@ -1036,7 +1038,7 @@ function render(){
     campaigns:(function(){const cs=(DB.campaigns||[]);return cs.length?cs.length+" campaign"+(cs.length>1?"s":"")+" · "+cs.reduce((s,c)=>s+(c.leads||[]).length,0)+" contacts":"Your campaigns, their materials and the leads they produced";})(),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
     contacts:(userRegion(USER)?userRegion(USER)+" territory":DB.people.length+" contacts"),
-    opps:(myOpps().filter(oppIsOpen).length+" open · "+fmtK(myOpps().filter(oppIsOpen).reduce((s,o)=>s+(o.amount||0),0))+" pipeline"),
+    opps:(function(){const op=myOpps().filter(o=>oppIsOpen(o)&&(!ownOnly()||oppGhRep(o)===USER));return (ownOnly()?"Your deals · ":"")+op.length+" open · "+fmtK(op.reduce((s,o)=>s+(o.amount||0),0))+" pipeline";})(),
     fcast:"Committed + best case by quarter — tap any cell",
     dash:(userRegion(USER)?userRegion(USER)+" territory":"Whole channel"),
     reports:"Run, sort & export",
@@ -1051,7 +1053,7 @@ function render(){
     person:pn?(pn.role+" · "+pn.branch):"",
     roster:cc?(typeLabel(cc.type)+(cc.territory?" · "+cc.territory:"")):"",
     search:(searchQ?('Results for “'+esc(searchQ)+'”'):""),
-    quotes:(function(){const qs=quotesAll(),op=qs.filter(q=>{const st=quoteState(q);return st==="draft"||st==="sent";});return qs.length?op.length+" open · "+money(op.reduce((s,q)=>s+quoteTotal(q),0))+" quoted":"Price it, preview it, send it";})(),
+    quotes:(function(){const qs=quotesAll().filter(q=>!ownOnly()||q.by===USER),op=qs.filter(q=>{const st=quoteState(q);return st==="draft"||st==="sent";});return qs.length?op.length+" open · "+money(op.reduce((s,q)=>s+quoteTotal(q),0))+" quoted":"Price it, preview it, send it";})(),
     invoicing:(function(){const os=ordersAll();const q=os.filter(o=>o.status==="queue");return os.length+" orders · "+q.length+" awaiting invoice"+(q.length?" ("+money(q.reduce((s,o)=>s+(o.amount||0),0))+")":"");})(),
     shipping:(function(){const t=ordersToShip().length,tr=(DB.shipments||[]).filter(s=>s.status==="shipped").length;return (t?t+" new order"+(t>1?"s":"")+" to send out":"Nothing waiting to go out")+(tr?" · "+tr+" in transit":"");})()
   };
@@ -1142,7 +1144,7 @@ function restoreNav(st){view=st.view;curRep=st.curRep||null;curPerson=st.curPers
 function backParent(){
   if(view==="export"&&curList)return "export";
   if(view==="camp"&&curCampaign)return "camp";
-  return {person:"contacts",roster:"accounts",report:"reports",confleads:"today",search:"today"}[view]||"";
+  return {person:"contacts",roster:"accounts",report:"reports",confleads:"conf",search:"today"}[view]||"";
 }
 function canGoBack(){return navStack.length>0||!!backParent();}
 function goBack(fb){
@@ -1375,13 +1377,20 @@ function campAccess(){return campAccessFor(USER);}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
    Kellan = outreach (finds + categorizes leads, works the lists, hands off), admins direct it all, Laresa = billing. */
 function profile(u){u=u||USER;if(u==="laresa")return "billing";if(u==="kellan")return "outreach";if(u==="max"||u==="hannah"||u==="jamie")return "admin";return "sales";}
+/* a sales rep sees only their own numbers — Pipeline, Forecast, Activity and Quotes are locked to "Mine", and the
+   team views (Team, a teammate's page, Insight) are closed to them (Max, 2026-10-20: "none of the sales people can
+   see the KPIs of other people, just theirs") */
+function ownOnly(){return profile()==="sales";}
+const TEAM_VIEWS=["team","teammate","insight","dash","reports","report","insights"];
 function railGroups(u){
   const p=profile(u);
   /* "dumb simple: Home — Activity — Pipeline — Leads — Quotes" (Max, 2026-10-16 evening) */
+  /* Field Map + Conferences are back on the sales rail (Max, 2026-10-20: "add the Field Map back… conference leads back") */
   if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]]],
-    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]];
-  if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
+    ["Field",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
+  if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
+    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["map","pin","Field Map"]]],
     ["Manage",[["team","users","Team"]]]];
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
   const g=[];
@@ -2170,7 +2179,12 @@ function viewMap(){
   h+='<p style="font-size:12.5px;color:var(--hint);text-align:center;margin:10px 0 0">'+(mapMode==="reps"?'Pins count field reps covering that state (distributor reps + man-rep territories) — tap any state for the full drill-down.'
     :mapMode==="training"?'Pins count trained reps in that state — trainings are logged on contact pages (Mark trained / Log → Train).'
     :'Pins mark demos in the field — tap any state to see who holds them.')+'</p>';
+  if(mapState&&!byState[mapState]){
+    h+='<div id="mapdrill" class="sectlabel" style="margin-top:18px">'+mapState+'</div><div class="empty" style="padding:16px">'+(mapMode==="reps"?'No field reps on file for '+mapState+'.':mapMode==="training"?'Nobody trained in '+mapState+' yet — log a training from a contact page (Log → Train).':'No demos in the field in '+mapState+'.')+'</div>'+
+      '<button class="btn block" data-act="stpop" data-st="'+mapState+'">'+svg("search")+' Everything in '+mapState+' (man-reps, distributors, end users)</button>';
+  }
   if(mapState&&byState[mapState]){var list=byState[mapState];
+    h+='<div id="mapdrill"></div>';
     if(mapMode==="reps"){
       h+=stateZoomHTML(mapState,list);
     }else if(mapMode==="training"){
@@ -2181,7 +2195,9 @@ function viewMap(){
         '<span class="pill" style="color:var(--ok-t);background:rgba(0,160,90,.12);font-weight:600;white-space:nowrap">'+esc((a.by?teamById(a.by).name.split(" ")[0]:"")+" · "+fmtDay(a.date))+'</span></div></div>';}).join("");
     }else{
       h+='<div class="sectlabel" style="margin-top:18px">'+mapState+' — '+list.length+' demo'+(list.length>1?"s":"")+'</div>';
-      h+=list.map(function(d){var loc=[d.city,d.state].filter(Boolean).join(", ");var sub=[loc,d.company].filter(Boolean).join(" · ");return '<div class="card"><div class="row"><span class="ic coral">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(d.holder||"—")+'</p><p class="t2" style="white-space:normal">'+esc(sub)+'</p></div>'+(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>')+'</div></div>';}).join("");}
+      h+=list.map(function(d){var loc=[d.city,d.state].filter(Boolean).join(", ");var sub=[loc,d.company].filter(Boolean).join(" · ");var pr=demoPerson(d);
+        return '<div class="card"'+(pr?' data-act="person" data-id="'+pr.id+'" style="cursor:pointer" title="Open '+esc(pr.name)+'"':'')+'><div class="row"><span class="ic coral">'+svg("box")+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(pr?pr.name:(d.holder||"—"))+'</p><p class="t2" style="white-space:normal">'+esc(sub)+(d.date?' · '+esc(d.date):'')+'</p></div>'+(d.source==="roster (soft)"?'<span class="pill gray">soft</span>':'<span class="pill coral">demo</span>')+(pr?chev():'')+'</div></div>';}).join("");}
+    if(mapMode!=="reps")h+='<button class="btn block" data-act="stpop" data-st="'+mapState+'" style="margin-top:8px">'+svg("search")+' Everything in '+mapState+'</button>'; /* the rep zoom has its own */
   }
   return h;
 }
@@ -2700,15 +2716,26 @@ function leadVal(l,key){
   if(key==="status")return (l.status||"").toLowerCase();
   return "";
 }
-function viewConfLeads(){
-  const all=(DB.confLeads||[]).filter(l=>l.conf===curConf);
+function viewConfLeads(){return confLeadsBody(curConf);}
+/* a conference lead list: the people from the badge scans with their phone + email, their category (end user /
+   distributor / set aside) and one-tap pushes — into Leads, or into the CRM as a contact (Max, 2026-10-20: "add
+   conference leads back… with their contacts and the leads category, so they can push contacts") */
+let confSegF="";
+const CONF_SEGS=[["End User","End users"],["Distributor/Rep","Distributors / reps"],["Set Aside","Set aside"]];
+function confLeadSeg(l){return l.segment||"End User";}
+function confSegTag(s){return '<span class="pill '+(s==="Distributor/Rep"?"coral":s==="Set Aside"?"gray":"info")+'">'+esc({"End User":"End user","Distributor/Rep":"Distributor / rep","Set Aside":"Set aside"}[s]||s||"—")+'</span>';}
+function confLeadInLeads(cl){ensureLeads();const em=String(cl.email||"").toLowerCase();return DB.leads.find(x=>!x.removed&&(x.refId===cl.id||(em&&String(x.email||"").toLowerCase()===em)));}
+function confLeadsBody(conf){
+  const all=(DB.confLeads||[]).filter(l=>l.conf===conf);
   if(!all.length)return '<div class="empty">No leads loaded for this conference.</div>';
   const scoped=all.filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region));
-  const cnt={tocall:scoped.filter(l=>!l.contacted&&l.segment!=="Set Aside").length,
-    contacted:scoped.filter(l=>l.contacted).length,
-    hot:scoped.filter(l=>["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp)).length,
-    aside:scoped.filter(l=>l.segment==="Set Aside").length,all:scoped.length};
-  let pool=scoped.filter(l=>{
+  const segOk=l=>!confSegF||confLeadSeg(l)===confSegF;
+  const segd=scoped.filter(segOk);
+  const cnt={tocall:segd.filter(l=>!l.contacted&&l.segment!=="Set Aside").length,
+    contacted:segd.filter(l=>l.contacted).length,
+    hot:segd.filter(l=>["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp)).length,
+    aside:segd.filter(l=>l.segment==="Set Aside").length,all:segd.length};
+  let pool=segd.filter(l=>{
     if(leadFilter==="tocall")return !l.contacted&&l.segment!=="Set Aside";
     if(leadFilter==="contacted")return l.contacted;
     if(leadFilter==="hot")return ["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp);
@@ -2716,41 +2743,63 @@ function viewConfLeads(){
     return true;
   });
   const q=listQ.trim().toLowerCase();
-  if(q)pool=pool.filter(l=>(l.name+" "+l.company+" "+l.title+" "+l.status+" "+l.notes).toLowerCase().includes(q));
+  if(q)pool=pool.filter(l=>[l.name,l.company,l.title,l.status,l.notes,l.email,l.city,l.state].join(" ").toLowerCase().includes(q));
   const lf=colFlt.leads||{};
   pool=pool.filter(l=>Object.keys(lf).every(k=>fltMatch(leadFltVal(l,k),lf[k])));
   const s=sortState.leads;
   pool=pool.slice().sort((a,b)=>cmpv(leadVal(a,s.key),leadVal(b,s.key))*s.dir);
   const tab=(v,lbl,n)=>'<button class="'+(leadFilter===v?"on":"")+'" data-act="leadfilter" data-v="'+v+'">'+lbl+' <span class="cnt">'+n+'</span></button>';
+  const inLeads=scoped.filter(l=>confLeadInLeads(l)).length,inCrm=scoped.filter(l=>l.promoted).length;
   let h='';
   h+='<div class="kpis">'+
-   '<div class="kpi"><b>Leads</b><span>'+cnt.all+'</span><small>'+esc(curConf)+'</small></div>'+
+   '<div class="kpi"><b>Leads</b><span>'+cnt.all+'</span><small>'+esc(conf)+'</small></div>'+
    '<div class="kpi"><b>To call</b><span>'+cnt.tocall+'</span></div>'+
    '<div class="kpi"><b>Contacted</b><span>'+cnt.contacted+'</span><small>'+(cnt.all?Math.round(cnt.contacted/cnt.all*100):0)+'% worked</small></div>'+
-   '<div class="kpi"><b>Live interest</b><span>'+cnt.hot+'</span><small>hot / warm / interested</small></div></div>';
+   '<div class="kpi"><b>Pushed</b><span>'+inLeads+'</span><small>in Leads · '+inCrm+' in Contacts</small></div></div>';
+  h+='<div class="qa-types" style="margin:0 0 10px"><span class="lbl">Category</span><span class="qchip'+(!confSegF?" on":"")+'" data-act="confseg" data-v="">All '+scoped.length+'</span>'+
+   CONF_SEGS.map(c=>{const n=scoped.filter(l=>confLeadSeg(l)===c[0]).length;return n?'<span class="qchip'+(confSegF===c[0]?" on":"")+'" data-act="confseg" data-v="'+esc(c[0])+'">'+esc(c[1])+' '+n+'</span>':'';}).join("")+'</div>';
   h+='<div class="lvhead"><div class="lvtabs">'+tab("tocall","To call",cnt.tocall)+tab("contacted","Contacted",cnt.contacted)+tab("hot","Interest",cnt.hot)+tab("aside","Set aside",cnt.aside)+tab("all","All",cnt.all)+'</div>'+
-   '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
+   '<div class="lvsearch"><input id="lvsearch" placeholder="Search name, company, email…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   if(!pool.length)return h+'<div class="empty">Nothing in this tab.</div>';
   function th(k,l){return thSort("leads",k,l);}
-  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+th("state","State")+th("region","Region")+th("temp","Temp")+th("status","Status")+'<th>Phone</th></tr></thead><tbody>'+
-   pool.map(l=>'<tr data-act="leadopen" data-id="'+esc(l.id)+'">'+
-    '<td><div class="lvname">'+esc(l.name)+(l.contacted?' <span class="pill ok" style="padding:2px 5px" title="Contacted" aria-label="Contacted">'+svg("check")+'</span>':'')+(l.promoted?' <span class="pill coral" style="font-size:10px;padding:1px 6px;vertical-align:middle">in CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
-    '<td>'+esc(l.company||"—")+'</td>'+
-    '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
-    '<td>'+(leadRegion(l)==="International"?'<span class="pill gray">Intl</span>':regionTag(leadRegion(l)))+'</td>'+
-    '<td>'+leadTempTag(l.temp)+'</td>'+
-    '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+esc(l.status||"")+(l.next?'<div class="lvsub">'+esc(l.next)+'</div>':'')+'</td>'+
-    '<td>'+(l.phone?esc(l.phone):'<span class="muted">—</span>')+'</td></tr>').join("")+
+  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+'<th>Category</th>'+th("temp","Status")+'<th>Contact</th><th>Push</th></tr></thead><tbody>'+
+   pool.map(l=>{const ml=confLeadInLeads(l);
+    return '<tr data-act="leadopen" data-id="'+esc(l.id)+'">'+
+    '<td style="white-space:normal;min-width:150px;max-width:220px"><div class="lvname">'+esc(l.name)+(l.contacted?' <span class="pill ok" style="padding:2px 5px" title="Contacted" aria-label="Contacted">'+svg("check")+'</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
+    '<td style="white-space:normal;min-width:140px;max-width:210px">'+esc(l.company||"—")+'<div class="lvsub">'+esc(l.city||"")+(l.city&&l.state?', ':'')+(l.state?esc(l.state):(leadRegion(l)==="International"?'Intl':''))+'</div></td>'+
+    '<td>'+confSegTag(confLeadSeg(l))+'</td>'+
+    '<td style="max-width:230px;white-space:normal">'+leadTempTag(l.temp)+(l.status&&l.status!=="Not contacted"?'<div class="lvsub" style="white-space:normal">'+esc(l.status)+'</div>':'')+(l.next?'<div class="lvsub" style="white-space:normal">Next: '+esc(l.next)+'</div>':'')+'</td>'+
+    '<td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">'+(l.phone?'<a href="tel:'+esc(String(l.phone).replace(/[^\d+]/g,""))+'" data-act="extlink" style="color:var(--info-t)">'+esc(l.phone)+'</a>':'<span class="muted">no phone</span>')+
+      (l.email?'<div class="lvsub" style="overflow:hidden;text-overflow:ellipsis"><a href="mailto:'+esc(l.email)+'" data-act="extlink" style="color:var(--info-t)">'+esc(l.email)+'</a></div>':'')+'</td>'+
+    '<td style="white-space:nowrap">'+
+      (ml?'<button class="btn sm ghost" data-act="openlead" data-id="'+esc(ml.id)+'" title="Open it in Leads">'+svg("check")+' In Leads</button>'
+         :'<button class="btn sm" data-act="cfpush" data-id="'+esc(l.id)+'" title="Push to Leads">'+svg("spark")+' Leads</button>')+
+      (l.promoted?' <span class="pill ok" title="Already a contact in the CRM">Contact ✓</span>'
+         :' <button class="btn sm" data-act="cfcontact" data-id="'+esc(l.id)+'" title="Add as a contact (account + contact)">'+svg("user")+' Contact</button>')+
+    '</td></tr>';}).join("")+
    '</tbody></table></div>';
   return h;
+}
+/* one tap: the conference lead lands in Leads. A sales rep's push is theirs (For me, Qualified); outreach's push
+   waits to be categorized and handed off like any other lead. */
+function quickPushConfLead(id){
+  const cl=leadById(id);if(!cl)return;
+  if(confLeadInLeads(cl)){toast(cl.name+" is already in Leads");return;}
+  const now=new Date().toISOString();
+  const ml={id:uid(),refId:cl.id,name:cl.name,title:cl.title||"",company:cl.company||"",email:cl.email||"",phone:cl.phone||"",
+    city:cl.city||"",state:cl.state||"",conf:cl.conf,segment:cl.segment||"",kind:cl.segment==="Distributor/Rep"?"distributor":"enduser",
+    by:USER,createdAt:now,touches:[],promoted:!!cl.promoted};
+  if(ownOnly()){ml.assignee=USER;ml.cat="qualified";ml.catBy=USER;ml.catAt=now;}
+  DB.leads.unshift(ml);save();render();
+  toast(cl.name+" pushed to "+(ownOnly()?"your Leads":"Leads"));
 }
 function leadById(id){return (DB.confLeads||[]).find(l=>l.id===id);}
 function leadFltVal(l,key){
   if(key==="name")return (l.name||"")+" "+(l.title||"");
-  if(key==="company")return l.company||"";
+  if(key==="company")return [l.company,l.city,l.state].filter(Boolean).join(" ");
   if(key==="state")return l.state||"";
   if(key==="region")return leadRegion(l);
-  if(key==="temp")return l.temp||"";
+  if(key==="temp")return [l.temp||"New",l.status,l.next].filter(Boolean).join(" ");
   if(key==="status")return (l.status||"")+" "+(l.next||"");
   return "";
 }
@@ -2771,16 +2820,19 @@ function formLead(id){
    '<label class="fl">Status / outcome</label><input class="f" id="ldStatus" value="'+esc(l.status||"")+'" placeholder="e.g. Voicemail left · HOT — wants demo">'+
    '<label class="fl">Next step</label><input class="f" id="ldNext" value="'+esc(l.next||"")+'" placeholder="e.g. callback wk of 7/13">'+
    '<button class="btn coral block" data-act="saveLead" style="margin-top:18px">Save lead</button>'+
-   '<button class="btn block" data-act="pushlead" data-id="'+esc(l.id)+'" style="margin-top:8px;border-color:var(--coral);color:var(--coral-tt)">'+svg("spark")+' Log touch &amp; push to Leads</button>'+
+   (confLeadInLeads(l)?'<button class="btn block" data-act="openlead" data-id="'+esc(confLeadInLeads(l).id)+'" style="margin-top:8px">'+svg("check")+' In Leads — open it</button>'
+    :'<div class="qa" style="margin-top:8px"><button class="btn block" data-act="cfpush" data-id="'+esc(l.id)+'" style="border-color:var(--coral);color:var(--coral-tt)">'+svg("spark")+' Push to Leads</button>'+
+     '<button class="btn block" data-act="pushlead" data-id="'+esc(l.id)+'">'+svg("phone")+' Log a touch &amp; push</button></div>')+
    (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ Already in the CRM as a contact</p>'
-    :'<button class="btn block" data-act="leadpromote" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("user")+' Promote to CRM (account + contact)</button>'));
+    :'<button class="btn block" data-act="leadpromote" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("user")+' Add to Contacts (account + contact)</button>'));
   logState.leadC=l.contacted?'Yes':'No';logState.leadT=l.temp;
 }
-function promoteLead(id){
-  const l=leadById(id);if(!l||l.promoted)return;
+function promoteLead(id,stay){
+  const l=leadById(id);if(!l)return;
+  if(l.promoted){toast(l.name+" is already a contact");return;}
   const cname=(l.company||l.name).trim();
   const key=cname.toLowerCase().replace(/[^a-z0-9]/g,"");
-  let c=DB.companies.find(x=>x.name.toLowerCase().replace(/[^a-z0-9]/g,"")===key);
+  let c=key?DB.companies.find(x=>String(x.name||"").toLowerCase().replace(/[^a-z0-9]/g,"")===key):null;
   if(!c){
     c={id:uid(),name:cname,type:(l.segment==="Distributor/Rep"?"distributor":"enduser"),
        territory:regionFromState(l.state),owner:"",stage:"",website:"",industry:"",
@@ -2788,7 +2840,8 @@ function promoteLead(id){
        units:0,revenue:0,orders:0,lastOrder:"",demoCount:0};
     DB.companies.unshift(c);
   }
-  let p=l.email?DB.people.find(x=>(x.email||"").toLowerCase()===l.email):null;
+  const em=String(l.email||"").trim().toLowerCase();
+  let p=em?DB.people.find(x=>String(x.email||"").toLowerCase()===em):null;const had=!!p;
   if(!p){
     p={id:uid(),name:l.name,cid:c.id,branch:c.name,role:l.title||"Contact",
        city:l.city||"",state:l.state||"",units:0,pos:0,last:l.contacted?new Date().toISOString():null,
@@ -2796,9 +2849,13 @@ function promoteLead(id){
        note:[l.conf+" lead",l.status!=="Not contacted"?l.status:"",l.notes].filter(Boolean).join(" | ")};
     DB.people.unshift(p);
   }
-  l.promoted=true;save();closeSheet();
+  l.promoted=true;
+  const ml=confLeadInLeads(l);if(ml)ml.promoted=true; /* its twin in Leads shows "CRM" too */
+  save();closeSheet();
+  const msg=had?l.name+" was already in Contacts — linked":l.name+" added to Contacts"+(c?" @ "+c.name:"");
+  if(stay){render();toast(msg);return;}
   pushNav();curPerson=p.id;view="person";render();window.scrollTo(0,0);
-  toast(l.name+" added to Contacts"+(c?" @ "+c.name:""));
+  toast(msg);
 }
 function saveLead(){
   const l=leadById(logState.leadId);if(!l)return;
@@ -2824,16 +2881,39 @@ function mlVal(l,k){const t=leadLastTouch(l);
   if(k==="cat")return LEAD_CATS.findIndex(x=>x[0]===leadCat(l));
   if(k==="rep")return l.assignee?teamById(l.assignee).name:"~";
   return "";}
-function viewLeads(){
+/* Leads tab = the working list, or the conference lists it is fed from (Max, 2026-10-20: conference leads back,
+   with their contacts and category, so reps can push them) */
+let leadsMode="leads";
+function confListsSorted(){
+  const yr=c=>{const m=String(c).match(/20\d\d/);return m?+m[0]:0;};
+  const start=c=>{const s=confSchedule().find(x=>confLeadsFor(x.name)&&confLeadsFor(x.name).conf===c);return s&&s.start?s.start:"";};
+  return confLeadLists().sort((a,b)=>yr(b.conf)-yr(a.conf)||String(start(b.conf)).localeCompare(String(start(a.conf)))||a.conf.localeCompare(b.conf));
+}
+function leadsModeSeg(){
   ensureLeads();
-  const all=DB.leads.slice();
+  const nL=DB.leads.filter(l=>!l.removed).length,nC=(DB.confLeads||[]).length;
+  return '<div class="seg" style="max-width:420px;margin:0 0 14px"><button class="'+(leadsMode==="leads"?"on":"")+'" data-act="leadsmode" data-v="leads">Leads <span class="cnt">'+nL+'</span></button>'+
+   '<button class="'+(leadsMode==="conf"?"on":"")+'" data-act="leadsmode" data-v="conf">Conference leads <span class="cnt">'+nC+'</span></button></div>';
+}
+function viewConfLeadsTab(){
+  const lists=confListsSorted();
+  if(!lists.length)return leadsModeSeg()+'<div class="empty">No conference lead lists loaded yet.</div>';
+  if(!lists.some(c=>c.conf===curConf))curConf=lists[0].conf;
+  return leadsModeSeg()+
+   '<div class="qa-types" style="margin:0 0 12px"><span class="lbl">Conference</span>'+lists.map(c=>'<span class="qchip'+(curConf===c.conf?" on":"")+'" data-act="leadsconf" data-v="'+esc(c.conf)+'">'+esc(c.conf)+' <small>'+c.total+'</small></span>').join("")+'</div>'+
+   confLeadsBody(curConf);
+}
+function viewLeads(){
+  if(leadsMode==="conf")return viewConfLeadsTab();
+  ensureLeads();
+  const all=DB.leads.filter(l=>!l.removed);
   if(!logState.leadsFInit){logState.leadsFInit=true;leadsF=profile()==="sales"?"mine":"";}
   let pool=all.filter(l=>{
     if(!leadsF)return true;
     if(leadsF==="mine")return leadRep(l)===USER;
     if(leadsF.indexOf("rep:")===0)return leadRep(l)===leadsF.slice(4);
     if(leadsF==="untouched")return !(l.touches&&l.touches.length);
-    if(leadsF.indexOf("cat:")===0)return leadCat(l)===leadsF.slice(4);
+    if(leadsF.indexOf("cat:")===0)return leadCat(l)===leadsF.slice(4)&&(profile()!=="sales"||leadRep(l)===USER); /* a rep's category tabs sort their own leads */
     return true;});
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(l=>((l.name||"")+" "+(l.company||"")+" "+(l.email||"")+" "+(l.title||"")).toLowerCase().includes(q));
@@ -2842,10 +2922,10 @@ function viewLeads(){
   const s=sortState.myleads;
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
   const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
-  let h='';
+  let h=leadsModeSeg();
   const sales=profile()==="sales";
   h+='<div class="lvhead"><div class="lvtabs">'+(GH_REPS.includes(USER)?chip("mine","For me",all.filter(l=>leadRep(l)===USER).length):'')+chip("","All",all.length)+
-     (sales?'':LEAD_CATS.map(c=>chip("cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]).length)).join(""))+
+     LEAD_CATS.map(c=>chip("cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]&&(!sales||leadRep(l)===USER)).length)).join("")+
      chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+'</div>'+
      (sales?'':'<div class="qa-types" style="width:100%"><span class="lbl">Sales person</span>'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>'<span class="qchip'+(leadsF==="rep:"+id?" on":"")+'" data-act="leadsfilter" data-v="rep:'+id+'">'+esc(shortName(id))+' '+all.filter(l=>leadRep(l)===id).length+'</span>').join("")+'</div>')+
      '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
@@ -2853,14 +2933,14 @@ function viewLeads(){
   if(sales){const pl=listsPushedTo(USER);if(pl.length)h+='<div class="sectlabel" style="margin-top:4px">Call lists from outreach <span class="cnt">'+pl.filter(l=>l.items.some(x=>!x.done)).length+' open</span></div><div class="list">'+pl.map(pushedListCard).join("")+'</div><div class="sectlabel">Leads</div>';}
   if(!pool.length)return h+'<div class="empty">'+(leadsF==="mine"?'Nothing for you yet. Kellan&#39;s leads in your territory and anything handed to you land here.':'No leads here.')+'</div>';
   const th=(k,l)=>thSort("myleads",k,l);
-  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Source")+th("state","State")+(sales?'<th>Category</th>':th("cat","Category"))+(sales?'':'<th>Sales person</th>')+th("last","Last contact")+th("touches","Touches")+'</tr></thead><tbody>'+
+  h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Source")+th("state","State")+th("cat","Category")+(sales?'':'<th>Sales person</th>')+th("last","Last contact")+th("touches","Touches")+'</tr></thead><tbody>'+
    pool.map(l=>{const t=leadLastTouch(l);
     return '<tr data-act="openlead" data-id="'+esc(l.id)+'">'+
     '<td><div class="lvname">'+esc(l.name)+(l.kind?' <span class="pill '+(l.kind==="distributor"?"coral":"info")+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+(l.kind==="distributor"?"Dist":"End-user")+'</span>':'')+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||(l.dstStage||""))+'</div></td>'+
     '<td>'+esc(l.company||"—")+(l.buysThrough?'<div class="lvsub">buys via '+esc(l.buysThrough.name)+'</div>':'')+'</td>'+
     '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
-    (sales?'<td>'+leadCatTag(leadCat(l))+(l.handedBy?'<div class="lvsub">from '+esc(shortName(l.handedBy))+(l.handedAt?' · '+esc(String(l.handedAt).slice(0,10)):'')+'</div>':'')+'</td>'
+    (sales?'<td>'+leadChipsHTML(l)+(l.handedBy&&l.handedBy!==USER?'<div class="lvsub">from '+esc(shortName(l.handedBy))+(l.handedAt?' · '+esc(String(l.handedAt).slice(0,10)):'')+'</div>':'')+'</td>'
           :'<td>'+leadChipsHTML(l)+'</td><td>'+leadHandChipsHTML(l)+'</td>')+
     '<td>'+(t?esc(t.date)+(t.note?'<div class="lvsub" style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+esc(titlecase(t.method))+' · '+esc(t.note)+'</div>':''):'<span class="muted">never</span>')+'</td>'+
     '<td class="num">'+((l.touches||[]).length)+'</td></tr>';}).join("")+
@@ -2988,7 +3068,7 @@ function formLeadRec(id){
   openSheet('<div class="row" style="align-items:flex-start;gap:10px"><div class="grow"><h2 style="margin-right:0">'+esc(l.name)+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p></div>'+
    '<button class="btn sm" data-act="editlead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
-   (profile()==="sales"?'<p class="t2" style="margin:6px 0 0">'+leadCatTag(leadCat(l))+(l.handedBy?' handed to you by '+esc(shortName(l.handedBy))+(l.handedAt?' on '+esc(String(l.handedAt).slice(0,10)):''):'')+'</p>'
+   (profile()==="sales"?(l.handedBy&&l.handedBy!==USER?'<p class="t2" style="margin:6px 0 0">Handed to you by '+esc(shortName(l.handedBy))+(l.handedAt?' on '+esc(String(l.handedAt).slice(0,10)):'')+'</p>':'')+'<label class="fl">Category</label>'+leadChipsHTML(l)
     :'<label class="fl">Category</label>'+leadChipsHTML(l)+'<label class="fl">Hand to</label>'+leadHandChipsHTML(l))+
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
@@ -3233,7 +3313,7 @@ function oppKpis(list,tab){
 /* one filter: whose deals. A sales rep lands on "Mine"; everyone else lands on the whole book. Territory = person,
    so there is no region row, and the search box covers distributors (Max: "too many filters"). */
 let pipeF={region:"",rep:null,dist:""};
-function pipeRep(){if(pipeF.rep===null)pipeF.rep=(profile()==="sales"&&GH_REPS.includes(USER))?USER:"";return pipeF.rep;}
+function pipeRep(){if(ownOnly())return (pipeF.rep=USER);if(pipeF.rep===null)pipeF.rep="";return pipeF.rep;}
 function oppMatchesF(o){
   const r=pipeRep();
   if(r==="none"){if(oppGhRep(o))return false;}
@@ -3242,6 +3322,7 @@ function oppMatchesF(o){
 }
 function pipeFilterBar(pool){
   const r=pipeRep();
+  if(ownOnly())return '<p class="t2" style="margin:-2px 0 14px">Your deals — the numbers above are yours alone.</p>';
   const reps=GH_REPS.concat(["jamie","max","house"]).filter(id=>id===USER||pool.some(o=>oppGhRep(o)===id));
   const chip=(v,l)=>'<span class="qchip'+(r===v?" on":"")+'" data-act="pipef" data-k="rep" data-v="'+esc(v)+'">'+esc(l)+'</span>';
   return '<div class="qa-types" style="margin:-2px 0 14px">'+(GH_REPS.includes(USER)?chip(USER,"Mine"):"")+chip("","Everyone")+reps.filter(id=>id!==USER).map(id=>chip(id,shortName(id))).join("")+(pool.some(o=>!oppGhRep(o))?chip("none","Unassigned"):"")+'</div>';
@@ -3358,7 +3439,7 @@ function viewInsight(){
    Queue buckets: to follow up (recent, nobody went back) · old — never followed up (14+ days, nobody went back)
    · scheduled (a follow-up to-do exists and isn't done) · done (closed, to-do done, or a later touch with the same person). */
 let actMode="queue",actBucket="todo",actType="",actWho=null,actWeekOff=0;
-function actWhoCur(){if(actWho===null)actWho=profile()==="sales"?USER:"";return actWho;} /* reps land on their own activity */
+function actWhoCur(){if(ownOnly())return (actWho=USER);if(actWho===null)actWho="";return actWho;} /* a rep only ever sees their own activity */
 const ACT_FU_TYPES=["call","voicemail","email","meeting","visit","cotravel","mrtravel","demo","training"];
 function isCoTravel(a){return a.type==="cotravel"||(a.type==="visit"&&a.with==="distrep");}
 function isMrTravel(a){return a.type==="mrtravel"||(a.type==="visit"&&a.with==="manrep");}
@@ -3399,8 +3480,8 @@ function viewActivity(){
   const q=actQueue();
   const seg='<div class="seg" style="margin:0;max-width:420px">'+[["queue","Follow-ups"],["day","Day"],["week","Week"],["month","Month"]].map(x=>'<button class="'+(actMode===x[0]?"on":"")+'" data-act="actmode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
   const w=actWhoCur();
-  const whoChips='<div class="qa-types"><span class="qchip'+(w===USER?" on":"")+'" data-act="actwho" data-v="'+USER+'">Mine</span><span class="qchip'+(!w?" on":"")+'" data-act="actwho" data-v="">Everyone</span>'+
-    (profile()==="sales"?"":TEAM.filter(t=>t.id!=="laresa"&&t.id!==USER).map(t=>'<span class="qchip'+(w===t.id?" on":"")+'" data-act="actwho" data-v="'+t.id+'" style="'+(w===t.id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(t.id))+'</span>').join(""))+'</div>';
+  const whoChips=ownOnly()?'':'<div class="qa-types"><span class="qchip'+(w===USER?" on":"")+'" data-act="actwho" data-v="'+USER+'">Mine</span><span class="qchip'+(!w?" on":"")+'" data-act="actwho" data-v="">Everyone</span>'+
+    (TEAM.filter(t=>t.id!=="laresa"&&t.id!==USER).map(t=>'<span class="qchip'+(w===t.id?" on":"")+'" data-act="actwho" data-v="'+t.id+'" style="'+(w===t.id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(t.id))+'</span>').join(""))+'</div>';
   let h='<div class="lvhead">'+seg+'<button class="btn sm coral" data-act="form" data-form="call" style="margin-left:auto">'+svg("plus")+' Log activity</button></div>'+whoChips;
   if(actMode==="week")return h+'<div style="margin-top:12px">'+weekStripHTML(w,actDate,{title:"Week",nav:"actnav",dayNav:"actnav"})+'</div>';
   if(actMode==="month")return h+'<div style="margin-top:12px">'+monthGridHTML(w,actDate,"actnav")+'</div>';
@@ -4475,25 +4556,49 @@ function saveLog(){
 
 /* ---------- TRAVEL ---------- */
 function formTravel(){
-  const states=[...new Set(DB.people.map(p=>p.state).filter(Boolean))].sort();
+  /* Field Map → "Traveling soon?": pick a state, see the field reps there (distributor reps + man-rep reps, by company;
+     Grainger sellers by district), who is trained, and the demos already in that state */
+  const states=allStates().filter(s=>/^[A-Z]{2}$/.test(s));
+  const pre=mapState&&states.includes(mapState)?mapState:"";
   openSheet('<h2>Traveling soon?</h2><p style="color:var(--muted);font-size:14px;margin:0 0 6px">Pick where you\'re headed — I\'ll show who to train and which branches to hit.</p>'+
-   '<label class="fl">Destination state</label><select class="f" id="travelState"><option value="">— choose —</option>'+states.map(s=>'<option>'+s+'</option>').join("")+'</select>'+
+   '<label class="fl">Destination state</label><select class="f" id="travelState"><option value="">— choose —</option>'+states.map(s=>'<option'+(s===pre?' selected':'')+'>'+s+'</option>').join("")+'</select>'+
    '<div id="travelRes" style="margin-top:6px"></div>');
+  if(pre)renderTravel();
 }
 function renderTravel(){
-  const st=document.getElementById("travelState").value, box=document.getElementById("travelRes");if(!box)return;
+  const sel=document.getElementById("travelState"),box=document.getElementById("travelRes");if(!sel||!box)return;
+  const st=sel.value;
   if(!st){box.innerHTML="";return;}
-  const reps=DB.people.filter(p=>p.state===st);
-  const branches=[...new Set(reps.map(p=>p.branch))];
-  box.innerHTML='<div class="sectlabel">'+reps.length+' reps in '+st+' · '+branches.length+' branches</div>'+
-   reps.map(p=>'<div class="card"><div class="row" style="margin-bottom:8px"><span class="ic info">'+initials(p.name)+'</span>'+
-    '<div class="grow"><p class="t1">'+p.name+'</p><p class="t2">'+p.branch+' · last: '+ago(p.last)+'</p></div></div>'+
-    '<div class="qa"><button class="btn sm coral" data-act="logfor" data-id="'+p.id+'">Plan training</button>'+
-    '<button class="btn sm" data-act="logemail" data-id="'+p.id+'">Email ahead</button></div></div>').join("");
+  const inSt=p=>personStates(p).some(x=>String(x||"").toUpperCase()===st);
+  const reps=DB.people.filter(p=>{const ct=contactType(p);return (ct==="distrep"||ct==="manrep")&&inSt(p);});
+  const core=reps.filter(p=>!isSellerTier(p)),sellers=reps.filter(isSellerTier);
+  const trained=new Set((DB.activities||[]).filter(a=>a.type==="training"&&a.pid).map(a=>a.pid));
+  const demos=(DB.demos||[]).filter(d=>String(d.state||"").toUpperCase()===st).length;
+  const byCo={};core.forEach(p=>{const c=company(p.cid);const k=c?c.name:(p.branch||"Other");(byCo[k]=byCo[k]||[]).push(p);});
+  const cos=Object.keys(byCo).sort((a,b)=>byCo[b].length-byCo[a].length||a.localeCompare(b));
+  const nTrained=reps.filter(p=>trained.has(p.id)).length;
+  let h='<div class="facts" style="margin:10px 0 6px"><div><b>Field reps</b><span>'+reps.length+'</span></div><div><b>Trained</b><span>'+nTrained+'</span></div><div><b>Companies</b><span>'+cos.length+(sellers.length?' + Grainger sellers':'')+'</span></div><div><b>Demos in '+esc(st)+'</b><span>'+demos+'</span></div></div>';
+  if(!reps.length)h+='<div class="empty" style="padding:14px">No distributor or man-rep reps on file for '+esc(st)+'.</div>';
+  cos.forEach(k=>{
+    h+='<div class="sectlabel">'+esc(k)+' · '+byCo[k].length+'</div><div class="list">'+
+     byCo[k].sort((a,b)=>(trained.has(a.id)?1:0)-(trained.has(b.id)?1:0)||String(a.name).localeCompare(String(b.name))).map(p=>
+      '<div class="card"><div class="row"><span class="ic '+(trained.has(p.id)?"ok":"info")+'">'+initials(p.name||"?")+'</span>'+
+      '<div class="grow"><p class="t1"><button class="lnk" data-act="person" data-id="'+p.id+'">'+esc(p.name)+'</button> '+(trained.has(p.id)?'<span class="pill ok" style="font-size:10px">trained</span>':'<span class="pill warn" style="font-size:10px">not trained</span>')+'</p>'+
+      '<p class="t2">'+esc([p.role,p.city].filter(Boolean).join(" · "))+(p.role||p.city?' · ':'')+'last touch: '+esc(ago(p.last))+'</p></div>'+
+      '<div class="qa" style="flex:none;gap:6px"><button class="btn sm coral" data-act="logtrain" data-id="'+p.id+'">'+svg("school")+' Log training</button>'+
+      '<button class="btn sm" data-act="logemail" data-id="'+p.id+'">'+svg("mail")+' Email ahead</button></div></div></div>').join("")+'</div>';
+  });
+  if(sellers.length){
+    const byD={};sellers.forEach(p=>{const d=p.district||"(no district on file)";(byD[d]=byD[d]||[]).push(p);});
+    h+='<div class="sectlabel">Grainger sellers in '+esc(st)+' · '+sellers.length+'</div>'+Object.keys(byD).sort((a,b)=>byD[b].length-byD[a].length).map(d=>{const g=byD[d];
+      return '<div class="reccard" style="margin-bottom:10px"><p class="t1" style="font-size:14px;white-space:normal">'+esc(d)+'</p><p class="t2">'+(g[0].dsm?'DSM: '+esc(g[0].dsm)+' · ':'')+g.length+' seller'+(g.length===1?'':'s')+'</p>'+
+       '<div class="chips" style="margin-top:8px">'+g.slice(0,12).map(p=>'<span class="chip'+(trained.has(p.id)?' on':'')+'" data-act="person" data-id="'+p.id+'">'+esc(p.name)+'</span>').join("")+(g.length>12?'<span class="chip" style="opacity:.6">+'+(g.length-12)+' more</span>':'')+'</div></div>';}).join("");
+  }
+  box.innerHTML=h;
 }
 
 function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list" style="margin-top:12px">'+
- railGroups(USER).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today").concat(profile()==="sales"?[["map","pin","Field Map"],["conf","cal","Conferences"]]:[])
+ railGroups(USER).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today")
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b class="grow">'+n[2]+'</b>'+chev()+'</button>').join("")+
  '</div><div class="list">'+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
@@ -5746,14 +5851,15 @@ function quoteRowHTML(q){
 }
 function viewQuotes(){
   /* whose quotes: a rep lands on Mine; admins pick a person (Max: filter by rep everywhere) */
-  if(quoteRep===null)quoteRep=profile()==="sales"?USER:"";
+  if(ownOnly())quoteRep=USER; /* a sales rep sees their own quotes only */
+  else if(quoteRep===null)quoteRep="";
   const all=quoteRep?quotesAll().filter(q=>q.by===quoteRep):quotesAll();
   const pick=f=>all.filter(q=>{const s=quoteState(q);return f==="all"||(f==="open"?(s==="draft"||s==="sent"):s===f);});
-  const who=[[USER,"Mine"],["","Everyone"]].concat(profile()==="sales"?[]:TEAM.filter(t=>t.id!==USER&&t.id!=="laresa"&&quotesAll().some(q=>q.by===t.id)).map(t=>[t.id,shortName(t.id)]));
+  const who=ownOnly()?[]:[[USER,"Mine"],["","Everyone"]].concat(TEAM.filter(t=>t.id!==USER&&t.id!=="laresa"&&quotesAll().some(q=>q.by===t.id)).map(t=>[t.id,shortName(t.id)]));
   let h='<div class="lvhead"><button class="btn coral" data-act="quotenew">'+svg("plus")+' New quote</button>'+
    '<div class="qa-types" style="margin-left:auto">'+
     [["open","Open"],["won","Won"],["lost","Lost"],["expired","Expired"],["all","All"]].map(f=>'<button class="qchip'+(quoteFilter===f[0]?" on":"")+'" data-act="quotefilter" data-v="'+f[0]+'">'+f[1]+' ('+pick(f[0]).length+')</button>').join("")+'</div></div>'+
-   '<div class="qa-types" style="margin:-4px 0 12px">'+who.map(w=>'<span class="qchip'+(quoteRep===w[0]?" on":"")+'" data-act="quoterep" data-v="'+w[0]+'">'+esc(w[1])+'</span>').join("")+'</div>';
+   (who.length?'<div class="qa-types" style="margin:-4px 0 12px">'+who.map(w=>'<span class="qchip'+(quoteRep===w[0]?" on":"")+'" data-act="quoterep" data-v="'+w[0]+'">'+esc(w[1])+'</span>').join("")+'</div>':'');
   const list=pick(quoteFilter);
   if(!list.length)return h+'<div class="empty">'+(all.length?'Nothing in this view.':'No quotes yet. Tap <b>New quote</b>, pick the customer, tap the line items — then preview it or send it.')+'</div>';
   return h+'<div class="list">'+list.map(quoteRowHTML).join("")+'</div>';
@@ -5946,7 +6052,9 @@ function formQuoteSend(id){
    '<label class="fl">Your note <span style="font-weight:400;color:var(--hint)">— sits above the quote; your name and email are added under it</span></label><textarea class="f" id="qsMsg" rows="5">'+esc(quoteDefaultMsg(q))+'</textarea>'+
    '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn" data-act="quotemailview" data-id="'+q.id+'" style="flex:1;min-height:46px">Preview the email</button>'+
    '<button class="btn coral" data-act="quotesendgo" data-id="'+q.id+'" id="qsSend" style="flex:1.6;min-height:46px">Send quote</button></div>'+
-   '<button class="btn ghost block" data-act="quotepdf" data-id="'+q.id+'" style="margin-top:8px">Export a PDF instead</button>');
+   '<button class="btn ghost block" data-act="quotepdf" data-id="'+q.id+'" style="margin-top:8px">Export a PDF instead</button>'+
+   '<div id="qsWarn"></div>');
+  notifyReady().catch(e=>{const w=document.getElementById("qsWarn");if(w)w.innerHTML='<div class="banner" style="white-space:normal;margin-top:12px">'+svg("alert")+'<span>Heads up: the CRM can&#39;t email right now ('+esc(String(e.message||e).slice(0,120))+'). Send still works — it will walk you through sending the PDF from your own email.</span></div>';});
 }
 function quoteMsgNow(q){const el=document.getElementById("qsMsg");return el?el.value:quoteDefaultMsg(q);}
 function quoteEmailPreview(id){
@@ -5960,14 +6068,14 @@ function quoteEmailPreview(id){
    before it touches mail) and the line item is one an old deployment fails on while drawing its PDF. */
 let NOTIFY_READY=null;
 async function notifyReady(){ // resolves when it is safe to send; throws with the reason when it is not
-  if(NOTIFY_READY===false)throw new Error("the mail function needs a redeploy");
+  if(NOTIFY_READY===false)throw new Error("email from the CRM isn't switched on yet — the send-invoice function needs a redeploy");
   if(NOTIFY_READY)return true;
   const r=await fetch(SUPA_URL+"/functions/v1/send-invoice",{method:"POST",
     headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token,"Content-Type":"application/json"},
     body:JSON.stringify({action:"notify",to:"probe@example.invalid",html:"",invoice:{invNo:"🔒",items:[null]}})});
   const b=await r.json().catch(()=>({}));
   if(r.status===400&&String(b.error||"")==="html required"){NOTIFY_READY=true;return true;}
-  if(r.status===500){NOTIFY_READY=false;throw new Error("the mail function needs a redeploy");} // an old deployment, choking on the probe's invoice
+  if(r.status===500){NOTIFY_READY=false;throw new Error("email from the CRM isn't switched on yet — the send-invoice function needs a redeploy");} // an old deployment, choking on the probe's invoice
   throw new Error(b.error||b.message||("HTTP "+r.status)); // signed out, not on the allowlist, offline… — not remembered, so the next try asks again
 }
 async function sendQuote(id){
@@ -5988,9 +6096,35 @@ async function sendQuote(id){
     save();closeSheet();render();toast("Quote sent to "+to+" ✓");
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent="Send quote";}
-    save();toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
-    htmlCopyWindow(html,to,sub,SALES_FROM);
+    save();quoteSendFallback(id,String(e.message||e).slice(0,120),to,sub,cc,msg);
   }
+}
+/* when the CRM can't email the quote (mail function not deployed, offline, signed out…) it still goes out: the sheet
+   turns into buttons that each run on a fresh tap — a window opened after a failed send gets eaten by the pop-up
+   blocker, which is how a rep could press Send and see nothing happen (John Morrison, 2026-10-20) */
+function quoteMailto(q,to,sub,cc,msg){
+  const rep=teamById(q.by),ship=quoteShipping(q);
+  const L=[String(msg||"").trim(),"","QUOTE "+q.no+" · "+usDate(q.date)+" · valid through "+usDate(quoteValidThrough(q)),"Prepared for: "+qAcct(q.account)+(q.contactName?" · "+q.contactName:""),""]
+    .concat((q.items||[]).map(it=>(+it.qty||0)+" × "+qItemName(it)+(it.sku?" ("+it.sku+")":"")+" @ "+fmtC(it.unit)+" = "+fmtC(qLine(it))))
+    .concat(["Shipping: "+(ship==null?"quoted at order":fmtC(ship)),"QUOTE TOTAL: "+fmtC(quoteTotal(q)),""])
+    .concat(q.distName?["Order through "+q.distName+(q.distRep?" ("+[q.distRep,q.distRepEmail,q.distRepPhone].filter(Boolean).join(", ")+")":"")+" and reference Quote No. "+q.no+"."]:["Email a PO that references Quote No. "+q.no+"."])
+    .concat(q.notes?["Note: "+q.notes]:[]).concat(["","The PDF quote is attached.","",rep.name||"",(rep.role?rep.role+" | ":"")+"Golden Hour Medical, Inc.",userEmail(q.by)||"",GHM_PHONE]);
+  return "mailto:"+encodeURIComponent(to||"")+"?"+((cc||[]).length?"cc="+encodeURIComponent(cc.join(","))+"&":"")+"subject="+encodeURIComponent(sub||("AutoTQ quote "+q.no))+"&body="+encodeURIComponent(L.join("\n"));
+}
+function quoteSendFallback(id,why,to,sub,cc,msg){
+  const q=quoteById(id);if(!q)return;
+  logState.qsFail={id:id,to:to,sub:sub,cc:cc,msg:msg};
+  openSheet('<h2>Send quote '+esc(q.no)+'</h2>'+
+   '<div class="banner" style="white-space:normal">'+svg("alert")+'<span>The CRM couldn&#39;t email it'+(why?' ('+esc(why)+')':'')+'. Nothing was sent. Send it from your own email:</span></div>'+
+   '<ol style="margin:12px 0 0 20px;padding:0;font-size:14px;line-height:1.7">'+
+    '<li><b>Export PDF</b> and save it (in the print window choose <i>Save as PDF</i>).</li>'+
+    '<li><b>Open in my email</b> — it starts a message to '+esc(to||"the customer")+' with your note and the quote lines.</li>'+
+    '<li>Attach the PDF, send it, then tap <b>Mark as sent</b>.</li></ol>'+
+   '<div class="qa" style="margin-top:14px"><button class="btn coral" data-act="quotepdf" data-id="'+q.id+'">'+svg("dl")+' Export PDF</button>'+
+    '<a class="btn" data-act="extlink" style="text-decoration:none;text-align:center" href="'+esc(quoteMailto(q,to,sub,cc,msg))+'">'+svg("mail")+' Open in my email</a></div>'+
+   '<div class="qa" style="margin-top:8px"><button class="btn" data-act="quotecopy" data-id="'+q.id+'">'+svg("note")+' Copy the styled email</button>'+
+    '<button class="btn" data-act="quotest" data-id="'+q.id+'" data-v="sent">'+svg("check")+' Mark as sent</button></div>'+
+   '<button class="btn ghost block" data-act="quotesend" data-id="'+q.id+'" style="margin-top:8px">Try sending from the CRM again</button>');
 }
 /* packing slip straight from the PO — no shipment record needed yet */
 function orderSlipObj(o){const st=orderShipState(o);
@@ -6410,6 +6544,7 @@ document.addEventListener("click",e=>{
   if(a==="quotesend"){formQuoteSend(id);return;}
   if(a==="quotesendgo"){sendQuote(id);return;}
   if(a==="quotemailview"){quoteEmailPreview(id);return;}
+  if(a==="quotecopy"){const f=logState.qsFail||{},q=quoteById(id);if(q)htmlCopyWindow(quoteEmailHTML(q,f.id===id?f.msg:quoteDefaultMsg(q)),f.to||q.contactEmail||"",f.sub||("AutoTQ quote "+q.no),"");return;}
   if(a==="quotest"){setQuoteStatus(id,t.dataset.v);return;}
   if(a==="quotefilter"){quoteFilter=t.dataset.v;render();return;}
   if(a==="quotemine"){quoteMine=!quoteMine;render();return;}
@@ -6632,6 +6767,12 @@ document.addEventListener("click",e=>{
   if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
+  if(a==="leadsmode"){leadsMode=t.dataset.v;listQ="";render();return;}
+  if(a==="leadsconf"){curConf=t.dataset.v;leadFilter="tocall";confSegF="";listQ="";render();return;}
+  if(a==="confseg"){confSegF=t.dataset.v;render();return;}
+  if(a==="cfpush"){quickPushConfLead(id);if(document.getElementById("scrim").classList.contains("open"))formLead(id);return;}
+  if(a==="cfcontact"){promoteLead(id,true);return;}
+  if(a==="extlink")return; /* tel: / mailto: inside a clickable row — let the link work, don't open the row */
   if(a==="leadtoopp"){const l=myLeadById(id);if(!l)return;const c=bcMatchCompany(l.company||"");formOpp(null,c?c.id:null);logState.oppFromLead=l.id;
     setTimeout(()=>{const n=document.getElementById("oName");if(n&&!n.value)n.value=(l.company||l.name)+" — first order";const an=document.getElementById("oCidQ");if(an&&!c)an.value=l.company||l.name;const st=document.getElementById("oLoc");if(st&&!st.value&&l.state)st.value=l.state;const nt=document.getElementById("oNotes");if(nt)nt.value="From lead "+l.name+(l.conf?" ("+l.conf+")":"");},30);return;}
   if(a==="leadcat"){e.stopPropagation();const l=myLeadById(id);if(l){l.cat=t.dataset.v;l.catAt=new Date().toISOString();l.catBy=USER;if(l.cat!=="handed"&&l.assignee&&t.dataset.v==="dead")l.assignee=null;save();render();if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
@@ -6663,6 +6804,7 @@ document.addEventListener("click",e=>{
   if(a==="delact"){const ax=(DB.activities||[]).find(x=>x.id===logState.actId);
     if(ax&&confirm("Delete this logged "+ax.type+"?")){DB.activities=DB.activities.filter(x=>x.id!==logState.actId);save();closeSheet();render();toast("Deleted");}return;}
   if(a==="logemail"){formLog(id,"email");return;}
+  if(a==="logtrain"){formLog(id,"training");return;}
   if(a==="setActWith"){logState.actWith=t.dataset.v;document.querySelectorAll("#actWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="actfuquick"){const d=document.getElementById("actFuDue");if(d)d.value=dAdd(todayStr(),parseInt(t.dataset.v,10));return;}
   if(a==="tktype"){logState.taskEditType=t.dataset.v;document.querySelectorAll("#tkType .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
@@ -6674,7 +6816,7 @@ document.addEventListener("click",e=>{
   if(a==="setActType"){logState.actType=t.dataset.v;document.querySelectorAll("#actTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));const w=document.getElementById("actWith");if(w)w.style.display=t.dataset.v==="visit"?"block":"none";return;}
   if(a==="setOut"){logState.outcome=t.dataset.v;document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="map"){closeSheet();pushNav();mapState=null;view="map";render();window.scrollTo(0,0);return;}
-  if(a==="mapstate"){mapState=t.dataset.st;render();return;}
+  if(a==="mapstate"){mapState=(mapState===t.dataset.st)?null:t.dataset.st;render();const md=mapState&&document.getElementById("mapdrill");if(md)md.scrollIntoView({behavior:"smooth",block:"start"});return;}
   if(a==="noop"){return;}
   if(a==="saveDist"){saveDist();return;}
   if(a==="saveEnd"){saveEnd(t.dataset.type);return;}
