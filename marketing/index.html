@@ -583,7 +583,7 @@ function campaignById(id){return campaigns().find(c=>c.id===id);}
 function campStatus(c){return CAMP_STATUS.find(s=>s[0]===(c.status||"draft"))||CAMP_STATUS[0];}
 function campStatusTag(c){const s=campStatus(c);return '<span class="pill '+s[2]+'">'+s[1]+'</span>';}
 function campFlagNow(l){if(l.flag!=="ok")return l.flag;const h=buyerHit(l);return h&&h.skip?"bought":"ok";} // someone who bought after the audience was built drops out here too
-function campFlagTag(f,l){if(f==="replied")return '<span class="pill ok">Replied</span>';if(f==="handed")return '<span class="pill info">With '+esc(repShort(l&&l.handedTo))+'</span>';const h=f==="bought"?((l&&l.bought)||buyerHit(l)||{how:"",why:""}):f==="ok"?buyerHit(l):null;
+function campFlagTag(f,l){if(f==="engaged")return '<span class="pill info">Clicked</span>';if(f==="replied")return '<span class="pill ok">Replied</span>';if(f==="handed")return '<span class="pill info">With '+esc(repShort(l&&l.handedTo))+'</span>';const h=f==="bought"?((l&&l.bought)||buyerHit(l)||{how:"",why:""}):f==="ok"?buyerHit(l):null;
   if(h&&(f==="bought"||h.skip))return '<span class="pill dang" title="'+esc(h.how)+'">'+(h.how==="our team"?"Our team":"Already a customer")+'</span><div class="t2" style="margin:3px 0 0;font-size:11.5px">'+esc(h.why)+'</div>';
   return campFlagTagBase(f,l)+(h?' <span class="pill warn" title="'+esc("Same email domain as "+h.why+" — a big org; check before sending")+'">Check · '+esc(h.how.replace(/^review: shares /,""))+'</span>':"");}
 function campFlagTagBase(f,l){return f==="suppressed"?'<span class="pill dang">Unsubscribed</span>':f==="touched"?'<span class="pill warn" title="'+esc(l&&l.touched?l.touched.how+" "+l.touched.at:"")+'">Touched '+esc(l&&l.touched?l.touched.at.slice(5):"")+'</span>':f==="enrolled"?'<span class="pill info">In: '+esc((l&&l.enrolledIn||"").slice(0,18))+'</span>':f==="invalid"?'<span class="pill dang">Undeliverable</span>':f==="ok"?(l&&l.risky?'<span class="pill warn">Ready · guessed</span>':l&&l.vstatus?'<span class="pill ok">Ready · verified</span>':'<span class="pill ok">Ready</span>'):f==="missing"?'<span class="pill">No email</span>':f==="dupe"?'<span class="pill warn">Duplicate</span>':f==="verify"?'<span class="pill warn">Verify email</span>':'<span class="pill dang">Bad email</span>';}
@@ -696,7 +696,7 @@ function importSquarespace(f){if(!f)return;f.text().then(t=>{const rows=csvRows(
     put("settings",{id:"newsletter",emails:[...new Set(ok)],organic:[...new Set(organic)],count:new Set(ok).size,optOuts:outs,importedAt:now,by:USER,file:f.name});
     render();toast(new Set(ok).size+" on the newsletter · "+outs+" opt-outs ("+outsNew+" new) added to the unsubscribed list");
   }).catch(e=>toast(String(e.message||e)));}
-function campOk(c){const stop=suppressedSet();return (c.leads||[]).filter(l=>l.flag==="ok"&&!stop.has(String(l.email||"").toLowerCase())&&campFlagNow(l)==="ok");}
+function campOk(c){const stop=suppressedSet();const rc=realClicks();return (c.leads||[]).filter(l=>l.flag==="ok"&&!stop.has(String(l.email||"").toLowerCase())&&!rc.has(String(l.email||"").toLowerCase())&&campFlagNow(l)==="ok");}
 function campFromOptions(st){const out=[];const me=(userEmail(USER)||"").split("@")[0]||"hello";
   (st&&st.identities||[]).forEach(i=>{if(!i.verified)return;if(i.type==="EMAIL_ADDRESS")out.push(i.name);else{out.push(me+"@"+i.name);out.push("hello@"+i.name);}});return [...new Set(out)];}
 function campMsgIds(c){const ids=new Set();(c.leads||[]).forEach(l=>{Object.values(l.msg||{}).forEach(id=>ids.add(id));});return ids;}
@@ -1102,6 +1102,11 @@ function actDay(iso){return new Date(iso).toLocaleDateString("en-US",{month:"sho
 function repShort(id){return {johnm:"John M.",john:"John C.",tim:"Tim"}[id]||teamById(id).name.split(" ")[0];}
 function actPage(url){const u=String(url||"");const m=u.match(/theautotq\.com\/(industry-)?([a-z-]+)/i);if(!m)return "a link";const g=IND_GROUPS.find(x=>x[2]===((m[1]||"")+m[2]));return g?"the "+g[1].toLowerCase()+" page":"the "+m[2].replace(/-/g," ")+" page";}
 function actAgo(at){const s=Math.max(0,(Date.now()-new Date(at))/1000);return s<3600?Math.max(1,Math.round(s/60))+"m ago":s<86400?Math.round(s/3600)+"h ago":Math.round(s/86400)+"d ago";}
+let RC_MEMO={k:"",m:null};
+function realClicks(){const key=(DB.mailEvents||[]).length+"|"+Math.floor(Date.now()/5000);if(RC_MEMO.k===key)return RC_MEMO.m;const idx=leadIndex(campaigns());const m=new Map();
+  (DB.mailEvents||[]).forEach(e=>{if(e.type!=="click"||/action=unsub/.test(e.detail||""))return;const r=idx.get(e.msgId);if(!r)return;if(new Date(e.at)-new Date((r.l.sent||{})[r.k]||0)<120000)return;
+    const em=String(r.l.email||"").toLowerCase();const cur=m.get(em);if(!cur||e.at>cur.at)m.set(em,{at:e.at,url:e.detail,c:r.c,k:r.k});});
+  RC_MEMO={k:key,m};return m;}
 function repliesOf(key){return (DB.replies||[]).filter(r=>r&&String(r.from||"").toLowerCase()===key).sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
 function replyHTML(r){return '<div class="replycard"><div class="rh"><b>'+esc(r.fromName||r.from)+'</b><span>'+esc(new Date(r.at).toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))+(r.source==="pasted"?' · pasted in':'')+'</span></div>'+(r.subject?'<div class="rs">'+esc(r.subject)+'</div>':'')+'<div class="rb">'+esc(r.text||"(no text)")+'</div></div>';}
 function actItems(){ // one row per person: the latest real click, or a reply Max marked; gone once replied-to-and-pushed or marked done
@@ -1188,7 +1193,7 @@ const FI={pc:'<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M
 function fIcon(n,x,y,s,col){return '<svg class="fi" x="'+(x-s/2).toFixed(1)+'" y="'+(y-s/2).toFixed(1)+'" width="'+s+'" height="'+s+'" viewBox="0 0 24 24" style="color:'+col+'">'+FI[n]+'</svg>';}
 function fleetData(){const camps=campaigns().filter(c=>["approved","active"].includes(c.status)&&(!ovCamp||c.id===ovCamp)).sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
   const S=senders();const blank=()=>({sent:0,deliv:new Set(),open:new Set(),bounce:new Set(),compl:new Set()});const tot={};S.forEach(s=>tot[s.email]=blank());const byMsg=new Map();const AI=actItems();
-  const rows=camps.map(c=>{const ib={};S.forEach(s=>ib[s.email]=blank());let sent=0;const ppl=(c.leads||[]).filter(l=>["ok","handed","replied"].includes(l.flag));
+  const rows=camps.map(c=>{const ib={};S.forEach(s=>ib[s.email]=blank());let sent=0;const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));
     ppl.forEach(l=>Object.keys(l.sent||{}).forEach(k=>{sent++;const e=(l.by||{})[k];if(!e)return;ib[e]=ib[e]||blank();tot[e]=tot[e]||blank();ib[e].sent++;tot[e].sent++;const m=(l.msg||{})[k];if(m)byMsg.set(m,[ib[e],tot[e]]);}));
     return {c,ppl:ppl.length,sent,ib,act:AI.filter(x=>x.c.id===c.id).length};});
   (DB.mailEvents||[]).forEach(e=>{const r=byMsg.get(e.msgId);if(!r)return;const k={delivery:"deliv",open:"open",bounce:"bounce",complaint:"compl"}[e.type];if(!k||!HOME_HARD(e))return;r.forEach(x=>x[k].add(e.msgId));});
@@ -1245,14 +1250,14 @@ function viewOverview(){
 function HOME_HARD(e){return !(e.type==="bounce"&&/transient/i.test(e.detail||""));} // a Transient bounce (full mailbox, busy server) is not a bad address
 function queueStats(){ // emails still to go in running campaigns: everyone sendable × the emails they haven't had
   const cs=campaigns().filter(c=>["approved","active"].includes(c.status)&&(!ovCamp||c.id===ovCamp));let sent=0,left=0,paused=0;
-  cs.forEach(c=>{const n=(c.steps||[]).length;const ok=new Set(campOk(c));(c.leads||[]).forEach(l=>{const s=Object.keys(l.sent||{}).length;if(["ok","handed","replied"].includes(l.flag))sent+=s;
+  cs.forEach(c=>{const n=(c.steps||[]).length;const ok=new Set(campOk(c));(c.leads||[]).forEach(l=>{const s=Object.keys(l.sent||{}).length;if(["ok","handed","replied","engaged"].includes(l.flag))sent+=s;
     if(ok.has(l)&&!l.outcome){const k=Math.max(0,n-s);left+=k;if(c.paused)paused+=k;}});});
   let finish=null;if(left-paused>0){try{const plan=buildPlan(60);cs.forEach(c=>{const f=((plan.lanes||{})[c.id]||{}).finishDay;if(f&&(!finish||f>finish))finish=f;});}catch(e){}}
   return {sent,left,total:sent+left,paused,finish};}
 function activeCampPanel(){const list=campaigns().filter(c=>["approved","active"].includes(c.status)).sort((a,b)=>(a.paused?1:0)-(b.paused?1:0)||String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
   const others=campaigns().filter(c=>!["approved","active","done"].includes(c.status)).length;
   const maxSteps=Math.max(0,...list.map(c=>(c.steps||[]).length)); // columns line up across rows
-  const row=c=>{const ppl=(c.leads||[]).filter(l=>["ok","handed","replied"].includes(l.flag));const steps=(c.steps||[]).length;const sent=ppl.reduce((a,l)=>a+Object.keys(l.sent||{}).length,0);const d=campDelivery(c);
+  const row=c=>{const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));const steps=(c.steps||[]).length;const sent=ppl.reduce((a,l)=>a+Object.keys(l.sent||{}).length,0);const d=campDelivery(c);
     const cols='<span class="ecols">'+Array.from({length:maxSteps},(_,k)=>{const s=(c.steps||[])[k];if(!s)return '<span class="ecol"></span>';const n=ppl.filter(l=>l.sent&&l.sent[k]).length;const w=ppl.length?Math.round(100*n/ppl.length):0;
       return '<span class="ecol'+(n?'':' zero')+'"><small>Email '+(k+1)+'</small><b>'+n+' / '+ppl.length+'</b><i class="eb"><i style="width:'+w+'%"></i></i><small>'+(n?'sent':'day '+(s.day||1))+'</small></span>';}).join("")+'</span>';
     return '<button class="ibx actcamp" data-act="ovfocus" data-id="'+c.id+'"><i class="dot" style="background:'+(c.paused?"var(--ink-4)":campColor(c))+'"></i><span class="nm"><b>'+esc(c.name)+'</b><small>'+ppl.length+' people · '+sent+' of '+(ppl.length*steps)+' emails sent'+(c.paused?' · paused':'')+'</small></span>'+cols+
@@ -1269,13 +1274,13 @@ function perfMsgHTML(c,s,k,ppl){ // the email as one real person on the list get
     '<div class="mailcard"><div class="mh"><span>From</span>'+esc((snd.name||"")+(snd.email?" <"+snd.email+">":""))+'</div><div class="mh"><span>Reply to</span>'+esc(typeof REPLY_TO!=="undefined"?REPLY_TO:"")+'</div><div class="mh"><span>Subject</span><b>'+esc(campFill(v.subject||"",l,c,snd))+'</b></div>'+
     '<div class="mb">'+link(campFill(v.body||"",l,c,snd))+'</div><div class="mf">Every email ends with an unsubscribe link and our mailing address.</div></div>'+
     (admin()&&snd.email?'<div class="row" style="gap:10px;margin-top:10px;align-items:center"><button class="btn sm" data-act="perftest" data-id="'+c.id+'" data-v="'+k+'">'+svg("plane")+' Send me a test</button><span class="t2" style="margin:0">Goes to '+esc(userEmail(USER)||"you")+' from '+esc(snd.email)+', built exactly like the real one</span></div>':'')+'</div>';}
-async function perfTest(cid,k){const c=campaignById(cid);if(!c)return;const ppl=(c.leads||[]).filter(l=>["ok","handed","replied"].includes(l.flag));const s=(c.steps||[])[k];if(!s)return;
+async function perfTest(cid,k){const c=campaignById(cid);if(!c)return;const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));const s=(c.steps||[])[k];if(!s)return;
   const {l,snd,v}=perfSample(c,s,k,ppl);const to=userEmail(USER);if(!to||!snd.email){toast("No inbox to send from");return;}
   const subject=campFill(v.subject||"",l,c,snd),body=campFill(v.body||"",l,c,snd);toast("Sending a test to "+to+"…");
   try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:snd.email,fromName:snd.name,replyTo:REPLY_TO,campaign:"test",items:[{to,subject,html:campTextHTML(body),text:body}]})});
     const b=await r.json().catch(()=>({}));const res=(b.results||[])[0]||{};if(!r.ok||!b.ok||!res.msgId)throw new Error(b.error||res.skipped||res.error||("HTTP "+r.status));
     toast("Sent — check "+to+" in a minute (it looks exactly like this)");}catch(e){toast("The test didn't send: "+e.message);}}
-function campPerfPanel(c){const op=PERF_OPEN[c.id]||(PERF_OPEN[c.id]=new Set([0]));const ppl=(c.leads||[]).filter(l=>["ok","handed","replied"].includes(l.flag));const steps=c.steps||[];const ev=(DB.mailEvents||[]).filter(HOME_HARD);
+function campPerfPanel(c){const op=PERF_OPEN[c.id]||(PERF_OPEN[c.id]=new Set([0]));const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));const steps=c.steps||[];const ev=(DB.mailEvents||[]).filter(HOME_HARD);
   const rows=steps.map((s,k)=>{const ids=new Set(ppl.map(l=>(l.msg||{})[k]).filter(Boolean));const n={delivery:new Set(),open:new Set(),click:new Set(),bounce:new Set()};
     ev.forEach(e=>{if(!ids.has(e.msgId)||!n[e.type])return;if(e.type==="click"&&/action=unsub/.test(e.detail||""))return;n[e.type].add(e.msgId);});
     const sent=ppl.filter(l=>l.sent&&l.sent[k]).length;
@@ -1463,11 +1468,12 @@ function campSendUI(c){
   if((c.sendLog||[]).length)h+='<div class="sech">Send log</div><div class="list">'+c.sendLog.slice().reverse().map(e=>'<div class="card"><div class="grow"><p class="t1">'+(e.step>=0?'Email '+(e.step+1):'The day\'s run')+' → '+e.count+' people</p><p class="t2">'+new Date(e.at).toLocaleString()+' · '+esc(e.by==="mail-run"?"automation":teamById(e.by).name)+(e.from?' · from '+esc(e.from):'')+'</p></div></div>').join("")+'</div>';
   return h;
 }
-function repliedPeople(){const by=new Map();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{if(!(l.outcome&&l.outcome!=="no")&&l.flag!=="replied")return;const key=String(l.email||"").toLowerCase();if(!key||by.has(key))return;const rp=repliesOf(key)[0];by.set(key,{key,l,c,reply:rp,at:rp?rp.at:(l.replyAt||l.outcomeAt||"")});}));
+function repliedPeople(){const by=new Map();const rc=realClicks();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{const key=String(l.email||"").toLowerCase();const ck=rc.get(key);if(!(l.outcome&&l.outcome!=="no")&&l.flag!=="replied"&&l.flag!=="engaged"&&!ck)return;if(!key||by.has(key))return;const rp=repliesOf(key)[0];
+    by.set(key,{key,l,c,reply:rp,click:ck||(l.engagedAt?{at:l.engagedAt,url:l.engagedUrl}:null),at:rp?rp.at:(l.replyAt||l.outcomeAt||(ck&&ck.at)||l.engagedAt||"")});}));
   return [...by.values()].sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
 function repliedSectionHTML(){const ps=repliedPeople();if(!ps.length)return "";
-  return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("mail")+'Replied<span class="t2" style="margin-left:4px">· '+ps.length+' off the campaigns, working leads now</span></div>'+ps.map(p=>{const l=p.l,r=ACT_REP[regionFromState(l.state)]||"";
-    return '<div class="actrow"><i class="actdot done" style="background:#3FB950"></i><span class="nm"><b>'+esc(((l.first||"")+" "+(l.last||"")).trim()||l.email)+'</b><small>'+esc([l.title,l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))+' · '+esc(p.c.name.replace(/ — .*/,""))+(p.at?' · '+esc(actDay(p.at)):'')+'</small><small class="what">'+(p.reply&&p.reply.text?'“'+esc(p.reply.text.replace(/\s+/g," ").slice(0,160))+(p.reply.text.length>160?'…':'')+'”':'Replied — message not saved yet')+'</small></span><span class="row" style="gap:6px">'+
+  return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("mail")+'Engaged<span class="t2" style="margin-left:4px">· '+ps.length+' replied or clicked · off the campaigns, working leads now</span></div>'+ps.map(p=>{const l=p.l,r=ACT_REP[regionFromState(l.state)]||"";
+    return '<div class="actrow"><i class="actdot done" style="background:#3FB950"></i><span class="nm"><b>'+esc(((l.first||"")+" "+(l.last||"")).trim()||l.email)+'</b><small>'+esc([l.title,l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))+' · '+esc(p.c.name.replace(/ — .*/,""))+(p.at?' · '+esc(actDay(p.at)):'')+'</small><small class="what">'+(p.reply&&p.reply.text?'Replied: “'+esc(p.reply.text.replace(/\s+/g," ").slice(0,160))+(p.reply.text.length>160?'…':'')+'”':(l.outcome||l.flag==="replied")?'Replied — message not saved yet':p.click?'Clicked '+esc(actPage(p.click.url))+' · '+esc(actAgo(p.click.at)):'')+'</small></span><span class="row" style="gap:6px">'+
       (l.handedTo?'<span class="pill info">With '+esc(repShort(l.handedTo))+'</span>':(r?'<button class="btn sm coral" data-act="actpush" data-v="'+esc(p.key)+'" data-r="'+r+'">To '+repShort(r)+'</button>':''))+'<button class="btn sm" data-act="actreply" data-v="'+esc(p.key)+'">Read & reply</button></span></div>';}).join("")+'</div>';}
 function viewLeads(){
   const confs=confLeadLists();let ls=(DB.confLeads||[]);if(leadsConf)ls=ls.filter(l=>l.conf===leadsConf);
