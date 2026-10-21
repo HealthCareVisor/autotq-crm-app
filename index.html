@@ -4433,12 +4433,47 @@ function quoteOppHTML(){
   const cur=oppById(S.oppId);
   const acc=String(S.acct||"").trim().toLowerCase();
   const deals=oppsForPick().filter(o=>oppIsOpen(o)&&o.id!==S.oppId&&((S.cid&&o.accountId===S.cid)||(acc&&String(o.accountName||oppAcctLabel(o)).toLowerCase()===acc))).slice(0,4);
-  if(!cur&&!deals.length)return '<div id="qtOpp"></div>';
-  return '<div id="qtOpp"><label class="fl">Pipeline deal <span style="font-weight:400;color:var(--hint)">— optional</span></label><div class="qa-types">'+
+  const isNew=!S.id;
+  if(!isNew&&!cur&&!deals.length)return '<div id="qtOpp"></div>';
+  return '<div id="qtOpp"><label class="fl">Pipeline deal <span style="font-weight:400;color:var(--hint)">— '+(isNew?'it makes a new deal, or pick one of theirs':'optional')+'</span></label><div class="qa-types">'+
+   (isNew?'<span class="qchip'+(!cur?" on":"")+'" data-act="qtOpp" data-id="">'+svg("plus")+' New deal</span>':'')+
    (cur?'<span class="qchip on" data-act="qtOpp" data-id="">'+svg("chart")+' '+esc(cur.name)+' ×</span>':'')+
    deals.map(o=>'<span class="qchip" data-act="qtOpp" data-id="'+o.id+'">'+esc(o.name)+'</span>').join("")+'</div></div>';
 }
 function quoteRedrawOpp(){const w=document.getElementById("qtOpp");if(w)w.outerHTML=quoteOppHTML();}
+/* a new quote is a deal (Max, 2026-10-21: "a new quote should just automatically become an opportunity") — unless it was put
+   on a deal that already exists. The deal starts at Proposal / price quote with the quote's total and kits, the customer, the
+   distributor it goes through and the quote's person; editing the quote keeps the deal's numbers in step while they still
+   match, and marking the quote won or lost moves the deal. */
+function oppFromQuote(q){
+  ensureOpps();
+  const c=q.cid?company(q.cid):null,units=quoteUnits(q),now=new Date().toISOString();
+  const stock=q.level==="dist"&&c&&c.type==="distributor";
+  const dist=stock?c:(q.distCid?company(q.distCid):null);
+  const st=String((c&&c.state)||"").toUpperCase().slice(0,2);
+  const o={id:uid(),owner:USER,source:"quote",fromQuote:q.id,createdAt:now,
+    name:qAcct(q.account)+(units?" — "+units+(units===1?" kit":" kits"):"")+" ("+q.no+")",
+    accountId:c?c.id:null,accountName:c?c.name:(q.account||""),
+    stage:"Proposal/Price Quote",probability:OPP_PROB["Proposal/Price Quote"],amount:quoteTotal(q),units:units,
+    dealType:stock?"Stocking Order":"End User Order",state:st,
+    distributorId:dist?dist.id:null,distributorName:dist?dist.name:(stock?"":(q.distName||"")),distRepPid:q.distPid||null,
+    contacts:[].concat(q.pid&&person(q.pid)?[{pid:q.pid,role:"Buyer"}]:[],q.distPid&&person(q.distPid)?[{pid:q.distPid,role:"Distributor rep"}]:[]),
+    nextAction:"Follow up on quote "+q.no,nextActionDate:ymd(new Date(Date.now()+7*86400000)),closeDate:"",
+    note:"Made from quote "+q.no+".",rep:"",touchesExtra:0,lastContact:"",direct:false};
+  o.ghRep=profile(USER)==="sales"?USER:(repForRegion(regionFromState(st))||"");
+  if(o.ghRep==="house")o.ghRep="";
+  DB.opps.unshift(o);q.oppId=o.id;
+  return o;
+}
+/* a quote's status change moves the deal it is on */
+function quoteMovesDeal(q){
+  const o=oppById(q.oppId);if(!o||!oppIsOpen(o)||!canEditOpp(o))return "";
+  if(q.status==="won"){
+    if(!oppHasDist(o))return "the deal stays open until it has its closing distributor (or Direct sale)";
+    o.stage="Closed Won";o.probability=OPP_PROB["Closed Won"];if(!o.closeDate)o.closeDate=todayStr();return "deal closed won";}
+  if(q.status==="lost"&&oppQuotes(o).every(x=>x.status==="lost")){o.stage="Closed Lost";o.probability=OPP_PROB["Closed Lost"];if(!o.closeDate)o.closeDate=todayStr();return "deal closed lost";}
+  return "";
+}
 function formCoverage(pid){
   const p=person(pid);if(!p)return;logState.covPid=pid;
   openSheet('<h2>'+esc(p.name)+' — coverage states</h2>'+
@@ -5958,6 +5993,7 @@ function saveQuote(mode){
   if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("That email doesn't look right");return;}
   DB.quotes=DB.quotes||[];
   let q=S.id?quoteById(S.id):null;const fresh=!q;
+  const prevT=q?quoteTotal(q):null,prevU=q?quoteUnits(q):null;
   if(!q){q={id:uid(),no:nextQuoteNo(),date:todayStr(),status:"draft",by:USER,createdAt:new Date().toISOString()};DB.quotes.push(q);}
   if(!S.cid){const c=DB.companies.find(x=>x.name&&x.name.toLowerCase()===acct.toLowerCase());if(c)S.cid=c.id;}
   const sh=String(S.shipping||"").replace(/[$,\s]/g,"");
@@ -5973,10 +6009,13 @@ function saveQuote(mode){
   if(dn&&cu&&cu.type==="enduser"&&!bfList(cu).some(e=>(q.distCid&&e.cid===q.distCid)||String(e.name||"").toLowerCase()===dn.toLowerCase())){
     cu.buysFrom=bfList(cu);cu.buysFrom.push({cid:q.distCid||null,name:dn,first:!cu.buysFrom.length});}
   if(S.oppId&&S.oppId!==q.oppId)linkQuoteOpp(q,oppById(S.oppId));else q.oppId=S.oppId||null;
+  let made=null;
+  if(fresh&&!q.oppId)made=oppFromQuote(q);
+  else{const o=oppById(q.oppId);if(o&&o.fromQuote===q.id&&canEditOpp(o)){if(!o.amount||o.amount===prevT)o.amount=quoteTotal(q);if(!o.units||o.units===prevU)o.units=quoteUnits(q);}}
   S.id=q.id;save();render();
   if(mode==="send"){formQuoteSend(q.id);return;}
   if(mode==="preview")quotePrint(q.id);
-  quoteSheet(q.id);toast("Quote "+q.no+(fresh?" saved":" updated"));
+  quoteSheet(q.id);toast("Quote "+q.no+(fresh?" saved":" updated")+(made?" · new deal in the pipeline":""));
 }
 
 /* ----- an existing quote: one made outside the CRM (a PDF, Word, the MARCH letterhead…) added so it sits in Quotes with the
@@ -6029,13 +6068,14 @@ async function saveQuoteExt(){
   else if(!q.sentAt){q.sentAt=new Date(date+"T12:00:00").toISOString();q.sentTo=email;}
   if(S.oppId&&S.oppId!==q.oppId)linkQuoteOpp(q,oppById(S.oppId));
   if(fresh)DB.quotes.push(q);
+  const made=fresh&&!q.oppId&&(q.status==="draft"||q.status==="sent")?oppFromQuote(q):null;
   S.id=q.id;save();
   const f=S.fileObj;
   if(f){const btn=document.getElementById("qxSave");if(btn){btn.disabled=true;btn.textContent="Uploading the file…";}
     const path="quotes/"+q.id+"_"+f.name.replace(/[^\w.\- ]+/g,"_");
     const ok=await storUpload(path,f);
     if(ok){q.file=path;q.fname=f.name;save();}else toast("The file didn't upload — the quote is saved without it; use Edit to add it again");}
-  render();quoteSheet(q.id);toast("Quote "+q.no+(fresh?" added":" updated"));
+  render();quoteSheet(q.id);toast("Quote "+q.no+(fresh?" added":" updated")+(made?" · new deal in the pipeline":""));
 }
 function quoteExtSheet(q){
   const st=quoteState(q);
@@ -6116,7 +6156,8 @@ function setQuoteStatus(id,v){
   q.status=v;
   if(v==="sent"&&!q.sentAt){q.sentAt=new Date().toISOString();q.sentBy=USER;q.sentTo=q.contactEmail||"";} // sent outside the CRM, marked by hand
   q.updatedAt=new Date().toISOString();
-  save();render();quoteSheet(id);toast("Quote "+q.no+" → "+QUOTE_ST[v][0]);
+  const moved=quoteMovesDeal(q);
+  save();render();quoteSheet(id);toast("Quote "+q.no+" → "+QUOTE_ST[v][0]+(moved?" · "+moved:""));
 }
 function duplicateQuote(id){
   const q=quoteById(id);if(!q)return;
