@@ -379,6 +379,17 @@ svg.usmap .dots{stroke:var(--dots)}
 .etabs{margin:0 0 18px}.etab-row{display:flex;gap:22px;border-bottom:1px solid var(--rule);margin-bottom:12px}
 .etab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 0 10px;font:inherit;font-size:14px;font-weight:600;color:var(--ink-3);cursor:pointer}
 .etab.on{color:var(--ink);border-bottom-color:var(--coral)}.esec{display:flex;gap:6px;flex-wrap:wrap}
+
+/* LinkedIn studio (2026-10-21) */
+.liweek{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.licard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:14px 16px;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--paper);color:var(--ink);font:inherit;cursor:pointer;min-height:150px}
+.licard:hover{background:var(--hover)}.licard.on{border-color:var(--coral);box-shadow:var(--ring)}.licard.empty{cursor:default;opacity:.75}
+.licard .lid{font-size:12px;color:var(--ink-3)}.licard .lip{font-size:11px;font-weight:600;color:var(--coral);text-transform:uppercase;letter-spacing:.04em}.licard b{font-size:14px}.licard .lih{font-size:13px;color:var(--ink-2);line-height:1.45;flex:1}
+.lipost .libody,.libody{padding:16px}.litext{white-space:pre-wrap;font-size:15px;line-height:1.6;color:var(--ink);max-width:680px}.litags{color:var(--info);margin-top:10px;font-size:14px}
+.licols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:18px;padding-top:16px;border-top:1px solid var(--rule-2)}
+.lichecks,.lilist{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}.lichecks li{display:flex;gap:8px;align-items:flex-start}.lichecks li .i{width:15px;height:15px;flex:none;margin-top:2px}
+.lichecks li.ok .i{color:var(--ok)}.lichecks li.no{color:var(--warn)}.lichecks li.no .i{color:var(--warn)}.lilist a{color:var(--ink)}
+@media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script>
 </head>
@@ -410,7 +421,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=["replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
+const PULL_COLLECTIONS=["liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1107,14 +1118,14 @@ function render(){
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home")view="start";if(view==="web")view="net";
   const me=teamById(USER);const n=needsMe();
-  const titles={start:"Home",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={start:"",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="start"?"":view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
-  const crumbs=["Marketing"].concat(view==="start"?["Home"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const titles={start:"Home",li:"LinkedIn",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
+  const subs={start:"",li:"Three posts a week — Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const body=view==="start"?"":view==="li"?viewLinkedIn():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
+  const crumbs=["Marketing"].concat(view==="start"?["Home"]:view==="li"?["LinkedIn"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right"><label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   '<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button></nav>'+
-   '<main class="main">'+(view==="start"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   '<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>'+
+   '<main class="main">'+(view==="start"||view==="li"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
 }
 function fitVolume(){const el=document.querySelector("svg.vol");if(!el||!OV_CHART)return;const w=Math.round(el.parentElement.clientWidth);if(!w||Math.abs(w-el.viewBox.baseVal.width)<2)return;el.outerHTML=ovChartSVG(OV_CHART.ser,OV_CHART.st,OV_CHART.cs,OV_CHART.h,w).svg;}
@@ -1125,7 +1136,8 @@ function railHTML(n){const inEmail=EMAIL_VIEWS.includes(view);const act=actItems
   let h='<aside class="side"><div class="sb">'+BRAND_MARK+'<div><b>AutoTQ</b><small>Marketing</small></div></div><nav class="snav" aria-label="Sections">'+
    '<button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">'+svg("home")+'<span>Home</span></button>'+
    '<button class="'+(inEmail?"on":"")+'" data-act="nav" data-v="over">'+svg("mail")+'<span>Email Campaigns</span>'+(act?'<em class="cnt act">'+act+'</em>':'')+(n?'<em class="cnt">'+n+'</em>':'')+'</button>'+
-   (inEmail?'<button class="sub on" data-act="nav" data-v="over"><span>Conferences</span></button>':'')+'</nav>';
+   (inEmail?'<button class="sub on" data-act="nav" data-v="over"><span>Conferences</span></button>':'')+
+   '<button class="'+(view==="li"?"on":"")+'" data-act="nav" data-v="li">'+svg("file")+'<span>LinkedIn</span>'+(liPosts().filter(p=>p.status==="draft").length?'<em class="cnt">'+liPosts().filter(p=>p.status==="draft").length+'</em>':'')+'</button></nav>';
   if(!inEmail)return h+'</aside>';
   const run=campaigns().filter(c=>["approved","active"].includes(c.status)).slice().sort((a,b)=>(a.status==="active"?0:1)-(b.status==="active"?0:1)||String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
   const S=senders().filter(s=>!s.paused);const sentToday=S.reduce((a,s)=>a+senderSentToday(s),0),cap=S.reduce((a,s)=>a+senderCap(s,0),0);
@@ -1296,6 +1308,71 @@ function meMenuHTML(me){if(!meOpen)return "";const it=(v,ic,label)=>'<button rol
   return '<div class="memenu" role="menu"><div class="mh"><b>'+esc(me.name)+'</b><small>'+esc(userEmail(USER)||"")+'</small></div>'+it("light","sun","Light mode")+it("dark","moon","Dark mode")+'<hr><button class="out" role="menuitem" data-act="signout">'+svg("signout")+'<span>Sign out</span></button></div>';}
 document.addEventListener("click",e=>{if(meOpen&&!e.target.closest(".memenu")&&!e.target.closest('[data-act="memenu"]')){meOpen=false;render();}},true);
 document.addEventListener("keydown",e=>{if(meOpen&&e.key==="Escape"){meOpen=false;render();const b=document.querySelector('[data-act="memenu"]');if(b)b.focus();}});
+
+/* ---------- LinkedIn Content Studio (2026-10-21) — drafts are reviewed here; nothing posts to LinkedIn by itself ---------- */
+const LI_FN="/functions/v1/li-studio";const LI_SLOTS=[["mon","Monday",0],["wed","Wednesday",2],["fri","Friday",4]];
+const LI_PILLAR={industry:"Industry",product:"AutoTQ in action",application:"Real-world use"};
+let liTab="week",liWeek="",liSel="",liEdit=false,LI_STATUS=null;
+function liMonday(off){const d=new Date();const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day+7*(off||0));return d.toISOString().slice(0,10);}
+function liPosts(){return (DB.liPosts||[]).filter(p=>p&&p.id);}
+function liState(){return (DB.settings||[]).find(x=>x&&x.id==="liStudio")||{};}
+function liWhen(iso){return new Date(iso).toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})+" ET";}
+function liStatusPill(p){if(!p)return '<span class="pill">Empty</span>';const m={draft:["warn","Needs review"],approved:["ok","Approved"],rejected:["dang","Rejected"],posted:["info","Posted"]}[p.status]||["","—"];return '<span class="pill '+m[0]+'">'+m[1]+(p.edited&&p.status!=="draft"?' · edited':'')+'</span>';}
+function liText(p){return p.finalText||p.aiText||((p.hook||"")+"\n\n"+(p.body||""));}
+function liCall(action,extra){return supa(LI_FN,{method:"POST",body:JSON.stringify(Object.assign({action},extra||{}))}).then(async r=>{const b=await r.json().catch(()=>({}));if(!r.ok||b.error)throw new Error(b.error||("HTTP "+r.status));return b;});}
+async function liLoadStatus(){try{LI_STATUS=await liCall("status");}catch(e){LI_STATUS={error:e.message};}render();}
+function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStatus();}
+  if(!liWeek)liWeek=liMonday(new Date().getDay()>=5||new Date().getDay()===0?1:0);
+  const st=liState();const run=st.running?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Working: '+esc(st.running)+'…</p><p class="t2">Research and drafting take a minute or three. The drafts appear here by themselves.</p></div>':(st.lastError?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Last run stopped</p><p class="t2">'+esc(st.lastError)+'</p></div>':'');
+  const keyMissing=LI_STATUS&&LI_STATUS.hasKey===false;
+  let h=(keyMissing?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Turn on research and drafting</p><p class="t2">The studio uses Claude, and the hub has no Anthropic API key yet. Create one at platform.claude.com → API keys, save it as <code>ANTHROPIC_API_KEY=…</code> in <code>C:\\Users\\herbs\\.autotq\\anthropic.env</code>, and ask Claude to load it into the li-studio function. Everything else on this tab works now.</p></div>':'')+run;
+  h+='<div class="esec" style="margin-bottom:16px">'+[["week","This week's posts"],["research","Research"],["history","History"]].map(x=>'<button class="chip'+(liTab===x[0]?" on":"")+'" data-act="litab" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+  if(liTab==="research")return h+liResearchHTML();
+  if(liTab==="history")return h+liHistoryHTML();
+  const weeks=[[liMonday(0),"This week"],[liMonday(1),"Next week"],[liMonday(2),"In two weeks"]];
+  const posts=liPosts().filter(p=>p.week===liWeek&&p.status!=="rejected");
+  h+='<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">'+weeks.map(w=>'<button class="chip'+(liWeek===w[0]?" on":"")+'" data-act="liweek" data-v="'+w[0]+'">'+w[1]+' · '+new Date(w[0]+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})+'</button>').join("")+
+    '<span class="grow"></span><button class="btn sm ghost" data-act="liresearch"'+(keyMissing||st.running?' disabled':'')+'>Refresh research</button><button class="btn sm coral" data-act="ligen"'+(keyMissing||st.running?' disabled':'')+'>'+(posts.length>=3?'All three drafted':'Draft '+(posts.length?'the rest of ':'')+'this week')+'</button></div>';
+  h+='<div class="liweek">'+LI_SLOTS.map(([s,day,add])=>{const p=posts.filter(x=>x.slot===s).sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0];const date=new Date(liWeek+"T12:00:00");date.setDate(date.getDate()+add);
+    return '<button class="licard'+(p&&liSel===p.id?" on":"")+(p?'':' empty')+'" '+(p?'data-act="lisel" data-v="'+p.id+'"':'disabled')+'><span class="lid">'+day+' · '+date.toLocaleDateString("en-US",{month:"short",day:"numeric"})+' · 9:00 AM ET</span>'+
+      (p?'<span class="lip">'+esc(LI_PILLAR[p.pillar]||p.pillar)+'</span><b>'+esc(p.topic||"")+'</b><span class="lih">'+esc((liText(p).split("\n")[0]||"").slice(0,140))+'</span>'+liStatusPill(p):'<span class="t2">No draft yet</span>')+'</button>';}).join("")+'</div>';
+  const sel=liPosts().find(p=>p.id===liSel&&p.week===liWeek)||posts.find(p=>p.status==="draft")||posts[0];if(sel){liSel=sel.id;h+=liPostHTML(sel);}
+  return h;}
+function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||[]).map(id=>res.find(r=>r.id===id)).filter(Boolean);
+  const checks=(p.checks||[]).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
+  return '<div class="pan lipost"><div class="ph2">'+svg("file")+esc(LI_PILLAR[p.pillar]||p.pillar)+' · '+esc(liWhen(p.slotAt))+'<span class="meta">'+liStatusPill(p)+'</span></div><div class="libody">'+
+    (liEdit?'<textarea class="f" id="liText" style="min-height:260px;width:100%;font:inherit;line-height:1.55">'+esc(liText(p))+'</textarea>':'<div class="litext">'+esc(liText(p))+'</div>')+
+    ((p.hashtags||[]).length?'<p class="litags">'+p.hashtags.map(x=>'#'+esc(x)).join(" ")+'</p>':'')+
+    '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:14px">'+(liEdit?'<button class="btn sm coral" data-act="lisave" data-v="'+p.id+'">Save edit</button><button class="btn sm ghost" data-act="liedit" data-v="">Cancel</button>':
+      (p.status!=="approved"&&p.status!=="posted"?'<button class="btn sm coral" data-act="liapprove" data-v="'+p.id+'">Approve</button>':'')+'<button class="btn sm" data-act="liedit" data-v="'+p.id+'">Edit</button>'+(p.status!=="rejected"&&p.status!=="posted"?'<button class="btn sm ghost" data-act="lireject" data-v="'+p.id+'">Reject</button>':'')+
+      '<button class="btn sm ghost" data-act="lirewrite" data-v="'+p.id+'">New version</button><button class="btn sm ghost" data-act="licopy" data-v="'+p.id+'">Copy</button>'+(p.status==="approved"?'<button class="btn sm ghost" data-act="liposted" data-v="'+p.id+'">Mark posted</button>':''))+'</div>'+
+    (p.rejectReason?'<p class="t2" style="margin-top:10px">Rejected: '+esc(p.rejectReason)+'</p>':'')+(p.postedUrl?'<p class="t2" style="margin-top:10px">Posted: <a href="'+esc(p.postedUrl)+'" target="_blank" rel="noopener">'+esc(p.postedUrl)+'</a></p>':'')+
+    '<div class="licols"><div><div class="sectlabel">Checks</div><ul class="lichecks">'+checks+'</ul>'+(p.why?'<div class="sectlabel" style="margin-top:12px">Why this post</div><p class="t2">'+esc(p.why)+'</p>':'')+((p.claimsUsed||[]).length?'<div class="sectlabel" style="margin-top:12px">Verified claims used</div><ul class="lilist">'+p.claimsUsed.map(c=>'<li>'+esc(c)+'</li>').join("")+'</ul>':'')+'</div>'+
+    '<div><div class="sectlabel">Sources</div>'+((p.sources||[]).length?'<ul class="lilist">'+p.sources.map(s=>'<li><a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.title||s.url)+'</a></li>').join("")+'</ul>':'<p class="t2">Only verified AutoTQ claims; no outside facts.</p>')+
+    '<div class="sectlabel" style="margin-top:12px">Research it drew on</div>'+(used.length?'<ul class="lilist">'+used.map(r=>'<li><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title)+'</a> <span class="t2">· '+esc(r.org||"")+'</span></li>').join(""):'<p class="t2">—</p>')+'</div></div>'+
+    ((p.versions||[]).length?'<details style="margin-top:12px"><summary class="t2">'+p.versions.length+' earlier version'+(p.versions.length===1?'':'s')+'</summary>'+p.versions.slice().reverse().map(v=>'<div class="litext" style="opacity:.75;margin-top:10px">'+esc(v.text)+'</div><p class="t2">'+esc(v.note||"")+'</p>').join("")+'</details>':'')+'</div></div>';}
+function liResearchHTML(){const rs=(DB.liResearch||[]).slice().sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("plus")+'Add a post you liked<span class="t2" style="margin-left:4px">· a LinkedIn post or article that did well — it shapes the next drafts</span></div><div class="libody"><div class="row" style="gap:8px;flex-wrap:wrap"><input class="f" id="liAddUrl" placeholder="Link" style="flex:2;min-width:220px"><input class="f" id="liAddOrg" placeholder="Who posted it" style="flex:1;min-width:160px"></div><textarea class="f" id="liAddWhy" placeholder="What made it work (the hook, a number, a photo, the length, the reactions you saw)" style="width:100%;min-height:70px;margin-top:8px"></textarea><button class="btn sm coral" data-act="liaddres" style="margin-top:8px">Add to research</button></div></div>'+
+    '<div class="pan"><div class="ph2">'+svg("search")+'Research<span class="t2" style="margin-left:4px">· '+rs.length+' items · every item keeps its link</span></div>'+(rs.length?rs.slice(0,80).map(r=>'<div class="actrow"><span class="nm"><b><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title||r.url)+'</a></b><small>'+esc([({news:"News",pattern:"What works",example:"Example post"})[r.kind]||r.kind,r.org,r.date].filter(Boolean).join(" · "))+(r.source==="manual"?' · added by hand':'')+'</small>'+(r.summary?'<small class="what">'+esc(r.summary)+'</small>':'')+(r.takeaway?'<small>Takeaway: '+esc(r.takeaway)+'</small>':'')+'</span></div>').join(""):'<div class="empty" style="padding:22px 16px">No research yet. Refresh research (needs the API key) or add a post you liked.</div>')+'</div>';}
+function liHistoryHTML(){const ps=liPosts().slice().sort((a,b)=>String(b.slotAt).localeCompare(String(a.slotAt)));
+  return '<div class="pan">'+(ps.length?ps.map(p=>'<button class="ibx actcamp" data-act="lisel" data-v="'+p.id+'" data-week="'+p.week+'"><span class="nm"><b>'+esc(p.topic||(liText(p).split("\n")[0]||"").slice(0,80))+'</b><small>'+esc(liWhen(p.slotAt))+' · '+esc(LI_PILLAR[p.pillar]||p.pillar)+'</small></span>'+liStatusPill(p)+svg("chevR")+'</button>').join(""):'<div class="empty" style="padding:22px 16px">Nothing drafted yet.</div>')+'</div>';}
+function liFind(id){return liPosts().find(p=>p.id===id);}
+function liHandle(a,t){const id=t.dataset.v;
+  if(a==="litab"){liTab=t.dataset.v;liEdit=false;render();return true;}
+  if(a==="liweek"){liWeek=t.dataset.v;liSel="";liEdit=false;render();return true;}
+  if(a==="lisel"){liSel=id;if(t.dataset.week){liWeek=t.dataset.week;liTab="week";}liEdit=false;render();return true;}
+  if(a==="liedit"){liEdit=!!id;render();return true;}
+  if(a==="lisave"){const p=liFind(id);const v=(document.getElementById("liText")||{}).value||"";if(p&&v.trim()){p.finalText=v.trim();p.edited=true;p.editedBy=USER;p.editedAt=new Date().toISOString();put("liPosts",p);}liEdit=false;render();toast("Saved");return true;}
+  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
+  if(a==="lireject"){const p=liFind(id);if(!p)return true;const why=prompt("Why reject it? (the next drafts learn from this)","");if(why===null)return true;p.status="rejected";p.rejectReason=why.trim()||"no reason given";p.rejectedBy=USER;p.rejectedAt=new Date().toISOString();put("liPosts",p);liSel="";render();toast("Rejected — Draft this week fills the empty slot");return true;}
+  if(a==="lirewrite"){const p=liFind(id);if(!p)return true;const note=prompt("What should the new version do differently?","");if(note===null)return true;liCall("rewrite",{id,note}).then(()=>toast("Writing a new version…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
+  if(a==="licopy"){const p=liFind(id);if(p){const txt=liText(p)+((p.hashtags||[]).length?"\n\n"+p.hashtags.map(x=>"#"+x).join(" "):"");try{navigator.clipboard.writeText(txt);toast("Copied — paste it into LinkedIn");}catch(e){}}return true;}
+  if(a==="liposted"){const p=liFind(id);if(!p)return true;const u=prompt("Link to the live LinkedIn post (optional)","");if(u===null)return true;p.status="posted";p.postedAt=new Date().toISOString();p.postedUrl=u.trim();p.postedBy=USER;put("liPosts",p);render();toast("Marked posted");return true;}
+  if(a==="ligen"){liCall("generate",{week:liWeek}).then(()=>{toast("Researching and drafting — about a minute or three");setTimeout(render,1500);}).catch(e=>toast("Couldn't start: "+e.message));return true;}
+  if(a==="liresearch"){liCall("research").then(()=>toast("Researching…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
+  if(a==="liaddres"){const u=(document.getElementById("liAddUrl")||{}).value||"",o=(document.getElementById("liAddOrg")||{}).value||"",w=(document.getElementById("liAddWhy")||{}).value||"";
+    if(!/^https?:\/\//.test(u.trim())){toast("Paste the link first");return true;}put("liResearch",{id:"lr-m"+uid()+uid(),kind:"example",title:(o.trim()?o.trim()+" — ":"")+"post you liked",org:o.trim(),date:todayStr(),url:u.trim(),summary:"",takeaway:w.trim(),source:"manual",by:USER,at:new Date().toISOString()});render();toast("Added — the next drafts will use it");return true;}
+  return false;}
 function viewOverview(){
   const h=RANGE_H[ovRange]||168;const focus=ovCamp?campaignById(ovCamp):null;if(ovCamp&&!focus)ovCamp="";
   const cs=campaigns().filter(c=>!ovCamp||c.id===ovCamp);const since=ovSince(h);
@@ -1609,6 +1686,7 @@ document.addEventListener("click",e=>{
   if(a==="ovrange"){ovRange=t.dataset.v;localStorage.setItem("autotq_mkt_range",ovRange);render();return;}
   if(a==="ovfocus"){ovCamp=ovCamp===t.dataset.id?"":t.dataset.id;view="over";sideOpen=false;render();window.scrollTo(0,0);return;}
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
+  if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
   if(a.indexOf("act")===0&&actHandle(a,t))return;
