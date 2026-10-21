@@ -520,24 +520,135 @@ button.rephead:hover{filter:brightness(.95)}
 
 /* ---------- app shell ---------- */
 .console{display:flex;min-height:100vh;background:var(--bg)}
-.side{width:236px;flex:none;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh}
-.side .brand{display:flex;align-items:center;gap:11px;padding:18px 18px 12px}
-.side .brand svg.mark{width:17px;height:25px;color:var(--coral)}
-.side .brand .wm{font-size:17px;font-weight:700;letter-spacing:-.025em;line-height:1.05;color:var(--ink)}
-.side .brand small{display:block;font-size:11.5px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted);margin-top:3px}
-.side nav{display:flex;flex-direction:column;padding:2px 10px 10px;gap:1px;flex:1;overflow-y:auto}
-.side .grp{font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);padding:14px 10px 5px}
-.side nav .grp:first-child{padding-top:6px}
-.side nav button{display:flex;align-items:center;gap:10px;background:none;border:none;text-align:left;min-height:34px;padding:0 10px;border-radius:9px;color:var(--ink-2);font-size:14px;font-weight:500;
-  transition:background .15s,color .15s,box-shadow .15s}
-.side nav button svg{width:18px;height:18px;flex:none;color:var(--muted);transition:color .15s}
-.side nav button:hover{background:rgba(26,25,22,.05);color:var(--ink)}
-.side nav button.on{background:var(--surface);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(26,25,22,.08),0 0 0 1px rgba(26,25,22,.04)}
-.side nav button.on svg{color:var(--coral)}
-.side .su{border-top:1px solid var(--line);padding:12px 12px 14px;display:flex;align-items:center;gap:10px}
-.side .su .av{width:32px;height:32px;font-size:12px}
-.side .su b{font-size:13.5px;font-weight:600;display:block;line-height:1.2}
-.side .su small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the sidebar (2026-10-21, after Max's sidebar video): a floating panel that folds to an icon rail. Icons keep the same x in
+   both states, so the fold is a clean slide; labels clip and fade. */
+.side{width:266px;flex:none;position:sticky;top:0;height:100vh;height:100dvh;padding:10px 0 10px 10px;transition:width .26s var(--ease);z-index:20}
+.sbox{height:100%;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-1);overflow:hidden;position:relative}
+.side .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .18s var(--ease)}
+.shead{display:flex;align-items:center;gap:6px;padding:12px 10px 8px 19px;flex:none}
+.sws{display:flex;align-items:center;gap:10px;min-width:0;flex:1;border:0;background:none;padding:4px 6px 4px 0;border-radius:10px;text-align:left;color:var(--ink);cursor:default}
+.sws.can{cursor:pointer}.sws.can:hover{background:var(--surface-2)}
+.slogo{width:30px;height:30px;border-radius:9px;background:var(--coral-btn);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.slogo svg.mark{width:12px;height:18px;color:#fff}
+.sws .lbl b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.sws .lbl small{display:block;font-size:11.5px;color:var(--muted);font-weight:500;margin-top:1px}
+.sws>svg.i{width:15px;height:15px;color:var(--faint);margin-left:auto;flex:none}
+.sicon{width:30px;height:30px;border-radius:8px;border:0;background:none;color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;transition:background .15s,color .15s}
+.sicon:hover{background:var(--surface-2);color:var(--ink)}
+.sicon svg.i{width:18px;height:18px}
+.ssearch{display:flex;align-items:center;gap:10px;margin:2px 10px 8px;min-height:36px;padding:0 8px 0 15px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--muted);font-size:13.5px;cursor:pointer;flex:none;transition:border-color .15s,background .15s}
+.ssearch:hover{border-color:var(--line-3);background:var(--surface-2)}
+.ssearch svg.i{width:17px;height:17px;flex:none}
+.ssearch .lbl{flex:1;text-align:left}
+.ssearch kbd,.palk kbd{font-family:inherit;font-size:10.5px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;background:var(--surface-2);line-height:16px}
+.snavs{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 10px 8px;scrollbar-width:thin}
+.snavs{scrollbar-color:transparent transparent}.snavs:hover{scrollbar-color:#CFCAC0 transparent} /* the nav's scrollbar shows only while the pointer is on it */
+.console.mini .snavs{scrollbar-width:none}
+.sgrp-h{display:flex;align-items:center;width:100%;border:0;background:none;padding:12px 6px 4px 6px;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;border-radius:6px;text-align:left}
+.sgrp-h:hover{color:var(--ink-2)}
+.sgrp-h .lbl{flex:1}
+.sgrp-h svg.i{width:14px;height:14px;opacity:0;transition:opacity .15s,transform .2s var(--ease)}
+.sgrp-h:hover svg.i,.sgrp.closed .sgrp-h svg.i{opacity:1}
+.sgrp.closed .sgrp-h svg.i{transform:rotate(-90deg)}
+.sgrp-h .gbadge{margin-right:6px}
+.sgrp-b{display:grid;grid-template-rows:1fr;transition:grid-template-rows .22s var(--ease)}
+.sgrp.closed>.sgrp-b{grid-template-rows:0fr}
+.sgrp-b>div{overflow:hidden;min-height:0;display:flex;flex-direction:column;gap:1px}
+.sitem{display:flex;align-items:center;gap:11px;width:100%;min-height:36px;padding:0 8px 0 15px;border:0;background:none;border-radius:9px;color:var(--ink-2);font-size:14px;font-weight:500;text-align:left;cursor:pointer;position:relative;text-decoration:none;transition:background .15s,color .15s}
+.sitem svg.i{width:18px;height:18px;flex:none;color:var(--muted);transition:color .15s}
+.sitem:hover{background:var(--surface-2);color:var(--ink)}
+.sitem:hover svg.i{color:var(--ink-2)}
+.sitem.on{background:var(--side);color:var(--ink);font-weight:600}
+.sitem.on svg.i{color:var(--coral)}
+.sitem .lbl{flex:1;min-width:0}
+.sbadge{flex:none;min-width:19px;height:19px;padding:0 6px;border-radius:999px;background:var(--coral-btn);color:#fff;font-size:11px;font-weight:700;line-height:19px;text-align:center;font-variant-numeric:tabular-nums;transition:opacity .15s}
+.skid{flex:none;width:24px;height:24px;margin-right:-4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--faint)}
+.skid:hover{background:var(--line-2);color:var(--ink-2)}
+.skid svg.i{width:14px;height:14px;transition:transform .2s var(--ease)}
+.sitem.open .skid svg.i{transform:rotate(90deg)}
+.skids{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s var(--ease)}
+.skids.open{grid-template-rows:1fr}
+.skids>div{overflow:hidden;min-height:0;position:relative;display:flex;flex-direction:column;gap:1px}
+.skids>div::before{content:"";position:absolute;left:23px;top:2px;bottom:16px;width:1px;background:var(--line-3)}
+.skids .sitem{min-height:32px;padding-left:38px;font-size:13px}
+.skids .sitem::before{content:"";position:absolute;left:23px;top:50%;width:9px;height:1px;background:var(--line-3)}
+.skids .sitem.on{background:var(--side)}
+.skids .sitem.on::after{content:"";position:absolute;left:22px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--coral)}
+.srec .sitem{min-height:32px;font-size:13px}
+.srec .sitem .rdot{width:18px;height:18px;border-radius:6px;background:var(--sunken);color:var(--ink-2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.sfoot{flex:none;padding:6px 10px 10px;border-top:1px solid var(--line-2);display:flex;flex-direction:column;gap:1px}
+.sweek{display:block;width:100%;text-align:left;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:9px 12px 10px;margin:6px 0 6px;cursor:pointer;color:var(--ink);transition:border-color .15s,background .15s;position:relative;min-height:52px}
+.sweek:hover{border-color:var(--line-3);background:var(--surface-2)}
+.sweek .row1{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap}
+.sweek .row1 b{color:var(--ink);font-size:12.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.sweek .bar{height:5px;border-radius:5px;background:var(--line-2);margin-top:8px;overflow:hidden}
+.sweek .bar i{display:block;height:100%;border-radius:5px;background:#3E9B4F;transition:width .4s var(--ease)}
+.sweek .ring{display:none}
+.suser{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:8px 8px 8px 10px;cursor:pointer;text-align:left;color:var(--ink);transition:border-color .15s,background .15s}
+.suser:hover{border-color:var(--line-3);background:var(--surface-2)}
+.suser .av{width:32px;height:32px;font-size:12px;position:relative}
+.suser .av i{position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:#3E9B4F;border:2px solid var(--surface)}
+.suser .av i.off{background:var(--faint)}
+.suser .lbl{flex:1;min-width:0}
+.suser .lbl b{display:block;font-size:13.5px;font-weight:650;line-height:1.2}
+.suser .lbl small{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.suser>svg.i{width:15px;height:15px;color:var(--faint);flex:none}
+.sviewas{color:var(--coral-text)!important}
+/* popovers from the sidebar: the switcher under the logo and the menu above the user card */
+.spop{position:absolute;left:10px;right:10px;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--sh-pop);padding:6px;display:none}
+.spop.open{display:block;animation:pop .16s var(--ease)}
+.spop.top{top:56px}.spop.bottom{bottom:66px}
+.spop .sitem{min-height:34px;font-size:13.5px;padding-left:10px}
+.spop .sep{height:1px;background:var(--line-2);margin:5px 4px}
+.spop .phd{font-size:11px;font-weight:600;color:var(--muted);padding:6px 10px 4px}
+.spop .sitem small{display:block;font-size:11.5px;color:var(--muted);font-weight:500}
+.spop .sitem .ck{margin-left:auto;color:var(--coral);width:16px;height:16px}
+.spop .wsl{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:none}
+/* the folded rail */
+.console.mini .side{width:78px}
+.console.mini .side .lbl,.console.mini .sws>svg.i,.console.mini .sbadge,.console.mini .skid,.console.mini .ssearch kbd{opacity:0;pointer-events:none}
+.console.mini .shead .sicon{display:none}
+.console.mini .sws{cursor:pointer}
+.console.mini .ssearch{padding-left:15px;border-color:transparent;background:none}
+.console.mini .ssearch:hover{background:var(--surface-2)}
+.console.mini .sgrp-h{height:13px;padding:6px 0;pointer-events:none}
+.console.mini .sgrp-h::after{content:"";position:absolute;left:12px;right:12px;top:6px;height:1px;background:var(--line)}
+.console.mini .sgrp-h svg.i{opacity:0}
+.console.mini .sgrp.closed>.sgrp-b{grid-template-rows:1fr}
+.console.mini .skids{grid-template-rows:0fr!important}
+.console.mini .sitem .mdot{position:absolute;left:29px;top:7px;width:8px;height:8px;border-radius:50%;background:var(--coral-btn);border:2px solid var(--surface)}
+.sitem .mdot{display:none}
+.console.mini .sitem .mdot{display:block}
+.console.mini .sweek{padding:0;border-color:transparent;background:none;height:48px;min-height:0;display:flex;align-items:center;padding-left:9px}
+.console.mini .sweek .row1,.console.mini .sweek .bar{display:none}
+.console.mini .sweek .ring{display:block}
+.console.mini .suser{border-color:transparent;background:none;padding:8px 0 8px 12px}
+.console.mini .suser>svg.i{opacity:0}
+.console.mini .spop{left:84px;right:auto;width:250px}
+.console.mini .spop.top{top:10px}.console.mini .spop.bottom{bottom:10px}
+/* the label that shows beside an icon on the folded rail */
+#stip{position:fixed;z-index:80;pointer-events:none;background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;padding:5px 9px;border-radius:7px;white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity .12s,transform .12s;box-shadow:var(--sh-2)}
+#stip.show{opacity:1;transform:none}
+#stip kbd{font-family:inherit;font-size:10.5px;opacity:.7;margin-left:6px}
+/* Ctrl/⌘K: jump to any tab, record or action */
+.pal{position:fixed;inset:0;z-index:90;background:rgba(26,25,22,.32);display:none;align-items:flex-start;justify-content:center;padding:12vh 16px 16px}
+.pal.open{display:flex}
+.palbox{width:min(640px,100%);max-height:70vh;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-pop);overflow:hidden;animation:pop .16s var(--ease)}
+.palin{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line-2)}
+.palin svg.i{width:19px;height:19px;color:var(--muted)}
+.palin input{flex:1;border:0;outline:none;font:inherit;font-size:16px;background:none;color:var(--ink);min-width:0}
+.pallist{overflow-y:auto;padding:6px}
+.palg{font-size:11px;font-weight:600;color:var(--muted);padding:10px 10px 4px}
+.palit{display:flex;align-items:center;gap:11px;width:100%;min-height:40px;padding:6px 10px;border:0;background:none;border-radius:9px;text-align:left;color:var(--ink);cursor:pointer;font-size:14px}
+.palit svg.i{width:18px;height:18px;color:var(--muted);flex:none}
+.palit .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.palit .t small{color:var(--muted);font-size:12.5px;margin-left:6px}
+.palit .k{flex:none;font-size:11.5px;color:var(--faint)}
+.palit.sel{background:var(--side)}
+.palit.sel svg.i{color:var(--coral)}
+.palk{display:flex;gap:14px;justify-content:flex-end;padding:8px 14px;border-top:1px solid var(--line-2);font-size:11.5px;color:var(--muted)}
+.palempty{padding:26px 14px;text-align:center;color:var(--muted);font-size:13.5px}
+.tbar .psearch{display:none}
 .av{width:34px;height:34px;border-radius:50%;background:var(--coral-btn);color:#fff;border:none;font-size:12.5px;font-weight:650;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;flex:none;padding:0}
 button.av{transition:box-shadow .15s}
 button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
@@ -612,16 +723,6 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
   input.f,select.f,textarea.f{font-size:14.5px;padding:10px 12px}
 }
 @media(max-width:900px) and (min-width:641px){
-  .side{width:64px}
-  .side .brand{justify-content:center;padding:18px 0 10px}
-  .side .brand .wm,.side .brand small,.side .brand>div{display:none}
-  .side .grp{font-size:0;height:1px;padding:0;margin:10px 10px 8px;background:var(--line)}
-  .side nav .grp:first-child{padding-top:0;margin-top:4px}
-  .side nav{padding:2px 8px 8px}
-  .side nav button{justify-content:center;padding:0}
-  .side nav button span{display:none}
-  .side .su{justify-content:center;padding:10px 4px}
-  .side .su .grow,.side .su .ibtn{display:none}
   .content{padding:18px 18px 44px}
 }
 @media(max-width:900px){
@@ -632,7 +733,9 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
   .tbar .btn.coral{min-width:36px;padding:0 10px}
   .tbar .btn.coral span.t,.tbar .tact a.btn span.t{display:none}
   .tbar .tact a.btn{width:36px;padding:0}
+  .tbar .psearch{display:flex}
 }
+@media(min-width:641px){.tbar .tact a.btn,.tbar .tact [data-act="help"],.tbar .tact button.av{display:none}} /* the sidebar's switcher covers it; phones keep the button */
 @media(max-width:640px){.tbar .backbtn{width:34px;padding:0;margin-left:-6px}.tbar .backbtn span.t{display:none}}
 @media(max-width:640px){
   .side{display:none}
@@ -659,6 +762,8 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  /* the sidebar only moves when it is pressed (fold, groups, sub-pages) — keep that short motion (this PC reports reduced motion) */
+  .side,.side *{transition-duration:.18s!important}
 }
 
 </style>
@@ -927,6 +1032,9 @@ function emailOf(p){const c=company(p.cid);return p.name.toLowerCase().replace(/
 const SVG={sheet:'<rect x="3" y="4" width="18" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M3 15h18M9 4v16M15 4v16" fill="none" stroke="currentColor" stroke-width="2"/>',sun:'<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
  home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h13V10"/>',
  filter:'<path d="M4 5h16l-6.2 7.6v5.6l-3.6 1.8v-7.4z"/>',
+ panel:'<rect x="3.5" y="4.5" width="17" height="15" rx="3"/><line x1="9.5" y1="4.5" x2="9.5" y2="19.5"/>',
+ gear:'<path d="M12 2.8l8 4.6v9.2l-8 4.6-8-4.6V7.4z"/><circle cx="12" cy="12" r="2.7"/>',
+ updown:'<polyline points="8 9.5 12 5.5 16 9.5"/><polyline points="8 14.5 12 18.5 16 14.5"/>',
  users:'<circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 3-5 6-5s6 1.7 6 5"/><path d="M16 5.5a3 3 0 010 5.6"/><path d="M21 20c0-2.6-1.6-4.2-3.5-4.7"/>',
  chart:'<line x1="4" y1="20" x2="20" y2="20"/><rect x="5" y="11" width="3" height="7"/><rect x="10.5" y="5" width="3" height="13"/><rect x="16" y="14" width="3" height="4"/>',
  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
@@ -978,6 +1086,9 @@ document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
+  if(palKey(e))return;
+  if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
+  if(e.key==="Escape"&&sidePop){sidePopSet(null);return;}
   if(e.key==="Enter"&&e.target&&e.target.id==="listQ"){e.preventDefault();listBuildNow();return;}
   if(e.key==="Escape"&&fltOpen){fltOpen=null;fltSync();return;}
   if(e.key==="Escape"&&document.getElementById("scrim").classList.contains("open")){closeSheet();return;}
@@ -1074,6 +1185,203 @@ async function setPwSave(){
   }catch(e){loginMsg("Network problem — try again",true);}
 }
 function greeting(){const h=new Date().getHours();const g=h<12?"Good morning":h<18?"Good afternoon":"Good evening";return g+", "+teamById(USER).name.split(" ")[0];}
+/* ---------- the sidebar (Max, 2026-10-21, with a sidebar video: "implement them across both marketing dashboard and AutoTQ CRM…
+   make it just as seamless; use the current tabs"). One panel that folds to an icon rail (the panel button, or the logo when
+   folded; remembered per device; always folded 641–900px), a switcher under the logo (CRM ⇄ Marketing for Max and Hannah),
+   Search + Ctrl/⌘K, groups that fold, sub-pages under Leads / Field Map / Insight on a guide line, badges, Recent records,
+   Help + Settings, a this-week card and the user card with its menu. Fold / group / sub-page toggles change classes in place
+   (no re-render), so they animate; everything else is drawn by render(). ---------- */
+const SIDE_KEY="autotq_side_v1",RECENT_KEY="autotq_recent_v1";
+let SIDE=(function(){try{return Object.assign({mini:false,closed:{},open:{}},JSON.parse(localStorage.getItem(SIDE_KEY)||"{}"));}catch(e){return {mini:false,closed:{},open:{}};}})();
+let sidePop=null; /* "ws" | "user" | null — which sidebar popover is open */
+function sideSave(){try{localStorage.setItem(SIDE_KEY,JSON.stringify(SIDE));}catch(e){}}
+function sideForced(){return window.innerWidth<=900&&window.innerWidth>640;}
+function sideMini(){return SIDE.mini||sideForced();}
+const IS_MAC=/Mac|iPhone|iPad/.test(navigator.platform||"");
+const KEY_K=IS_MAC?"⌘K":"Ctrl K";
+/* sub-pages: [label, is it showing, open it] */
+const SIDE_SUBS={
+  leads:[["Leads",()=>leadsMode!=="conf",()=>{leadsMode="leads";}],["Conference leads",()=>leadsMode==="conf",()=>{leadsMode="conf";}]],
+  map:[["Demos",()=>mapMode==="demos",()=>{mapMode="demos";}],["Field reps",()=>mapMode==="reps",()=>{mapMode="reps";}],["Trained",()=>mapMode==="training",()=>{mapMode="training";}]],
+  insight:[["Dashboard",()=>insightTab==="dash",()=>{insightTab="dash";}],["Reports",()=>insightTab==="reports",()=>{insightTab="reports";}],["Distributor volume",()=>insightTab==="insights",()=>{insightTab="insights";}]]
+};
+function sideBadge(v){
+  try{
+    if(v==="activity")return actQueueFor(USER).todo.length;
+    if(v==="leads"){ensureLeads();const L=DB.leads.filter(l=>!l.removed);
+      return profile()==="outreach"?L.filter(l=>leadCat(l)==="new").length:L.filter(l=>leadRep(l)===USER&&!(l.touches||[]).some(t=>t.by===USER)).length;}
+    if(v==="invoicing")return invAccess()?ordersAll().filter(o=>o.status==="queue").length:0;
+  }catch(e){}
+  return 0;
+}
+function sideGroups(NU){
+  const groups=NU==="laresa"
+   ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["opps","chart","Pipeline"]]],
+     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
+   :railGroups(NU); /* per-profile rail (2026-10-16): sales / outreach / admin — see railGroups() */
+  const nuInv=(NU==="max"||NU==="jamie"||NU==="laresa"); /* Kellan's rail is outreach only (2026-10-16) */
+  if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]); /* Shipping tab retired 2026-10-16 */
+  return groups;
+}
+function recentList(){
+  let r=[];try{r=JSON.parse(localStorage.getItem(RECENT_KEY+":"+USER)||"[]");}catch(e){}
+  return r.map(x=>x.k==="c"?(company(x.id)?{k:"c",id:x.id,name:company(x.id).name}:null):(person(x.id)?{k:"p",id:x.id,name:person(x.id).name}:null)).filter(Boolean).slice(0,5);
+}
+function recentPush(k,id){
+  let r=[];try{r=JSON.parse(localStorage.getItem(RECENT_KEY+":"+USER)||"[]");}catch(e){}
+  if(r[0]&&r[0].k===k&&r[0].id===id)return;
+  r=[{k:k,id:id}].concat(r.filter(x=>!(x.k===k&&x.id===id))).slice(0,8);
+  try{localStorage.setItem(RECENT_KEY+":"+USER,JSON.stringify(r));}catch(e){}
+}
+function sideWeek(){
+  const W=weekOf(todayStr()),from=W[0],to=W[6],pf=dAdd(from,-7),pt=dAdd(from,-1);
+  const mine=(DB.activities||[]).filter(a=>a&&a.by===USER&&a.date);
+  const n=mine.filter(a=>{const d=localDay(a.date);return d>=from&&d<=to;}).length,p=mine.filter(a=>{const d=localDay(a.date);return d>=pf&&d<=pt;}).length;
+  return {n:n,p:p,pct:p?Math.min(100,Math.round(n/p*100)):(n?100:0)};
+}
+function sideItem(n){
+  const v=n[0],on=navOn(v),b=sideBadge(v),kids=SIDE_SUBS[v];
+  const open=kids&&(SIDE.open[v]!=null?SIDE.open[v]:on);
+  let h='<button class="sitem'+(on?" on":"")+(kids&&open?" open":"")+'" data-act="nav" data-view="'+v+'" data-tip="'+esc(n[2])+(b?" · "+b:"")+'">'+svg(n[1])+'<span class="lbl">'+esc(n[2])+'</span>'+
+   (b?'<span class="sbadge">'+b+'</span><span class="mdot"></span>':'')+
+   (kids?'<span class="skid" data-act="sidekids" data-v="'+v+'" role="button" aria-label="Show the pages under '+esc(n[2])+'">'+svg("chevR")+'</span>':'')+'</button>';
+  if(kids)h+='<div class="skids'+(open?" open":"")+'" data-kids="'+v+'"><div>'+kids.map((k,i)=>'<button class="sitem'+(on&&k[1]()?" on":"")+'" data-act="sidesub" data-view="'+v+'" data-i="'+i+'"><span class="lbl">'+esc(k[0])+'</span></button>').join("")+'</div></div>';
+  return h;
+}
+function sideHTML(NU,me){
+  const groups=sideGroups(NU);
+  const can=mktAccess(),mini=sideMini();
+  const prof=NU==="laresa"?"Billing":profile(NU)==="outreach"?"Outreach":profile(NU)==="admin"?"Admin":"Channel CRM";
+  const wk=sideWeek(),rec=recentList();
+  const ring=(function(){const r=13,c=2*Math.PI*r,o=c*(1-wk.pct/100);return '<svg class="ring" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="var(--line-2)" stroke-width="3"/><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="#3E9B4F" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+o.toFixed(1)+'" transform="rotate(-90 16 16)"/></svg>';})();
+  let nav=(VIEWAS&&admin()
+    ?'<div class="sgrp"><div class="sgrp-h" style="cursor:default"><span class="lbl sviewas">Rail: '+esc(shortName(VIEWAS))+'</span></div></div><button class="sitem sviewas" data-act="viewasoff" data-tip="Back to my view">'+svg("back")+'<span class="lbl">My view</span></button>'
+    :'');
+  nav+=groups.map(g=>{const closed=!!SIDE.closed[g[0]];const sum=g[1].reduce((s,n)=>s+sideBadge(n[0]),0);
+    return '<div class="sgrp'+(closed?" closed":"")+'" data-g="'+esc(g[0])+'"><button class="sgrp-h" data-act="sidegrp" data-g="'+esc(g[0])+'" aria-expanded="'+(!closed)+'"><span class="lbl">'+esc(g[0])+'</span>'+(sum?'<span class="sbadge gbadge" style="'+(closed?"":"display:none")+'">'+sum+'</span>':'')+svg("chevD")+'</button>'+
+     '<div class="sgrp-b"><div>'+g[1].map(sideItem).join("")+'</div></div></div>';}).join("");
+  if(rec.length){const closed=!!SIDE.closed.Recent;
+    nav+='<div class="sgrp srec'+(closed?" closed":"")+'" data-g="Recent"><button class="sgrp-h" data-act="sidegrp" data-g="Recent" aria-expanded="'+(!closed)+'"><span class="lbl">Recent</span>'+svg("chevD")+'</button><div class="sgrp-b"><div>'+
+     rec.map(r=>'<button class="sitem'+((r.k==="c"&&view==="roster"&&curCompany===r.id)||(r.k==="p"&&view==="person"&&curPerson===r.id)?" on":"")+'" data-act="'+(r.k==="c"?"roster":"person")+'" data-id="'+r.id+'" data-tip="'+esc(r.name)+'"><span class="rdot">'+esc(initials(r.name||"?"))+'</span><span class="lbl">'+esc(r.name)+'</span></button>').join("")+'</div></div></div>';}
+  return '<aside class="side"><div class="sbox">'+
+   '<div class="shead"><button class="sws'+(can||SIDE.mini?" can":"")+'" data-act="sidews" data-tip="'+(SIDE.mini&&!sideForced()?"Expand sidebar":"AutoTQ CRM")+'" aria-haspopup="'+(can?"menu":"false")+'"><span class="slogo">'+BRAND_MARK+'</span><span class="lbl"><b>AutoTQ</b><small>'+prof+'</small></span>'+(can?svg("chevD"):'')+'</button>'+
+    '<button class="sicon" data-act="sidetoggle" data-tip="Collapse sidebar" aria-label="Collapse sidebar">'+svg("panel")+'</button></div>'+
+   (can?'<div class="spop top'+(sidePop==="ws"?" open":"")+'" id="spopWs" role="menu"><div class="phd">Switch to</div>'+
+     '<button class="sitem on" data-act="sidepopclose"><span class="wsl" style="background:var(--coral-btn)">'+BRAND_MARK.replace('class="mark"','class="mark" style="width:9px;height:14px;color:#fff"')+'</span><span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button>'+
+     '<a class="sitem" href="'+MKT_URL+'" data-act="extlink"><span class="wsl" style="background:var(--ink)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.mail+'</svg></span><span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a></div>':'')+
+   '<button class="ssearch" data-act="palopen" data-tip="Search  '+KEY_K+'">'+svg("search")+'<span class="lbl">Search</span><kbd>'+KEY_K+'</kbd></button>'+
+   '<nav class="snavs" aria-label="Sections">'+nav+'</nav>'+
+   '<div class="sfoot">'+
+    '<button class="sitem" data-act="help" data-tip="How this CRM works">'+svg("help")+'<span class="lbl">How this CRM works</span></button>'+
+    '<button class="sitem" data-act="sideuser" data-tip="Settings">'+svg("gear")+'<span class="lbl">Settings</span></button>'+
+    '<button class="sweek" data-act="sideweek" data-tip="'+wk.n+' action'+(wk.n===1?"":"s")+' this week · last week '+wk.p+'"><div class="row1"><span class="lbl">This week</span><b class="lbl">'+wk.n+' <span style="color:var(--muted);font-weight:500">/ '+wk.p+' last wk</span></b></div><div class="bar"><i style="width:'+wk.pct+'%"></i></div>'+ring+'</button>'+
+    '<button class="suser" data-act="sideuser" data-tip="'+esc(me.name)+'" aria-haspopup="menu"><span class="av" style="background:'+me.c+'">'+initials(me.name)+'<i class="'+(SYNC.online?"":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline")+'"></i></span><span class="lbl"><b>'+esc(me.name)+'</b><small>'+esc(userEmail(USER)||roleShort(me))+'</small></span>'+svg("updown")+'</button>'+
+   '</div>'+
+   '<div class="spop bottom'+(sidePop==="user"?" open":"")+'" id="spopUser" role="menu">'+
+    '<div class="phd">'+esc(me.name)+' · '+esc(roleShort(me))+'</div>'+
+    (can?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><div class="sep"></div>':'')+
+    '<button class="sitem" data-act="chpw">'+svg("user")+'<span class="lbl">Change my password</span></button>'+
+    '<button class="sitem" data-act="backup">'+svg("dl")+'<span class="lbl">Back up my data</span></button>'+
+    '<button class="sitem" data-act="restorepick">'+svg("box")+'<span class="lbl">Restore from backup</span></button>'+
+    (admin()?'<button class="sitem" data-act="viewaspick">'+svg("users")+'<span class="lbl">See a teammate&#39;s tabs</span></button>':'')+
+    (admin()?'<button class="sitem" data-act="impsellers">'+svg("ware")+'<span class="lbl">Import Grainger sellers (CSV)</span></button>':'')+
+    '<div class="sep"></div>'+
+    '<button class="sitem" data-act="switch">'+svg("back")+'<span class="lbl">Sign out</span></button>'+
+    '<button class="sitem" data-act="reset" style="color:var(--dang-t)">'+svg("clock")+'<span class="lbl">Reset local data (reseed)</span></button></div>'+
+   '</div></aside>';
+}
+function sidePopSet(p){sidePop=p;const a=document.getElementById("spopWs"),b=document.getElementById("spopUser");if(a)a.classList.toggle("open",p==="ws");if(b)b.classList.toggle("open",p==="user");}
+function sideApplyMini(){
+  const c=document.querySelector(".console");if(!c)return;
+  c.classList.toggle("mini",sideMini());
+  const t=document.querySelector('.shead .sicon');if(t){t.dataset.tip=SIDE.mini?"Expand sidebar":"Collapse sidebar";t.setAttribute("aria-label",t.dataset.tip);}
+  const w=document.querySelector('.shead .sws');if(w){w.dataset.tip=SIDE.mini&&!sideForced()?"Expand sidebar":"AutoTQ CRM";w.classList.toggle("can",mktAccess()||SIDE.mini);}
+  tipHide();
+}
+/* the label beside an icon on the folded rail (one floating element, so the scrolling nav cannot clip it) */
+let tipEl=null,tipFor=null;
+function tipShow(el){
+  if(!el||!el.dataset.tip)return;
+  const c=document.querySelector(".console");const folded=c&&c.classList.contains("mini");
+  if(!folded&&!el.classList.contains("sicon"))return; /* open panel: labels are already showing; the panel button still says what it does */
+  if(!tipEl){tipEl=document.createElement("div");tipEl.id="stip";document.body.appendChild(tipEl);}
+  const r=el.getBoundingClientRect();
+  tipEl.innerHTML=esc(el.dataset.tip).replace(/  (⌘K|Ctrl K)$/,'<kbd>$1</kbd>');
+  tipEl.style.left=(r.right+10)+"px";tipEl.style.top=(r.top+r.height/2-14)+"px";
+  tipEl.classList.add("show");tipFor=el;
+}
+function tipHide(){if(tipEl)tipEl.classList.remove("show");tipFor=null;}
+document.addEventListener("mouseover",e=>{const el=e.target.closest&&e.target.closest(".side [data-tip]");if(el&&el!==tipFor)tipShow(el);else if(!el&&tipFor)tipHide();});
+document.addEventListener("scroll",tipHide,true);
+window.addEventListener("resize",()=>{clearTimeout(window.__sideRz);window.__sideRz=setTimeout(sideApplyMini,80);});
+
+/* ---------- Ctrl/⌘K: one box to jump to any tab, page, record or action ---------- */
+let PAL={q:"",sel:0,items:[]};
+function palGoto(to,pre){return ()=>{closeSheet();if(pre)pre();goView(to);};}
+function palItems(q){
+  q=String(q||"").trim().toLowerCase();
+  const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
+  const NU=(admin()&&VIEWAS)?VIEWAS:USER;
+  const tabs=[];sideGroups(NU).forEach(g=>g[1].forEach(n=>{tabs.push([n[1],n[2],g[0],palGoto(n[0])]);(SIDE_SUBS[n[0]]||[]).forEach(k=>tabs.push([n[1],k[0],n[2],palGoto(n[0],k[2])]));}));
+  const acts=[["plus","New quote","Quotes",()=>{formQuote(null,null);}],["clock","Log activity","Activity",()=>{formLog();}],["chart","New opportunity","Pipeline",()=>{formOpp(null);}],["user","New contact","Contacts",()=>{formCard();}],
+    ["help","How this CRM works","Help",()=>{helpSheet();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]];
+  if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}]);
+  const hit=s=>!q||String(s).toLowerCase().includes(q);
+  tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2]===t[1]?"":t[2],t[3]));
+  acts.filter(a=>hit(a[1])||hit(a[2])).forEach(a=>add("Actions",a[0],a[1],"",a[3]));
+  if(!q){recentList().forEach(r=>add("Recent",r.k==="c"?"ware":"user",r.name,"",()=>openRec(r.k,r.id)));return out;}
+  if(q.length<2)return out;
+  DB.companies.filter(c=>[c.name,c.state,c.city].join(" ").toLowerCase().includes(q)).slice(0,6).forEach(c=>add("Accounts","ware",c.name,[typeLabel(c.type),c.state].filter(Boolean).join(" · "),()=>openRec("c",c.id)));
+  DB.people.filter(p=>[p.name,p.email,p.branch].join(" ").toLowerCase().includes(q)).slice(0,6).forEach(p=>add("Contacts","user",p.name,[(company(p.cid)||{}).name||p.branch,p.state].filter(Boolean).join(" · "),()=>openRec("p",p.id)));
+  oppsForPick().filter(o=>[o.name,oppAcctLabel(o),oppDistLabel(o)].join(" ").toLowerCase().includes(q)).slice(0,5).forEach(o=>add("Deals","chart",o.name,oppAcctLabel(o)+" · "+(OPP_SHORT[o.stage]||o.stage),()=>{closeSheet();formOpp(o.id);}));
+  quotesForPick().filter(x=>[x.no,x.account,x.contactName,x.contactEmail].join(" ").toLowerCase().includes(q)).slice(0,5).forEach(x=>add("Quotes","tag",x.no+" · "+qAcct(x.account||""),fmtC(quoteTotal(x))+" · "+(QUOTE_ST[quoteState(x)]||QUOTE_ST.draft)[0],()=>{closeSheet();quoteSheet(x.id);}));
+  ensureLeads();DB.leads.filter(l=>!l.removed&&[l.name,l.company,l.email].join(" ").toLowerCase().includes(q)).slice(0,5).forEach(l=>add("Leads","spark",l.name,l.company||"",()=>{closeSheet();formLeadRec(l.id);}));
+  return out;
+}
+function openRec(k,id){closeSheet();pushNav();if(k==="c"){curCompany=id;rosterBranchF="";view="roster";}else{curPerson=id;view="person";}render();window.scrollTo(0,0);}
+function palDraw(){
+  const box=document.getElementById("palList");if(!box)return;
+  PAL.items=palItems(PAL.q);if(PAL.sel>=PAL.items.length)PAL.sel=Math.max(0,PAL.items.length-1);
+  if(!PAL.items.length){box.innerHTML='<div class="palempty">Nothing matches “'+esc(PAL.q)+'”.</div>';return;}
+  let g="",h="";
+  PAL.items.forEach((it,i)=>{if(it.g!==g){g=it.g;h+='<div class="palg">'+esc(g)+'</div>';}
+    h+='<button class="palit'+(i===PAL.sel?" sel":"")+'" data-act="palrun" data-i="'+i+'">'+svg(it.icon)+'<span class="t">'+esc(it.label)+(it.sub?'<small>'+esc(it.sub)+'</small>':'')+'</span>'+(i===PAL.sel?'<span class="k">↵</span>':'')+'</button>';});
+  box.innerHTML=h;
+  const s=box.querySelector(".palit.sel");if(s)s.scrollIntoView({block:"nearest"});
+}
+function palOpen(){
+  tipHide();sidePopSet(null);if(fltOpen){fltOpen=null;fltSync();}
+  let p=document.getElementById("pal");
+  if(!p){p=document.createElement("div");p.id="pal";p.className="pal";p.setAttribute("role","dialog");p.setAttribute("aria-label","Search");
+    p.innerHTML='<div class="palbox"><div class="palin">'+svg("search")+'<input id="palQ" placeholder="Search tabs, accounts, contacts, deals, quotes…" autocomplete="off" spellcheck="false"><kbd style="font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 6px">Esc</kbd></div><div class="pallist" id="palList"></div>'+
+      '<div class="palk"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>Esc</kbd> close</span></div></div>';
+    document.body.appendChild(p);
+    p.addEventListener("mousedown",e=>{if(e.target===p)palClose();});
+    p.addEventListener("mousemove",e=>{const b=e.target.closest(".palit");if(b){const i=+b.dataset.i;if(i!==PAL.sel){PAL.sel=i;p.querySelectorAll(".palit").forEach((x,k)=>{x.classList.toggle("sel",k===i);const kk=x.querySelector(".k");if(k===i&&!kk)x.insertAdjacentHTML("beforeend",'<span class="k">↵</span>');if(k!==i&&kk)kk.remove();});}}});
+    document.getElementById("palQ").addEventListener("input",e=>{PAL.q=e.target.value;PAL.sel=0;palDraw();});}
+  PAL.q="";PAL.sel=0;const i=document.getElementById("palQ");i.value="";
+  p.classList.add("open");palDraw();setTimeout(()=>i.focus(),0);
+}
+function palClose(){const p=document.getElementById("pal");if(p)p.classList.remove("open");}
+function palRun(i){const it=PAL.items[i];if(!it)return;palClose();it.run();}
+function palKey(e){
+  const p=document.getElementById("pal");if(!p||!p.classList.contains("open"))return false;
+  if(e.key==="Escape"){e.preventDefault();palClose();return true;}
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();const n=PAL.items.length;if(n){PAL.sel=(PAL.sel+(e.key==="ArrowDown"?1:-1)+n)%n;palDraw();}return true;}
+  if(e.key==="Enter"){e.preventDefault();palRun(PAL.sel);return true;}
+  return false;
+}
+function sideToggle(){
+  if(sideForced()){toast("The sidebar stays folded on a screen this narrow");return;}
+  SIDE.mini=!SIDE.mini;sidePopSet(null);sideSave();sideApplyMini();
+}
+/* one place that moves to a tab (the nav handler, the palette and the sidebar's sub-pages use it) */
+function goView(to){
+  const same=to===view&&!(to==="export"&&curList)&&!((to==="camp"||to==="campaigns")&&curCampaign);
+  if(!same)pushNav();
+  view=to;listQ="";if(to==="export")curList=null;if(to==="camp"||to==="campaigns")curCampaign=null;if(to==="team")teamDrill=null;if(to!=="search")searchQ="";if(view==="map")mapState=null;
+  render();window.scrollTo(0,0);
+}
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
@@ -1145,26 +1453,14 @@ function render(){
   else if(view==="quotes")body=viewQuotes();
   else body=viewToday();
   const NU=(admin()&&VIEWAS)?VIEWAS:USER; /* rail preview: admin sees another seat's left nav */
-  const groups=NU==="laresa"
-   ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["opps","chart","Pipeline"]]],
-     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
-   :railGroups(NU); /* per-profile rail (2026-10-16): sales / outreach / admin — see railGroups() */
-  const nuInv=(NU==="max"||NU==="jamie"||NU==="laresa"); /* Kellan's rail is outreach only (2026-10-16) */
-  if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]); /* Shipping tab retired 2026-10-16 (under-used); its code stays */
-  const sideNav=(VIEWAS&&admin()
-    ?'<div class="grp" style="color:var(--coral,#e8543f)">Rail: '+esc(teamById(VIEWAS).name.split(" ")[0]+(VIEWAS==="johnm"?" M.":VIEWAS==="john"?" C.":""))+'</div>'+
-     '<button data-act="viewasoff" style="color:var(--coral,#e8543f)">'+svg("back")+'<span>My view</span></button>'
-    :'')+
-   groups.map(g=>'<div class="grp">'+g[0]+'</div>'+
-   g[1].map(n=>'<button class="'+(navOn(n[0])?"on":"")+'" data-act="nav" data-view="'+n[0]+'" title="'+n[2]+'">'+svg(n[1])+'<span>'+n[2]+'</span></button>').join("")).join("");
+  if(view==="person"&&pn)recentPush("p",pn.id);if(view==="roster"&&cc)recentPush("c",cc.id);
+  const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML=
-  '<div class="console"><aside class="side"><div class="brand">'+BRAND_MARK+'<div><div class="wm">AutoTQ</div><small>'+(NU==="laresa"?"Billing":profile(NU)==="outreach"?"Outreach":profile(NU)==="admin"?"Admin":"Channel CRM")+'</small></div></div>'+
-   '<nav>'+sideNav+'</nav>'+
-   '<div class="su"><span class="av" style="background:'+me.c+'">'+initials(me.name)+'</span><div class="grow"><b>'+me.name.split(" ")[0]+'</b><small>'+roleShort(me)+'</small></div><button class="ibtn" data-act="menu" title="Menu" aria-label="Menu">'+svg("dots")+'</button></div></aside>'+
+  '<div class="console'+(sideMini()?" mini":"")+'">'+sideHTML(NU,me)+
    '<div class="work"><header class="tbar">'+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
     '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+subs[view]+'</div></div>'+
     '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts & contacts…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
-    '<div class="tact">'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
+    '<div class="tact"><button class="ibtn psearch" data-act="palopen" title="Search" aria-label="Search">'+svg("search")+'</button>'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
     '<button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>'+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline — changes will sync when you\'re back")+'">'+(SYNC.online?"":"Offline")+'</span>'+
     '<button class="ibtn" data-act="help" title="How this CRM works" aria-label="How this CRM works">'+svg("help")+'</button>'+
@@ -1174,6 +1470,7 @@ function render(){
      '<button class="plus" data-act="addhub"><span class="bubble">'+svg("plus")+'</span></button>'+
      (NU==="laresa"?navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts"):profile(NU)==="outreach"?navbtn("export","dl","Lists")+navbtn("activity","clock","Activity"):navbtn("opps","chart","Pipeline")+navbtn("leads","spark","Leads"))+'</div>'+
    '</div></div>';
+  {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   applyColW();
   topScrollSync();
   fitZoom();
@@ -6785,6 +7082,7 @@ document.addEventListener("change",e=>{
 
 document.addEventListener("click",e=>{
   if(fltOpen&&!(e.target.closest&&e.target.closest(".fwrap"))){fltOpen=null;fltSync();}
+  if(sidePop&&!(e.target.closest&&e.target.closest('[data-act="sidews"],[data-act="sideuser"]')))sidePopSet(null);
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
@@ -6807,11 +7105,19 @@ document.addEventListener("click",e=>{
   if(a==="fltclose"){fltOpen=null;fltSync();return;}
   if(a==="fltreset"){const f=FLT_RESET[t.dataset.k];if(f){f();render();}return;}
   if(a==="goback"){goBack(t.dataset.fb);return;}
-  if(a==="nav"){const to=t.dataset.view;closeSheet();
-    const same=to===view&&!(to==="export"&&curList)&&!((to==="camp"||to==="campaigns")&&curCampaign);
-    if(!same)pushNav();
-    view=to;listQ="";if(to==="export")curList=null;if(to==="camp"||to==="campaigns")curCampaign=null;if(to==="team")teamDrill=null;if(to!=="search")searchQ="";if(view==="map")mapState=null;
-    render();window.scrollTo(0,0);return;}
+  if(a==="nav"){closeSheet();const to=t.dataset.view;if(SIDE_SUBS[to]&&SIDE.open[to]===false){delete SIDE.open[to];sideSave();}goView(to);return;}
+  if(a==="sidetoggle"){sideToggle();return;}
+  if(a==="sidews"){if(SIDE.mini&&!sideForced()){sideToggle();return;}if(mktAccess())sidePopSet(sidePop==="ws"?null:"ws");return;}
+  if(a==="sideuser"){sidePopSet(sidePop==="user"?null:"user");return;}
+  if(a==="sidepopclose"){sidePopSet(null);return;}
+  if(a==="sidegrp"){const g=t.dataset.g,box=t.closest(".sgrp");SIDE.closed[g]=!SIDE.closed[g];sideSave();
+    if(box){box.classList.toggle("closed",!!SIDE.closed[g]);const gb=box.querySelector(".gbadge");if(gb)gb.style.display=SIDE.closed[g]?"":"none";}t.setAttribute("aria-expanded",!SIDE.closed[g]);return;}
+  if(a==="sidekids"){e.preventDefault();const v=t.dataset.v,item=t.closest(".sitem"),kids=document.querySelector('.skids[data-kids="'+v+'"]');
+    const open=!(kids&&kids.classList.contains("open"));SIDE.open[v]=open;sideSave();if(item)item.classList.toggle("open",open);if(kids)kids.classList.toggle("open",open);return;}
+  if(a==="sidesub"){const v=t.dataset.view,k=(SIDE_SUBS[v]||[])[+t.dataset.i];if(k){closeSheet();k[2]();SIDE.open[v]=true;sideSave();goView(v);}return;}
+  if(a==="sideweek"){actMode="week";actDate=todayStr();closeSheet();goView("activity");return;}
+  if(a==="palopen"){palOpen();return;}
+  if(a==="palrun"){palRun(+t.dataset.i);return;}
   if(a==="invupload"){document.getElementById("poFiles").click();return;}
   if(a==="invcsv"){document.getElementById("poCsv").click();return;}
   if(a==="invadd"){formOrder(null);return;}
