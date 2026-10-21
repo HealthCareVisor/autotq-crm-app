@@ -120,6 +120,29 @@ button.pill{border:0;cursor:pointer;font-family:inherit;font-size:11.5px}
 .lvtabs button.on{background:var(--coral-t);border-color:rgba(216,90,48,.45);color:var(--coral-tt)}
 .lvtabs .cnt{font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 .lvtabs button.on .cnt{color:var(--coral-text)}
+/* one filter button per list (2026-10-21): every filter chip row folds into its panel */
+.fwrap{position:relative;display:inline-flex;align-items:center;gap:10px;min-width:0;max-width:100%}
+.fbtn{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;border:1px solid var(--line);background:var(--surface);border-radius:10px;
+  font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.fbtn:hover{border-color:var(--line-3);color:var(--ink)}
+.fbtn svg.i{width:16px;height:16px;stroke-width:2}
+.fbtn.on{border-color:rgba(216,90,48,.5);color:var(--coral-tt);background:var(--coral-t)}
+.fbtn em{font-style:normal;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--coral-btn);color:#fff;font-size:11px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums}
+.fwrap.open .fbtn{border-color:var(--line-3);box-shadow:var(--sh-1)}
+.fsum{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:pointer}
+.fsum b{color:var(--ink-2);font-weight:600}
+.fpop{display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:70;width:min(400px,calc(100vw - 32px));max-height:min(72vh,600px);overflow:auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh-pop);padding:14px 14px 12px}
+.fwrap.open .fpop{display:block}
+.fgrp+.fgrp{margin-top:14px}
+.flbl{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.fopts{display:flex;flex-wrap:wrap;gap:6px}
+.fopts .qchip .cnt{font-size:11.5px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.fopts .qchip.on .cnt{color:var(--coral-text)}
+.fopts .f,.fopts select{margin:0}
+.ffoot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line-2)}
+@media (max-width:640px){.fpop{position:fixed;left:12px;right:12px;top:auto;bottom:84px;width:auto;max-height:62vh}.fsum{max-width:52vw}}
 .seg{display:flex;background:var(--sunken);border-radius:11px;padding:3px;gap:2px;margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;min-height:30px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:550;color:var(--muted);white-space:nowrap;
   transition:background .15s,color .15s,box-shadow .15s}
@@ -607,7 +630,8 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
   .tbar .gs{display:none}
   .tbar .tact{margin-left:auto}
   .tbar .btn.coral{min-width:36px;padding:0 10px}
-  .tbar .btn.coral span.t{display:none}
+  .tbar .btn.coral span.t,.tbar .tact a.btn span.t{display:none}
+  .tbar .tact a.btn{width:36px;padding:0}
 }
 @media(max-width:640px){.tbar .backbtn{width:34px;padding:0;margin-left:-6px}.tbar .backbtn span.t{display:none}}
 @media(max-width:640px){
@@ -882,6 +906,7 @@ function demoSeed(){
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let VIEWAS=null; /* admin rail preview — render-only, never changes who's logged in */
 let curList=null, regionF="", acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let fltOpen=null; const FLT_RESET={}; /* the one filter button per list — see filterBar() */
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
   else{b.companies=[];b.people=[];b.manrep=[];b.demos=[];b.opps=[];b.confLeads=[];b.skus=[];b.tasks=[];b.activities=[];b.quotes=[];b.wifiSubs=0;} // hosted app: the book arrives from the server after sign-in
@@ -901,6 +926,7 @@ function emailOf(p){const c=company(p.cid);return p.name.toLowerCase().replace(/
 
 const SVG={sheet:'<rect x="3" y="4" width="18" height="16" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M3 15h18M9 4v16M15 4v16" fill="none" stroke="currentColor" stroke-width="2"/>',sun:'<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',moon:'<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
  home:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h13V10"/>',
+ filter:'<path d="M4 5h16l-6.2 7.6v5.6l-3.6 1.8v-7.4z"/>',
  users:'<circle cx="9" cy="8" r="3.4"/><path d="M3 20c0-3.3 3-5 6-5s6 1.7 6 5"/><path d="M16 5.5a3 3 0 010 5.6"/><path d="M21 20c0-2.6-1.6-4.2-3.5-4.7"/>',
  chart:'<line x1="4" y1="20" x2="20" y2="20"/><rect x="5" y="11" width="3" height="7"/><rect x="10.5" y="5" width="3" height="13"/><rect x="16" y="14" width="3" height="4"/>',
  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
@@ -953,6 +979,7 @@ document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(e.key==="Enter"&&e.target&&e.target.id==="listQ"){e.preventDefault();listBuildNow();return;}
+  if(e.key==="Escape"&&fltOpen){fltOpen=null;fltSync();return;}
   if(e.key==="Escape"&&document.getElementById("scrim").classList.contains("open")){closeSheet();return;}
   if(e.key==="/"&&!e.metaKey&&!e.ctrlKey&&!e.altKey){const ae=document.activeElement;
     if(ae&&(/INPUT|TEXTAREA|SELECT/.test(ae.tagName)||ae.isContentEditable))return;
@@ -1516,6 +1543,7 @@ function companyRegion(c){const t=c.territory||"";if(/^nationwide/i.test(t))retu
 function userRegion(u){return u==="tim"?"West":(u==="john"?"Central":(u==="jamie"||u==="johnm"?"East":null));}
 function inRegion(region){return true;} /* all reps see all records — filter by region chips instead */
 function regionMatch(r){return !regionF||r===regionF||r==="Nationwide";}
+function regionGroup(){return fltGroup("Region","regionf",[["","All regions"],["East","East"],["Central","Central"],["West","West"]],regionF,"",{sumOf:v=>v||""});}
 function regionSeg(){return '<div class="seg" style="max-width:300px;margin:0">'+[["","All"],["East","East"],["Central","Central"],["West","West"]].map(x=>'<button class="'+(regionF===x[0]?"on":"")+'" data-act="regionf" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';}
 function regionTag(region){if(!region)return '<span class="muted">—</span>';const cls={East:"info",Central:"warn",West:"ok",Nationwide:"coral"}[region]||"gray";return '<span class="pill '+cls+'">'+region+'</span>';}
 
@@ -1539,13 +1567,8 @@ function viewAccounts(){
   if(q)pool=pool.filter(c=>(c.name||"").toLowerCase().includes(q)||(c.state||"").toLowerCase().includes(q)||(c.territory||"").toLowerCase().includes(q));
   const cc=contactCountMap(),s=sortState.accounts;
   pool=pool.slice().sort((a,b)=>cmpv(accountVal(a,s.key,cc),accountVal(b,s.key,cc))*s.dir);
-  const tab=(v,l,n)=>'<button class="'+(acctFilter===v?"on":"")+'" data-act="acctfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
-  let h='<div class="lvhead"><div class="lvtabs">'+
-    tab("all","All",base.length)+
-    tab("potential","Potential distributors",cnt.potential)+
-    tab("setup","Set-up distributors",cnt.setup)+
-    tab("enduser","End-user accounts",cnt.enduser)+
-    tab("manrep","Man-Rep Groups",cnt.manrep)+'</div>'+regionSeg()+
+  FLT_RESET.accts=()=>{acctFilter="setup";regionF="";};
+  let h='<div class="lvhead">'+filterBar("accts",[fltGroup("Accounts","acctfilter",[["all","All",base.length],["potential","Potential distributors",cnt.potential],["setup","Set-up distributors",cnt.setup],["enduser","End-user accounts",cnt.enduser],["manrep","Man-rep groups",cnt.manrep]],acctFilter,"setup"),regionGroup()])+
     '<div class="lvsearch"><input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?accountTableHTML(pool,true):'<div class="empty">No accounts here yet.</div>';
   return h;
@@ -1565,10 +1588,12 @@ function viewContacts(){
   if(q)pool=pool.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q)||(p.role||"").toLowerCase().includes(q));
   const s=sortState.contacts;
   pool=pool.slice().sort((a,b)=>cmpv(contactVal(a,s.key),contactVal(b,s.key))*s.dir);
-  const tab=(v,l,n)=>'<button class="'+(contactFilter===v?"on":"")+'" data-act="contactfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
-  let h='<div class="lvhead"><div class="lvtabs">'+
-    tab("all","All",scoped.length-cnt.sellers)+tab("manrep","Man-reps",cnt.manrep)+tab("distrep","Distributor reps",cnt.distrep)+tab("enduser","End users",cnt.enduser)+(cnt.sellers?tab("sellers","Grainger sellers",cnt.sellers):"")+'</div>'+regionSeg()+
-    '<div class="lvsearch"><select id="contactState" class="lvselect"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'+
+  FLT_RESET.contacts=()=>{contactFilter="distrep";regionF="";contactStateF="";};
+  let h='<div class="lvhead">'+filterBar("contacts",[
+     fltGroup("Contacts","contactfilter",[["all","All",scoped.length-cnt.sellers],["manrep","Man-reps",cnt.manrep],["distrep","Distributor reps",cnt.distrep],["enduser","End users",cnt.enduser]].concat(cnt.sellers?[["sellers","Grainger sellers",cnt.sellers]]:[]),contactFilter,"distrep"),
+     regionGroup(),
+     {t:"State",cur:contactStateF,def:"",sumOf:v=>v||"",html:'<select id="contactState" class="f" style="max-width:220px"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'}])+
+     '<div class="lvsearch">'+
     '<input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?contactTableHTML(pool,true):'<div class="empty">No contacts here.</div>';
   return h;
@@ -1656,7 +1681,8 @@ function viewToday(){
     /* admins see the team's actions, not a pipeline (Max, 2026-10-16); the pipeline has its own tab */
     const actsW=(DB.activities||[]).filter(a=>String(a.date).slice(0,10)>=W&&(!scopeRep||a.by===scopeRep)),actsT=actsW.filter(a=>String(a.date).slice(0,10)===T);
     const inToday=GH_REPS.concat(["jamie","max","hannah"]).filter(id=>usageFor(id,T,T).mins>0||usageFor(id,T,T).days>0).length;
-    h+='<div class="qa-types" style="margin-bottom:12px"><span class="lbl">Show</span><span class="qchip'+(!scopeRep?" on":"")+'" data-act="homerep" data-v="">Everyone</span>'+GH_REPS.map(id=>'<span class="qchip'+(scopeRep===id?" on":"")+'" data-act="homerep" data-v="'+id+'" style="'+(scopeRep===id?'border-color:'+teamById(id).c+';color:'+teamById(id).c:'')+'">'+esc(shortName(id))+'</span>').join("")+'</div>';
+    FLT_RESET.home=()=>{logState.homeRep="";};
+    h+='<div class="lvhead" style="margin-bottom:12px">'+filterBar("home",[fltGroup("Whose week","homerep",[["","Everyone"]].concat(GH_REPS.map(id=>[id,shortName(id)])),scopeRep,"",{sumOf:(v,o)=>o?(v?o[1]:"Everyone"):""})])+'</div>';
     h+=kpiRow([["Actions this week",actsW.length,actsT.length+" today"],["Visits",actsW.filter(isVisit).length,"in person this week"],["Follow-ups waiting",qAll.todo.length+qAll.old.length,qAll.old.length+" stale (14+ days)",qAll.old.length?"warn":""],[scopeRep?"In the CRM today":"In the CRM today",scopeRep?fmtMins(usageFor(scopeRep,T,T).mins):inToday,scopeRep?"last active "+lastActive(scopeRep):"people signed in"]]);
   }
   h+='<div class="planbar" style="margin-bottom:22px"><input class="qa-input" id="taskTitle" placeholder="Add an action for today…" autocomplete="off">'+
@@ -1936,10 +1962,8 @@ function viewRoster(cid){
   const brCnt={};reps.forEach(p=>{const b=(p.city||"").trim();brCnt[b||"—"]=(brCnt[b||"—"]||0)+1;});
   const branches=Object.keys(brCnt).filter(b=>b!=="—").sort((a,b)=>brCnt[b]-brCnt[a]||a.localeCompare(b));
   if(reps.length>6&&branches.length>1){
-    const bchip=(v,l,n)=>'<button class="'+(rosterBranchF===v?"on":"")+'" data-act="rosterbranch" data-v="'+esc(v)+'">'+esc(l)+' <span class="cnt">'+n+'</span></button>';
-    h+='<div class="lvhead" style="margin:0 0 8px"><div class="lvtabs">'+bchip("","All branches",reps.length)+
-       branches.slice(0,14).map(b=>bchip(b,b,brCnt[b])).join("")+
-       (brCnt["—"]?bchip("—","No branch",brCnt["—"]):"")+'</div></div>';
+    FLT_RESET.branch=()=>{rosterBranchF="";};
+    h+='<div class="lvhead" style="margin:0 0 8px">'+filterBar("branch",[fltGroup("Branch","rosterbranch",[["","All branches",reps.length]].concat(branches.map(b=>[b,b,brCnt[b]]),brCnt["—"]?[["—","No branch",brCnt["—"]]]:[]),rosterBranchF,"",{sumOf:(v,o)=>o?o[1]:""})])+'</div>';
     if(rosterBranchF)repsShown=reps.filter(p=>((p.city||"").trim()||"—")===rosterBranchF);
   }
   h+=repsShown.length?contactTableOrgHTML(repsShown):'<div class="empty">No contacts at this account yet — add the first one above.</div>';
@@ -2156,6 +2180,7 @@ function demoEngageHTML(){
     if(rs.length)h+='<div class="sectlabel">'+g[1]+' — '+rs.length+'</div>'+rs.map(row).join("");});
   return h;
 }
+FLT_RESET.map=()=>{mapSellers=true;};
 function viewMap(){
   var byState={};
   if(mapMode==="reps"){
@@ -2179,7 +2204,7 @@ function viewMap(){
   var nst=Object.keys(byState).length;
   var h='<div class="lvhead" style="margin-bottom:10px"><div class="seg" style="max-width:400px;margin:0"><button class="'+(mapMode==="demos"?"on":"")+'" data-act="mapmode" data-v="demos">Demos</button><button class="'+(mapMode==="reps"?"on":"")+'" data-act="mapmode" data-v="reps">Field reps</button><button class="'+(mapMode==="training"?"on":"")+'" data-act="mapmode" data-v="training">Trained</button></div>'+
    (mapMode==="demos"?'<div class="seg" style="max-width:270px;margin:0"><button class="'+(demoView==="map"?"on":"")+'" data-act="demoview" data-v="map">Map</button><button class="'+(demoView==="list"?"on":"")+'" data-act="demoview" data-v="list">List</button><button class="'+(demoView==="engage"?"on":"")+'" data-act="demoview" data-v="engage">Engagement</button></div>':'')+
-   (mapMode==="reps"?'<button class="btn sm'+(mapSellers?' coral':'')+'" data-act="mapsellers" style="margin:0">'+(mapSellers?"✓ ":"")+'Grainger sellers</button>':'')+
+   (mapMode==="reps"?filterBar("map",[fltGroup("Grainger sellers","mapsellers",[["1","Show them"],["0","Hide them"]],mapSellers?"1":"0","1",{sumOf:v=>v==="0"?"No Grainger sellers":""})]):'')+
    '<button class="travel" style="width:auto;flex:none;margin:0;padding:10px 14px" data-act="travel">'+svg("plane")+'Traveling soon?</button></div>';
   if(mapMode==="demos"&&demoView==="list"){return h+'<div class="sectlabel">Demos in the field — '+(DB.demos||[]).length+'</div>'+demoListHTML();}
   if(mapMode==="demos"&&demoView==="engage"){return h+demoEngageHTML();}
@@ -2763,7 +2788,7 @@ const CONF_SEGS=[["End User","End users"],["Distributor/Rep","Distributors / rep
 function confLeadSeg(l){return l.segment||"End User";}
 function confSegTag(s){return '<span class="pill '+(s==="Distributor/Rep"?"coral":s==="Set Aside"?"gray":"info")+'">'+esc({"End User":"End user","Distributor/Rep":"Distributor / rep","Set Aside":"Set aside"}[s]||s||"—")+'</span>';}
 function confLeadInLeads(cl){ensureLeads();const em=String(cl.email||"").toLowerCase();return DB.leads.find(x=>!x.removed&&(x.refId===cl.id||(em&&String(x.email||"").toLowerCase()===em)));}
-function confLeadsBody(conf){
+function confLeadsBody(conf,lead){ /* lead = an extra filter group shown first (the Conference picker on the Leads tab) */
   const all=(DB.confLeads||[]).filter(l=>l.conf===conf);
   if(!all.length)return '<div class="empty">No leads loaded for this conference.</div>';
   const scoped=all.filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region));
@@ -2786,7 +2811,6 @@ function confLeadsBody(conf){
   pool=pool.filter(l=>Object.keys(lf).every(k=>fltMatch(leadFltVal(l,k),lf[k])));
   const s=sortState.leads;
   pool=pool.slice().sort((a,b)=>cmpv(leadVal(a,s.key),leadVal(b,s.key))*s.dir);
-  const tab=(v,lbl,n)=>'<button class="'+(leadFilter===v?"on":"")+'" data-act="leadfilter" data-v="'+v+'">'+lbl+' <span class="cnt">'+n+'</span></button>';
   const inLeads=scoped.filter(l=>confLeadInLeads(l)).length,inCrm=scoped.filter(l=>l.promoted).length;
   let h='';
   h+='<div class="kpis">'+
@@ -2794,9 +2818,11 @@ function confLeadsBody(conf){
    '<div class="kpi"><b>To call</b><span>'+cnt.tocall+'</span></div>'+
    '<div class="kpi"><b>Contacted</b><span>'+cnt.contacted+'</span><small>'+(cnt.all?Math.round(cnt.contacted/cnt.all*100):0)+'% worked</small></div>'+
    '<div class="kpi"><b>Pushed</b><span>'+inLeads+'</span><small>in Leads · '+inCrm+' in Contacts</small></div></div>';
-  h+='<div class="qa-types" style="margin:0 0 10px"><span class="lbl">Category</span><span class="qchip'+(!confSegF?" on":"")+'" data-act="confseg" data-v="">All '+scoped.length+'</span>'+
-   CONF_SEGS.map(c=>{const n=scoped.filter(l=>confLeadSeg(l)===c[0]).length;return n?'<span class="qchip'+(confSegF===c[0]?" on":"")+'" data-act="confseg" data-v="'+esc(c[0])+'">'+esc(c[1])+' '+n+'</span>':'';}).join("")+'</div>';
-  h+='<div class="lvhead"><div class="lvtabs">'+tab("tocall","To call",cnt.tocall)+tab("contacted","Contacted",cnt.contacted)+tab("hot","Interest",cnt.hot)+tab("aside","Set aside",cnt.aside)+tab("all","All",cnt.all)+'</div>'+
+  /* one filter button (2026-10-21): conference · category · status */
+  FLT_RESET.conf=()=>{confSegF="";leadFilter="tocall";};
+  h+='<div class="lvhead">'+filterBar("conf",[lead||null,
+     fltGroup("Category","confseg",[["","All",scoped.length]].concat(CONF_SEGS.map(c=>[c[0],c[1],scoped.filter(l=>confLeadSeg(l)===c[0]).length]).filter(o=>o[2])),confSegF,"",{sumOf:(v,o)=>v&&o?o[1]:"All categories"}),
+     fltGroup("Status","leadfilter",[["tocall","To call",cnt.tocall],["contacted","Contacted",cnt.contacted],["hot","Interest",cnt.hot],["aside","Set aside",cnt.aside],["all","All",cnt.all]],leadFilter,"tocall")])+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search name, company, email…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   if(!pool.length)return h+'<div class="empty">Nothing in this tab.</div>';
   function th(k,l){return thSort("leads",k,l);}
@@ -2937,9 +2963,7 @@ function viewConfLeadsTab(){
   const lists=confListsSorted();
   if(!lists.length)return leadsModeSeg()+'<div class="empty">No conference lead lists loaded yet.</div>';
   if(!lists.some(c=>c.conf===curConf))curConf=lists[0].conf;
-  return leadsModeSeg()+
-   '<div class="qa-types" style="margin:0 0 12px"><span class="lbl">Conference</span>'+lists.map(c=>'<span class="qchip'+(curConf===c.conf?" on":"")+'" data-act="leadsconf" data-v="'+esc(c.conf)+'">'+esc(c.conf)+' <small>'+c.total+'</small></span>').join("")+'</div>'+
-   confLeadsBody(curConf);
+  return leadsModeSeg()+confLeadsBody(curConf,fltGroup("Conference","leadsconf",lists.map(c=>[c.conf,c.conf,c.total]),curConf,undefined));
 }
 function viewLeads(){
   if(leadsMode==="conf")return viewConfLeadsTab();
@@ -2959,13 +2983,17 @@ function viewLeads(){
   pool=pool.filter(l=>Object.keys(mf).every(k=>fltMatch(mlVal(l,k),mf[k])));
   const s=sortState.myleads;
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
-  const chip=(v,label,n)=>'<button class="'+(leadsF===v?"on":"")+'" data-act="leadsfilter" data-v="'+esc(v)+'">'+esc(label)+' <span class="cnt">'+n+'</span></button>';
   let h=leadsModeSeg();
   const sales=profile()==="sales";
-  h+='<div class="lvhead"><div class="lvtabs">'+(GH_REPS.includes(USER)?chip("mine","For me",all.filter(l=>leadRep(l)===USER).length):'')+chip("","All",all.length)+
-     LEAD_CATS.map(c=>chip("cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]&&(!sales||leadRep(l)===USER)).length)).join("")+
-     chip("untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length)+'</div>'+
-     (sales?'':'<div class="qa-types" style="width:100%"><span class="lbl">Sales person</span>'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>'<span class="qchip'+(leadsF==="rep:"+id?" on":"")+'" data-act="leadsfilter" data-v="rep:'+id+'">'+esc(shortName(id))+' '+all.filter(l=>leadRep(l)===id).length+'</span>').join("")+'</div>')+
+  /* one filter button (2026-10-21): show · sales person — both write leadsF */
+  const isRep=String(leadsF||"").indexOf("rep:")===0;
+  const showOpts=(GH_REPS.includes(USER)?[["mine","For me",all.filter(l=>leadRep(l)===USER).length]]:[]).concat([["","All",all.length]],
+    LEAD_CATS.map(c=>["cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]&&(!sales||leadRep(l)===USER)).length]),[["untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length]]);
+  const lfDef=sales?"mine":"";
+  FLT_RESET.leads=()=>{leadsF=lfDef;};
+  h+='<div class="lvhead">'+filterBar("leads",[
+     fltGroup(sales?"Show":"Show · category","leadsfilter",showOpts,isRep?null:leadsF,lfDef,{sumOf:(v,o)=>o?o[1]:""}),
+     sales?null:fltGroup("Sales person","leadsfilter",GH_REPS.filter(id=>profile(id)==="sales").map(id=>["rep:"+id,shortName(id),all.filter(l=>leadRep(l)===id).length]),isRep?leadsF:"","",{sumOf:(v,o)=>o?o[1]:""})])+
      '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
      '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
   if(sales){const pl=listsPushedTo(USER);if(pl.length)h+='<div class="sectlabel" style="margin-top:4px">Call lists from outreach <span class="cnt">'+pl.filter(l=>l.items.some(x=>!x.done)).length+' open</span></div><div class="list">'+pl.map(pushedListCard).join("")+'</div><div class="sectlabel">Leads</div>';}
@@ -3336,6 +3364,28 @@ function pipeExportCsv(){
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="autotq_pipeline_"+(oppFilter||"open")+"_"+todayStr()+".csv";a.click();
   closeSheet();toast("Exported "+rows.length+" deal"+(rows.length===1?"":"s"));
 }
+/* ---------- one filter button per list (Max, 2026-10-21: "compile all of these bubbles into one little filter icon and make it
+   seamless to open and filter the list"). Every option keeps the data-act it had as a chip, so the handlers are unchanged;
+   the panel stays open across the re-render a pick causes, and closes on Done, Esc or a click anywhere else.
+   g = {t: title, act, attr ("data-v"), extra (more attributes), opts: [[value, label, count]], cur, def, sum (label in the
+   summary, or false to leave the group out of it), html (a custom control instead of chips)} ---------- */
+function fltGroup(t,act,opts,cur,def,more){return Object.assign({t:t,act:act,opts:opts,cur:cur,def:def},more||{});}
+function filterBar(key,groups){
+  groups=groups.filter(g=>g&&(g.html||(g.opts&&g.opts.length>1)));
+  if(!groups.length)return '';
+  const isOn=g=>g.def!==undefined&&g.cur!==g.def&&!(g.def===""&&g.cur==null);
+  const active=groups.filter(isOn).length;
+  const label=g=>{const o=(g.opts||[]).find(o=>o[0]===g.cur);return g.sumOf?g.sumOf(g.cur,o):(o?o[1]:"");};
+  const sum=groups.filter(g=>g.sum!==false).map(g=>{const l=label(g);return l?(isOn(g)?'<b>'+esc(l)+'</b>':esc(l)):"";}).filter(Boolean).join(" · ");
+  const opt=(g,o)=>'<button type="button" class="qchip'+(o[0]===g.cur?" on":"")+'" data-act="'+g.act+'" '+(g.attr||"data-v")+'="'+esc(o[0])+'"'+(g.extra||"")+'>'+esc(o[1])+(o[2]!=null?' <span class="cnt">'+o[2]+'</span>':'')+'</button>';
+  return '<div class="fwrap'+(fltOpen===key?" open":"")+'" data-fkey="'+key+'">'+
+   '<button type="button" class="fbtn'+(active?" on":"")+'" data-act="fltopen" data-k="'+key+'" aria-haspopup="dialog" aria-expanded="'+(fltOpen===key)+'" title="Filter this list">'+svg("filter")+'<span>Filter</span>'+(active?'<em>'+active+'</em>':'')+'</button>'+
+   (sum?'<span class="fsum" data-act="fltopen" data-k="'+key+'">'+sum+'</span>':'')+
+   '<div class="fpop" role="dialog" aria-label="Filter">'+groups.map(g=>'<div class="fgrp"><div class="flbl">'+esc(g.t)+'</div><div class="fopts">'+(g.html||g.opts.map(o=>opt(g,o)).join(""))+'</div></div>').join("")+
+    '<div class="ffoot">'+(active&&FLT_RESET[key]?'<button type="button" class="btn sm ghost" data-act="fltreset" data-k="'+key+'">Reset</button>':'<span></span>')+
+    '<button type="button" class="btn sm" data-act="fltclose">Done</button></div></div></div>';
+}
+function fltSync(){document.querySelectorAll(".fwrap").forEach(w=>{const on=w.dataset.fkey===fltOpen;w.classList.toggle("open",on);const b=w.querySelector(".fbtn");if(b)b.setAttribute("aria-expanded",on);});}
 function kpiRow(items){return '<div class="kpis">'+items.map(k=>'<div class="kpi'+(k[3]?' '+k[3]:'')+'"><b>'+k[0]+'</b><span>'+k[1]+'</span><small>'+(k[2]||"")+'</small></div>').join("")+'</div>';}
 function oppKpis(list,tab){
   /* totals for the tab that's showing (after filters) — Open, Won and Lost never mix (Max, 2026-10-16) */
@@ -3358,12 +3408,10 @@ function oppMatchesF(o){
   else if(r&&oppGhRep(o)!==r)return false;
   return true;
 }
-function pipeFilterBar(pool){
-  const r=pipeRep();
-  if(ownOnly())return '<p class="t2" style="margin:-2px 0 14px">Your deals — the numbers above are yours alone.</p>';
+function pipeRepGroup(pool){ /* whose deals — a group in the pipeline's filter panel (a rep sees only their own: no group) */
+  if(ownOnly())return null;
   const reps=GH_REPS.concat(["jamie","max","house"]).filter(id=>id===USER||pool.some(o=>oppGhRep(o)===id));
-  const chip=(v,l)=>'<span class="qchip'+(r===v?" on":"")+'" data-act="pipef" data-k="rep" data-v="'+esc(v)+'">'+esc(l)+'</span>';
-  return '<div class="qa-types" style="margin:-2px 0 14px">'+(GH_REPS.includes(USER)?chip(USER,"Mine"):"")+chip("","Everyone")+reps.filter(id=>id!==USER).map(id=>chip(id,shortName(id))).join("")+(pool.some(o=>!oppGhRep(o))?chip("none","Unassigned"):"")+'</div>';
+  return fltGroup("Sales person","pipef",(GH_REPS.includes(USER)?[[USER,"Mine"]]:[]).concat([["","Everyone"]],reps.filter(id=>id!==USER).map(id=>[id,shortName(id)]),pool.some(o=>!oppGhRep(o))?[["none","Unassigned"]]:[]),pipeRep(),"",{extra:' data-k="rep"'});
 }
 function viewOpps(){
   const pool=myOpps();
@@ -3374,15 +3422,16 @@ function viewOpps(){
   let show=tabPool.filter(o=>oppMatchesF(o)&&(!q||((o.name||"")+" "+oppAcctLabel(o)+" "+oppDistLabel(o)+" "+(o.rep||"")+" "+teamById(oppGhRep(o)).name).toLowerCase().includes(q)));
   const mineP=pool.filter(oppMatchesF); /* tab counts follow the person filter */
   const cnt={open:mineP.filter(oppIsOpen).length,won:mineP.filter(o=>o.stage==="Closed Won").length,lost:mineP.filter(o=>o.stage==="Closed Lost").length};
-  const tab=(v,l,n)=>'<button class="'+(oppFilter===v?"on":"")+'" data-act="oppfilter" data-v="'+v+'">'+l+' <span class="cnt">'+n+'</span></button>';
   const vw=(oppFilter!=="open"&&oppView==="board")?"list":oppView;
   let h=oppKpis(show,oppFilter);
-  h+='<div class="lvhead"><div class="lvtabs">'+tab("open","Open",cnt.open)+tab("won","Won",cnt.won)+tab("lost","Lost",cnt.lost)+'</div>'+
+  /* one filter button (2026-10-21): open / won / lost · sales person */
+  FLT_RESET.pipe=()=>{oppFilter="open";pipeF.rep=null;};
+  h+='<div class="lvhead">'+filterBar("pipe",[fltGroup("Deals","oppfilter",[["open","Open",cnt.open],["won","Won",cnt.won],["lost","Lost",cnt.lost]],oppFilter,"open",{sumOf:(v,o)=>o?o[1]+" deals":""}),pipeRepGroup(tabPool)])+
    '<div class="seg" style="margin:0;max-width:280px">'+(oppFilter==="open"?'<button class="'+(vw==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button>':'')+'<button class="'+(vw==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button><button class="'+(vw==="fcast"?"on":"")+'" data-act="oppview" data-v="fcast">Forecast</button></div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search pipeline…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
    '<button class="btn sm" data-act="pipexport" title="Export what\'s showing to Excel">'+svg("sheet")+' Excel</button>'+
    '<button class="btn sm coral" data-act="addopp">'+svg("plus")+' New</button></div>';
-  h+=pipeFilterBar(tabPool);
+  if(ownOnly())h+='<p class="t2" style="margin:-2px 0 14px">Your deals — the numbers above are yours alone.</p>';
   logState.pipeShow=show.map(o=>o.id); /* what the Excel button exports */
   if(vw==="fcast")return h+viewForecast(show);
   if(!show.length)return h+'<div class="empty">'+(pool.length?'Nothing here'+((pipeF.region||pipeF.rep||pipeF.dist||q)?' with these filters.':'.'):'The pipeline is a clean slate — add deals as you confirm real numbers.<br><br><button class="btn coral" data-act="addopp">'+svg("plus")+' Add your first opportunity</button>')+'</div>';
@@ -3477,6 +3526,7 @@ function viewInsight(){
    Queue buckets: to follow up (recent, nobody went back) · old — never followed up (14+ days, nobody went back)
    · scheduled (a follow-up to-do exists and isn't done) · done (closed, to-do done, or a later touch with the same person). */
 let actMode="queue",actBucket="todo",actType="",actWho=null,actWeekOff=0;
+FLT_RESET.acts=()=>{actWho=null;actBucket="todo";actType="";};
 function actWhoCur(){if(ownOnly())return (actWho=USER);if(actWho===null)actWho="";return actWho;} /* a rep only ever sees their own activity */
 const ACT_FU_TYPES=["call","voicemail","email","meeting","visit","cotravel","mrtravel","demo","training"];
 function isCoTravel(a){return a.type==="cotravel"||(a.type==="visit"&&a.with==="distrep");}
@@ -3518,18 +3568,18 @@ function viewActivity(){
   const q=actQueue();
   const seg='<div class="seg" style="margin:0;max-width:420px">'+[["queue","Follow-ups"],["day","Day"],["week","Week"],["month","Month"]].map(x=>'<button class="'+(actMode===x[0]?"on":"")+'" data-act="actmode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
   const w=actWhoCur();
-  const whoChips=ownOnly()?'':'<div class="qa-types"><span class="qchip'+(w===USER?" on":"")+'" data-act="actwho" data-v="'+USER+'">Mine</span><span class="qchip'+(!w?" on":"")+'" data-act="actwho" data-v="">Everyone</span>'+
-    (TEAM.filter(t=>t.id!=="laresa"&&t.id!==USER).map(t=>'<span class="qchip'+(w===t.id?" on":"")+'" data-act="actwho" data-v="'+t.id+'" style="'+(w===t.id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(t.id))+'</span>').join(""))+'</div>';
-  let h='<div class="lvhead">'+seg+'<button class="btn sm coral" data-act="form" data-form="call" style="margin-left:auto">'+svg("plus")+' Log activity</button></div>'+whoChips;
+  /* every filter sits behind one button (2026-10-21): whose · status · kind */
+  const who=ownOnly()?null:fltGroup("Whose activity","actwho",[[USER,"Mine"],["","Everyone"]].concat(TEAM.filter(t=>t.id!=="laresa"&&t.id!==USER).map(t=>[t.id,shortName(t.id)])),w,"");
+  let list=q[actBucket]||[];
+  const KINDS=[["","All"],["calls","Calls"],["emails","Emails"],["visits","Visits"],["demos","Demos"],["training","Training"],["notes","Notes"]];
+  const counts={};list.forEach(a=>{const g=actTypeGroup(a.type);counts[g]=(counts[g]||0)+1;});
+  const groups=actMode!=="queue"?[who]:[who,
+    fltGroup("Status","actbucket",[["todo","To follow up",q.todo.length],["old","Old — never followed up",q.old.length],["sched","Scheduled",q.sched.length],["done","Done",q.done.length]],actBucket,"todo"),
+    fltGroup("Kind","acttype",KINDS.filter(g=>!g[0]||counts[g[0]]).map(g=>[g[0],g[1],g[0]?counts[g[0]]:list.length]),actType,"",{sumOf:v=>v?(KINDS.find(k=>k[0]===v)||["",""])[1]:"All kinds"})];
+  let h='<div class="lvhead">'+seg+filterBar("acts",groups)+'<button class="btn sm coral" data-act="form" data-form="call" style="margin-left:auto">'+svg("plus")+' Log activity</button></div>';
   if(actMode==="week")return h+'<div style="margin-top:12px">'+weekStripHTML(w,actDate,{title:"Week",nav:"actnav",dayNav:"actnav"})+'</div>';
   if(actMode==="month")return h+'<div style="margin-top:12px">'+monthGridHTML(w,actDate,"actnav")+'</div>';
   if(actMode==="day")return h+'<div style="margin-top:12px">'+dayAgendaHTML(w,actDate,"actnav")+'</div>';
-  const bucket=(v,l,n,cls)=>'<button class="'+(actBucket===v?"on":"")+'" data-act="actbucket" data-v="'+v+'">'+l+' <span class="cnt'+(cls&&n?' '+cls:'')+'">'+n+'</span></button>';
-  h+='<div class="lvtabs" style="margin:10px 0">'+bucket("todo","To follow up",q.todo.length)+bucket("old","Old — never followed up",q.old.length,"warnc")+bucket("sched","Scheduled",q.sched.length)+bucket("done","Done",q.done.length)+'</div>';
-  let list=q[actBucket]||[];
-  const groups=[["","All"],["calls","Calls"],["emails","Emails"],["visits","Visits"],["demos","Demos"],["training","Training"],["notes","Notes"]];
-  const counts={};list.forEach(a=>{const g=actTypeGroup(a.type);counts[g]=(counts[g]||0)+1;});
-  h+='<div class="qa-types" style="margin-bottom:12px"><span class="lbl">Kind</span>'+groups.filter(g=>!g[0]||counts[g[0]]).map(g=>'<span class="qchip'+(actType===g[0]?" on":"")+'" data-act="acttype" data-v="'+g[0]+'">'+g[1]+(g[0]?' '+counts[g[0]]:'')+'</span>').join("")+'</div>';
   if(actType)list=list.filter(a=>actTypeGroup(a.type)===actType);
   if(!list.length)return h+'<div class="empty">'+(actBucket==="todo"?'Nothing waiting on a follow-up.':actBucket==="old"?'Nothing has gone stale — every touch got a follow-up.':actBucket==="sched"?'No follow-ups scheduled.':'Nothing here yet.')+'</div>';
   if(actBucket==="done")list=list.slice(0,80);
@@ -3744,7 +3794,7 @@ function teamStats(id){
   const quotes=quotesAll().filter(q=>q.by===id&&inTeamRange(q.date||q.createdAt));
   const touches=(DB.activities||[]).filter(a=>a.by===id&&inTeamRange(a.date));
   return {won,open,quotes,touches,ords,sold:ords.reduce((s,o)=>s+(o.amount||0),0),soldUnits:ords.reduce((s,o)=>s+orderUnits(o),0),
-    quoted:quotes.reduce((s,q)=>s+quoteTotal(q),0),quotedUnits:quotes.reduce((s,q)=>s+kitQty(q.items),0),openAmt:open.reduce((s,o)=>s+(o.amount||0),0)};
+    quoted:quotes.reduce((s,q)=>s+quoteTotal(q),0),quotedUnits:quotes.reduce((s,q)=>s+quoteUnits(q),0),openAmt:open.reduce((s,o)=>s+(o.amount||0),0)};
 }
 function outreachStats(id){
   ensureLeads();const L=DB.leads.filter(l=>!l.removed);
@@ -3771,7 +3821,7 @@ function teamKpis(who){
   return [
    ["trained","Distributor reps trained",trained.size,"no end-users",acts.filter(a=>a.type==="training"&&isDistPerson(person(a.pid)))],
    ["cotravel","Co-travel w/ distributor rep",acts.filter(isCoTravel).length,"visits with a distributor rep",acts.filter(isCoTravel)],
-   ["uq","Units quoted",quotes.reduce((s,q)=>s+kitQty(q.items),0),quotes.length+" quotes",quotes],
+   ["uq","Units quoted",quotes.reduce((s,q)=>s+quoteUnits(q),0),quotes.length+" quotes",quotes],
    ["us","Units sold",(DB.orders||[]).filter(o=>orderIsSale(o)&&inTeamRange(o.poDate)&&(!who||orderRep(o)===who)).reduce((s,o)=>s+orderUnits(o),0),(DB.orders||[]).filter(o=>orderIsSale(o)&&inTeamRange(o.poDate)&&(!who||orderRep(o)===who)).length+" orders",(DB.orders||[]).filter(o=>orderIsSale(o)&&inTeamRange(o.poDate)&&(!who||orderRep(o)===who))],
    ["clc","Conf leads called",touched.length,"of "+cl.length,touched],
    ["demo","Demo units sent",demoUnits,(who?"team-wide · ":"")+"loaners + demo lines on POs",orders.filter(o=>o.status==="loaner"||(o.items||[]).some(i=>i.sku==="Demo unit"))],
@@ -3784,8 +3834,14 @@ function teamKpis(who){
 function viewTeam(){
   const r=teamRange();
   const presets=[["month","This month"],["quarter","This quarter"],["ytd","Year to date"],["90","Last 90 days"],["all","All time"]];
-  let h='<div class="reccard" style="margin-bottom:14px"><div class="row" style="gap:10px;flex-wrap:wrap"><span class="lbl" style="font-weight:600">Date range</span><div class="qa-types">'+presets.map(p=>'<span class="qchip'+(teamR.preset===p[0]?" on":"")+'" data-act="teampreset" data-v="'+p[0]+'">'+p[1]+'</span>').join("")+'</div>'+
-   '<input class="f" type="date" id="teamFrom" value="'+esc(teamR.preset==="custom"?teamR.from:r[0]==="2000-01-01"?"":r[0])+'" style="margin:0;width:150px;flex:none"><span class="t2">to</span><input class="f" type="date" id="teamTo" value="'+esc(teamR.preset==="custom"?teamR.to:r[1]==="2999-12-31"?"":r[1])+'" style="margin:0;width:150px;flex:none"></div></div>';
+  const presetLbl={};presets.forEach(p=>presetLbl[p[0]]=p[1]);
+  const dateHtml=presets.map(p=>'<button type="button" class="qchip'+(teamR.preset===p[0]?" on":"")+'" data-act="teampreset" data-v="'+p[0]+'">'+p[1]+'</button>').join("")+
+   '<div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:4px"><input class="f" type="date" id="teamFrom" value="'+esc(teamR.preset==="custom"?teamR.from:r[0]==="2000-01-01"?"":r[0])+'" style="flex:1;min-width:0"><span class="t2">to</span>'+
+   '<input class="f" type="date" id="teamTo" value="'+esc(teamR.preset==="custom"?teamR.to:r[1]==="2999-12-31"?"":r[1])+'" style="flex:1;min-width:0"></div>';
+  FLT_RESET.team=()=>{teamR={preset:"ytd",from:"",to:""};teamSel="";teamDrill=null;};
+  let h='<div class="lvhead" style="margin-bottom:14px">'+filterBar("team",[
+     {t:"Date range",cur:teamR.preset,def:"ytd",html:dateHtml,sumOf:v=>v==="custom"?((teamR.from?usDate(teamR.from):"…")+" – "+(teamR.to?usDate(teamR.to):"…")):(presetLbl[v]||"")},
+     fltGroup("KPIs for","teamsel",[["","Whole team"]].concat(GH_REPS.map(id=>[id,shortName(id)])),teamSel,"",{attr:"data-rep",sumOf:(v,o)=>v&&o?"KPIs: "+o[1]:""})])+'</div>';
   const reps=GH_REPS.filter(id=>profile(id)==="sales").map(id=>Object.assign({id:id,t:teamById(id)},teamStats(id)));
   const on=(id,k)=>teamDrill&&teamDrill.rep===id&&teamDrill.k===k?" on":"";
   const line=(id,k,l,v)=>'<button class="stat'+on(id,k)+'" data-act="teamdrill" data-rep="'+id+'" data-k="'+k+'"><span>'+l+'</span><b>'+v+'</b></button>';
@@ -3810,7 +3866,7 @@ function viewTeam(){
   /* Hannah's KPIs */
   const kp=teamKpis(teamSel);
   h+='<div class="lvhead" style="margin-top:18px"><div class="sectlabel" style="margin:0">KPIs — '+(teamSel?esc(teamById(teamSel).name):"whole team")+'</div>'+
-   '<div class="qa-types" style="margin-left:auto"><span class="qchip'+(!teamSel?" on":"")+'" data-act="teamsel" data-rep="">Everyone</span>'+GH_REPS.map(id=>'<span class="qchip'+(teamSel===id?" on":"")+'" data-act="teamsel" data-rep="'+id+'" style="'+(teamSel===id?'border-color:'+teamById(id).c+';color:'+teamById(id).c:'')+'">'+esc(shortName(id))+'</span>').join("")+'</div></div>'+
+   '</div>'+
    '<div class="kpis ktiles">'+kp.map(k=>'<button class="kpi fill'+(teamDrill&&teamDrill.k==="kpi:"+k[0]?" on":"")+'" data-act="teamdrill" data-rep="" data-k="kpi:'+k[0]+'"><span>'+k[2]+'</span><b>'+k[1]+'</b><small>'+k[3]+'</small></button>').join("")+'</div>';
   if(teamDrill){
     let title="",body="";
@@ -5645,14 +5701,15 @@ function qItemName(it){const c=qCat(it.sku);return c?c[1]:(it.name||it.sku||"");
 function qLine(it){return Math.round((+it.qty||0)*(+it.unit||0)*100)/100;}
 function quoteSubtotal(q){return Math.round((q.items||[]).reduce((s,it)=>s+qLine(it),0)*100)/100;}
 function quoteShipping(q){return q.shipping===""||q.shipping==null?null:(+q.shipping||0);}
-function quoteTotal(q){return Math.round((quoteSubtotal(q)+(quoteShipping(q)||0))*100)/100;}
+function quoteTotal(q){if(q&&q.ext)return Math.round((+q.total||0)*100)/100;return Math.round((quoteSubtotal(q)+(quoteShipping(q)||0))*100)/100;}
+function quoteUnits(q){return kitQty(q.items)+(q&&q.ext?(+q.extUnits||0):0);}
 function quotesAll(){return (DB.quotes||[]).filter(q=>q&&q.no).sort((a,b)=>String(b.createdAt||b.date||"").localeCompare(String(a.createdAt||a.date||"")));}
 function quoteById(id){return (DB.quotes||[]).find(q=>q&&q.no&&q.id===id);}
 function quoteValidThrough(q){const d=new Date(String(q.date||todayStr()).slice(0,10)+"T12:00:00");d.setDate(d.getDate()+(+q.validDays||30));return ymd(d);}
 /* a draft or sent quote past its valid-through date reads as expired — the stored status is left alone */
 function quoteState(q){return (q.status==="draft"||q.status==="sent"||!q.status)&&quoteValidThrough(q)<todayStr()?"expired":(q.status||"draft");}
 function quoteChip(q){const s=QUOTE_ST[quoteState(q)]||QUOTE_ST.draft;return '<span class="pill '+s[1]+'">'+s[0]+'</span>';}
-function quoteItemsSummary(q){return (q.items||[]).map(it=>(+it.qty||0)+"× "+qItemName(it)).join(" + ");}
+function quoteItemsSummary(q){if(q.ext)return (q.extUnits?q.extUnits+"× AutoTQ Kit · ":"")+"Existing quote"+(q.fname?" · "+q.fname:"");return (q.items||[]).map(it=>(+it.qty||0)+"× "+qItemName(it)).join(" + ");}
 function nextQuoteNo(){
   const d=todayStr(),stem="Q-"+d.slice(2,4)+d.slice(5,7)+d.slice(8,10)+"-";
   const n=(DB.quotes||[]).reduce((m,q)=>q&&q.no&&q.no.indexOf(stem)===0?Math.max(m,parseInt(q.no.slice(stem.length),10)||0):m,0);
@@ -5824,9 +5881,98 @@ function saveQuote(mode){
   quoteSheet(q.id);toast("Quote "+q.no+(fresh?" saved":" updated"));
 }
 
+/* ----- an existing quote: one made outside the CRM (a PDF, Word, the MARCH letterhead…) added so it sits in Quotes with the
+   rest — its file, number, customer, total and where it stands (Max, 2026-10-21: "add an add existing quote button") ----- */
+function formQuoteExt(id){
+  const q=id?quoteById(id):null;
+  logState.qx={id:q?q.id:null,cid:q?q.cid:null,status:q?(q.status||"sent"):"sent",fileObj:null};
+  const v=k=>esc(q&&q[k]!=null?String(q[k]):"");
+  openSheet('<h2>'+(q?'Edit '+esc(q.no):'Add an existing quote')+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">A quote made outside the CRM. It shows in Quotes with the others.</p>'+
+   '<label class="fl">Quote file <span style="font-weight:400;color:var(--hint)">— optional; the number and company fill in from a name like “Quote Q-261020-01 Hendrick.pdf”</span></label>'+
+   '<input class="f" type="file" id="qxFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">'+(q&&q.fname?'<p class="t2" style="margin:4px 0 0">On file: '+esc(q.fname)+' — pick a new one to replace it</p>':'')+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Quote number</label><input class="f" id="qxNo" autocomplete="off" value="'+v("no")+'" placeholder="Q-260928-01"></div>'+
+   '<div style="width:170px"><label class="fl">Quote date</label><input class="f" type="date" id="qxDate" value="'+(q?esc(q.date||todayStr()):todayStr())+'"></div></div>'+
+   '<label class="fl">Quote for</label>'+comboField("qxAcct","Company — pick an account or type a name",q?q.account:"")+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Customer name</label><input class="f" id="qxCon" autocomplete="off" value="'+v("contactName")+'" placeholder="First and last name"></div>'+
+   '<div class="grow"><label class="fl">Customer email</label><input class="f" id="qxEmail" type="email" inputmode="email" autocomplete="off" value="'+v("contactEmail")+'" placeholder="name@company.com"></div></div>'+
+   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Quote total</label><input class="f" id="qxTotal" inputmode="decimal" autocomplete="off" value="'+(q?esc(String(q.total!=null?q.total:"")):"")+'" placeholder="$"></div>'+
+   '<div class="grow"><label class="fl">AutoTQ kits on it <span style="font-weight:400;color:var(--hint)">— optional</span></label><input class="f" id="qxUnits" inputmode="numeric" autocomplete="off" value="'+(q&&q.extUnits?esc(String(q.extUnits)):"")+'"></div></div>'+
+   '<label class="fl">Where it stands</label><div class="qa-types" id="qxSt">'+["draft","sent","won","lost"].map(k=>'<span class="chip'+(logState.qx.status===k?" on":"")+'" data-act="qxst" data-v="'+k+'">'+QUOTE_ST[k][0]+'</span>').join("")+'</div>'+
+   '<button class="btn coral block" data-act="qxsave" id="qxSave" style="margin-top:18px">'+(q?"Save changes":"Add quote")+'</button>');
+}
+function qxFilePicked(f){
+  const S=logState.qx;if(!S)return;S.fileObj=f||null;if(!f)return;
+  const base=f.name.replace(/\.[a-z0-9]+$/i,"");
+  const m=base.match(/\bQ-?\d{6}-?\d{1,3}\b/i)||base.match(/\b(?:quote|qt)[\s#_-]*(?:no\.?\s*)?([A-Z0-9][A-Z0-9-]{3,})/i);
+  const no=m?(m[1]||m[0]).toUpperCase().replace(/^Q(\d)/,"Q-$1"):"";
+  const co=base.replace(m?m[0]:"","").replace(/\b(quote|qt|autotq|march|safety foundation)\b/ig," ").replace(/_+/g," ").replace(/\s*[-–—]\s*$/,"").replace(/^\s*[-–—]\s*/,"").replace(/\s{2,}/g," ").trim();
+  const n=document.getElementById("qxNo"),a=document.getElementById("qxAcct");
+  if(n&&!n.value.trim()&&no)n.value=no;
+  if(a&&!a.value.trim()&&co.length>2){a.value=co;const c=bcMatchCompany(co);if(c){S.cid=c.id;a.value=c.name;}}
+}
+async function saveQuoteExt(){
+  const S=logState.qx;if(!S)return;
+  const g=id=>{const el=document.getElementById(id);return el?el.value.trim():"";};
+  const acct=g("qxAcct"),email=g("qxEmail"),totalTxt=g("qxTotal").replace(/[$,\s]/g,""),total=parseFloat(totalTxt),units=parseInt(g("qxUnits"),10)||0;
+  const no=g("qxNo").toUpperCase(),date=g("qxDate")||todayStr();
+  if(!acct){toast("Who is the quote for? Add the company");return;}
+  if(totalTxt===""||!(total>=0)){toast("Add the quote's total");return;}
+  if(email&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast("That email doesn't look right");return;}
+  DB.quotes=DB.quotes||[];
+  if(no&&DB.quotes.some(x=>x&&x.no&&x.id!==S.id&&String(x.no).toUpperCase()===no)){toast("Quote "+no+" is already in the CRM");return;}
+  let q=S.id?quoteById(S.id):null;const fresh=!q;
+  if(!q)q={id:uid(),ext:true,by:USER,createdAt:new Date().toISOString(),items:[],validDays:30};
+  if(!S.cid){const c=DB.companies.find(x=>x.name&&x.name.toLowerCase()===acct.toLowerCase());if(c)S.cid=c.id;}
+  q.no=no||q.no||nextQuoteNo();q.date=date;q.account=acct;q.cid=S.cid||null;q.contactName=g("qxCon");q.contactEmail=email;
+  q.total=Math.round(total*100)/100;q.extUnits=units||0;q.status=S.status||"sent";q.updatedAt=new Date().toISOString();
+  if(q.status==="draft")q.sentAt=null;
+  else if(!q.sentAt){q.sentAt=new Date(date+"T12:00:00").toISOString();q.sentTo=email;}
+  if(fresh)DB.quotes.push(q);
+  S.id=q.id;save();
+  const f=S.fileObj;
+  if(f){const btn=document.getElementById("qxSave");if(btn){btn.disabled=true;btn.textContent="Uploading the file…";}
+    const path="quotes/"+q.id+"_"+f.name.replace(/[^\w.\- ]+/g,"_");
+    const ok=await storUpload(path,f);
+    if(ok){q.file=path;q.fname=f.name;save();}else toast("The file didn't upload — the quote is saved without it; use Edit to add it again");}
+  render();quoteSheet(q.id);toast("Quote "+q.no+(fresh?" added":" updated"));
+}
+function quoteExtSheet(q){
+  const st=quoteState(q);
+  const fact=(k,v)=>v?'<div style="display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--muted)">'+k+'</span><b style="text-align:right">'+v+'</b></div>':'';
+  const acct=company(q.cid);
+  openSheet('<h2 style="margin-bottom:2px">'+(acct?'<a href="#" data-act="roster" data-id="'+acct.id+'" style="text-decoration:none" title="Open the account">'+esc(qAcct(q.account))+'</a>':esc(qAcct(q.account)))+'</h2>'+
+   '<p style="margin:4px 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)"><b style="color:var(--ink)">'+esc(q.no)+'</b><span>'+esc(usDate(q.date))+'</span>'+quoteChip(q)+'<span class="pill gray">Existing quote</span></p>'+
+   '<div style="margin:10px 0 6px">'+
+    fact("Quote total",'<span style="font-size:16px">'+fmtC(quoteTotal(q))+'</span>')+
+    fact("AutoTQ kits",q.extUnits?String(q.extUnits):"")+
+    fact("Contact",q.contactName||q.contactEmail?esc(q.contactName||"")+(q.contactEmail?(q.contactName?' · ':'')+'<a href="mailto:'+esc(q.contactEmail)+'" style="color:var(--coral-text)">'+esc(q.contactEmail)+'</a>':''):"")+
+    fact("Valid through",st==="expired"?'<span style="color:var(--dang-t)">'+esc(usDate(quoteValidThrough(q)))+' — expired</span>':esc(usDate(quoteValidThrough(q))))+
+    fact("Added by",esc(teamById(q.by).name))+
+    fact("File",q.fname?esc(q.fname):'<span style="color:var(--hint);font-weight:500">none attached</span>')+'</div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
+    (q.file?'<button class="btn coral" data-act="quotefile" data-id="'+q.id+'">'+svg("file")+' Open the quote</button>':'')+
+    '<button class="btn" data-act="quoteedit" data-id="'+q.id+'">Edit</button></div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+    (q.status==="won"||q.status==="lost"?'<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="sent">Reopen</button>'
+      :(q.sentAt?'':'<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="sent">Mark as sent</button>')+
+       '<button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="won">Mark won</button><button class="btn ghost" data-act="quotest" data-id="'+q.id+'" data-v="lost">Mark lost</button>')+
+    '<button class="btn ghost" data-act="quotedel" data-id="'+q.id+'" style="color:var(--dang-t);margin-left:auto">Delete</button></div>');
+}
+async function quoteOpenFile(id){
+  const q=quoteById(id);if(!q||!q.file)return;
+  const w=window.open("","_blank"); /* opened on the tap so no pop-up blocker eats it; filled once the file arrives */
+  toast("Opening "+(q.fname||"the quote")+"…");
+  const b=await storBlob(q.file);
+  if(!b){if(w)w.close();toast("Couldn't fetch the file — are you online?");return;}
+  const url=URL.createObjectURL(b);
+  if(w)w.location.href=url;else{const a=document.createElement("a");a.href=url;a.download=q.fname||"quote";document.body.appendChild(a);a.click();a.remove();}
+  setTimeout(()=>URL.revokeObjectURL(url),120000);
+}
 /* ----- one quote: the read view, with everything you can do to it ----- */
 function quoteSheet(id){
   const q=quoteById(id);if(!q)return;
+  if(q.ext){quoteExtSheet(q);return;}
   const st=quoteState(q),ship=quoteShipping(q),cell='padding:8px 10px;border:1px solid var(--line);';
   const tbl='<table style="width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px"><tr>'+
     ["Item","Qty","Unit price","Total"].map((x,i)=>'<th style="'+cell+'text-align:'+(i?"right":"left")+';background:rgba(0,0,0,.035);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)">'+x+'</th>').join("")+'</tr>'+
@@ -5895,10 +6041,11 @@ function viewQuotes(){
   const all=quoteRep?quotesAll().filter(q=>q.by===quoteRep):quotesAll();
   const pick=f=>all.filter(q=>{const s=quoteState(q);return f==="all"||(f==="open"?(s==="draft"||s==="sent"):s===f);});
   const who=ownOnly()?[]:[[USER,"Mine"],["","Everyone"]].concat(TEAM.filter(t=>t.id!==USER&&t.id!=="laresa"&&quotesAll().some(q=>q.by===t.id)).map(t=>[t.id,shortName(t.id)]));
+  FLT_RESET.quotes=()=>{quoteFilter="open";quoteRep=ownOnly()?USER:"";};
   let h='<div class="lvhead"><button class="btn coral" data-act="quotenew">'+svg("plus")+' New quote</button>'+
-   '<div class="qa-types" style="margin-left:auto">'+
-    [["open","Open"],["won","Won"],["lost","Lost"],["expired","Expired"],["all","All"]].map(f=>'<button class="qchip'+(quoteFilter===f[0]?" on":"")+'" data-act="quotefilter" data-v="'+f[0]+'">'+f[1]+' ('+pick(f[0]).length+')</button>').join("")+'</div></div>'+
-   (who.length?'<div class="qa-types" style="margin:-4px 0 12px">'+who.map(w=>'<span class="qchip'+(quoteRep===w[0]?" on":"")+'" data-act="quoterep" data-v="'+w[0]+'">'+esc(w[1])+'</span>').join("")+'</div>':'');
+   '<button class="btn" data-act="quoteext" title="Add a quote made outside the CRM — a PDF, Word file or another letterhead">'+svg("file")+' Add existing quote</button>'+
+   filterBar("quotes",[fltGroup("Status","quotefilter",[["open","Open"],["won","Won"],["lost","Lost"],["expired","Expired"],["all","All"]].map(f=>[f[0],f[1],pick(f[0]).length]),quoteFilter,"open",{sumOf:(v,o)=>o?o[1]+" quotes":""}),
+     who.length?fltGroup("Whose quotes","quoterep",who.map(w=>[w[0],w[1]]),quoteRep,"",{sumOf:(v,o)=>o?o[1]:""}):null])+'</div>';
   const list=pick(quoteFilter);
   if(!list.length)return h+'<div class="empty">'+(all.length?'Nothing in this view.':'No quotes yet. Tap <b>New quote</b>, pick the customer, tap the line items — then preview it or send it.')+'</div>';
   return h+'<div class="list">'+list.map(quoteRowHTML).join("")+'</div>';
@@ -6340,9 +6487,8 @@ function viewInvoicing(){
      (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button>'+
      '<input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
-  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+
-     [["queue","Needs invoice ("+q.length+")"],["loaner","Loaners ("+ln.length+")"],["invoiced","Invoiced ("+inv.length+")"],["paid","Paid ("+paid.length+")"],["all","All ("+os.length+")"],["supplier","Supplier"]]
-     .map(f=>'<button class="qchip'+(invFilter===f[0]?" on":"")+'" data-act="invfilter" data-v="'+f[0]+'">'+f[1]+'</button>').join("")+'</div>';
+  FLT_RESET.inv=()=>{invFilter="queue";};
+  h+='<div class="lvhead" style="margin-bottom:10px">'+filterBar("inv",[fltGroup("Orders","invfilter",[["queue","Needs invoice",q.length],["loaner","Loaners",ln.length],["invoiced","Invoiced",inv.length],["paid","Paid",paid.length],["all","All",os.length],["supplier","Supplier"]],invFilter,"queue")])+'</div>';
   const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
   if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+
     (invFilter==="queue"&&os.length?"Nothing waiting on an invoice. ✓":os.length?"Nothing in this view.":"No orders yet.")+'</div>';
@@ -6495,6 +6641,7 @@ document.addEventListener("change",e=>{
 });
 
 document.addEventListener("click",e=>{
+  if(fltOpen&&!(e.target.closest&&e.target.closest(".fwrap"))){fltOpen=null;fltSync();}
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
@@ -6513,6 +6660,9 @@ document.addEventListener("click",e=>{
       .then(r=>{if(r.ok){closeSheet();toast("Password changed");}else toast("Couldn't change it — try again");});
     return;}
   if(a==="closesheet"){closeSheet();return;}
+  if(a==="fltopen"){fltOpen=(fltOpen===t.dataset.k)?null:t.dataset.k;fltSync();return;}
+  if(a==="fltclose"){fltOpen=null;fltSync();return;}
+  if(a==="fltreset"){const f=FLT_RESET[t.dataset.k];if(f){f();render();}return;}
   if(a==="goback"){goBack(t.dataset.fb);return;}
   if(a==="nav"){const to=t.dataset.view;closeSheet();
     const same=to===view&&!(to==="export"&&curList)&&!((to==="camp"||to==="campaigns")&&curCampaign);
@@ -6576,13 +6726,18 @@ document.addEventListener("click",e=>{
   if(a==="quotefor"){formQuote(null,{cid:id});return;}
   if(a==="quoteforp"){formQuote(null,{pid:id});return;}
   if(a==="quoteopen"){quoteSheet(id);return;}
-  if(a==="quoteedit"){formQuote(id);return;}
+  if(a==="quoteedit"){const qq=quoteById(id);if(qq&&qq.ext)formQuoteExt(id);else formQuote(id);return;}
   if(a==="quotedup"){duplicateQuote(id);return;}
   if(a==="quotedel"){deleteQuote(id);return;}
   if(a==="quotepdf"){quotePrint(id,true);return;}
   if(a==="quotesend"){formQuoteSend(id);return;}
   if(a==="quotesendgo"){sendQuote(id);return;}
   if(a==="quotemailview"){quoteEmailPreview(id);return;}
+  if(a==="quoteext"){formQuoteExt(null);return;}
+  if(a==="qxsave"){saveQuoteExt();return;}
+  if(a==="qxst"){if(logState.qx){logState.qx.status=t.dataset.v;document.querySelectorAll("#qxSt .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));}return;}
+  if(a==="pickQxAcct"){const c=company(t.dataset.id);if(c&&logState.qx){logState.qx.cid=c.id;const i=document.getElementById("qxAcct");if(i)i.value=c.name;sugRender("qxAcct",[]);}return;}
+  if(a==="quotefile"){quoteOpenFile(id);return;}
   if(a==="quotecopy"){const f=logState.qsFail||{},q=quoteById(id);if(q)htmlCopyWindow(quoteEmailHTML(q,f.id===id?f.msg:quoteDefaultMsg(q)),f.to||q.contactEmail||"",f.sub||("AutoTQ quote "+q.no),"");return;}
   if(a==="quotest"){setQuoteStatus(id,t.dataset.v);return;}
   if(a==="quotefilter"){quoteFilter=t.dataset.v;render();return;}
@@ -6711,7 +6866,7 @@ document.addEventListener("click",e=>{
       save();render();}
     return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
-  if(a==="mapsellers"){mapSellers=!mapSellers;render();return;}
+  if(a==="mapsellers"){mapSellers=t.dataset.v!=null?t.dataset.v==="1":!mapSellers;render();return;}
   if(a==="impsellers"){closeSheet();formImpSellers();return;}
   if(a==="campnew"){ensureCampaigns();const nid=uid();DB.campaigns.push({id:nid,name:"New campaign — "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],steps:campDefaultSteps()});save();pushNav();curCampaign=nid;campStep=1;render();window.scrollTo(0,0);return;}
   if(a==="campopen"){pushNav();curCampaign=id;campStep=1;render();window.scrollTo(0,0);return;}
@@ -6988,6 +7143,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oDistRepQ"){logState.oppDistRepPid=null;sugRender("oDistRepQ",peopleSugItemsF(e.target.value,"pickOppDistRep",logState.oppDistCid?(p=>p.cid===logState.oppDistCid):(p=>contactType(p)==="distrep")));return;}
   if(e.target.id==="oManrepQ"){logState.oppManrepPid=null;sugRender("oManrepQ",peopleSugItemsF(e.target.value,"pickOppManrep",p=>contactType(p)==="manrep"));return;}
   if(/^qt_(qty|unit|name)_\d+$/.test(e.target.id||"")){quoteItemInput(e.target);return;}
+  if(e.target.id==="qxAcct"){if(logState.qx)logState.qx.cid=null;sugRender("qxAcct",acctSugItems(e.target.value,"pickQxAcct"));return;}
+  if(e.target.id==="qxFile"){qxFilePicked(e.target.files&&e.target.files[0]);return;}
   if(e.target.id==="qtAcct"){if(logState.qt&&logState.qt.cid){logState.qt.cid=null;quoteRedrawConChips();}sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
   if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;document.querySelectorAll("#qtConChips .qchip").forEach(x=>x.classList.remove("on"));sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
   if(e.target.id==="qtDist"){const S=logState.qt;if(S){S.dist=e.target.value;if(S.distCid){S.distCid=null;S.distPid=null;S.distRep="";quoteRedrawDistRep();}}sugRender("qtDist",acctSugItems(e.target.value,"pickQtDist",["distributor"]));return;}
