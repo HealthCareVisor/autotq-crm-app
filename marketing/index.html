@@ -1705,7 +1705,7 @@ function mktFileCard(f,title,sub){return '<button class="mfile" data-act="mktpdf
 Object.assign(SVG,{cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'});
 function mktYmd(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
 function mktET(ds,utcHour){const [y,m,d]=ds.split("-").map(Number);return new Date(Date.UTC(y,m-1,d,utcHour)).toLocaleTimeString("en-US",{hour:"numeric",timeZone:"America/New_York"}).replace(":00","");}
-function mktSentByDay(){const m={};campaigns().forEach(c=>(c.leads||[]).forEach(l=>Object.values(l.sent||{}).forEach(ts=>{const d=ts&&new Date(ts);if(!d||isNaN(d))return;const k=mktYmd(d);m[k]=(m[k]||0)+1;})));return m;}
+function mktSentByDay(){const m={};(DB.mailEvents||[]).forEach(e=>{if(!e||e.type!=="send")return;const d=e.at&&new Date(e.at);if(!d||isNaN(d))return;const k=mktYmd(d);m[k]=(m[k]||0)+1;});return m;} // the SES send log, not the leads' stamps
 function mktTilesHTML(plans){const p=plans[0];const ops=p?(p.assets||[]).filter(a=>a.kind==="One-pager"):[];
   const li=liPosts().filter(x=>x.status!=="rejected"&&x.status!=="posted"&&x.slotAt&&new Date(x.slotAt).getTime()>=Date.now()-864e5);const rev=li.filter(x=>x.status==="draft").length;
   const run=campaigns().filter(c=>(c.status==="active"||c.status==="approved")&&!c.paused);const q=queueStats();
