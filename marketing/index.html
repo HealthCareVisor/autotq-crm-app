@@ -1150,7 +1150,8 @@ function actPush(key,rep){const f=actFind(key);if(!f||!rep)return;const x=actIte
   const cl=(DB.confLeads||[]).find(q=>String(q.email||"").toLowerCase()===key);
   let ml=(DB.leads||[]).find(q=>(cl&&q.refId===cl.id)||String(q.email||"").toLowerCase()===key);
   if(!ml)ml={id:uid(),refId:cl?cl.id:"",name:who,title:l.title||"",company:l.company||"",email:l.email||"",phone:(cl&&cl.phone)||"",city:l.city||"",state:l.state||"",conf:(cl&&cl.conf)||(x.c.aud||{}).conf||"",segment:(cl&&cl.segment)||"",by:USER,createdAt:now,touches:[]};
-  ml.owner=rep;ml.assignedTo=rep;ml.pushedAt=now;ml.source="Marketing hub";ml.touches=ml.touches||[];ml.touches.push({date:todayStr(),method:"email",note:"From the marketing hub: "+why+". Handed to "+teamById(rep).name+".",by:USER});
+  const rp0=repliesOf(key)[0];const ck0=realClicks().get(key); // the CRM shows this as the lead's original message (Kellan works Marketing Hub leads)
+  ml.owner=rep;ml.assignedTo=rep;ml.pushedAt=now;ml.source="Marketing Hub";ml.campaign=x.c.name;ml.campaignId=x.c.id;ml.hubMessage=rp0?{text:rp0.text||"",at:rp0.at,subject:rp0.subject||""}:null;ml.hubClick=(!rp0&&ck0)?{url:ck0.url,at:ck0.at,page:actPage(ck0.url)}:null;ml.touches=ml.touches||[];ml.touches.push({date:todayStr(),method:"email",note:"From the marketing hub: "+why+(rp0&&rp0.text?". They wrote: “"+rp0.text.replace(/\s+/g," ").slice(0,400)+"”":"")+". Handed to "+teamById(rep).name+".",by:USER});
   (DB.leads=DB.leads||[]);if(!DB.leads.includes(ml))DB.leads.unshift(ml);put("leads",ml);
   const task={id:uid(),owner:USER,assignees:[rep],title:"Follow up with "+who+(l.company?" ("+l.company+(l.state?", "+l.state:"")+")":"")+" — "+why+". Details in Leads.",type:"followup",due:todayStr(),done:false,createdAt:now,leadId:ml.id};
   (DB.tasks=DB.tasks||[]).unshift(task);put("tasks",task);
