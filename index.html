@@ -1764,6 +1764,8 @@ function orderRep(o){return o.ghRep||repForDeal(orderRegion(o),o.poDate)||"";}
 function orderIsSale(o){return (o.status==="invoiced"||o.status==="paid")&&(o.amount||0)>0&&!o.dupOf;}
 function orderUnits(o){const k=kitQty(o.items);if(k)return k;let u=0;String(o.notes||"").replace(/(\d+)\s*x\s*auto\s*tq(?:\s*kit)?/gi,(m,n)=>{u+=+n;return m;});return u;}
 function oppHasDist(o){return !!(o.distributorId||oppDistLabel(o)||o.direct);}
+/* every deal, big or small, carries its outbound quote (Max, 2026-10-21) — open ones without one are flagged, and none closes won without it */
+function oppHasQuote(o){return oppQuotes(o).length>0;}
 function oppIsDirect(o){return !!o.direct||oppDistLabel(o)==="Direct";}
 function teamAccessFor(u){return ["max","hannah","kellan","jamie"].includes(u);}
 function campAccessFor(u){return false;} /* Campaigns retired from the CRM 2026-10-16 (Max: handled separately); viewCampaignsHub stays in the file */
@@ -2101,6 +2103,7 @@ function dealIssues(o){
   const is=[];
   if((o.nextActionDate&&o.nextActionDate<todayStr())||oppOverdue(o))is.push(["dang","past due"]);
   if(!oppHasDist(o))is.push(["dang","needs distributor"]);
+  if(!oppHasQuote(o))is.push(["warn","no quote yet"]);
   if(!o.nextAction)is.push(["warn","no next action"]);
   const lt=oppLastTouch(o),age=lt?since(lt):(o.createdAt?since(o.createdAt):null);
   if(age!==null&&age>21)is.push(["warn",lt?"quiet "+age+"d":"never touched"]);
@@ -3596,7 +3599,7 @@ function oppVal(o,key){
 function oppRow(o){
   const lead=oppAcctLabel(o),isStock=lead&&oppDistLabel(o)&&lead.toLowerCase()===oppDistLabel(o).toLowerCase();
   return '<tr data-act="editopp" data-id="'+o.id+'">'+
-  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':'';})()+'</div></td>'+
+  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':(oppIsOpen(o)?' · <span class="pill warn" style="font-size:10.5px" title="Every deal needs its outbound quote">no quote yet</span>':'');})()+'</div></td>'+
   '<td>'+distCell(o)+'</td>'+
   '<td>'+ghRepCell(o)+'</td>'+
   '<td>'+regionTag(oppRegion(o))+(o.state?' '+stateChip(o.state):'')+'</td>'+
@@ -3656,6 +3659,7 @@ function oppCard(o){
    '<div class="pa">'+esc(oppAcctLabel(o))+(oppDistLabel(o)&&oppDistLabel(o).toLowerCase()!==oppAcctLabel(o).toLowerCase()?' · via '+esc(oppDistLabel(o)):'')+'</div>'+
    '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
+     (!oppHasQuote(o)&&oppIsOpen(o)?'<span class="pill warn" style="font-size:10.5px" title="Every deal needs its outbound quote">no quote yet</span>':'')+
      (o.units?'<span>'+o.units+'u</span>':'')+(oppQuotes(o).length?'<span title="Quotes on this deal">'+oppQuotes(o).length+' quote'+(oppQuotes(o).length>1?'s':'')+'</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
@@ -3732,15 +3736,18 @@ function oppKpis(list,tab){
   if(tab==="won")return kpiRow([["Closed won",fmtK(amt),n],["Units sold",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""],["Needs distributor",noDist,noDist?"closed without one":"all attributed",noDist?"warn":""]]);
   if(tab==="lost")return kpiRow([["Closed lost",fmtK(amt),n],["Units",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""]]);
   const wAmt=list.reduce((s,o)=>s+oppWeighted(o),0),due=list.filter(oppOverdue).length;
-  return kpiRow([["Open pipeline",fmtK(amt),n],["Weighted",fmtK(wAmt),"probability-adjusted"],["Units in play",units,""],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""]]);
+  const noQ=list.filter(o=>!oppHasQuote(o)).length;
+  return kpiRow([["Open pipeline",fmtK(amt),n],["Weighted",fmtK(wAmt),"probability-adjusted"],["Units in play",units,""],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""],["No quote yet",noQ,noQ?"every deal needs its quote":"every deal quoted",noQ?"warn":""]]);
 }
 /* Pipeline filters (Max, 2026-10-16): Open | Won | Lost are separate views with separate totals; everyone sees the whole
    book and narrows by region, Golden Hour sales person (tap a name anywhere) or closing distributor. */
 /* one filter: whose deals. A sales rep lands on "Mine"; everyone else lands on the whole book. Territory = person,
    so there is no region row, and the search box covers distributors (Max: "too many filters"). */
-let pipeF={region:"",rep:null,dist:""};
+let pipeF={region:"",rep:null,dist:"",quote:""};
 function pipeRep(){if(ownOnly())return (pipeF.rep=USER);if(pipeF.rep===null)pipeF.rep="";return pipeF.rep;}
 function oppMatchesF(o){
+  if(pipeF.quote==="none"&&oppHasQuote(o))return false;
+  if(pipeF.quote==="has"&&!oppHasQuote(o))return false;
   const r=pipeRep();
   if(r==="none"){if(oppGhRep(o))return false;}
   else if(r&&oppGhRep(o)!==r)return false;
@@ -3763,8 +3770,9 @@ function viewOpps(){
   const vw=(oppFilter!=="open"&&oppView==="board")?"list":oppView;
   let h=oppKpis(show,oppFilter);
   /* one filter button (2026-10-21): open / won / lost · sales person */
-  FLT_RESET.pipe=()=>{oppFilter="open";pipeF.rep=null;};
-  h+='<div class="lvhead">'+filterBar("pipe",[fltGroup("Deals","oppfilter",[["open","Open",cnt.open],["won","Won",cnt.won],["lost","Lost",cnt.lost]],oppFilter,"open",{sumOf:(v,o)=>o?o[1]+" deals":""}),pipeRepGroup(tabPool)])+
+  FLT_RESET.pipe=()=>{oppFilter="open";pipeF.rep=null;pipeF.quote="";};
+  h+='<div class="lvhead">'+filterBar("pipe",[fltGroup("Deals","oppfilter",[["open","Open",cnt.open],["won","Won",cnt.won],["lost","Lost",cnt.lost]],oppFilter,"open",{sumOf:(v,o)=>o?o[1]+" deals":""}),pipeRepGroup(tabPool),
+     fltGroup("Quote","pipeq",[["","All"],["none","No quote yet",tabPool.filter(o=>!oppHasQuote(o)).length],["has","Has a quote",tabPool.filter(oppHasQuote).length]],pipeF.quote||"","",{sumOf:(v,o)=>v&&o?o[1]:""})])+
    '<div class="seg" style="margin:0;max-width:280px">'+(oppFilter==="open"?'<button class="'+(vw==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button>':'')+'<button class="'+(vw==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button><button class="'+(vw==="fcast"?"on":"")+'" data-act="oppview" data-v="fcast">Forecast</button></div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search pipeline…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
    '<button class="btn sm" data-act="pipexport" title="Export what\'s showing to Excel">'+svg("sheet")+' Excel</button>'+
@@ -4679,6 +4687,7 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
   /* every deal is tied to a Golden Hour sales person; the territory fills it in when nobody picked one (Max, 2026-10-16) */
   data.ghRep=logState.oppGhRep||repForRegion(regionFromState(data.state))||(c?repForRegion(companyRegion(c)):"")||"";
   if(!data.ghRep){toast("Pick the Golden Hour sales person on this deal");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
+  if(data.stage==="Closed Won"&&!(logState.oppQuoteIds||[]).some(id=>quoteById(id))){toast("Closed won needs its quote — make one or attach the quote you sent");const el=document.getElementById("oppQts");if(el)el.scrollIntoView({block:"center"});return;}
   if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
   const ownerSel=document.getElementById("oOwner");
   if(ownerSel)data.owner=ownerSel.value;
@@ -4690,7 +4699,7 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
   save();
   if(after==="newquote"){render();formQuote(null,{cid:saved.accountId||null,acct:saved.accountName||"",oppId:saved.id});toast("Deal saved — the new quote goes on it");return;}
   if(after==="extquote"){render();formQuoteExt(null,saved.id);toast("Deal saved — the quote you add goes on it");return;}
-  closeSheet();render();toast("Opportunity saved");
+  closeSheet();render();toast("Opportunity saved"+(oppIsOpen(saved)&&!oppHasQuote(saved)?" — it still needs its quote":""));
 }
 /* ----- quotes on a pipeline deal (Max, 2026-10-21: "make it so reps can attach a quote to a pipeline opportunity"). One link,
    kept on the quote: q.oppId. A deal lists the quotes that point at it. Attach from the deal form (type-ahead, New quote for
@@ -4709,7 +4718,7 @@ function quoteLine(q){return esc(q.no)+' · '+esc(qAcct(q.account)||"—")+' · 
 function oppQuoteChips(){
   return (logState.oppQuoteIds||[]).map((id,i)=>{const q=quoteById(id);if(!q)return "";
     return '<span class="rolechip">'+svg("tag")+' '+quoteLine(q)+'<button data-act="oppQDetach" data-i="'+i+'" title="Take this quote off the deal" aria-label="Remove">'+svg("x")+'</button></span>';}).join("")||
-   '<span class="muted" style="font-size:13px">No quote attached yet.</span>';
+   '<span class="pill warn" style="font-size:12px">No quote yet</span> <span class="t2" style="display:inline;white-space:normal">every deal needs its outbound quote — make one or attach one below</span>';
 }
 function oppQuoteRedraw(){const w=document.getElementById("oppQts");if(w)w.innerHTML=oppQuoteChips();}
 function quoteSugItems(q,act,skip){
@@ -4722,7 +4731,7 @@ function quoteSugItems(q,act,skip){
 function oppQuotesFormHTML(){
   return '<label class="fl">Quotes on this deal <span style="font-weight:400;color:var(--hint)">— an empty amount or unit count takes the quote&#39;s</span></label><div id="oppQts" style="margin:2px 0 8px">'+oppQuoteChips()+'</div>'+
    comboField("oQuoteQ","Attach a quote — type its number or customer…","")+
-   '<div class="qa-types" style="margin-top:8px"><span class="qchip" data-act="oppNewQuote" title="Saves this deal, then opens a new quote for it">+ New quote for this deal</span>'+
+   '<div class="qa-types" style="margin-top:8px"><span class="qchip" data-act="oppNewQuote" title="Saves this deal, then opens a new quote for it" style="border-color:var(--coral);color:var(--coral-text)">+ New quote for this deal</span>'+
    '<span class="qchip" data-act="oppExtQuote" title="Saves this deal, then adds a quote made outside the CRM">+ Add an existing quote</span></div>';
 }
 /* keep the deal's quote links in step with the form when it is saved */
@@ -5197,7 +5206,7 @@ function doRestore(){
 function helpSheet(){
   const rows=[
    ["Home","Your day: to-dos, conference call lists, the distributors you're onboarding, and your quotes (folded up at the bottom)."],
-   ["Pipeline","Open, Won and Lost are separate views with their own totals. Every deal carries a Golden Hour sales person (tap a name to filter) and a closing distributor — a deal can't close won without one. Board, List or Forecast."],
+   ["Pipeline","Open, Won and Lost are separate views with their own totals. Every deal carries a Golden Hour sales person (tap a name to filter), a closing distributor and its outbound quote — a deal can't close won without both (a new quote makes its own deal). Board, List or Forecast."],
    ["Activity","The top of the funnel. Everything you log lands here: follow it up with one tap (it becomes a to-do), mark it done, or turn it into a lead or an opportunity. Week view shows who did what, day by day."],
    ["Accounts","Distributors, end-users and man-rep groups. Open one for its contacts, deals, demos and activity."],
    ["Contacts","The channel reps we enable. Tap-to-call/email; log every touch."],
@@ -7334,6 +7343,7 @@ document.addEventListener("click",e=>{
   if(a==="qtOpp"){if(logState.qt){logState.qt.oppId=t.dataset.id||null;quoteRedrawOpp();}return;}
   if(a==="oppview"){oppView=t.dataset.v;render();return;}
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
+  if(a==="pipeq"){pipeF.quote=t.dataset.v;render();return;}
   if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
   if(a==="pipexport"){pipeExportForm();return;}
   if(a==="pipexf"){let sel=pipeFieldSel();sel=sel.includes(t.dataset.v)?sel.filter(x=>x!==t.dataset.v):sel.concat([t.dataset.v]);try{localStorage.setItem("autotq_pipe_fields",JSON.stringify(sel));}catch(e){}t.classList.toggle("on");return;}
@@ -7343,6 +7353,7 @@ document.addEventListener("click",e=>{
   if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on?tm.c:"";x.style.color=on?tm.c:"";});return;}
   if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
+    if(t.dataset.v==="Closed Won"&&!oppHasQuote(o)){toast("Record the quote first — every deal has its outbound quote");formOpp(o.id);return;}
     if(t.dataset.v==="Closed Won"&&!oppHasDist(o)){toast("Pick the closing distributor first (or mark it direct)");formOpp(o.id);return;}
     o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
   if(a==="openreport"){pushNav();curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
