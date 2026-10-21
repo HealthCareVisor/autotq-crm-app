@@ -528,6 +528,8 @@ svg.usmap .dots{stroke:var(--dots)}
 .lidt{font-size:12px;color:var(--ink-3)}.liday.today .lidt{color:var(--coral);font-weight:650}
 .lit{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .lit.none{color:var(--ink-3);font-weight:500}
+.lik{font-size:10.5px;font-weight:650;color:var(--coral);text-transform:uppercase;letter-spacing:.04em;line-height:1.3}
+@media (max-width:900px){.liday .lik{display:none}}
 .liwkhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .lipast .nm{flex:1;min-width:0}.lipast .nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .limets{display:flex;gap:18px;flex:none;font-variant-numeric:tabular-nums}.limets span{display:flex;flex-direction:column;align-items:flex-end;font-weight:650;font-size:14px;color:var(--ink)}
@@ -1743,13 +1745,13 @@ function liWeekHTML(posts){
   const lab=x=>x.dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
   return '<div class="liwk">'+days.map(x=>'<button class="'+x.cls+'" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+' aria-label="'+esc(x.d[1]+' '+lab(x)+(x.p?' — '+liTitle(x.p):x.sl?' — planned, no draft yet':''))+'">'+
      '<span class="lil">'+x.d[0]+'</span><span class="lidt">'+x.d[1]+' '+x.dt.getDate()+'</span>'+
-     (x.sl?(x.p?'<span class="lit">'+esc(liTitle(x.p))+'</span>'+liStatusPill(x.p):'<span class="lit none">No draft yet</span><span class="pill">9:00 AM ET</span>'):'')+'</button>').join("")+'</div>'+
-   '<div class="liwklist">'+days.filter(x=>x.sl).map(x=>'<button class="ibx" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+'><span class="nm"><b>'+x.d[1]+' '+lab(x)+' · '+(x.p?esc(liTitle(x.p)):'No draft yet')+'</b></span>'+(x.p?liStatusPill(x.p):'')+'</button>').join("")+'</div>';
+     (x.sl?(x.p?'<span class="lik">'+esc(x.p.theme||LI_PILLAR[x.p.pillar]||x.p.pillar||"")+'</span><span class="lit">'+esc(liTitle(x.p))+'</span>'+liStatusPill(x.p)+((x.p.attachments||[]).length?'<span class="pill info">PDF attached</span>':''):'<span class="lit none">No draft yet</span><span class="pill">9:00 AM ET</span>'):'')+'</button>').join("")+'</div>'+
+   '<div class="liwklist">'+days.filter(x=>x.sl).map(x=>'<button class="ibx" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+'><span class="nm"><b>'+x.d[1]+' '+lab(x)+' · '+(x.p?esc(liTitle(x.p)):'No draft yet')+'</b></span>'+(x.p?liStatusPill(x.p)+((x.p.attachments||[]).length?'<span class="pill info">PDF</span>':''):'')+'</button>').join("")+'</div>';
 }
 function liPastHTML(){const ps=liPast();
   return '<div class="pan" style="margin-top:14px"><div class="ph2">'+svg("chart")+'Past posts<span class="t2" style="margin-left:4px">· '+ps.length+' posted · tap one to see it or add its numbers</span></div>'+
    (ps.length?ps.slice(0,80).map(p=>{const m=p.metrics;
-     return '<button class="ibx lipast" data-act="lisel" data-v="'+p.id+'"><span class="nm"><b>'+esc(liTitle(p))+'</b><small>'+esc(liWhen(liPostedAt(p)))+(p.pillar?' · '+esc(LI_PILLAR[p.pillar]||p.pillar):'')+(p.external?' · from LinkedIn':'')+'</small></span>'+
+     return '<button class="ibx lipast" data-act="lisel" data-v="'+p.id+'"><span class="nm"><b>'+esc(liTitle(p))+'</b><small>'+esc(liWhen(liPostedAt(p)))+(p.pillar?' · '+esc(LI_PILLAR[p.pillar]||p.pillar):'')+(p.external?' · from LinkedIn':'')+((p.attachments||[]).length?' · PDF attached':'')+'</small></span>'+
       (m?'<span class="limets">'+[["Impressions",m.impressions],["Reactions",m.reactions],["Comments",m.comments],["Reposts",m.reposts],["Clicks",m.clicks]].map(x=>'<span>'+liNum(x[1])+'<small>'+x[0]+'</small></span>').join("")+'<span class="er">'+liPct(liEng(m))+'<small>Engagement</small></span></span>'
          :'<span class="pill">No numbers yet</span>')+svg("chevR")+'</button>';}).join("")
      :'<div class="empty" style="padding:22px 16px">Nothing posted yet. Approve a draft, post it on LinkedIn and tap Mark posted — or Import LinkedIn analytics to bring in what is already on the page.</div>')+'</div>';}
