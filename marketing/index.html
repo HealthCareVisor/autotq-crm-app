@@ -510,11 +510,6 @@ svg.usmap .dots{stroke:var(--dots)}
 @media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
 
 /* Marketing plan on Home + PDF viewer (2026-10-21) */
-.mrow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--rule-2)}.mrow:first-of-type{border-top:0}
-.mrow .n{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;min-width:34px;color:var(--coral)}
-.mrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.mrow .nm b{font-size:14px}.mrow .nm small{color:var(--ink-3);font-size:12.5px}
-.mrow .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.mtag{display:inline-flex;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--panel);border:1px solid var(--rule-3);color:var(--ink-2);margin:0 4px 0 0}
 .mfiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px;padding:16px}
 .mfile{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--panel);padding:8px;cursor:pointer;font:inherit;color:var(--ink)}
 .mfile:hover,.mfile:focus-visible{border-color:var(--ink-3)}
@@ -542,7 +537,22 @@ svg.usmap .dots{stroke:var(--dots)}
 .pdfv-body{flex:1;display:flex;background:#525659;border:1px solid var(--rule);border-top:0;border-radius:0 0 var(--r-lg) var(--r-lg);overflow:hidden}
 .pdfv-body iframe{flex:1;border:0;width:100%;height:100%}.pdfv-body .empty{margin:auto;color:#ddd}
 .liatt{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.liatt .mfile{width:190px}
-@media (max-width:900px){.mcols{grid-template-columns:1fr}.mrow{flex-wrap:wrap}.mrow .acts{width:100%;justify-content:flex-start;padding-left:46px}#pdfv{padding:0}}
+.mtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
+.mtile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:16px 18px;background:var(--paper);border:0;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.mtile:hover,.mtile:focus-visible{background:var(--hover)}.mtile b{font-size:30px;line-height:1.1;font-weight:700;letter-spacing:-.02em}.mtile span{font-size:13.5px;font-weight:600}
+.mtile small{font-size:12px;color:var(--ink-3)}.mtile small.ok{color:var(--ok)}.mtile small.warn{color:var(--warn)}.mtile small.info{color:var(--info)}
+.mwk{display:grid;grid-template-columns:96px repeat(5,minmax(0,1fr));border-top:1px solid var(--rule-2)}
+.mwl{padding:12px 12px 12px 16px;font-weight:600;font-size:13px;display:flex;flex-direction:column;gap:2px}.mwl small{font-weight:400;color:var(--ink-3);font-size:11.5px}
+.mday{padding:10px 8px 12px;border-left:1px solid var(--rule-2);display:flex;flex-direction:column;gap:6px;min-width:0}
+.mday.past{opacity:.55}.mday.today{background:var(--hover)}
+.mdh{font-size:12px;color:var(--ink-3);display:flex;gap:6px;align-items:baseline}.mdh b{color:var(--ink);font-size:13px}.mdh span{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--coral);text-transform:uppercase;letter-spacing:.04em}
+.mev{display:flex;flex-direction:column;gap:1px;text-align:left;font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--rule-2);border-left:3px solid var(--rule-3);border-radius:8px;padding:6px 8px;min-width:0}
+button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color:var(--ink-3)}
+.mev small{font-size:10.5px;color:var(--ink-3)}.mev b{font-size:12.5px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.mev i{font-style:normal;font-size:11px;color:var(--ink-3)}
+.mev.t-li{border-left-color:var(--info)}.mev.t-mail{border-left-color:var(--coral)}.mev.t-auto{border-left-color:var(--ink-4)}.mev.t-one{border-left-color:var(--ok)}
+.mev.dim{opacity:.6;background:transparent;border-style:dashed;border-left-style:solid}
+@media (max-width:900px){.mtiles{grid-template-columns:repeat(2,minmax(0,1fr))}.mwk{grid-template-columns:1fr}.mwl{flex-direction:row;gap:8px;align-items:baseline}.mday{border-left:0;border-top:1px solid var(--rule-2)}.mday.past{display:none}}
+@media (max-width:900px){.mcols{grid-template-columns:1fr}#pdfv{padding:0}}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script>
 </head>
@@ -1689,16 +1699,36 @@ function mktClose(){const el=document.getElementById("pdfv");if(el){el.classList
 document.addEventListener("keydown",e=>{const el=document.getElementById("pdfv");if(e.key==="Escape"&&el&&el.classList.contains("open")){mktClose();e.stopPropagation();return;}
   if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.classList&&e.target.classList.contains("nd")&&e.target.dataset.act){e.preventDefault();e.target.dispatchEvent(new MouseEvent("click",{bubbles:true}));}},true);
 function mktFileCard(f,title,sub){return '<button class="mfile" data-act="mktpdf" data-path="'+esc(f.path)+'" data-title="'+esc(title)+'"><span class="th'+(f.shape==="4:5"?" sq":"")+'">'+(f.thumb?'<img alt="" data-mkt="'+esc(f.thumb)+'">':'')+'</span><b>'+esc(title)+'</b><small>'+esc(sub||((f.pages||1)+" page"+((f.pages||1)===1?"":"s")+" · PDF"))+'</small></button>';}
-function mktGlanceHTML(plans){const rows=[];
-  plans.forEach(p=>{rows.push('<div class="mrow"><span class="n">1×</span><span class="nm"><b>'+esc(p.kind)+' · '+esc(p.title)+'</b><small>'+(p.tags||[]).map(t=>'<span class="mtag">'+esc(t)+'</span>').join("")+esc(p.summary||"")+'</small></span><span class="acts">'+mktPill(p.status)+(p.file?'<button class="btn sm" data-act="mktpdf" data-path="'+esc(p.file.path)+'" data-title="'+esc(p.title)+'">See PDF</button>':'')+'</span></div>');
-    const groups={};(p.assets||[]).forEach(a=>{(groups[a.kind]=groups[a.kind]||[]).push(a);});
-    Object.keys(groups).forEach(k=>{const g=groups[k];rows.push('<div class="mrow"><span class="n">'+g.length+'×</span><span class="nm"><b>'+esc(k+(g.length>1?"s":""))+'</b><small>Made from the '+esc(String(p.kind).toLowerCase())+' · '+esc(g.map(a=>a.title).join(" · "))+'</small></span><span class="acts">'+mktPill(g[0].status||"ready")+g.map(a=>'<button class="btn sm ghost" data-act="mktpdf" data-path="'+esc(a.file.path)+'" data-title="'+esc(a.title)+'">'+(g.length>1?esc(a.short||a.title):'See PDF')+'</button>').join("")+'</span></div>');});});
-  const li=liPosts().filter(x=>x.status!=="rejected"&&x.slotAt&&new Date(x.slotAt).getTime()>=Date.now()-864e5);const rev=li.filter(x=>x.status==="draft").length;const withPdf=li.filter(x=>(x.attachments||[]).length).length;
-  if(li.length){const ts=li.map(x=>x.slotAt).sort();const d=s=>new Date(s).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/New_York"});
-    rows.push('<div class="mrow"><span class="n">'+li.length+'×</span><span class="nm"><b>LinkedIn posts</b><small>'+d(ts[0])+(ts.length>1?' – '+d(ts[ts.length-1]):'')+' · Mon / Wed / Fri at 9:00 AM ET'+(withPdf?' · '+withPdf+' with a PDF attached':'')+'</small></span><span class="acts">'+(rev?'<span class="pill warn">'+rev+' need'+(rev===1?'s':'')+' review</span>':'')+'<button class="btn sm ghost" data-act="nav" data-v="li">Open LinkedIn</button></span></div>');}
-  const run=campaigns().filter(c=>(c.status==="active"||c.status==="approved")&&!c.paused);
-  if(run.length)rows.push('<div class="mrow"><span class="n">'+run.length+'×</span><span class="nm"><b>Email campaigns</b><small>Conference follow-ups running · '+esc(run.map(c=>fleetName(c)).join(" · "))+'</small></span><span class="acts"><span class="pill ok">Running</span><button class="btn sm ghost" data-act="nav" data-v="over">Open campaigns</button></span></div>');
-  return '<div class="pan"><div class="ph2">'+svg("check")+'At a glance<span class="t2" style="margin-left:4px">· what we have and where it stands</span></div>'+rows.join("")+'</div>';}
+/* the top of Home (2026-10-21, Max: "a recurring schedule … super simple overview up top"): four numbers, then two weeks of what
+   repeats — LinkedIn Mon/Wed/Fri 9 AM, emails in the weekday sending window (planned by buildPlan, sent counts from the leads),
+   next week's LinkedIn drafts on Fridays (the autotq-linkedin cron, 19:00 UTC) — plus dated one-offs from the plan's steps */
+Object.assign(SVG,{cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'});
+function mktYmd(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
+function mktET(ds,utcHour){const [y,m,d]=ds.split("-").map(Number);return new Date(Date.UTC(y,m-1,d,utcHour)).toLocaleTimeString("en-US",{hour:"numeric",timeZone:"America/New_York"}).replace(":00","");}
+function mktSentByDay(){const m={};campaigns().forEach(c=>(c.leads||[]).forEach(l=>Object.values(l.sent||{}).forEach(ts=>{const d=ts&&new Date(ts);if(!d||isNaN(d))return;const k=mktYmd(d);m[k]=(m[k]||0)+1;})));return m;}
+function mktTilesHTML(plans){const p=plans[0];const ops=p?(p.assets||[]).filter(a=>a.kind==="One-pager"):[];
+  const li=liPosts().filter(x=>x.status!=="rejected"&&x.status!=="posted"&&x.slotAt&&new Date(x.slotAt).getTime()>=Date.now()-864e5);const rev=li.filter(x=>x.status==="draft").length;
+  const run=campaigns().filter(c=>(c.status==="active"||c.status==="approved")&&!c.paused);const q=queueStats();
+  const tile=(n,label,sub,cls,act)=>'<button class="mtile" '+act+'><b class="num">'+n+'</b><span>'+label+'</span><small class="'+cls+'">'+sub+'</small></button>';
+  return '<div class="mtiles">'+(p?tile(1,esc(p.kind),esc((MKT_ST[p.status]||[])[1]||p.status),p.status==="live"?"ok":"warn",'data-act="mktpdf" data-path="'+esc(p.file?p.file.path:"")+'" data-title="'+esc(p.title)+'"'):'')+
+    (ops.length?tile(ops.length,"One-pagers","Ready to hand out","info",'data-act="mktfiles"'):'')+
+    tile(li.length,"LinkedIn posts",rev?rev+" to review":"All approved",rev?"warn":"ok",'data-act="nav" data-v="li"')+
+    tile(run.length,"Email campaigns",q.left?q.left.toLocaleString()+" emails to go":"Running","ok",'data-act="nav" data-v="over"')+'</div>';}
+function mktScheduleHTML(plans){const today=todayStr();const plan=buildPlan(14),sent=mktSentByDay(),planned={};plan.days.forEach(d=>{planned[d.date]=d.total;});
+  const os=outboundSettings(),posts=liPosts().filter(x=>x.status!=="rejected");const once={};plans.forEach(p=>(p.steps||[]).forEach(s=>{if(s.date&&!s.liPost)(once[s.date]=once[s.date]||[]).push(s);}));
+  const ev=(cls,when,what,sub,act)=>'<'+(act?'button':'div')+' class="mev '+cls+'"'+(act?' '+act:'')+'><small>'+esc(when)+'</small><b>'+esc(what)+'</b>'+(sub?'<i>'+esc(sub)+'</i>':'')+'</'+(act?'button':'div')+'>';
+  const mon0=new Date();mon0.setHours(12,0,0,0);mon0.setDate(mon0.getDate()-((mon0.getDay()+6)%7));
+  const weeks=[0,1].map(w=>{const mon=new Date(mon0);mon.setDate(mon.getDate()+7*w);const wk=mktYmd(mon);
+    return '<div class="mwk"><div class="mwl">'+(w?"Next week":"This week")+'<small>from '+mon.toLocaleDateString("en-US",{month:"short",day:"numeric"})+'</small></div>'+[0,1,2,3,4].map(i=>{const d=new Date(mon);d.setDate(d.getDate()+i);const ds=mktYmd(d);const past=ds<today,isToday=ds===today;const slot=["mon","","wed","","fri"][i];let h="";
+      (once[ds]||[]).forEach(s=>{h+=ev("t-one","Milestone",s.label,(MKT_ST[mktItemSt(s)]||[])[1]||"");});
+      if(slot){const p=posts.filter(x=>x.week===wk&&x.slot===slot).sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0];
+        h+=p?ev("t-li",mktET(ds,13)+" · LinkedIn",p.topic||"Post",(p.status==="draft"?"Needs review":({approved:"Approved",posted:"Posted"})[p.status]||p.status)+((p.attachments||[]).length?" · PDF":""),'data-act="mktli" data-v="'+esc(p.id)+'"'):ev("t-li dim",mktET(ds,13)+" · LinkedIn","No draft yet",past?"":"drafted Friday before");}
+      const n=past?(sent[ds]||0):isToday?(sent[ds]||0)+(planned[ds]||0):(planned[ds]||0);
+      if(n)h+=ev("t-mail",mktET(ds,os.startHour)+"–"+mktET(ds,os.endHour)+" · Email",n.toLocaleString()+" email"+(n===1?"":"s"),past?"sent":isToday?(sent[ds]||0)+" sent so far":"planned",'data-act="nav" data-v="sched"');
+      if(i===4)h+=ev("t-auto",mktET(ds,19)+" · Automatic","Next week's LinkedIn drafts",past?"":"Claude writes, you review");
+      return '<div class="mday'+(isToday?" today":"")+(past?" past":"")+'"><div class="mdh">'+d.toLocaleDateString("en-US",{weekday:"short"})+' <b>'+d.getDate()+'</b>'+(isToday?'<span>Today</span>':'')+'</div>'+(h||'<div class="mev dim"><i>—</i></div>')+'</div>';}).join("")+'</div>';});
+  const t=mktYmd(new Date());
+  return '<div class="pan msched"><div class="ph2">'+svg("cal")+'Schedule<span class="t2" style="margin-left:4px">· every week: LinkedIn Mon, Wed, Fri at '+mktET(t,13)+' · emails weekdays '+mktET(t,os.startHour)+'–'+mktET(t,os.endHour)+' · new LinkedIn drafts Fridays at '+mktET(t,19)+' (Eastern)</span></div>'+weeks.join("")+'</div>';}
 function mktWebHTML(p){const ch=p.channels||[];if(!ch.length)return "";
   const head='<div class="ph2">'+svg("globe")+'Where the '+esc(String(p.kind).toLowerCase())+' goes<span class="t2" style="margin-left:4px">· where it lives and how each piece gets used · tap any item</span></div>';
   const used=new Set();ch.forEach(c=>(c.items||[]).forEach(it=>used.add(mktItemSt(it))));
@@ -1725,10 +1755,12 @@ function mktFilesHTML(p){const fs=[];if(p.file)fs.push(mktFileCard(p.file,p.titl
 function viewHome(){const plans=mktPlans();
   const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>';
   if(!plans.length)return head+'<div class="empty">No plan yet.</div>';
-  return head+mktGlanceHTML(plans)+plans.map(p=>mktWebHTML(p)+'<div class="mcols">'+mktStepsHTML(p)+mktFilesHTML(p)+'</div>').join('<div style="height:14px"></div>');}
+  return head+mktTilesHTML(plans)+mktScheduleHTML(plans)+plans.map(p=>mktWebHTML(p)+'<div class="mcols">'+mktStepsHTML(p)+mktFilesHTML(p)+'</div>').join('<div style="height:14px"></div>');}
 function mktHandle(a,t){
   if(a==="mktpdf"){if(t.dataset.path)mktOpen(t.dataset.path,t.dataset.title);return true;}
   if(a==="mktclose"){mktClose();return true;}
+  if(a==="mktli"){const q=liFind(t.dataset.v);if(q){liWeek=q.week;liSel=q.id;liTab="week";liEdit=false;goView("li");}return true;}
+  if(a==="mktfiles"){const f=document.querySelector(".mfiles");if(f)f.scrollIntoView({behavior:"smooth",block:"center"});return true;}
   if(a==="mktnode"){const p=mktPlans().find(x=>x.id===t.dataset.p);const c=p&&(p.channels||[])[+t.dataset.c];const it=c&&(c.items||[])[+t.dataset.i];if(!it)return true;
     if(it.file){mktOpen(it.file.path,it.label);return true;}
     if(it.liPost){const q=liFind(it.liPost);if(q){liWeek=q.week;liSel=q.id;liTab="week";liEdit=false;goView("li");}return true;}
