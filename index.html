@@ -281,13 +281,18 @@ input[type=date].f,input[type=date]{min-height:40px}
 .topscroll{overflow-x:auto;overflow-y:hidden;height:14px;margin:0 0 6px}
 .topscroll>div{height:1px}
 table.lv{width:100%;border-collapse:collapse;font-size:13.5px}
-table.lv th{text-align:left;font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap;
+table.lv th{text-align:left;font-size:12px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line);white-space:normal;
   position:sticky;top:0;background:var(--surface-2);vertical-align:top}
 table.lv th.srt{cursor:pointer;user-select:none;-webkit-user-select:none}
 table.lv th.srt:hover{color:var(--ink)}
 table.lv th.srt.on{color:var(--coral-text)}
 table.lv th svg.sa{width:12px;height:12px;stroke-width:2.6;vertical-align:-1px;margin-left:3px}
-table.lv td{padding:10px 14px;border-bottom:1px solid var(--line-2);white-space:nowrap;color:var(--ink);vertical-align:middle}
+table.lv td{padding:10px 14px;border-bottom:1px solid var(--line-2);white-space:normal;overflow-wrap:break-word;color:var(--ink);vertical-align:middle}
+table.lv td.num{white-space:nowrap}
+table.lv td.brk{overflow-wrap:anywhere;min-width:90px}
+.clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+table.lv.dense{font-size:12.5px}
+table.lv.dense th,table.lv.dense td{padding:8px 7px}
 table.lv tr:last-child td{border-bottom:none}
 table.lv tbody tr{cursor:pointer}
 table.lv tbody tr:hover td{background:var(--hover)}
@@ -296,10 +301,37 @@ table.lv tfoot td{background:var(--surface-2);border-top:1px solid var(--line);f
 table.lv th,table.lv td{border-right:1px solid var(--line-2)}
 table.lv th:last-child,table.lv td:last-child{border-right:0}
 table.lv.fixedcols{table-layout:fixed}
+/* a table that cannot fit its width (a narrow window, a phone) reads as stacked rows — label on the left, value on the
+   right — instead of scrolling sideways (Max, 2026-10-21: "every screen fully viewable at once; no bar to navigate
+   horizontally"). fitTables() decides per table after every render and on resize. */
+table.lv.stack,table.lv.stack>tbody,table.lv.stack>tfoot,table.lv.stack tr,table.lv.stack td{display:block;width:auto}
+table.lv.stack>thead{display:none}
+table.lv.stack tr{padding:10px 14px;border-bottom:1px solid var(--line-2)}
+table.lv.stack>tbody>tr:last-child{border-bottom:0}
+table.lv.stack>tfoot>tr{background:var(--surface-2);border-top:1px solid var(--line);border-bottom:0}
+table.lv.stack td{border:0!important;padding:3px 0 3px clamp(104px,32%,180px);position:relative;min-height:22px;text-align:left!important;background:none!important}
+table.lv.stack td::before{content:attr(data-l);position:absolute;left:0;top:4px;width:calc(clamp(104px,32%,180px) - 12px);color:var(--muted);font-size:12px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.lv.stack td:first-child,table.lv.stack td[data-l=""]{padding-left:0}
+table.lv.stack td:first-child::before,table.lv.stack td[data-l=""]::before{display:none}
+table.lv.stack td:first-child{padding-bottom:5px}
+table.lv.stack td:empty{display:none}
+table.lv.stack tbody tr:hover{background:var(--hover)}
+/* a dropdown that lives in a table cell (lead category, who it's handed to) */
+select.cellsel{-webkit-appearance:none;appearance:none;height:28px;max-width:100%;padding:0 26px 0 11px;border:1px solid var(--line);border-radius:999px;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236C685F' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E") no-repeat right 8px center/12px}
+select.cellsel:hover{border-color:var(--line-3)}
+select.cellsel:focus{outline:none;border-color:var(--coral);box-shadow:var(--ring)}
+select.cellsel.cs-new{background-color:var(--warn-b);color:var(--warn-t);border-color:transparent}
+select.cellsel.cs-qualified{background-color:var(--info-b);color:var(--info-t);border-color:transparent}
+select.cellsel.cs-handed{background-color:var(--ok-b);color:var(--ok-t);border-color:transparent}
+select.cellsel.cs-nurture{background-color:var(--gray-b);color:var(--gray-t);border-color:transparent}
+select.cellsel.cs-dead{background-color:var(--dang-b);color:var(--dang-t);border-color:transparent}
+select.cellsel.auto{border-style:dashed;color:var(--muted)}
 table.lv.fixedcols td{overflow:hidden;text-overflow:ellipsis}
 table.lv th .rz{position:absolute;right:-4px;top:0;bottom:0;width:9px;cursor:col-resize;z-index:3}
+table.lv th:last-child .rz{right:0} /* inside the table, so it never makes the box scroll */
 table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,transparent 3px,var(--coral) 3px,var(--coral) 5px,transparent 5px)}
-.cf{display:block;width:100%;min-width:56px;margin-top:6px;height:26px;padding:0 8px;font-size:12px;font-weight:400;letter-spacing:0;text-transform:none;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:inherit}
+.cf{display:block;width:0;min-width:100%;margin-top:6px;height:26px;padding:0 8px;font-size:12px;font-weight:400;letter-spacing:0;text-transform:none;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);font-family:inherit}
 .cf:focus{outline:none;border-color:var(--coral);box-shadow:var(--ring)}
 .lvname{font-weight:600;color:var(--ink)}
 .lvsub{color:var(--muted);font-size:12px;margin-top:1px}
@@ -332,6 +364,12 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .pngrid tr.addrow td{padding:0;border-right:none}
 .pngrid tr.addrow button{width:100%;border:none;background:none;text-align:left;padding:10px 12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
 .pngrid tr.addrow button:hover{color:var(--coral-tt);background:var(--coral-t)}
+@media(max-width:640px){
+  .pngrid th,.pngrid td.ro{padding:8px;white-space:normal;overflow-wrap:anywhere}
+  .pncell{min-width:0;padding:8px}
+  .fmx th,.fmx td{padding:9px 8px}
+  .fmx th{white-space:normal}
+}
 .pngrid .rowx{border:none;background:none;color:var(--faint);font-size:15px;padding:0 10px;cursor:pointer;opacity:0}
 .pngrid tr:hover .rowx{opacity:1}
 .pngrid .rowx:hover{color:var(--dang-t)}
@@ -364,8 +402,8 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .kpi>b{display:block;font-size:12.5px;color:var(--muted);font-weight:500;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpi>span{display:block;font-size:24px;font-weight:650;letter-spacing:-.022em;line-height:1.1;color:var(--ink)}
 .kpi>small{display:block;font-size:12px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pipe{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:12px}
-.pcol{flex:1;min-width:240px;background:var(--sunken);border-radius:var(--r-lg);padding:8px 8px 2px}
+.pipe{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;align-items:start;padding-bottom:12px} /* the stage columns wrap onto a second row instead of scrolling */
+.pcol{min-width:0;background:var(--sunken);border-radius:var(--r-lg);padding:8px 8px 2px}
 .pcol>h4{margin:4px 6px 10px;font-size:12.5px;font-weight:650;color:var(--ink);display:flex;justify-content:space-between;gap:8px;letter-spacing:0}
 .pcol>h4 em{font-style:normal;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
 .pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:8px;cursor:pointer;box-shadow:var(--sh-1);transition:border-color .15s,box-shadow .15s}
@@ -459,7 +497,7 @@ button.rephead:hover{filter:brightness(.95)}
 .ktiles .kpi.fill>small{color:rgba(255,255,255,.75);white-space:normal;order:3;margin-top:2px}
 .ktiles .kpi.fill{display:flex;flex-direction:column}
 .ktiles .kpi.fill:hover,.ktiles .kpi.fill.on{filter:brightness(.92);box-shadow:0 0 0 3px var(--coral-t)}
-.chiprow{display:flex;gap:4px;flex-wrap:nowrap}
+.chiprow{display:flex;gap:4px;flex-wrap:wrap}
 .chiprow .qchip{min-height:26px;padding:0 8px;font-size:12px}
 .qchip.auto{border-style:dashed;background:transparent}
 .wki .txt{background:none;border:0;padding:0;text-align:left;font:inherit;min-width:0;cursor:pointer}
@@ -673,7 +711,7 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 .sync[data-state="off"]{width:auto;padding:3px 9px 3px 8px;gap:6px;background:var(--dang-b);color:var(--dang-t)}
 .sync[data-state="off"]::before{background:var(--dang-t);box-shadow:none}
 @keyframes pulse{50%{opacity:.35}}
-.content{flex:1;padding:22px 26px 48px;max-width:1280px;width:100%}
+.content{flex:1;padding:22px 26px 48px;max-width:1680px;width:100%;min-width:0}
 .nav{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:saturate(1.5) blur(14px);backdrop-filter:saturate(1.5) blur(14px);
   border-top:1px solid var(--line);display:flex;padding:6px 6px calc(8px + env(safe-area-inset-bottom));z-index:20}
 .nav button{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:11px;font-weight:550;padding:5px 0;border-radius:10px}
@@ -1539,20 +1577,21 @@ function fltMatch(val,q){
     return m[1]===">"?n>t:m[1]==="<"?n<t:m[1]===">="?n>=t:n<=t;}
   return String(val).toLowerCase().includes(q.toLowerCase());
 }
-/* top scrollbar for wide tables — mirrors the table's horizontal scroll so you don't have to reach the bottom */
+/* every table fits its width: wrapping first; if it still cannot fit (or on a phone) it stacks its rows
+   (label · value). Each cell carries its column's name for the stacked view. Named topScrollSync for the old callers. */
 function topScrollSync(){
+  document.querySelectorAll(".topscroll").forEach(b=>b.remove());
   document.querySelectorAll(".tablewrap").forEach(w=>{
-    let bar=w.previousElementSibling;
-    const isBar=bar&&bar.classList&&bar.classList.contains("topscroll");
-    const need=w.scrollWidth>w.clientWidth+4;
-    if(!need){if(isBar)bar.remove();return;}
-    if(!isBar){
-      bar=document.createElement("div");bar.className="topscroll";bar.innerHTML="<div></div>";
-      w.parentNode.insertBefore(bar,w);
-      bar.addEventListener("scroll",()=>{w.scrollLeft=bar.scrollLeft;});
-      w.addEventListener("scroll",()=>{bar.scrollLeft=w.scrollLeft;});
-    }
-    bar.firstChild.style.width=w.scrollWidth+"px";
+    const t=w.querySelector("table.lv");if(!t)return;
+    if(!t.__lab){const ths=[...t.querySelectorAll("thead th")].map(th=>(th.firstChild&&th.firstChild.nodeType===3?th.firstChild.textContent:th.textContent).trim());
+      t.querySelectorAll("tbody tr,tfoot tr").forEach(tr=>{let k=0;[...tr.children].forEach(td=>{if(!td.hasAttribute("data-l"))td.setAttribute("data-l",(td.colSpan||1)>1?"":(ths[k]||""));k+=td.colSpan||1;});});t.__lab=1;}
+    t.classList.remove("stack","dense");
+    const over=()=>w.scrollWidth>w.clientWidth+1;
+    if(window.innerWidth<=640){t.classList.add("stack");return;}
+    if(!over())return;
+    if(t.classList.contains("fixedcols")){t.classList.remove("fixedcols");if(!over())return;} /* hand-set widths were the problem */
+    t.classList.add("dense");if(!over())return; /* tighter cells first */
+    t.classList.remove("dense");t.classList.add("stack");
   });
 }
 window.addEventListener("resize",()=>{clearTimeout(window.__tsT);window.__tsT=setTimeout(topScrollSync,150);});
@@ -1560,7 +1599,7 @@ let COLW={};try{COLW=JSON.parse(localStorage.getItem("autotq_colw_v1")||"{}");}c
 function applyColW(){document.querySelectorAll("table.lv[data-tbl]").forEach(t=>{
   const w=COLW[t.dataset.tbl];if(!w)return;
   const ths=t.querySelectorAll("thead th");if(ths.length!==w.length)return;
-  t.classList.add("fixedcols");ths.forEach((x,i)=>x.style.width=w[i]+"px");
+  const tot=w.reduce((a,b)=>a+b,0)||1;t.classList.add("fixedcols");ths.forEach((x,i)=>x.style.width=(w[i]/tot*100).toFixed(2)+"%");
 });}
 function typeTag(t){return {distributor:'<span class="pill coral">Distributor</span>',manrep:'<span class="pill info">Man-rep</span>',partner:'<span class="pill info">Partner</span>',enduser:'<span class="pill gray">End-user</span>'}[t]||'<span class="pill gray">Account</span>';}
 function ownerWho(o){if(!o)return '<span class="muted">—</span>';const t=teamById(o);return '<span class="who"><i style="background:'+t.c+'"></i>'+t.name.split(" ")[0]+'</span>';}
@@ -1583,10 +1622,8 @@ function contactRow(p,org){const c=company(p.cid);const rb=roleBucket(p.role);
   return '<tr data-act="person" data-id="'+p.id+'">'+
   '<td><div class="lvname" '+ind+'>'+((org&&p.rank===1)?'<b>':'')+esc(p.name)+((org&&p.rank===1)?'</b>':'')+' <span class="pill '+rb[1]+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+rb[0]+'</span></div><div class="lvsub" '+ind+'>'+esc(p.role||"")+boss+'</div></td>'+
   '<td>'+esc(c?c.name:(p.branch||"—"))+'</td>'+
-  '<td>'+(personStates(p).length?personStates(p).map(stateChip).join(" "):'<span class="muted">—</span>')+'</td>'+
-  '<td>'+regionTag(personRegion(p))+'</td>'+
-  '<td>'+(p.email?'<span class="muted">'+esc(p.email)+'</span>':'<span class="muted">—</span>')+'</td>'+
-  '<td>'+(p.phone?esc(p.phone):'<span class="muted">—</span>')+'</td>'+
+  '<td>'+regionTag(personRegion(p))+(personStates(p).length?' '+personStates(p).map(stateChip).join(" "):'')+'</td>'+
+  '<td>'+(p.email||p.phone?(p.email?'<div style="overflow-wrap:anywhere">'+esc(p.email)+'</div>':'')+(p.phone?'<div class="lvsub">'+esc(p.phone)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
   '<td>'+lastTag(p.last)+'</td></tr>';}
 function accountTableHTML(list,sortable){const cc=contactCountMap();
   function th(k,l){return sortable?thSort("accounts",k,l):'<th>'+l+'</th>';}
@@ -1594,12 +1631,12 @@ function accountTableHTML(list,sortable){const cc=contactCountMap();
   return '<div class="tablewrap"><table class="lv" data-tbl="accounts"><thead>'+head+'</thead><tbody>'+list.map(c=>accountRow(c,cc)).join("")+'</tbody></table></div>';}
 function contactTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("contacts",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Contact")+th("account","Account")+th("state","State")+th("region","Region")+th("email","Email")+th("phone","Phone")+th("last","Last touch")+'</tr>';
+  const head='<tr>'+th("name","Contact")+th("account","Account")+th("region","Territory")+th("email","Email · phone")+th("last","Last touch")+'</tr>';
   return '<div class="tablewrap"><table class="lv" data-tbl="contacts"><thead>'+head+'</thead><tbody>'+list.map(p=>contactRow(p)).join("")+'</tbody></table></div>';}
 function contactTableOrgHTML(list){
   const anyRank=list.some(p=>p.rank);
   const sorted=anyRank?list.slice().sort((a,b)=>(a.rank||99)-(b.rank||99)||String(a.name).localeCompare(b.name)):list;
-  const head='<tr><th>Contact</th><th>Account</th><th>State</th><th>Region</th><th>Email</th><th>Phone</th><th>Last</th></tr>';
+  const head='<tr><th>Contact</th><th>Account</th><th>Territory</th><th>Email · phone</th><th>Last</th></tr>';
   return '<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+sorted.map(p=>contactRow(p,anyRank)).join("")+'</tbody></table></div>';}
 
 /* ---------- tasks + channel enablement ---------- */
@@ -3064,6 +3101,12 @@ function leadChipsHTML(l){
   const c=leadCat(l);
   return '<div class="chiprow">'+LEAD_CATS.map(x=>'<span class="qchip'+(c===x[0]?" on":"")+'" data-act="leadcat" data-id="'+esc(l.id)+'" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
 }
+function leadCatSelHTML(l){const c=leadCat(l);
+  return '<select class="cellsel cs-'+c+'" data-act="leadcatsel" data-id="'+esc(l.id)+'" aria-label="Category">'+LEAD_CATS.map(x=>'<option value="'+x[0]+'"'+(c===x[0]?" selected":"")+'>'+x[1]+'</option>').join("")+'</select>';}
+function leadHandSelHTML(l){const auto=!l.assignee&&leadRep(l);
+  return '<select class="cellsel'+(l.assignee?"":auto?" auto":"")+'" data-act="leadhandsel" data-id="'+esc(l.id)+'" aria-label="Sales person" title="'+(auto?"By territory — pick a name to confirm":"")+'">'+
+   '<option value="">'+(auto?esc(shortName(auto))+" · territory":"Nobody yet")+'</option>'+
+   GH_REPS.filter(id=>profile(id)==="sales").map(id=>'<option value="'+id+'"'+(l.assignee===id?" selected":"")+'>'+esc(shortName(id))+'</option>').join("")+'</select>';}
 function leadHandChipsHTML(l){
   const auto=!l.assignee&&leadRep(l);
   return '<div class="chiprow">'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>{const t=teamById(id);return '<span class="qchip'+(l.assignee===id?" on":(auto===id?" on auto":""))+'" title="'+(auto===id?"by territory — tap to confirm":"")+'" data-act="leadhand" data-id="'+esc(l.id)+'" data-v="'+id+'" style="'+(l.assignee===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+'</span>';}).join("")+'</div>';
@@ -3305,9 +3348,9 @@ function viewLeads(){
     '<td>'+esc(l.company||"—")+(l.buysThrough?'<div class="lvsub">buys via '+esc(l.buysThrough.name)+'</div>':'')+'</td>'+
     '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
-    (sales?'<td>'+leadChipsHTML(l)+(l.handedBy&&l.handedBy!==USER?'<div class="lvsub">from '+esc(shortName(l.handedBy))+(l.handedAt?' · '+esc(String(l.handedAt).slice(0,10)):'')+'</div>':'')+'</td>'
-          :'<td>'+leadChipsHTML(l)+'</td><td>'+leadHandChipsHTML(l)+'</td>')+
-    '<td>'+(t?esc(t.date)+(t.note?'<div class="lvsub" style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+esc(titlecase(t.method))+' · '+esc(t.note)+'</div>':''):'<span class="muted">never</span>')+'</td>'+
+    (sales?'<td>'+leadCatSelHTML(l)+(l.handedBy&&l.handedBy!==USER?'<div class="lvsub">from '+esc(shortName(l.handedBy))+(l.handedAt?' · '+esc(String(l.handedAt).slice(0,10)):'')+'</div>':'')+'</td>'
+          :'<td>'+leadCatSelHTML(l)+'</td><td>'+leadHandSelHTML(l)+'</td>')+
+    '<td>'+(t?esc(t.date)+(t.note?'<div class="lvsub clamp2" style="max-width:260px" title="'+esc(t.note)+'">'+esc(titlecase(t.method))+' · '+esc(t.note)+'</div>':''):'<span class="muted">never</span>')+'</td>'+
     '<td class="num">'+((l.touches||[]).length)+'</td></tr>';}).join("")+
   '</tbody></table></div>';
   return h;
@@ -3556,24 +3599,20 @@ function oppRow(o){
   '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':'';})()+'</div></td>'+
   '<td>'+distCell(o)+'</td>'+
   '<td>'+ghRepCell(o)+'</td>'+
-  '<td>'+regionTag(oppRegion(o))+'</td>'+
-  '<td>'+(o.state?stateChip(o.state):'<span class="muted">—</span>')+'</td>'+
-  '<td>'+oppStageTag(o.stage)+(oppOverdue(o)?' <span class="pill dang">past due</span>':'')+'</td>'+
-  '<td class="num">'+money(o.amount||0)+'</td>'+
-  '<td class="num">'+(o.units||'—')+'</td>'+
-  '<td class="num">'+oppProb(o)+'%'+(o.probReason?' <span title="'+esc(o.probReason)+'" style="cursor:help">ⓘ</span>':'')+'</td>'+
-  '<td class="num"><b>'+oppTouches(o)+'</b></td>'+
-  '<td>'+(oppLastTouch(o)?esc(oppLastTouch(o)):'<span class="muted">—</span>')+'</td>'+
+  '<td>'+regionTag(oppRegion(o))+(o.state?' '+stateChip(o.state):'')+'</td>'+
+  '<td>'+oppStageTag(o.stage)+(oppOverdue(o)?' <span class="pill dang">past due</span>':'')+'<div class="lvsub">'+oppProb(o)+'%'+(o.probReason?' <span title="'+esc(o.probReason)+'" style="cursor:help">ⓘ</span>':'')+'</div></td>'+
+  '<td class="num">'+money(o.amount||0)+(o.units?'<div class="lvsub">'+o.units+' kit'+(o.units===1?'':'s')+'</div>':'')+'</td>'+
+  '<td>'+(oppLastTouch(o)?esc(oppLastTouch(o)):'<span class="muted">—</span>')+'<div class="lvsub">'+oppTouches(o)+' touch'+(oppTouches(o)===1?'':'es')+'</div></td>'+
   '<td>'+(o.nextAction?'<div class="lvname" style="font-weight:500">'+esc(o.nextAction)+'</div>'+(o.nextActionDate?'<div class="lvsub"'+((o.nextActionDate<todayStr()&&oppIsOpen(o))?' style="color:var(--dang-t)"':'')+'>'+esc(o.nextActionDate)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
   '<td>'+(o.closeDate?esc(o.closeDate):(o.forecastYear?'FY '+o.forecastYear:'<span class="muted">—</span>'))+'</td></tr>';
 }
 function oppFltVal(o,key){
-  if(key==="stage")return (OPP_SHORT[o.stage]||"")+" "+(o.stage||"")+(oppOverdue(o)?" past due":"");
+  if(key==="stage")return (OPP_SHORT[o.stage]||"")+" "+(o.stage||"")+(oppOverdue(o)?" past due":"")+" "+oppProb(o)+"%";
   if(key==="amount")return o.amount||0;
   if(key==="units")return o.units||0;
   if(key==="prob")return oppProb(o);
   if(key==="close")return o.closeDate||(o.forecastYear?"FY "+o.forecastYear:"");
-  if(key==="region")return oppRegion(o)||"";
+  if(key==="region")return (oppRegion(o)||"")+" "+(o.state||"");
   if(key==="rep")return o.rep||(o.owner?teamById(o.owner).name:"");
   if(key==="ghrep")return oppGhRep(o)?teamById(oppGhRep(o)).name:"unassigned";
   if(key==="account")return oppAcctLabel(o)+" "+(o.distributorName||"");
@@ -3586,10 +3625,10 @@ function oppFltVal(o,key){
 }
 function oppTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("opps",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Opportunity · lead / end user")+th("dist","Closing distributor")+th("ghrep","Golden Hour sales person")+th("region","Region")+th("state","State")+th("stage","Stage")+th("amount","Amount")+th("units","Units")+th("prob","Prob.")+th("touches","Touches")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("close","Close")+'</tr>';
+  const head='<tr>'+th("name","Opportunity · lead / end user")+th("dist","Closing distributor")+th("ghrep","Sales person")+th("region","Territory")+th("stage","Stage")+th("amount","Amount")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("close","Close")+'</tr>';
   const total=list.reduce((s,o)=>s+(o.amount||0),0),units=list.reduce((s,o)=>s+(o.units||0),0);
   return '<div class="tablewrap"><table class="lv"'+(sortable?' data-tbl="opps"':'')+'><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
-    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td colspan="5"></td><td class="num" style="font-weight:700">'+money(total)+'</td><td class="num" style="font-weight:700">'+units+'</td><td colspan="5"></td></tr></tfoot></table></div>';
+    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td colspan="4"></td><td class="num" style="font-weight:700" data-l="Total">'+money(total)+(units?'<div class="lvsub">'+units+' kits</div>':'')+'</td><td colspan="3"></td></tr></tfoot></table></div>';
 }
 function ghRepCell(o){
   const id=oppGhRep(o);
@@ -4425,8 +4464,8 @@ function viewReport(id){
   const head='<tr>'+data.cols.map((c,i)=>'<th class="srt'+(s.key===i?" on":"")+'" data-act="repsort" data-key="'+i+'">'+esc(c)+(s.key===i?sortArrow(s.dir):"")+'</th>').join("")+'</tr>';
   h+='<div class="tablewrap"><table class="lv"><thead>'+head+'</thead><tbody>'+
     rows.map(r=>'<tr>'+r.map((x,i)=>{
-      const num=typeof x==="number";
-      return '<td class="'+(num?"num":"")+'">'+(num&&/revenue|amount|\$/i.test(data.cols[i])?money(x):esc(x))+'</td>';
+      const num=typeof x==="number",brk=!num&&/\S{20,}/.test(String(x==null?"":x)); /* emails, web addresses: may break anywhere */
+      return '<td class="'+(num?"num":brk?"brk":"")+'">'+(num&&/revenue|amount|\$/i.test(data.cols[i])?money(x):esc(x))+'</td>';
     }).join("")+'</tr>').join("")+'</tbody></table></div>';
   return h;
 }
@@ -6153,7 +6192,8 @@ function quoteDraftFrom(q,pre){
     items:(q.items||[]).map(x=>({sku:x.sku||"",name:x.name||"",qty:x.qty,unit:x.unit,auto:!!x.auto})),
     acct:q.account||"",con:q.contactName||"",email:q.contactEmail||"",shipTo:q.shipTo||"",notes:q.notes||"",
     dist:q.distName||"",distCid:q.distCid||null,distRep:q.distRep||"",distPid:q.distPid||null,
-    shipping:quoteShipping(q)==null?"":String(quoteShipping(q)),more:!!(q.shipTo||q.notes||quoteShipping(q)!=null),oppId:q.oppId||null};
+    shipping:quoteShipping(q)==null?"":String(quoteShipping(q)),more:!!(q.shipTo||q.notes||quoteShipping(q)!=null||q.distName),oppId:q.oppId||null,
+    date:String(q.date||todayStr()).slice(0,10),acctFrom:q.contactName?"field":"pick"};
   pre=pre||{};
   const p=pre.pid?person(pre.pid):null,c0=pre.cid?company(pre.cid):(p&&p.cid?company(p.cid):null);
   const c=c0&&!/company unknown/i.test(c0.name)?c0:null; // the business-card holding bucket is not a customer name
@@ -6161,33 +6201,48 @@ function quoteDraftFrom(q,pre){
   const bf=c&&c.type==="enduser"?quoteFirstDist(c):null; // their 1st-choice distributor, if the account page has one
   return {id:null,cid:c?c.id:null,pid:p?p.id:null,level:level,validDays:30,
     items:[{sku:"1000-0005-TQ",name:"",qty:1,unit:quotePrice("1000-0005-TQ",1,level),auto:true}],
-    acct:c?c.name:(pre.acct||""),con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!ship,
-    dist:bf?bf.name:"",distCid:bf?bf.cid:null,distRep:"",distPid:null,oppId:pre.oppId||null};
+    acct:c?c.name:(pre.acct||""),con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!(ship||bf),
+    dist:bf?bf.name:"",distCid:bf?bf.cid:null,distRep:"",distPid:null,oppId:pre.oppId||null,date:todayStr(),acctFrom:p?"contact":(c||pre.acct?"pick":"")};
 }
 function formQuote(id,pre,keep){
   if(!keep)logState.qt=quoteDraftFrom(id?quoteById(id):null,pre);
-  const S=logState.qt,q=S.id?quoteById(S.id):null;
+  const S=logState.qt,q=S.id?quoteById(S.id):null,deal=S.oppId?oppById(S.oppId):null;
   const hint=t=>' <span style="font-weight:400;color:var(--hint)">'+t+'</span>';
+  const other=S.date!==todayStr();
   openSheet('<h2>'+(q?'Edit quote '+esc(q.no):'New quote')+'</h2>'+
-   '<label class="fl">Quote for'+hint('— the company; pick an account or type a new name')+'</label>'+comboField("qtAcct","Company",S.acct)+
-   '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Customer name</label>'+comboField("qtCon","First and last name",S.con)+'</div>'+
-   '<div class="grow"><label class="fl">Customer email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="name@company.com"></div></div>'+
-   quoteConChipsHTML()+quoteOppHTML()+
-   '<label class="fl">Pricing</label><div class="qa-types" id="qtLevel">'+
-    [["enduser","End-user (MSRP)"],["dist","Distributor"]].map(l=>'<span class="chip'+(S.level===l[0]?" on":"")+'" data-act="qtlevel" data-v="'+l[0]+'">'+l[1]+'</span>').join("")+'</div>'+
-   quoteDistHTML()+
+   '<label class="fl">Date of quote</label><div class="qa-types" id="qtDateRow" style="align-items:center">'+
+    '<span class="chip'+(!other?" on":"")+'" data-act="qtdate" data-v="today">Today</span><span class="chip'+(other?" on":"")+'" data-act="qtdate" data-v="other">Other date</span>'+
+    '<input class="f" type="date" id="qtDate" value="'+esc(S.date)+'" style="width:auto;min-height:34px;padding:6px 10px'+(other?'':';display:none')+'"></div>'+
+   '<label class="fl">Who is quoting</label><div class="qa-types" id="qtLevel">'+
+    [["enduser","You quote","end-user price"],["dist","Distributor quote","distributor price"]].map(l=>'<span class="chip'+(S.level===l[0]?" on":"")+'" data-act="qtlevel" data-v="'+l[0]+'">'+l[1]+'<small style="font-weight:500;opacity:.7;margin-left:5px">'+l[2]+'</small></span>').join("")+'</div>'+
+   '<div style="display:flex;gap:10px;flex-wrap:wrap"><div style="flex:1 1 220px;min-width:0"><label class="fl">Customer name</label>'+comboField("qtCon","Person or company — the CRM's pop up",S.con||S.acct)+'<div id="qtCoLine">'+quoteCoLine()+'</div></div>'+
+   '<div style="flex:1 1 220px;min-width:0"><label class="fl">Customer email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="name@company.com"></div></div>'+
+   quoteConChipsHTML()+
    quoteItemsHTML()+
    '<label class="fl">Valid for</label><div class="qa-types" id="qtValid">'+
     [30,60,90].map(n=>'<span class="chip'+(S.validDays===n?" on":"")+'" data-act="qtvalid" data-v="'+n+'">'+n+' days</span>').join("")+'</div>'+
-   '<button class="btn sm ghost" data-act="qtmore" id="qtMoreBtn" style="margin-top:14px'+(S.more?';display:none':'')+'">+ Ship-to, shipping cost or a note</button>'+
+   '<button class="btn sm ghost" data-act="qtmore" id="qtMoreBtn" style="margin-top:14px;white-space:normal;text-align:left;height:auto;min-height:32px'+(S.more?';display:none':'')+'">+ More: company, order through a distributor, ship-to, note</button>'+
    '<div id="qtMore"'+(S.more?'':' style="display:none"')+'>'+
+    '<label class="fl">Company'+hint('— if the customer above is a person')+'</label>'+comboField("qtAcct","Company",S.acctFrom==="pick"?"":S.acct)+
+    quoteDistHTML()+
     '<label class="fl">Ship to</label><textarea class="f" id="qtShip" rows="3" placeholder="Name, street, city, state ZIP">'+esc(S.shipTo)+'</textarea>'+
     '<label class="fl">Shipping cost'+hint('— leave blank and the quote says “Quoted at order”')+'</label><input class="f" id="qtShipAmt" inputmode="decimal" autocomplete="off" value="'+esc(S.shipping)+'" placeholder="$">'+
     '<label class="fl">Note on the quote</label><textarea class="f" id="qtNotes" rows="2" placeholder="Optional">'+esc(S.notes)+'</textarea></div>'+
-   '<div style="display:flex;gap:8px;margin-top:18px"><button class="btn" data-act="qtsave" data-v="preview" style="flex:1;min-height:46px">Preview</button>'+
-   '<button class="btn coral" data-act="qtsave" data-v="send" style="flex:1.6;min-height:46px">Save &amp; send</button></div>'+
-   '<button class="btn ghost block" data-act="qtsave" data-v="draft" style="margin-top:8px">Save as a draft</button>');
+   '<p class="t2" style="margin:16px 0 0;white-space:normal">'+(deal?'Goes on the deal <b>'+esc(deal.name)+'</b>.':q?(q.oppId&&oppById(q.oppId)?'On the deal <b>'+esc(oppById(q.oppId).name)+'</b>.':'Not on a pipeline deal.'):'Saving puts it in the pipeline as a new deal.')+'</p>'+
+   '<button class="btn coral block" data-act="qtsave" data-v="pdf" style="margin-top:12px;min-height:48px">'+svg("dl")+' Save &amp; get the PDF</button>'+
+   '<button class="btn ghost block" data-act="qtsave" data-v="draft" style="margin-top:8px">Save without the PDF</button>'+
+   (q?'':'<button class="btn ghost sm" data-act="quoteext" style="margin:10px auto 0;display:flex">Quoted outside the CRM? Add that quote instead</button>'));
 }
+/* under the customer box: who it resolved to */
+function quoteCoLine(){
+  const S=logState.qt;if(!S)return "";
+  const c=S.cid?company(S.cid):null,p=S.pid?person(S.pid):null;
+  if(p&&(c||S.acct))return '<p class="t2" style="margin:6px 0 0">at <b>'+esc(c?c.name:S.acct)+'</b>'+(c?' · '+esc(typeLabel(c.type)):'')+'</p>';
+  if(c&&S.acctFrom==="pick")return '<p class="t2" style="margin:6px 0 0">'+esc(typeLabel(c.type))+' account in the CRM'+(c.state?' · '+esc(c.state):'')+'</p>';
+  if(S.acct&&S.acctFrom==="field")return '<p class="t2" style="margin:6px 0 0">at <b>'+esc(S.acct)+'</b></p>';
+  return "";
+}
+function quoteRedrawCoLine(){const w=document.getElementById("qtCoLine");if(w)w.innerHTML=quoteCoLine();}
 /* the people we already know at the picked account: one tap fills the customer's name and email. Both boxes stay
    plain text boxes, so anyone who is not in the CRM yet can simply be typed in. */
 function quoteConChipsHTML(){
@@ -6225,25 +6280,28 @@ function quoteItemSub(it,level){
 }
 function quoteItemsHTML(){
   const S=logState.qt;
-  const chips=QUOTE_CAT.filter(c=>c[0]!=="Demo unit"||S.level==="dist").map(c=>'<span class="qchip" data-act="qtadd" data-v="'+esc(c[0])+'">+ '+esc(c[5])+'</span>').join("")+
-   '<span class="qchip" data-act="qtadd" data-v="">+ Custom line</span>';
+  const MAIN=["1000-0005-TQ","7000-LS-P","7000-LS2P"],chip=c=>'<span class="qchip" data-act="qtadd" data-v="'+esc(c[0])+'">+ '+esc(c[5])+'</span>';
+  const chips=QUOTE_CAT.filter(c=>MAIN.includes(c[0])).map(chip).join("")+
+   (S.otherOpen?QUOTE_CAT.filter(c=>!MAIN.includes(c[0])&&(c[0]!=="Demo unit"||S.level==="dist")).map(chip).join("")+'<span class="qchip" data-act="qtadd" data-v="">+ Custom line</span>'
+     :'<span class="qchip" data-act="qtother" style="border-style:dashed">+ Other item</span>');
   const rows=S.items.map((it,i)=>{const c=qCat(it.sku);
     return '<div class="qtrow"><div class="qtname">'+
      (c?'<b>'+esc(c[1])+'</b><small id="qt_sub_'+i+'">'+esc(quoteItemSub(it,S.level))+'</small>'
        :'<input class="f" id="qt_name_'+i+'" placeholder="What is this line?" value="'+esc(it.name||"")+'" autocomplete="off">')+'</div>'+
      '<div class="qtnums"><input class="f" id="qt_qty_'+i+'" inputmode="numeric" aria-label="Quantity" value="'+(it.qty===""||it.qty==null?"":it.qty)+'" autocomplete="off">'+
-      '<span class="x">×</span><input class="f u" id="qt_unit_'+i+'" inputmode="decimal" aria-label="Unit price" value="'+(it.unit===""||it.unit==null?"":(+it.unit).toFixed(2))+'" placeholder="$ each" autocomplete="off">'+
+      '<span class="x">×</span><input class="f u" id="qt_unit_'+i+'" inputmode="decimal" aria-label="Price quoted (each)" title="Price quoted (each)" value="'+(it.unit===""||it.unit==null?"":(+it.unit).toFixed(2))+'" placeholder="$ each" autocomplete="off">'+
       '<b id="qt_tot_'+i+'">'+fmtC(qLine(it))+'</b>'+
       '<button class="tkdel" data-act="qtdel" data-i="'+i+'" aria-label="Remove line" title="Remove line">'+svg("x")+'</button></div></div>';}).join("");
-  return '<div id="qtItems"><label class="fl">Line items</label>'+
-   (S.items.length?'<div class="qtrows">'+rows+'</div>':'')+
-   '<div class="qa-types" style="margin-top:10px">'+chips+'</div>'+
+  return '<div id="qtItems"><label class="fl">Add item</label>'+
+   '<div class="qa-types">'+chips+'</div>'+
+   (S.items.length?'<label class="fl">On the quote <span style="font-weight:400;color:var(--hint)">— quantity × price quoted (each)</span></label><div class="qtrows">'+rows+'</div>':'')+
    '<div class="qtsum"><span>Subtotal</span><b id="qtSub">'+fmtC(S.items.reduce((a,x)=>a+qLine(x),0))+'</b></div></div>';
 }
 function quoteCollect(){
   const S=logState.qt;if(!S)return;
   const g=id=>{const el=document.getElementById(id);return el?el.value:null;};
-  [["qtAcct","acct"],["qtCon","con"],["qtEmail","email"],["qtShip","shipTo"],["qtShipAmt","shipping"],["qtNotes","notes"],["qtDist","dist"],["qtDistRep","distRep"]].forEach(m=>{const v=g(m[0]);if(v!==null)S[m[1]]=v;});
+  const dv=g("qtDate");if(dv!==null&&/^\d{4}-\d{2}-\d{2}$/.test(dv))S.date=dv;
+  [["qtCon","con"],["qtEmail","email"],["qtShip","shipTo"],["qtShipAmt","shipping"],["qtNotes","notes"],["qtDist","dist"],["qtDistRep","distRep"]].forEach(m=>{const v=g(m[0]);if(v!==null)S[m[1]]=v;});
   S.items.forEach((it,i)=>{
     const nm=g("qt_name_"+i);if(nm!==null)it.name=nm;
     const qv=g("qt_qty_"+i);if(qv!==null)it.qty=parseFloat(qv)||0;
@@ -6282,8 +6340,11 @@ function quoteAddItem(sku){
 function quoteDelItem(i){const S=logState.qt;if(!S)return;quoteCollect();S.items.splice(i,1);quoteRedrawItems();}
 function saveQuote(mode){
   const S=logState.qt;if(!S)return;quoteCollect();
-  const acct=String(S.acct||"").trim(),email=String(S.email||"").trim();
-  if(!acct){toast("Who is the quote for? Add the company");return;}
+  {const af=document.getElementById("qtAcct");if(af&&af.value.trim()&&af.value.trim()!==S.acct){S.acct=af.value.trim();S.acctFrom="field";S.cid=null;}}
+  let acct=String(S.acct||"").trim(),con=String(S.con||"").trim();const email=String(S.email||"").trim();
+  if(!acct){acct=con;con="";} /* a name on its own is the customer */
+  else if(con.toLowerCase()===acct.toLowerCase())con="";
+  if(!acct){toast("Who is the quote for? Add the customer's name");return;}
   const items=S.items.filter(it=>(it.sku||String(it.name||"").trim())&&+it.qty>0)
    .map(it=>({sku:it.sku||"",name:it.sku?"":String(it.name||"").trim(),qty:+it.qty,unit:Math.round((+it.unit||0)*100)/100,auto:!!it.auto}));
   if(!items.length){toast("Add at least one line item");return;}
@@ -6294,7 +6355,8 @@ function saveQuote(mode){
   if(!q){q={id:uid(),no:nextQuoteNo(),date:todayStr(),status:"draft",by:USER,createdAt:new Date().toISOString()};DB.quotes.push(q);}
   if(!S.cid){const c=DB.companies.find(x=>x.name&&x.name.toLowerCase()===acct.toLowerCase());if(c)S.cid=c.id;}
   const sh=String(S.shipping||"").replace(/[$,\s]/g,"");
-  q.account=acct;q.cid=S.cid||null;q.contactName=String(S.con||"").trim();q.contactEmail=email;q.pid=S.pid||null;
+  q.account=acct;q.cid=S.cid||null;q.contactName=con;q.contactEmail=email;q.pid=S.pid||null;
+  if(S.date&&/^\d{4}-\d{2}-\d{2}$/.test(S.date))q.date=S.date;
   q.level=S.level;q.validDays=S.validDays;q.items=items;q.shipTo=String(S.shipTo||"").trim();q.notes=String(S.notes||"").trim();
   q.shipping=sh===""?null:(parseFloat(sh)||0);q.total=quoteTotal(q);q.updatedAt=new Date().toISOString();
   const dn=S.level==="dist"?"":String(S.dist||"").trim(); // a distributor's own quote has nobody to buy it through
@@ -6312,6 +6374,7 @@ function saveQuote(mode){
   S.id=q.id;save();render();
   if(mode==="send"){formQuoteSend(q.id);return;}
   if(mode==="preview")quotePrint(q.id);
+  if(mode==="pdf")quotePrint(q.id,true); /* the print window: "Save as PDF" */
   quoteSheet(q.id);toast("Quote "+q.no+(fresh?" saved":" updated")+(made?" · new deal in the pipeline":""));
 }
 
@@ -6483,11 +6546,10 @@ function viewQuotes(){
   const who=ownOnly()?[]:[[USER,"Mine"],["","Everyone"]].concat(TEAM.filter(t=>t.id!==USER&&t.id!=="laresa"&&quotesAll().some(q=>q.by===t.id)).map(t=>[t.id,shortName(t.id)]));
   FLT_RESET.quotes=()=>{quoteFilter="open";quoteRep=ownOnly()?USER:"";};
   let h='<div class="lvhead"><button class="btn coral" data-act="quotenew">'+svg("plus")+' New quote</button>'+
-   '<button class="btn" data-act="quoteext" title="Add a quote made outside the CRM — a PDF, Word file or another letterhead">'+svg("file")+' Add existing quote</button>'+
    filterBar("quotes",[fltGroup("Status","quotefilter",[["open","Open"],["won","Won"],["lost","Lost"],["expired","Expired"],["all","All"]].map(f=>[f[0],f[1],pick(f[0]).length]),quoteFilter,"open",{sumOf:(v,o)=>o?o[1]+" quotes":""}),
      who.length?fltGroup("Whose quotes","quoterep",who.map(w=>[w[0],w[1]]),quoteRep,"",{sumOf:(v,o)=>o?o[1]:""}):null])+'</div>';
   const list=pick(quoteFilter);
-  if(!list.length)return h+'<div class="empty">'+(all.length?'Nothing in this view.':'No quotes yet. Tap <b>New quote</b>, pick the customer, tap the line items — then preview it or send it.')+'</div>';
+  if(!list.length)return h+'<div class="empty">'+(all.length?'Nothing in this view.':'No quotes yet. Tap <b>New quote</b>: the date, who is quoting, the customer, the items and the price — it gives you the PDF and puts the deal in the pipeline.')+'</div>';
   return h+'<div class="list">'+list.map(quoteRowHTML).join("")+'</div>';
 }
 
@@ -7070,6 +7132,10 @@ function invImportCsv(text){
   save();render();toast(added+" orders imported"+(merged?" · "+merged+" merged into existing":""));
 }
 document.addEventListener("change",e=>{
+  if(e.target&&e.target.dataset&&(e.target.dataset.act==="leadcatsel"||e.target.dataset.act==="leadhandsel")){const l=myLeadById(e.target.dataset.id),v=e.target.value;if(!l)return;
+    if(e.target.dataset.act==="leadcatsel"){l.cat=v;l.catAt=new Date().toISOString();l.catBy=USER;if(v==="dead"&&l.assignee)l.assignee=null;toast(l.name+" → "+(LEAD_CATS.find(x=>x[0]===v)||["",v])[1]);}
+    else{if(!v){if(l.assignee){l.assignee=null;if(l.cat==="handed")l.cat="qualified";toast("Taken back");}}else if(l.assignee!==v){leadHand(l,v);toast(l.name+" → "+teamById(v).name);}}
+    save();render();return;}
   if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invUploadFiles(Array.from(e.target.files));e.target.value="";}
   if(e.target&&e.target.id==="poCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(invImportCsv);e.target.value="";}
   if(e.target&&e.target.id==="upsCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(importUpsCsv);e.target.value="";}
@@ -7195,10 +7261,24 @@ document.addEventListener("click",e=>{
   if(a==="qtlevel"){quoteSetLevel(t.dataset.v);return;}
   if(a==="qtvalid"){if(logState.qt)logState.qt.validDays=+t.dataset.v;document.querySelectorAll("#qtValid .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="qtadd"){quoteAddItem(t.dataset.v);return;}
+  if(a==="qtother"){if(logState.qt){quoteCollect();logState.qt.otherOpen=true;quoteRedrawItems();}return;}
+  if(a==="qtdate"){const S=logState.qt;if(!S)return;const di=document.getElementById("qtDate");
+    document.querySelectorAll("#qtDateRow .chip").forEach(x=>x.classList.toggle("on",x===t));
+    if(t.dataset.v==="today"){S.date=todayStr();if(di){di.value=S.date;di.style.display="none";}}
+    else if(di){di.style.display="";di.focus();if(di.showPicker)try{di.showPicker();}catch(err){}}
+    return;}
+  if(a==="pickQtCust"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;S.acctFrom="pick";S.con="";S.pid=null;
+    const i=document.getElementById("qtCon");if(i)i.value=c.name;sugRender("qtCon",[]);
+    const sh=document.getElementById("qtShip");if(sh&&!sh.value.trim()&&quoteShipToText(c)){sh.value=quoteShipToText(c);S.shipTo=sh.value;}
+    if(!String(S.dist||"").trim()){const bf=c.type==="enduser"?quoteFirstDist(c):null;if(bf){S.dist=bf.name;S.distCid=bf.cid;}}
+    const dw=document.getElementById("qtDistWrap");if(dw)dw.outerHTML=quoteDistHTML();
+    if((S.shipTo||S.dist)&&!S.more){S.more=true;const m=document.getElementById("qtMore"),b=document.getElementById("qtMoreBtn");if(m)m.style.display="";if(b)b.style.display="none";}
+    quoteRedrawConChips();quoteRedrawCoLine();
+    const lv=c.type==="distributor"?"dist":"enduser";if(lv!==S.level&&S.items.every(it=>it.auto))quoteSetLevel(lv);}return;}
   if(a==="qtdel"){quoteDelItem(+t.dataset.i);return;}
   if(a==="qtmore"){if(logState.qt)logState.qt.more=true;t.style.display="none";const m=document.getElementById("qtMore");if(m)m.style.display="";const f=document.getElementById("qtShip");if(f)f.focus();return;}
   if(a==="qtsave"){saveQuote(t.dataset.v);return;}
-  if(a==="pickQtAcct"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;const i=document.getElementById("qtAcct");if(i)i.value=c.name;sugRender("qtAcct",[]);
+  if(a==="pickQtAcct"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;S.acctFrom="field";const i=document.getElementById("qtAcct");if(i)i.value=c.name;sugRender("qtAcct",[]);quoteRedrawCoLine();
     if(S.pid&&(person(S.pid)||{}).cid!==c.id)S.pid=null;
     quoteRedrawConChips();quoteRedrawOpp();
     const sh=document.getElementById("qtShip");if(sh&&!sh.value.trim()&&quoteShipToText(c)){sh.value=quoteShipToText(c);S.shipTo=sh.value;}
@@ -7207,8 +7287,8 @@ document.addEventListener("click",e=>{
     const lv=c.type==="distributor"?"dist":"enduser";if(lv!==S.level&&S.items.every(it=>it.auto))quoteSetLevel(lv);}return;}
   if(a==="pickQtCon"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.pid=p.id;S.con=p.name;const i=document.getElementById("qtCon");if(i)i.value=p.name;sugRender("qtCon",[]);
     const em=document.getElementById("qtEmail");if(em&&p.email){em.value=p.email;S.email=p.email;}
-    const co=company(p.cid),ai=document.getElementById("qtAcct");if(co&&ai&&!ai.value.trim()){ai.value=co.name;S.cid=co.id;S.acct=co.name;}
-    quoteRedrawConChips();}return;}
+    const co=company(p.cid);if(co&&S.acctFrom!=="field"){S.cid=co.id;S.acct=co.name;S.acctFrom="contact";}
+    quoteRedrawConChips();quoteRedrawCoLine();}return;}
   if(a==="pickQtDist"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){S.distCid=c.id;S.dist=c.name;S.distPid=null;S.distRep="";const i=document.getElementById("qtDist");if(i)i.value=c.name;sugRender("qtDist",[]);quoteRedrawDistRep();}return;}
   if(a==="pickQtDistRep"){const p=person(t.dataset.id),S=logState.qt;if(p&&S){S.distPid=p.id;S.distRep=p.name;quoteRedrawDistRep();}return;}
   if(a==="qsccdist"){const i=document.getElementById("qsCc"),v=t.dataset.v;if(i&&v&&!i.value.toLowerCase().includes(v.toLowerCase()))i.value=(i.value.trim()?i.value.trim().replace(/[,;]\s*$/,"")+", ":"")+v;t.style.display="none";return;}
@@ -7427,6 +7507,7 @@ document.addEventListener("click",e=>{
   if(a==="extlink")return; /* tel: / mailto: inside a clickable row — let the link work, don't open the row */
   if(a==="leadtoopp"){const l=myLeadById(id);if(!l)return;const c=bcMatchCompany(l.company||"");formOpp(null,c?c.id:null);logState.oppFromLead=l.id;
     setTimeout(()=>{const n=document.getElementById("oName");if(n&&!n.value)n.value=(l.company||l.name)+" — first order";const an=document.getElementById("oCidQ");if(an&&!c)an.value=l.company||l.name;const st=document.getElementById("oLoc");if(st&&!st.value&&l.state)st.value=l.state;const nt=document.getElementById("oNotes");if(nt)nt.value="From lead "+l.name+(l.conf?" ("+l.conf+")":"");},30);return;}
+  if(a==="leadcatsel"||a==="leadhandsel"){e.stopPropagation();return;}
   if(a==="leadcat"){e.stopPropagation();const l=myLeadById(id);if(l){l.cat=t.dataset.v;l.catAt=new Date().toISOString();l.catBy=USER;if(l.cat!=="handed"&&l.assignee&&t.dataset.v==="dead")l.assignee=null;save();render();if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="leadhand"){e.stopPropagation();const l=myLeadById(id);if(l){leadHand(l,t.dataset.v);save();render();toast(l.assignee?l.name+" → "+teamById(l.assignee).name:"Taken back");if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="openlead"){formLeadRec(id);return;}
@@ -7603,8 +7684,10 @@ document.addEventListener("input",e=>{
   if(/^qt_(qty|unit|name)_\d+$/.test(e.target.id||"")){quoteItemInput(e.target);return;}
   if(e.target.id==="qxAcct"){if(logState.qx)logState.qx.cid=null;sugRender("qxAcct",acctSugItems(e.target.value,"pickQxAcct"));return;}
   if(e.target.id==="qxFile"){qxFilePicked(e.target.files&&e.target.files[0]);return;}
-  if(e.target.id==="qtAcct"){if(logState.qt){logState.qt.acct=e.target.value;if(logState.qt.cid){logState.qt.cid=null;quoteRedrawConChips();}quoteRedrawOpp();}sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
-  if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;document.querySelectorAll("#qtConChips .qchip").forEach(x=>x.classList.remove("on"));sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
+  if(e.target.id==="qtAcct"){const S=logState.qt;if(S){S.acct=e.target.value;S.acctFrom=e.target.value.trim()?"field":"";if(S.cid){S.cid=null;quoteRedrawConChips();}quoteRedrawCoLine();}sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
+  if(e.target.id==="qtCon"){const S=logState.qt;if(S){S.pid=null;S.con=e.target.value;if(S.acctFrom!=="field"){S.acct="";if(S.cid){S.cid=null;quoteRedrawConChips();}S.acctFrom="";}quoteRedrawCoLine();}
+    document.querySelectorAll("#qtConChips .qchip").forEach(x=>x.classList.remove("on"));
+    sugRender("qtCon",acctSugItems(e.target.value,"pickQtCust").slice(0,4).concat(peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)).slice(0,6)));return;}
   if(e.target.id==="qtDist"){const S=logState.qt;if(S){S.dist=e.target.value;if(S.distCid){S.distCid=null;S.distPid=null;S.distRep="";quoteRedrawDistRep();}}sugRender("qtDist",acctSugItems(e.target.value,"pickQtDist",["distributor"]));return;}
   if(e.target.id==="qtDistRep"){const S=logState.qt;if(S){S.distPid=null;S.distRep=e.target.value;document.querySelectorAll("#qtDistRepWrap .qchip").forEach(x=>x.classList.remove("on"));}
     sugRender("qtDistRep",peopleSugItemsF(e.target.value,"pickQtDistRep",p=>!!S&&p.cid===S.distCid));return;}
