@@ -1305,8 +1305,9 @@ function sideHTML(NU,me){
    '<div class="shead"><button class="sws'+(can||SIDE.mini?" can":"")+'" data-act="sidews" data-tip="'+(SIDE.mini&&!sideForced()?"Expand sidebar":"AutoTQ CRM")+'" aria-haspopup="'+(can?"menu":"false")+'"><span class="slogo">'+BRAND_MARK+'</span><span class="lbl"><b>AutoTQ</b><small>'+prof+'</small></span>'+(can?svg("chevD"):'')+'</button>'+
     '<button class="sicon" data-act="sidetoggle" data-tip="Collapse sidebar" aria-label="Collapse sidebar">'+svg("panel")+'</button></div>'+
    (can?'<div class="spop top'+(sidePop==="ws"?" open":"")+'" id="spopWs" role="menu"><div class="phd">Switch to</div>'+
-     '<button class="sitem on" data-act="sidepopclose"><span class="wsl" style="background:var(--coral-btn)">'+BRAND_MARK.replace('class="mark"','class="mark" style="width:9px;height:14px;color:#fff"')+'</span><span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button>'+
-     '<a class="sitem" href="'+MKT_URL+'" data-act="extlink"><span class="wsl" style="background:var(--ink)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.mail+'</svg></span><span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a></div>':'')+
+     '<a class="sitem" href="'+MKT_URL+'" data-act="extlink"><span class="wsl" style="background:var(--coral-btn)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.mail+'</svg></span><span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a>'+
+     '<a class="sitem" href="'+CAT_URL+'" data-act="extlink"><span class="wsl" style="background:#2D6CC0"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.box+'</svg></span><span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>'+
+     '<button class="sitem on" data-act="sidepopclose"><span class="wsl" style="background:#45433D"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="19.5"/></svg></span><span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button></div>':'')+
    '<button class="ssearch" data-act="palopen" data-tip="Search  '+KEY_K+'">'+svg("search")+'<span class="lbl">Search</span><kbd>'+KEY_K+'</kbd></button>'+
    '<nav class="snavs" aria-label="Sections">'+nav+'</nav>'+
    '<div class="sfoot">'+
@@ -1317,7 +1318,7 @@ function sideHTML(NU,me){
    '</div>'+
    '<div class="spop bottom'+(sidePop==="user"?" open":"")+'" id="spopUser" role="menu">'+
     '<div class="phd">'+esc(me.name)+' · '+esc(roleShort(me))+'</div>'+
-    (can?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><div class="sep"></div>':'')+
+    (can?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+svg("box")+'<span class="lbl">Switch to AutoTQ Catalog</span></a><div class="sep"></div>':'')+
     '<button class="sitem" data-act="chpw">'+svg("user")+'<span class="lbl">Change my password</span></button>'+
     '<button class="sitem" data-act="backup">'+svg("dl")+'<span class="lbl">Back up my data</span></button>'+
     '<button class="sitem" data-act="restorepick">'+svg("box")+'<span class="lbl">Restore from backup</span></button>'+
@@ -1363,7 +1364,7 @@ function palItems(q){
   const tabs=[];sideGroups(NU).forEach(g=>g[1].forEach(n=>{tabs.push([n[1],n[2],g[0],palGoto(n[0])]);(SIDE_SUBS[n[0]]||[]).forEach(k=>tabs.push([n[1],k[0],n[2],palGoto(n[0],k[2])]));}));
   const acts=[["plus","New quote","Quotes",()=>{formQuote(null,null);}],["clock","Log activity","Activity",()=>{formLog();}],["chart","New opportunity","Pipeline",()=>{formOpp(null);}],["user","New contact","Contacts",()=>{formCard();}],
     ["help","How this CRM works","Help",()=>{helpSheet();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]];
-  if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}]);
+  if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}],["box","Switch to AutoTQ Catalog","Catalog",()=>{location.href=CAT_URL;}]);
   const hit=s=>!q||String(s).toLowerCase().includes(q);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2]===t[1]?"":t[2],t[3]));
   acts.filter(a=>hit(a[1])||hit(a[2])).forEach(a=>add("Actions",a[0],a[1],"",a[3]));
@@ -1776,6 +1777,7 @@ function campAccess(){return campAccessFor(USER);}
 /* the AutoTQ Marketing hub (its own page at /marketing/, Max + Hannah only — its HUB_USERS) — a switch in the CRM header
    and the menu (Max, 2026-10-21: "an option up top for Hannah to switch to AutoTQ Marketing") */
 const MKT_URL="marketing/";
+const CAT_URL="catalog/"; /* AutoTQ Catalog (2026-10-21): the Marketing hub served at /catalog/ — new products, makers, quotes; Max + Hannah, like Marketing */
 function mktAccess(){return USER==="max"||USER==="hannah";}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
    Kellan = outreach (finds + categorizes leads, works the lists, hands off), admins direct it all, Laresa = billing. */
@@ -5172,7 +5174,8 @@ function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list
  railGroups(USER).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today")
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b class="grow">'+n[2]+'</b>'+chev()+'</button>').join("")+
  '</div><div class="list">'+
- (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>':'')+
+ (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>'+
+   '<a class="hub" href="'+CAT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("box")+'<b class="grow">Switch to AutoTQ Catalog</b>'+chev()+'</a>':'')+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
  '<button class="hub" data-act="backup">'+svg("dl")+'<b>Back up my data</b></button>'+
