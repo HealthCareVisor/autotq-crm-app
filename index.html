@@ -3256,7 +3256,7 @@ function oppVal(o,key){
 function oppRow(o){
   const lead=oppAcctLabel(o),isStock=lead&&oppDistLabel(o)&&lead.toLowerCase()===oppDistLabel(o).toLowerCase();
   return '<tr data-act="editopp" data-id="'+o.id+'">'+
-  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+'</div></td>'+
+  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':'';})()+'</div></td>'+
   '<td>'+distCell(o)+'</td>'+
   '<td>'+ghRepCell(o)+'</td>'+
   '<td>'+regionTag(oppRegion(o))+'</td>'+
@@ -3320,7 +3320,7 @@ function oppCard(o){
    '<div class="pa">'+esc(oppAcctLabel(o))+(oppDistLabel(o)&&oppDistLabel(o).toLowerCase()!==oppAcctLabel(o).toLowerCase()?' · via '+esc(oppDistLabel(o)):'')+'</div>'+
    '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
-     (o.units?'<span>'+o.units+'u</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
+     (o.units?'<span>'+o.units+'u</span>':'')+(oppQuotes(o).length?'<span title="Quotes on this deal">'+oppQuotes(o).length+' quote'+(oppQuotes(o).length>1?'s':'')+'</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
      (o.stage==="Closed Won"?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
@@ -4264,14 +4264,17 @@ function formOppReadOnly(o){
    row("Distributor",esc(oppDistLabel(o))+(o.distRepPid&&person(o.distRepPid)?" · "+esc(person(o.distRepPid).name):""))+
    row("Channel rep",esc(o.rep||(o.manrepPid&&person(o.manrepPid)?person(o.manrepPid).name:"")))+
    row("Close date",esc(o.closeDate||""))+
+   row("Quotes",oppQuotes(o).map(q=>'<a href="#" data-act="quoteopen" data-id="'+q.id+'" style="color:var(--coral-text)">'+quoteLine(q)+'</a>').join("<br>"))+
    row("Notes",esc(o.note||"")));
 }
-function formOpp(id,prefillCid){
+function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, name, amount, units, acct} */
+  pre=pre||{};
   ensureOpps();
   const o=id?DB.opps.find(x=>x.id===id):null;
   if(o&&!canEditOpp(o)){formOppReadOnly(o);return;}
   logState.oppId=id||null; logState.oppStage=o?o.stage:"Prospecting";
   logState.oppContacts=(o?oppFoldPeople(o):[]).filter(c=>person(c.pid));
+  logState.oppQuoteIds=o?oppQuotes(o).map(q=>q.id):(pre.quoteId?[pre.quoteId]:[]);
   const selCid=o?(o.accountId||""):(prefillCid||"");
   logState.oppCid=selCid||null;logState.oppConPid=null;
   logState.oppDistCid=o?(o.distributorId||null):null;
@@ -4281,14 +4284,14 @@ function formOpp(id,prefillCid){
   logState.oppGhRep=o?(o.ghRep||oppGhRep(o)||""):(repForRegion(regionFromState((prefillCid&&company(prefillCid)||{}).state))||(GH_REPS.includes(USER)?USER:""));
   const repChips=GH_REPS.concat(["jamie","max","house"]).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
-   '<label class="fl">Opportunity name <span style="font-weight:400;color:var(--hint)">— account + what it is, e.g. "Grainger East run rate"</span></label><input class="f" id="oName" value="'+(o?esc(o.name):"")+'" placeholder="e.g. Grainger East run rate" autocomplete="off">'+
-   '<label class="fl">Lead / end user <span style="font-weight:400;color:var(--hint)">— who the product is for (Conagra); ours pop up, a new name is fine</span></label>'+comboField("oCidQ","Type the end-user or account…",selCid?((company(selCid)||{}).name||""):(o?o.accountName||"":""))+
+   '<label class="fl">Opportunity name <span style="font-weight:400;color:var(--hint)">— account + what it is, e.g. "Grainger East run rate"</span></label><input class="f" id="oName" value="'+(o?esc(o.name):esc(pre.name||""))+'" placeholder="e.g. Grainger East run rate" autocomplete="off">'+
+   '<label class="fl">Lead / end user <span style="font-weight:400;color:var(--hint)">— who the product is for (Conagra); ours pop up, a new name is fine</span></label>'+comboField("oCidQ","Type the end-user or account…",selCid?((company(selCid)||{}).name||""):(o?o.accountName||"":(pre.acct||"")))+
    '<label class="fl">Closing distributor <span style="font-weight:400;color:var(--hint)">— who the PO comes through (Grainger)</span></label>'+comboField("oDistQ","Type a distributor…",(o&&o.distributorId?((company(o.distributorId)||{}).name||""):(o?o.distributorName||"":""))+"")+
    '<label class="chkrow"><input type="checkbox" id="oDirect"'+(o&&o.direct?" checked":"")+'> Direct sale — no distributor on this one</label>'+
    '<label class="fl">Golden Hour sales person</label><div class="chips" id="oGhRep">'+repChips+'</div>'+
    '<label class="fl">Stage</label><div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+esc(OPP_SHORT[s])+'</span>').join("")+'</div>'+
-   '<label class="fl">Amount ($)</label><input class="f" id="oAmt" inputmode="numeric" value="'+(o&&o.amount?o.amount:"")+'" placeholder="15200">'+
-   '<label class="fl"># of units</label><input class="f" id="oUnits" inputmode="numeric" value="'+(o&&o.units?o.units:"")+'" placeholder="40">'+
+   '<label class="fl">Amount ($)</label><input class="f" id="oAmt" inputmode="numeric" value="'+(o&&o.amount?o.amount:(!o&&pre.amount?pre.amount:""))+'" placeholder="15200">'+
+   '<label class="fl"># of units</label><input class="f" id="oUnits" inputmode="numeric" value="'+(o&&o.units?o.units:(!o&&pre.units?pre.units:""))+'" placeholder="40">'+
    '<label class="fl">Expected close date</label><input class="f" id="oClose" type="date" value="'+(o&&o.closeDate?esc(o.closeDate):"")+'">'+
    '<label class="fl">Next action</label><input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing manager" autocomplete="off">'+
    '<label class="fl">Next action date</label><input class="f" id="oNextAD" type="date" value="'+(o?esc(o.nextActionDate||""):"")+'">'+
@@ -4304,11 +4307,12 @@ function formOpp(id,prefillCid){
    '<div class="row" style="gap:8px;align-items:flex-start"><div style="flex:2;min-width:0">'+comboField("oConQ","Type a person to attach…","")+'</div>'+
    '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
    '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>'+
+   oppQuotesFormHTML()+
    '<label class="fl">Notes</label><textarea class="f" id="oNotes" placeholder="What\'s the opportunity?">'+(o?esc(o.note||""):"")+'</textarea>'+
    '<button class="btn coral block" data-act="saveOpp" style="margin-top:18px">'+(o?"Save changes":"Add opportunity")+'</button>'+
    (o?'<button class="btn block" data-act="delopp" data-id="'+o.id+'" style="margin-top:8px;color:var(--dang-t)">Delete opportunity</button>':""));
 }
-function saveOpp(){
+function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote for this deal once it is saved */
   const name=val("oName"); if(!name){toast("Name the opportunity");return;}
   ensureOpps();
   const cid=logState.oppCid||"";
@@ -4342,11 +4346,99 @@ function saveOpp(){
   if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
   const ownerSel=document.getElementById("oOwner");
   if(ownerSel)data.owner=ownerSel.value;
+  let saved=existing;
   if(existing){if(existing.stage===data.stage&&typeof existing.probability==="number")data.probability=existing.probability;Object.assign(existing,data);}
-  else{const no=Object.assign({id:uid(),owner:USER,source:"app",createdAt:new Date().toISOString()},data);DB.opps.unshift(no);
+  else{const no=Object.assign({id:uid(),owner:USER,source:"app",createdAt:new Date().toISOString()},data);DB.opps.unshift(no);saved=no;
     if(logState.oppFromLead){const l=myLeadById(logState.oppFromLead);if(l){l.oppId=no.id;if(leadCat(l)!=="handed")l.cat="qualified";}logState.oppFromLead=null;}}
-  save();closeSheet();render();toast("Opportunity saved");
+  oppSyncQuotes(saved);
+  save();
+  if(after==="newquote"){render();formQuote(null,{cid:saved.accountId||null,acct:saved.accountName||"",oppId:saved.id});toast("Deal saved — the new quote goes on it");return;}
+  if(after==="extquote"){render();formQuoteExt(null,saved.id);toast("Deal saved — the quote you add goes on it");return;}
+  closeSheet();render();toast("Opportunity saved");
 }
+/* ----- quotes on a pipeline deal (Max, 2026-10-21: "make it so reps can attach a quote to a pipeline opportunity"). One link,
+   kept on the quote: q.oppId. A deal lists the quotes that point at it. Attach from the deal form (type-ahead, New quote for
+   this deal, Add an existing quote) or from a quote (Attach to a deal / Start a deal from this quote). A rep picks among their
+   own deals and quotes. A deal with no amount or units yet takes them from the first quote attached. ----- */
+function oppById(id){return id?(DB.opps||[]).find(o=>o.id===id)||null:null;}
+function oppQuotes(o){return o?quotesAll().filter(q=>q.oppId===o.id):[];}
+function quotesForPick(){return quotesAll().filter(q=>!ownOnly()||q.by===USER);}
+function oppsForPick(){return myOpps().filter(o=>!ownOnly()||oppGhRep(o)===USER);}
+function linkQuoteOpp(q,o){
+  if(!q)return;q.oppId=o?o.id:null;q.updatedAt=new Date().toISOString();
+  if(o&&canEditOpp(o)){if(!o.amount)o.amount=quoteTotal(q);if(!o.units&&quoteUnits(q))o.units=quoteUnits(q);} /* someone else's deal: linked, numbers left alone */
+}
+function quoteLine(q){return esc(q.no)+' · '+esc(qAcct(q.account)||"—")+' · '+fmtC(quoteTotal(q))+' · '+(QUOTE_ST[quoteState(q)]||QUOTE_ST.draft)[0];}
+/* the deal form's list (pending until Save, like People on this deal) */
+function oppQuoteChips(){
+  return (logState.oppQuoteIds||[]).map((id,i)=>{const q=quoteById(id);if(!q)return "";
+    return '<span class="rolechip">'+svg("tag")+' '+quoteLine(q)+'<button data-act="oppQDetach" data-i="'+i+'" title="Take this quote off the deal" aria-label="Remove">'+svg("x")+'</button></span>';}).join("")||
+   '<span class="muted" style="font-size:13px">No quote attached yet.</span>';
+}
+function oppQuoteRedraw(){const w=document.getElementById("oppQts");if(w)w.innerHTML=oppQuoteChips();}
+function quoteSugItems(q,act,skip){
+  q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  const cid=logState.oppCid,acc=String((document.getElementById("oCidQ")||{}).value||"").toLowerCase();
+  return quotesForPick().filter(x=>!(skip||[]).includes(x.id)&&[x.no,x.account,x.contactName,x.contactEmail].join(" ").toLowerCase().includes(q))
+   .sort((a,b)=>((b.cid&&b.cid===cid)||(acc&&String(b.account||"").toLowerCase()===acc)?1:0)-((a.cid&&a.cid===cid)||(acc&&String(a.account||"").toLowerCase()===acc)?1:0))
+   .slice(0,8).map(x=>'<button type="button" data-act="'+act+'" data-id="'+x.id+'">'+quoteLine(x)+(x.oppId&&oppById(x.oppId)?' <span style="color:var(--hint)">— on '+esc(oppById(x.oppId).name)+'</span>':'')+'</button>');
+}
+function oppQuotesFormHTML(){
+  return '<label class="fl">Quotes on this deal <span style="font-weight:400;color:var(--hint)">— an empty amount or unit count takes the quote&#39;s</span></label><div id="oppQts" style="margin:2px 0 8px">'+oppQuoteChips()+'</div>'+
+   comboField("oQuoteQ","Attach a quote — type its number or customer…","")+
+   '<div class="qa-types" style="margin-top:8px"><span class="qchip" data-act="oppNewQuote" title="Saves this deal, then opens a new quote for it">+ New quote for this deal</span>'+
+   '<span class="qchip" data-act="oppExtQuote" title="Saves this deal, then adds a quote made outside the CRM">+ Add an existing quote</span></div>';
+}
+/* keep the deal's quote links in step with the form when it is saved */
+function oppSyncQuotes(o){
+  const ids=logState.oppQuoteIds||[];
+  (DB.quotes||[]).forEach(q=>{if(q&&q.oppId===o.id&&!ids.includes(q.id)){q.oppId=null;q.updatedAt=new Date().toISOString();}});
+  ids.forEach(id=>{const q=quoteById(id);if(q&&q.oppId!==o.id)linkQuoteOpp(q,o);});
+}
+/* the quote side: which deal it is on, or a way to put it on one */
+function quoteOppFact(q){
+  const o=oppById(q.oppId);
+  return '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px"><span style="color:var(--muted)">Pipeline deal</span>'+
+   (o?'<span style="text-align:right"><a href="#" data-act="editopp" data-id="'+o.id+'" style="color:var(--coral-text);font-weight:700">'+esc(o.name)+'</a> <span class="t2" style="display:inline">· '+esc(OPP_SHORT[o.stage]||o.stage)+'</span> <button class="btn sm ghost" data-act="quoteopp" data-id="'+q.id+'" style="margin-left:4px">Change</button></span>'
+      :'<button class="btn sm" data-act="quoteopp" data-id="'+q.id+'">'+svg("chart")+' Attach to a deal</button>')+'</div>';
+}
+function formQuoteOpp(qid){
+  const q=quoteById(qid);if(!q)return;logState.qoQuote=qid;
+  const cur=oppById(q.oppId);
+  const acc=String(q.account||"").toLowerCase();
+  const same=o=>(q.cid&&o.accountId===q.cid)||(acc&&String(o.accountName||oppAcctLabel(o)).toLowerCase()===acc);
+  const list=oppsForPick().filter(o=>oppIsOpen(o)||o.id===q.oppId).sort((a,b)=>(same(b)?1:0)-(same(a)?1:0)||String(b.createdAt||"").localeCompare(String(a.createdAt||""))).slice(0,8);
+  openSheet('<h2>Put quote '+esc(q.no)+' on a deal</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 8px">'+esc(qAcct(q.account)||"")+' · '+fmtC(quoteTotal(q))+(cur?' · now on <b>'+esc(cur.name)+'</b>':'')+'</p>'+
+   comboField("qoQ","Search your deals…","")+
+   (list.length?'<div class="sectlabel" style="margin-top:12px">'+(list.some(same)?'Deals for this customer first':'Your open deals')+'</div><div class="list">'+list.map(o=>
+     '<button class="card" data-act="qoPick" data-id="'+o.id+'"><div class="row"><span class="ic '+(same(o)?"coral":"info")+'">'+svg("chart")+'</span><div class="grow"><p class="t1">'+esc(o.name)+(o.id===q.oppId?' <span class="pill ok">attached</span>':'')+'</p>'+
+     '<p class="t2">'+esc(oppAcctLabel(o))+' · '+esc(OPP_SHORT[o.stage]||o.stage)+' · '+money(o.amount||0)+'</p></div>'+chev()+'</div></button>').join("")+'</div>'
+    :'<p class="t2" style="margin-top:10px">No open deals yet.</p>')+
+   '<button class="btn block" data-act="qoNewOpp" style="margin-top:12px">'+svg("plus")+' Start a new deal from this quote</button>'+
+   (cur?'<button class="btn ghost block" data-act="qoDetach" style="margin-top:8px;color:var(--dang-t)">Take it off '+esc(cur.name)+'</button>':''));
+}
+function oppSugItems(q,act){
+  q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
+  return oppsForPick().filter(o=>[o.name,oppAcctLabel(o),oppDistLabel(o)].join(" ").toLowerCase().includes(q)).slice(0,8)
+   .map(o=>'<button type="button" data-act="'+act+'" data-id="'+o.id+'">'+esc(o.name)+' <span style="color:var(--hint)">— '+esc(oppAcctLabel(o))+' · '+esc(OPP_SHORT[o.stage]||o.stage)+'</span></button>');
+}
+function quotePickOpp(oid){
+  const q=quoteById(logState.qoQuote),o=oppById(oid);if(!q||!o)return;
+  linkQuoteOpp(q,o);save();render();quoteSheet(q.id);toast("Quote "+q.no+" is on "+o.name);
+}
+/* the quote form: which deal it is for — the open deals of the picked customer as one-tap chips */
+function quoteOppHTML(){
+  const S=logState.qt;if(!S)return '<div id="qtOpp"></div>';
+  const cur=oppById(S.oppId);
+  const acc=String(S.acct||"").trim().toLowerCase();
+  const deals=oppsForPick().filter(o=>oppIsOpen(o)&&o.id!==S.oppId&&((S.cid&&o.accountId===S.cid)||(acc&&String(o.accountName||oppAcctLabel(o)).toLowerCase()===acc))).slice(0,4);
+  if(!cur&&!deals.length)return '<div id="qtOpp"></div>';
+  return '<div id="qtOpp"><label class="fl">Pipeline deal <span style="font-weight:400;color:var(--hint)">— optional</span></label><div class="qa-types">'+
+   (cur?'<span class="qchip on" data-act="qtOpp" data-id="">'+svg("chart")+' '+esc(cur.name)+' ×</span>':'')+
+   deals.map(o=>'<span class="qchip" data-act="qtOpp" data-id="'+o.id+'">'+esc(o.name)+'</span>').join("")+'</div></div>';
+}
+function quoteRedrawOpp(){const w=document.getElementById("qtOpp");if(w)w.outerHTML=quoteOppHTML();}
 function formCoverage(pid){
   const p=person(pid);if(!p)return;logState.covPid=pid;
   openSheet('<h2>'+esc(p.name)+' — coverage states</h2>'+
@@ -5729,7 +5821,7 @@ function quoteDraftFrom(q,pre){
     items:(q.items||[]).map(x=>({sku:x.sku||"",name:x.name||"",qty:x.qty,unit:x.unit,auto:!!x.auto})),
     acct:q.account||"",con:q.contactName||"",email:q.contactEmail||"",shipTo:q.shipTo||"",notes:q.notes||"",
     dist:q.distName||"",distCid:q.distCid||null,distRep:q.distRep||"",distPid:q.distPid||null,
-    shipping:quoteShipping(q)==null?"":String(quoteShipping(q)),more:!!(q.shipTo||q.notes||quoteShipping(q)!=null)};
+    shipping:quoteShipping(q)==null?"":String(quoteShipping(q)),more:!!(q.shipTo||q.notes||quoteShipping(q)!=null),oppId:q.oppId||null};
   pre=pre||{};
   const p=pre.pid?person(pre.pid):null,c0=pre.cid?company(pre.cid):(p&&p.cid?company(p.cid):null);
   const c=c0&&!/company unknown/i.test(c0.name)?c0:null; // the business-card holding bucket is not a customer name
@@ -5737,8 +5829,8 @@ function quoteDraftFrom(q,pre){
   const bf=c&&c.type==="enduser"?quoteFirstDist(c):null; // their 1st-choice distributor, if the account page has one
   return {id:null,cid:c?c.id:null,pid:p?p.id:null,level:level,validDays:30,
     items:[{sku:"1000-0005-TQ",name:"",qty:1,unit:quotePrice("1000-0005-TQ",1,level),auto:true}],
-    acct:c?c.name:"",con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!ship,
-    dist:bf?bf.name:"",distCid:bf?bf.cid:null,distRep:"",distPid:null};
+    acct:c?c.name:(pre.acct||""),con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!ship,
+    dist:bf?bf.name:"",distCid:bf?bf.cid:null,distRep:"",distPid:null,oppId:pre.oppId||null};
 }
 function formQuote(id,pre,keep){
   if(!keep)logState.qt=quoteDraftFrom(id?quoteById(id):null,pre);
@@ -5748,7 +5840,7 @@ function formQuote(id,pre,keep){
    '<label class="fl">Quote for'+hint('— the company; pick an account or type a new name')+'</label>'+comboField("qtAcct","Company",S.acct)+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Customer name</label>'+comboField("qtCon","First and last name",S.con)+'</div>'+
    '<div class="grow"><label class="fl">Customer email</label><input class="f" id="qtEmail" type="email" inputmode="email" autocomplete="off" value="'+esc(S.email)+'" placeholder="name@company.com"></div></div>'+
-   quoteConChipsHTML()+
+   quoteConChipsHTML()+quoteOppHTML()+
    '<label class="fl">Pricing</label><div class="qa-types" id="qtLevel">'+
     [["enduser","End-user (MSRP)"],["dist","Distributor"]].map(l=>'<span class="chip'+(S.level===l[0]?" on":"")+'" data-act="qtlevel" data-v="'+l[0]+'">'+l[1]+'</span>').join("")+'</div>'+
    quoteDistHTML()+
@@ -5880,6 +5972,7 @@ function saveQuote(mode){
   const cu=company(q.cid); // remember the routing on the customer's account page ("Who they buy from")
   if(dn&&cu&&cu.type==="enduser"&&!bfList(cu).some(e=>(q.distCid&&e.cid===q.distCid)||String(e.name||"").toLowerCase()===dn.toLowerCase())){
     cu.buysFrom=bfList(cu);cu.buysFrom.push({cid:q.distCid||null,name:dn,first:!cu.buysFrom.length});}
+  if(S.oppId&&S.oppId!==q.oppId)linkQuoteOpp(q,oppById(S.oppId));else q.oppId=S.oppId||null;
   S.id=q.id;save();render();
   if(mode==="send"){formQuoteSend(q.id);return;}
   if(mode==="preview")quotePrint(q.id);
@@ -5888,12 +5981,13 @@ function saveQuote(mode){
 
 /* ----- an existing quote: one made outside the CRM (a PDF, Word, the MARCH letterhead…) added so it sits in Quotes with the
    rest — its file, number, customer, total and where it stands (Max, 2026-10-21: "add an add existing quote button") ----- */
-function formQuoteExt(id){
+function formQuoteExt(id,oppId){
   const q=id?quoteById(id):null;
-  logState.qx={id:q?q.id:null,cid:q?q.cid:null,status:q?(q.status||"sent"):"sent",fileObj:null};
+  logState.qx={id:q?q.id:null,cid:q?q.cid:null,status:q?(q.status||"sent"):"sent",fileObj:null,oppId:q?(q.oppId||null):(oppId||null)};
+  const qxo=oppById(logState.qx.oppId);
   const v=k=>esc(q&&q[k]!=null?String(q[k]):"");
   openSheet('<h2>'+(q?'Edit '+esc(q.no):'Add an existing quote')+'</h2>'+
-   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">A quote made outside the CRM. It shows in Quotes with the others.</p>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">A quote made outside the CRM. It shows in Quotes with the others.'+(qxo?' It goes on the deal <b>'+esc(qxo.name)+'</b>.':'')+'</p>'+
    '<label class="fl">Quote file <span style="font-weight:400;color:var(--hint)">— optional; the number and company fill in from a name like “Quote Q-261020-01 Hendrick.pdf”</span></label>'+
    '<input class="f" type="file" id="qxFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">'+(q&&q.fname?'<p class="t2" style="margin:4px 0 0">On file: '+esc(q.fname)+' — pick a new one to replace it</p>':'')+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Quote number</label><input class="f" id="qxNo" autocomplete="off" value="'+v("no")+'" placeholder="Q-260928-01"></div>'+
@@ -5933,6 +6027,7 @@ async function saveQuoteExt(){
   q.total=Math.round(total*100)/100;q.extUnits=units||0;q.status=S.status||"sent";q.updatedAt=new Date().toISOString();
   if(q.status==="draft")q.sentAt=null;
   else if(!q.sentAt){q.sentAt=new Date(date+"T12:00:00").toISOString();q.sentTo=email;}
+  if(S.oppId&&S.oppId!==q.oppId)linkQuoteOpp(q,oppById(S.oppId));
   if(fresh)DB.quotes.push(q);
   S.id=q.id;save();
   const f=S.fileObj;
@@ -5953,6 +6048,7 @@ function quoteExtSheet(q){
     fact("AutoTQ kits",q.extUnits?String(q.extUnits):"")+
     fact("Contact",q.contactName||q.contactEmail?esc(q.contactName||"")+(q.contactEmail?(q.contactName?' · ':'')+'<a href="mailto:'+esc(q.contactEmail)+'" style="color:var(--coral-text)">'+esc(q.contactEmail)+'</a>':''):"")+
     fact("Valid through",st==="expired"?'<span style="color:var(--dang-t)">'+esc(usDate(quoteValidThrough(q)))+' — expired</span>':esc(usDate(quoteValidThrough(q))))+
+    quoteOppFact(q)+
     fact("Added by",esc(teamById(q.by).name))+
     fact("File",q.fname?esc(q.fname):'<span style="color:var(--hint);font-weight:500">none attached</span>')+'</div>'+
    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+
@@ -5997,6 +6093,7 @@ function quoteSheet(id){
     fact("Buy through",q.distName?(company(q.distCid)?'<a href="#" data-act="roster" data-id="'+q.distCid+'" style="color:var(--coral-text)">'+esc(q.distName)+'</a>':esc(q.distName))+(q.distRep?' · '+esc(q.distRep):''):"")+
     fact("Valid through",st==="expired"?'<span style="color:var(--dang-t)">'+esc(usDate(quoteValidThrough(q)))+' — expired</span>':esc(usDate(quoteValidThrough(q))))+
     fact("Sent",q.sentAt?(q.sentTo?'to '+esc(q.sentTo)+' · ':'')+esc(usDate(localDay(q.sentAt))):'<span style="color:var(--coral-text)">not sent yet</span>')+
+    quoteOppFact(q)+
     fact("Prepared by",esc(teamById(q.by).name))+
     fact("Ship to",q.shipTo?esc(q.shipTo).replace(/\n/g,"<br>"):"")+
     fact("Note",q.notes?esc(q.notes):"")+
@@ -6035,7 +6132,7 @@ function deleteQuote(id){
 function quoteRowHTML(q){
   return '<button class="card" data-act="quoteopen" data-id="'+q.id+'"><div class="row"><span class="ic coral">'+svg("tag")+'</span>'+
    '<div class="grow"><p class="t1">'+esc(qAcct(q.account)||"—")+'</p>'+
-   '<p class="t2">'+esc(q.no)+' · '+esc(usDate(q.date))+(q.contactName?' · '+esc(q.contactName):'')+(q.distName?' · via '+esc(shortAcct(q.distName)):'')+' · '+esc(shortName(q.by))+'</p>'+
+   '<p class="t2">'+esc(q.no)+' · '+esc(usDate(q.date))+(q.contactName?' · '+esc(q.contactName):'')+(q.distName?' · via '+esc(shortAcct(q.distName)):'')+(q.oppId&&oppById(q.oppId)?' · deal: '+esc(oppById(q.oppId).name):'')+' · '+esc(shortName(q.by))+'</p>'+
    '<p class="t2" style="white-space:normal">'+esc(quoteItemsSummary(q))+'</p></div>'+
    '<b style="flex:none;font-size:14.5px;font-variant-numeric:tabular-nums">'+fmtC(quoteTotal(q))+'</b>'+quoteChip(q)+chev()+'</div></button>';
 }
@@ -6756,7 +6853,7 @@ document.addEventListener("click",e=>{
   if(a==="qtsave"){saveQuote(t.dataset.v);return;}
   if(a==="pickQtAcct"){const c=company(t.dataset.id),S=logState.qt;if(c&&S){quoteCollect();S.cid=c.id;S.acct=c.name;const i=document.getElementById("qtAcct");if(i)i.value=c.name;sugRender("qtAcct",[]);
     if(S.pid&&(person(S.pid)||{}).cid!==c.id)S.pid=null;
-    quoteRedrawConChips();
+    quoteRedrawConChips();quoteRedrawOpp();
     const sh=document.getElementById("qtShip");if(sh&&!sh.value.trim()&&quoteShipToText(c)){sh.value=quoteShipToText(c);S.shipTo=sh.value;}
     if(!String(S.dist||"").trim()){const bf=c.type==="enduser"?quoteFirstDist(c):null;if(bf){S.dist=bf.name;S.distCid=bf.cid;}}
     const dw=document.getElementById("qtDistWrap");if(dw)dw.outerHTML=quoteDistHTML(); // their 1st-choice distributor, and the reps covering their state
@@ -6796,9 +6893,18 @@ document.addEventListener("click",e=>{
   if(a==="addopp"){formOpp(null);return;}
   if(a==="editopp"){formOpp(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
-  if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
+  if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}(DB.quotes||[]).forEach(q=>{if(q&&q.oppId===id)q.oppId=null;});DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
   if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="saveOpp"){saveOpp();return;}
+  if(a==="oppNewQuote"){saveOpp("newquote");return;}
+  if(a==="oppExtQuote"){saveOpp("extquote");return;}
+  if(a==="pickOppQuote"){logState.oppQuoteIds=logState.oppQuoteIds||[];if(!logState.oppQuoteIds.includes(id))logState.oppQuoteIds.push(id);const i=document.getElementById("oQuoteQ");if(i)i.value="";sugRender("oQuoteQ",[]);oppQuoteRedraw();return;}
+  if(a==="oppQDetach"){(logState.oppQuoteIds||[]).splice(parseInt(t.dataset.i,10),1);oppQuoteRedraw();return;}
+  if(a==="quoteopp"){formQuoteOpp(id);return;}
+  if(a==="qoPick"||a==="pickQoOpp"){quotePickOpp(id);return;}
+  if(a==="qoNewOpp"){const q=quoteById(logState.qoQuote);if(q)formOpp(null,q.cid||null,{quoteId:q.id,name:qAcct(q.account)+(quoteUnits(q)?" — "+quoteUnits(q)+(quoteUnits(q)===1?" kit":" kits"):""),amount:quoteTotal(q),units:quoteUnits(q),acct:q.account});return;}
+  if(a==="qoDetach"){const q=quoteById(logState.qoQuote);if(q){q.oppId=null;q.updatedAt=new Date().toISOString();save();render();quoteSheet(q.id);toast("Quote "+q.no+" is off the deal");}return;}
+  if(a==="qtOpp"){if(logState.qt){logState.qt.oppId=t.dataset.id||null;quoteRedrawOpp();}return;}
   if(a==="oppview"){oppView=t.dataset.v;render();return;}
   if(a==="oppfilter"){oppFilter=t.dataset.v;render();return;}
   if(a==="oppadv"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}const i=OPP_STAGES.indexOf(o.stage)+parseInt(t.dataset.dir,10);if(i>=0&&i<4){o.stage=OPP_STAGES[i];o.probability=OPP_PROB[o.stage];save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}}return;}
@@ -7150,7 +7256,7 @@ document.addEventListener("input",e=>{
   if(/^qt_(qty|unit|name)_\d+$/.test(e.target.id||"")){quoteItemInput(e.target);return;}
   if(e.target.id==="qxAcct"){if(logState.qx)logState.qx.cid=null;sugRender("qxAcct",acctSugItems(e.target.value,"pickQxAcct"));return;}
   if(e.target.id==="qxFile"){qxFilePicked(e.target.files&&e.target.files[0]);return;}
-  if(e.target.id==="qtAcct"){if(logState.qt&&logState.qt.cid){logState.qt.cid=null;quoteRedrawConChips();}sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
+  if(e.target.id==="qtAcct"){if(logState.qt){logState.qt.acct=e.target.value;if(logState.qt.cid){logState.qt.cid=null;quoteRedrawConChips();}quoteRedrawOpp();}sugRender("qtAcct",acctSugItems(e.target.value,"pickQtAcct"));return;}
   if(e.target.id==="qtCon"){const S=logState.qt;if(S)S.pid=null;document.querySelectorAll("#qtConChips .qchip").forEach(x=>x.classList.remove("on"));sugRender("qtCon",peopleSugItemsF(e.target.value,"pickQtCon",S&&S.cid?(p=>p.cid===S.cid):(p=>true)));return;}
   if(e.target.id==="qtDist"){const S=logState.qt;if(S){S.dist=e.target.value;if(S.distCid){S.distCid=null;S.distPid=null;S.distRep="";quoteRedrawDistRep();}}sugRender("qtDist",acctSugItems(e.target.value,"pickQtDist",["distributor"]));return;}
   if(e.target.id==="qtDistRep"){const S=logState.qt;if(S){S.distPid=null;S.distRep=e.target.value;document.querySelectorAll("#qtDistRepWrap .qchip").forEach(x=>x.classList.remove("on"));}
@@ -7170,6 +7276,8 @@ document.addEventListener("input",e=>{
     if(it){it.phone=e.target.value.trim();it.phoneAt=new Date().toISOString();
       const pr=it.pid?person(it.pid):null;if(pr&&!pr.phone&&it.phone)pr.phone=it.phone;
       clearTimeout(window.__lnT);window.__lnT=setTimeout(save,800);}return;}
+  if(e.target.id==="oQuoteQ"){sugRender("oQuoteQ",quoteSugItems(e.target.value,"pickOppQuote",logState.oppQuoteIds));return;}
+  if(e.target.id==="qoQ"){sugRender("qoQ",oppSugItems(e.target.value,"pickQoOpp"));return;}
   if(e.target.id==="oConQ"){logState.oppConPid=null;sugRender("oConQ",peopleSugItems(e.target.value,"pickOppCon"));return;}
   if(e.target.id==="campName"){const c=campaignById(curCampaign);if(c){c.name=e.target.value;save();}return;}
   if(e.target.dataset&&e.target.dataset.cfield){const c=campaignById(curCampaign);
