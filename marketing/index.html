@@ -537,6 +537,31 @@ svg.usmap .dots{stroke:var(--dots)}
 .pdfv-body{flex:1;display:flex;background:#525659;border:1px solid var(--rule);border-top:0;border-radius:0 0 var(--r-lg) var(--r-lg);overflow:hidden}
 .pdfv-body iframe{flex:1;border:0;width:100%;height:100%}.pdfv-body .empty{margin:auto;color:#ddd}
 .liatt{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.liatt .mfile{width:190px}
+/* Catalog (2026-10-21) */
+.cstages{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.cstage{display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--rule);border-radius:999px;background:var(--paper);font:inherit;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.cstage i{width:8px;height:8px;border-radius:50%}.cstage b{color:var(--ink)}.cstage.on{border-color:var(--coral);box-shadow:var(--ring)}.cstage:disabled{opacity:.45;cursor:default}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:8px}
+.ccard{display:flex;flex-direction:column;text-align:left;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--paper);padding:0;overflow:hidden;font:inherit;color:var(--ink);cursor:pointer}
+.ccard:hover,.ccard:focus-visible{border-color:var(--ink-3)}
+.ccard .cth{display:flex;align-items:center;justify-content:center;aspect-ratio:4/3;background:#fff;border-bottom:1px solid var(--rule-2)}.ccard .cth img{width:100%;height:100%;object-fit:contain}
+.ccard .cph,.cnew .cph{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:4/3;color:var(--ink-4)}.ccard .cph .i{width:34px;height:34px}
+.ccard .cbd{display:flex;flex-direction:column;gap:5px;padding:12px 14px 14px}.ccard b{font-size:14px;line-height:1.3}.ccard small{font-size:12px;color:var(--ink-3);line-height:1.4}
+.ccard .cq{font-size:13px;font-weight:600;color:var(--ink)}
+.cnew{border-style:dashed;background:transparent;align-items:flex-start;padding:0 0 14px}.cnew b,.cnew small{padding:0 14px}.cnew b{margin-top:4px}
+.cdet{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;align-items:start}
+.cgal .cmain{display:block;width:100%;border:0;padding:0;background:#fff;cursor:zoom-in}.cgal .cmain img{display:block;width:100%;max-height:520px;object-fit:contain}
+.ccap{padding:10px 16px;font-size:13px;font-weight:600;border-top:1px solid var(--rule-2)}
+.cthumbs{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 14px}.cthumbs button{width:76px;height:60px;padding:0;border:1px solid var(--rule);border-radius:8px;background:#fff;overflow:hidden;cursor:pointer}
+.cthumbs button.on{border-color:var(--coral);box-shadow:var(--ring)}.cthumbs img{width:100%;height:100%;object-fit:contain}
+.cfs{padding:6px 16px 12px}.cf{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--rule-2);font-size:13px}.cf:first-child{border-top:0}
+.cf span{color:var(--ink-3)}.cf b{font-weight:600;text-align:right}.cf b.blank{font-weight:400;color:var(--ink-4);font-style:italic}.cnote{font-size:12.5px;line-height:1.5;margin:8px 0 0}
+.ctier{width:calc(100% - 32px);margin:10px 16px 0;border-collapse:collapse;font-size:13px}.ctier th{text-align:left;font-size:11.5px;color:var(--ink-3);font-weight:600;padding:6px 0;border-bottom:1px solid var(--rule)}.ctier td{padding:7px 0;border-bottom:1px solid var(--rule-2)}.ctier td+td,.ctier th+th{text-align:right}
+.copen{list-style:none;margin:0;padding:8px 16px 10px;display:flex;flex-direction:column;gap:6px}.copen label{display:flex;gap:9px;align-items:flex-start;font-size:13px;cursor:pointer}.copen li.done span{color:var(--ink-4);text-decoration:line-through}
+.cform{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 14px}.cform .sectlabel,.cform .cfi.w,.cform>.row{grid-column:1/-1}.cform .sectlabel{margin-top:14px}.cform .sectlabel:first-child{margin-top:0}
+.cfi input,.cfi select{width:100%}
+.pdfv-img{max-width:100%;max-height:100%;margin:auto;object-fit:contain;background:#fff}
+@media (max-width:900px){.cdet{grid-template-columns:1fr}.cform{grid-template-columns:1fr}}
 .mtiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
 .mtile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:16px 18px;background:var(--paper);border:0;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
 .mtile:hover,.mtile:focus-visible{background:var(--hover)}.mtile b{font-size:30px;line-height:1.1;font-weight:700;letter-spacing:-.02em}.mtile span{font-size:13.5px;font-weight:600}
@@ -584,7 +609,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
+const PULL_COLLECTIONS=["mktPlan","catalogItems","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1294,7 +1319,7 @@ function sideMini(){return !!SIDE.mini&&!sideDrawer();}
 const IS_MAC=/Mac|iPhone|iPad/.test(navigator.platform||"");
 const KEY_K=IS_MAC?"⌘K":"Ctrl K";
 /* the tabs: [view, icon, label] — Email Campaigns carries Conferences on a guide line */
-const SIDE_TABS=[["start","home","Home"],["over","mail","Email Campaigns"],["li","file","LinkedIn"]];
+const SIDE_TABS=[["start","home","Home"],["over","mail","Email Campaigns"],["li","file","LinkedIn"],["cat","box","Catalog"]];
 const SIDE_SUBS={over:[["Conferences",()=>EMAIL_VIEWS.includes(view),"over"]]};
 function sideOn(v){return v==="over"?EMAIL_VIEWS.includes(view):view===v;}
 function sideItem(t,n){
@@ -1375,7 +1400,7 @@ function palItems(q){
   q=String(q||"").trim();const ql=q.toLowerCase();
   const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
   const hit=s=>!ql||String(s).toLowerCase().includes(ql);
-  const tabs=[["home","Home","",()=>goView("start")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn","",()=>goView("li")]]);
+  const tabs=[["home","Home","",()=>goView("start")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn","",()=>goView("li")],["box","Catalog","",()=>{catSel="";goView("cat");}]]);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2],t[3]));
   const acts=[["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],
     ["sun","Light mode",THEME==="light"?"on":"",()=>setTheme("light")],["moon","Dark mode",THEME==="dark"?"on":"",()=>setTheme("dark")],
@@ -1428,15 +1453,15 @@ function render(){
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home")view="start";if(view==="web")view="net";
   const me=teamById(USER);const n=needsMe();
-  const titles={start:"Home",li:"LinkedIn",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
+  const titles={start:"Home",cat:"Catalog",li:"LinkedIn",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
   const subs={start:"",li:"Three posts a week — Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="start"?viewHome():view==="li"?viewLinkedIn():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
-  const crumbs=["Marketing"].concat(view==="start"?["Home"]:view==="li"?["LinkedIn"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
+  const crumbs=["Marketing"].concat(view==="start"?["Home"]:view==="cat"?["Catalog"].concat(catSel&&catFind(catSel)?[catFind(catSel).name]:[]):view==="li"?["LinkedIn"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right"><label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   '<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>'+
-   '<main class="main">'+(view==="start"||view==="li"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   '<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button><button class="'+(view==="cat"?"on":"")+'" data-act="nav" data-v="cat">Catalog</button></nav>'+
+   '<main class="main">'+(view==="start"||view==="li"||view==="cat"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
   mktHydrate();
@@ -1693,7 +1718,8 @@ async function mktOpen(path,title){let el=document.getElementById("pdfv");if(!el
   const name=String(path).split("/").pop();
   el.innerHTML='<div class="pdfv-bar"><b>'+esc(title||name)+'</b><span class="grow"></span><a class="btn sm ghost" id="pdfvNew" target="_blank" rel="noopener">Open in a new tab</a><a class="btn sm ghost" id="pdfvDl" download="'+esc(name)+'">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><div class="empty">Loading…</div></div>';
   el.classList.add("open");const x=el.querySelector('[data-act="mktclose"]');if(x)x.focus();
-  try{const u=await mktBlob(path);el.querySelector(".pdfv-body").innerHTML='<iframe title="'+esc(title||name)+'" src="'+u+'"></iframe>';el.querySelector("#pdfvNew").href=u;el.querySelector("#pdfvDl").href=u;}
+  try{const u=await mktBlob(path);const kind=/\.(png|jpe?g|webp)$/i.test(name)?"img":/\.pdf$/i.test(name)?"pdf":"other";
+    el.querySelector(".pdfv-body").innerHTML=kind==="img"?'<img class="pdfv-img" alt="'+esc(title||name)+'" src="'+u+'">':kind==="pdf"?'<iframe title="'+esc(title||name)+'" src="'+u+'"></iframe>':'<div class="empty">This file type doesn’t preview here. Use Download.</div>';el.querySelector("#pdfvNew").href=u;el.querySelector("#pdfvDl").href=u;}
   catch(e){el.querySelector(".pdfv-body").innerHTML='<div class="empty">Couldn’t open it ('+esc(e.message)+').</div>';}}
 function mktClose(){const el=document.getElementById("pdfv");if(el){el.classList.remove("open");el.innerHTML="";}}
 document.addEventListener("keydown",e=>{const el=document.getElementById("pdfv");if(e.key==="Escape"&&el&&el.classList.contains("open")){mktClose();e.stopPropagation();return;}
@@ -1702,7 +1728,9 @@ function mktFileCard(f,title,sub){return '<button class="mfile" data-act="mktpdf
 /* the top of Home (2026-10-21, Max: "a recurring schedule … super simple overview up top"): four numbers, then two weeks of what
    repeats — LinkedIn Mon/Wed/Fri 9 AM, emails in the weekday sending window (planned by buildPlan, sent counts from the leads),
    next week's LinkedIn drafts on Fridays (the autotq-linkedin cron, 19:00 UTC) — plus dated one-offs from the plan's steps */
-Object.assign(SVG,{cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'});
+Object.assign(SVG,{cal:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  box:'<path d="M3.5 7.5L12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5L12 12l8.5-4.5M12 12v9"/>',
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14c2.4.2 4 1.7 4.5 4.5"/>'});
 function mktYmd(d){return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
 function mktET(ds,utcHour){const [y,m,d]=ds.split("-").map(Number);return new Date(Date.UTC(y,m-1,d,utcHour)).toLocaleTimeString("en-US",{hour:"numeric",timeZone:"America/New_York"}).replace(":00","");}
 function mktSentByDay(){const m={};(DB.mailEvents||[]).forEach(e=>{if(!e||e.type!=="send")return;const d=e.at&&new Date(e.at);if(!d||isNaN(d))return;const k=mktYmd(d);m[k]=(m[k]||0)+1;});return m;} // the SES send log, not the leads' stamps
@@ -1766,6 +1794,105 @@ function mktHandle(a,t){
     if(it.liPost){const q=liFind(it.liPost);if(q){liWeek=q.week;liSel=q.id;liTab="week";liEdit=false;goView("li");}return true;}
     if(it.url){window.open(it.url,"_blank","noopener");return true;}
     toast(it.label+(it.sub?" — "+it.sub:""));return true;}
+  return false;}
+
+/* ---------- Catalog (2026-10-21, Max): the side of the business that expands the AutoTQ catalog — signage, cabinets, white-label
+   AutoTQ packaging. Each product = renders/schematics/designs + maker + quote tiers + agreed price/MOQ + our pricing. Records in
+   `catalogItems` (Max + Hannah only); files in the private `marketing` bucket under catalog/<id>/. Unknowns stay visibly blank. ---------- */
+const CAT_ST=[["idea","Idea","var(--ink-4)"],["design","Designing","var(--info)"],["quoting","Asking for quotes","var(--warn)"],["quoted","Quoted","var(--warn)"],["agreed","Price agreed","var(--ok)"],["ordered","Ordered","var(--ok)"],["live","In the catalog","var(--ok)"]];
+const CAT_GROUPS=["Signage","Cabinets","White-label","Other"];
+let catSel="",catEdit=false,catImg=0,catFilter="";
+function catItems(){return (DB.catalogItems||[]).filter(x=>x&&x.id&&!x.removed);}
+function catFind(id){return catItems().find(x=>x.id===id);}
+function catSt(s){return CAT_ST.find(x=>x[0]===s)||CAT_ST[0];}
+function catPill(s){const m=catSt(s);return '<span class="pill" style="background:color-mix(in srgb,'+m[2]+' 14%,transparent);color:'+m[2]+'">'+esc(m[1])+'</span>';}
+function catMoney(v){return v==null||v===""||isNaN(+v)?"":"$"+(+v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function catQuoteLine(it){const ag=it.agreed||{},q=it.quote||{},t=(q.tiers||[]).filter(x=>x&&x.unit!=null);
+  if(ag.unit)return "Agreed "+catMoney(ag.unit)+" /pc"+(ag.moq?" · MOQ "+(+ag.moq).toLocaleString():"");
+  if(t.length){const u=t.map(x=>+x.unit),qs=t.map(x=>+x.qty);return "Quote "+catMoney(Math.min(...u))+(Math.min(...u)!==Math.max(...u)?"–"+catMoney(Math.max(...u)).slice(1):"")+" /pc · "+Math.min(...qs).toLocaleString()+(qs.length>1?"–"+Math.max(...qs).toLocaleString():"")+" pcs";}
+  if(q.range)return "Est. "+q.range;return "No quote yet";}
+function catThumb(it){const im=(it.images||[])[0];return im?'<img alt="" data-mkt="'+esc(im.thumb||im.path)+'">':'<span class="cph">'+svg("box")+'</span>';}
+function catCard(it){return '<button class="ccard" data-act="catopen" data-id="'+esc(it.id)+'"><span class="cth">'+catThumb(it)+'</span><span class="cbd"><span class="row" style="gap:6px;flex-wrap:wrap">'+catPill(it.status)+(it.sku?'<span class="t2">'+esc(it.sku)+'</span>':'')+'</span><b>'+esc(it.name)+'</b><small>'+esc(it.summary||"")+'</small><span class="cq">'+esc(catQuoteLine(it))+'</span><small>'+esc((it.maker||{}).name?"Maker: "+it.maker.name:"Maker: not chosen")+'</small></span></button>';}
+function viewCatalog(){const all=catItems();if(catSel){const it=catFind(catSel);if(it)return catDetail(it);catSel="";}
+  let h='<div class="ph"><h1>Catalog</h1><p>New products that expand the AutoTQ catalog: designs, makers, quotes, MOQ and our pricing. Internal only.</p><span class="grow"></span><button class="btn sm coral" data-act="catnew">'+svg("plus")+'New product</button></div>';
+  h+='<div class="cstages">'+CAT_ST.map(s=>{const n=all.filter(x=>x.status===s[0]).length;return '<button class="cstage'+(catFilter===s[0]?" on":"")+'" data-act="catfilter" data-v="'+s[0]+'"'+(n?'':' disabled')+'><i style="background:'+s[2]+'"></i><b class="num">'+n+'</b><span>'+esc(s[1])+'</span></button>';}).join("")+'</div>';
+  const list=catFilter?all.filter(x=>x.status===catFilter):all;
+  CAT_GROUPS.forEach(g=>{const its=list.filter(x=>(x.category||"Other")===g);if(!its.length&&!(g==="White-label"&&!catFilter))return;
+    h+='<div class="sech">'+esc(g)+'<span class="t2" style="margin-left:6px;font-weight:400">'+(its.length?its.length+' product'+(its.length===1?'':'s'):'')+'</span></div><div class="cgrid">'+its.map(catCard).join("")+
+      (g==="White-label"?'<button class="ccard cnew" data-act="catnew" data-v="White-label"><span class="cph">'+svg("plus")+'</span><b>Start a white-label product</b><small>AutoTQ packaged a new way: a kit, a case, a station. Add renders, a maker and quotes as they come.</small></button>':'')+'</div>';});
+  if(!all.length)h+='<div class="empty">Nothing here yet. Add the first product.</div>';
+  return h;}
+function catField(label,val,ph){return '<div class="cf"><span>'+esc(label)+'</span><b class="'+(val?"":"blank")+'">'+(val?esc(String(val)):esc(ph||"not set"))+'</b></div>';}
+function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=it.pricing||{};const ims=it.images||[];if(catImg>=ims.length)catImg=0;const main=ims[catImg];
+  const cost=+(ag.unit||pr.landed||0),price=+(pr.distributor||0),msrp=+(pr.msrp||0);
+  const mg=(p)=>p&&cost?Math.round(100*(p-cost)/p)+"%":"";
+  let h='<div class="row" style="gap:8px;margin:2px 0 12px"><button class="btn sm ghost" data-act="catback">'+svg("back")+'Catalog</button></div>';
+  h+='<div class="ph" style="flex-wrap:wrap"><h1>'+esc(it.name)+'</h1>'+catPill(it.status)+(it.sku?'<span class="t2">'+esc(it.sku)+'</span>':'')+'<span class="grow"></span>'+
+    '<select class="f" style="width:auto" data-act="catstatus" data-id="'+esc(it.id)+'" aria-label="Stage">'+CAT_ST.map(s=>'<option value="'+s[0]+'"'+(it.status===s[0]?' selected':'')+'>'+esc(s[1])+'</option>').join("")+'</select>'+
+    '<label class="btn sm">'+svg("plus")+'Add files<input type="file" multiple hidden data-catup="'+esc(it.id)+'"></label><button class="btn sm'+(catEdit?" coral":"")+'" data-act="'+(catEdit?"catsave":"catedit")+'" data-id="'+esc(it.id)+'">'+(catEdit?"Save":"Edit")+'</button>'+(catEdit?'<button class="btn sm ghost" data-act="catcancel">Cancel</button>':'')+'</div>';
+  if(it.summary&&!catEdit)h+='<p class="t2" style="margin:-8px 0 14px;max-width:760px">'+esc(it.summary)+'</p>';
+  if(catEdit)return h+catForm(it);
+  const files=(it.files||[]);
+  h+='<div class="cdet"><div><div class="pan cgal">'+(main?'<button class="cmain" data-act="mktpdf" data-path="'+esc(main.path)+'" data-title="'+esc(main.title||it.name)+'"><img alt="'+esc(main.title||"")+'" data-mkt="'+esc(main.path)+'"></button><div class="ccap">'+esc(main.title||"")+'<span class="t2"> · '+esc(({render:"Render",schematic:"Schematic",photo:"Photo",artwork:"Artwork"})[main.role]||"Image")+'</span></div>':'<div class="empty" style="padding:40px 16px">No renders yet. Add files to put designs here.</div>')+
+      (ims.length>1?'<div class="cthumbs">'+ims.map((im,i)=>'<button class="'+(i===catImg?"on":"")+'" data-act="catimg" data-v="'+i+'" title="'+esc(im.title||"")+'"><img alt="" data-mkt="'+esc(im.thumb||im.path)+'"></button>').join("")+'</div>':'')+'</div>'+
+    (files.length?'<div class="pan"><div class="ph2">'+svg("file")+'Files<span class="t2" style="margin-left:4px">· quotes, schematics, print files</span></div><div class="mfiles">'+files.map(f=>mktFileCard(f,f.title||f.path.split("/").pop(),(({quote:"Quote",spec:"Spec sheet",artwork:"Print file",schematic:"Schematic",pi:"Proforma invoice",bom:"Parts list"})[f.role]||"File")+(f.pages?" · "+f.pages+" pages":""))).join("")+'</div></div>':'')+
+    ((it.specs||[]).length?'<div class="pan"><div class="ph2">'+svg("check")+'Specs</div><div class="cfs">'+it.specs.map(s=>catField(s[0],s[1])).join("")+'</div></div>':'')+'</div>'+
+    '<div><div class="pan"><div class="ph2">'+svg("users")+'Maker</div><div class="cfs">'+catField("Manufacturer",mk.name,"not chosen")+catField("Contact",mk.contact)+catField("Where",mk.where)+(mk.url?'<div class="cf"><span>Link</span><b><a href="'+esc(mk.url)+'" target="_blank" rel="noopener">'+esc(mk.url.replace(/^https?:\/\//,"").slice(0,48))+'</a></b></div>':'')+(mk.note?'<p class="t2 cnote">'+esc(mk.note)+'</p>':'')+'</div></div>'+
+    '<div class="pan"><div class="ph2">'+svg("chart")+'Quote'+(q.date?'<span class="t2" style="margin-left:4px">· '+esc(q.date)+'</span>':'')+'</div>'+((q.tiers||[]).length?'<table class="ctier"><thead><tr><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead><tbody>'+q.tiers.map(t=>'<tr><td class="num">'+(+t.qty).toLocaleString()+' pcs</td><td class="num">'+catMoney(t.unit)+'</td><td class="num">'+catMoney(t.qty*t.unit)+'</td></tr>').join("")+'</tbody></table>':'<p class="t2" style="padding:12px 16px 0">No quote yet.'+(q.range?' Estimate: '+esc(q.range)+'.':'')+'</p>')+'<div class="cfs">'+(q.basis?catField("Covers",q.basis):'')+(q.ref?catField("Reference",q.ref):'')+'</div></div>'+
+    '<div class="pan"><div class="ph2">'+svg("check")+'Agreed with the maker</div><div class="cfs">'+catField("Unit price",catMoney(ag.unit))+catField("MOQ",ag.moq?(+ag.moq).toLocaleString()+" pcs":"")+catField("Lead time",ag.lead)+catField("Samples",ag.samples)+catField("Shipping",ag.shipping)+catField("Payment terms",ag.terms)+(ag.note?'<p class="t2 cnote">'+esc(ag.note)+'</p>':'')+'</div></div>'+
+    '<div class="pan"><div class="ph2">'+svg("chart")+'Our pricing</div><div class="cfs">'+catField("Landed cost",catMoney(pr.landed)||pr.landedNote)+catField("Distributor price",price?catMoney(price)+(mg(price)?" · "+mg(price)+" margin":""):"")+catField("MSRP",msrp?catMoney(msrp)+(mg(msrp)?" · "+mg(msrp)+" margin":""):"")+(pr.note?'<p class="t2 cnote">'+esc(pr.note)+'</p>':'')+'</div></div>'+
+    '<div class="pan"><div class="ph2">'+svg("alert")+'Open questions<span class="t2" style="margin-left:4px">· '+(it.open||[]).filter(o=>!o.done).length+' open</span></div><ul class="copen">'+(it.open||[]).map((o,i)=>'<li class="'+(o.done?"done":"")+'"><label><input type="checkbox" data-act="catq" data-id="'+esc(it.id)+'" data-v="'+i+'"'+(o.done?' checked':'')+'><span>'+esc(o.text)+'</span></label></li>').join("")+'</ul><div class="row" style="gap:6px;padding:0 16px 14px"><input class="f" id="catQNew" placeholder="Add a question for the maker" style="flex:1"><button class="btn sm" data-act="catqadd" data-id="'+esc(it.id)+'">Add</button></div></div>'+
+    (it.notes?'<div class="pan"><div class="ph2">'+svg("file")+'Notes</div><p class="cnote" style="padding:12px 16px;white-space:pre-wrap">'+esc(it.notes)+'</p></div>':'')+
+    ((it.links||[]).length?'<div class="pan"><div class="ph2">'+svg("ext")+'Links</div><ul class="lilist" style="padding:10px 16px 14px">'+it.links.map(l=>'<li><a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.title||l.url)+'</a></li>').join("")+'</ul></div>':'')+
+    '<p class="t2" style="margin-top:4px">Updated '+esc(String(it.at||"").slice(0,10))+(it.by?' by '+esc(teamById(it.by).name||it.by):'')+'</p></div></div>';
+  return h;}
+function catForm(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=it.pricing||{};
+  const inp=(id,label,v,ph,w)=>'<div class="cfi'+(w?" w":"")+'"><label class="fl">'+esc(label)+'</label><input class="f" id="'+id+'" value="'+esc(v==null?"":String(v))+'" placeholder="'+esc(ph||"")+'"></div>';
+  const ta=(id,label,v,ph)=>'<div class="cfi w"><label class="fl">'+esc(label)+'</label><textarea class="f" id="'+id+'" placeholder="'+esc(ph||"")+'" style="min-height:84px;width:100%">'+esc(v||"")+'</textarea></div>';
+  return '<div class="pan"><div class="libody cform">'+
+    '<div class="sectlabel">Product</div>'+inp("cName","Name",it.name,"",1)+inp("cSku","SKU",it.sku,"e.g. 7200-W10")+'<div class="cfi"><label class="fl">Group</label><select class="f" id="cCat">'+CAT_GROUPS.map(g=>'<option'+((it.category||"Other")===g?' selected':'')+'>'+g+'</option>').join("")+'</select></div>'+ta("cSum","One-line description",it.summary)+ta("cSpecs","Specs (one per line, Name: value)",(it.specs||[]).map(s=>s[0]+": "+s[1]).join("\n"),"Size: 178 x 254 mm")+
+    '<div class="sectlabel">Maker</div>'+inp("cMk","Manufacturer",mk.name)+inp("cMkC","Contact",mk.contact)+inp("cMkW","Where",mk.where,"Alibaba, US shop…")+inp("cMkU","Link",mk.url,"https://…",1)+ta("cMkN","Notes on the maker",mk.note)+
+    '<div class="sectlabel">Quote</div>'+inp("cQd","Date",q.date,"2026-10-12")+inp("cQb","Covers",q.basis,"product only, FOB…",1)+ta("cQt","Tiers (one per line: quantity = unit price)",(q.tiers||[]).map(t=>t.qty+" = "+t.unit).join("\n"),"100 = 1.00\n500 = 0.80")+inp("cQr","Reference",q.ref,"PI number, chat link…",1)+
+    '<div class="sectlabel">Agreed with the maker</div>'+inp("cAu","Unit price ($)",ag.unit)+inp("cAm","MOQ (pcs)",ag.moq)+inp("cAl","Lead time",ag.lead,"15 days after payment")+inp("cAs","Samples",ag.samples)+inp("cAsh","Shipping",ag.shipping)+inp("cAt","Payment terms",ag.terms)+ta("cAn","Notes",ag.note)+
+    '<div class="sectlabel">Our pricing</div>'+inp("cPl","Landed cost ($)",pr.landed)+inp("cPd","Distributor price ($)",pr.distributor)+inp("cPm","MSRP ($)",pr.msrp)+ta("cPn","Pricing notes",pr.note)+
+    '<div class="sectlabel">Notes</div>'+ta("cNotes","Anything else",it.notes)+
+    '<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm coral" data-act="catsave" data-id="'+esc(it.id)+'">Save</button><button class="btn sm ghost" data-act="catcancel">Cancel</button><span class="grow"></span><button class="btn sm ghost" data-act="catdel" data-id="'+esc(it.id)+'">Remove product</button></div></div></div>';}
+function catNum(v){v=String(v||"").replace(/[$,\s]/g,"");return v===""||isNaN(+v)?null:+v;}
+function catSaveForm(it){const g=id=>((document.getElementById(id)||{}).value||"").trim();
+  it.name=g("cName")||it.name;it.sku=g("cSku");it.category=g("cCat")||"Other";it.summary=g("cSum");
+  it.specs=g("cSpecs").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{const i=l.indexOf(":");return i>0?[l.slice(0,i).trim(),l.slice(i+1).trim()]:["",l];});
+  it.maker={name:g("cMk"),contact:g("cMkC"),where:g("cMkW"),url:g("cMkU"),note:g("cMkN")};
+  it.quote=Object.assign({},it.quote||{},{date:g("cQd"),basis:g("cQb"),ref:g("cQr"),tiers:g("cQt").split("\n").map(l=>l.split(/[=:]/)).filter(p=>p.length===2&&catNum(p[0])!=null&&catNum(p[1])!=null).map(p=>({qty:catNum(p[0]),unit:catNum(p[1])}))});
+  it.agreed={unit:catNum(g("cAu")),moq:catNum(g("cAm")),lead:g("cAl"),samples:g("cAs"),shipping:g("cAsh"),terms:g("cAt"),note:g("cAn")};
+  it.pricing=Object.assign({},it.pricing||{},{landed:catNum(g("cPl")),distributor:catNum(g("cPd")),msrp:catNum(g("cPm")),note:g("cPn")});
+  it.notes=g("cNotes");it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);}
+async function catThumbOf(file){return new Promise(res=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,480/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);res(b);},"image/jpeg",.84);};img.onerror=()=>res(null);img.src=u;});}
+async function catUpload(id,files){const it=catFind(id);if(!it)return;let ok=0;
+  for(const f of files){const name=Date.now().toString(36)+"_"+f.name.replace(/[^A-Za-z0-9._-]+/g,"_");const path="catalog/"+id+"/"+name;
+    toast("Uploading "+f.name+"…");
+    const r=await supa("/storage/v1/object/"+MKT_BUCKET+"/"+path.split("/").map(encodeURIComponent).join("/"),{method:"POST",headers:{"Content-Type":f.type||"application/octet-stream","x-upsert":"true"},body:f});
+    if(!r.ok){toast("Couldn't upload "+f.name+" ("+r.status+")");continue;}
+    const title=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ");
+    if(/^image\//.test(f.type)){const tb=await catThumbOf(f);let thumb="";if(tb){const tp="catalog/"+id+"/thumb_"+name.replace(/\.[^.]+$/,"")+".jpg";const r2=await supa("/storage/v1/object/"+MKT_BUCKET+"/"+tp.split("/").map(encodeURIComponent).join("/"),{method:"POST",headers:{"Content-Type":"image/jpeg","x-upsert":"true"},body:tb});if(r2.ok)thumb=tp;}
+      (it.images=it.images||[]).push({path,thumb,title,role:"render"});}
+    else (it.files=it.files||[]).push({path,title,role:/quote|pi\b|proforma/i.test(f.name)?"quote":/schem|drawing|dim/i.test(f.name)?"schematic":"file"});
+    ok++;}
+  if(ok){it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(ok+" file"+(ok===1?"":"s")+" added");}}
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.dataset){if(t.dataset.catup&&t.files&&t.files.length){catUpload(t.dataset.catup,[...t.files]);t.value="";}
+  if(t.dataset.act==="catstatus"){const it=catFind(t.dataset.id);if(it){it.status=t.value;it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();}}
+  if(t.dataset.act==="catq"){const it=catFind(t.dataset.id);const o=it&&(it.open||[])[+t.dataset.v];if(o){o.done=t.checked;it.at=new Date().toISOString();put("catalogItems",it);render();}}}});
+function catHandle(a,t){
+  if(a==="catopen"){catSel=t.dataset.id;catEdit=false;catImg=0;render();window.scrollTo(0,0);return true;}
+  if(a==="catback"){catSel="";catEdit=false;render();return true;}
+  if(a==="catfilter"){catFilter=catFilter===t.dataset.v?"":t.dataset.v;render();return true;}
+  if(a==="catimg"){catImg=+t.dataset.v;render();return true;}
+  if(a==="catedit"){catEdit=true;render();return true;}
+  if(a==="catcancel"){catEdit=false;render();return true;}
+  if(a==="catsave"){const it=catFind(t.dataset.id);if(it){catSaveForm(it);toast("Saved");}catEdit=false;render();return true;}
+  if(a==="catnew"){const it={id:"cat-"+uid()+uid(),name:"New product",category:t.dataset.v||"White-label",status:"idea",summary:"",images:[],files:[],open:[],at:new Date().toISOString(),by:USER};put("catalogItems",it);catSel=it.id;catEdit=true;render();window.scrollTo(0,0);return true;}
+  if(a==="catdel"){const it=catFind(t.dataset.id);if(it&&confirm("Remove "+it.name+" from the catalog board? Its files stay in storage.")){it.removed=true;it.at=new Date().toISOString();put("catalogItems",it);catSel="";catEdit=false;render();}return true;}
+  if(a==="catqadd"){const it=catFind(t.dataset.id);const v=((document.getElementById("catQNew")||{}).value||"").trim();if(it&&v){(it.open=it.open||[]).push({text:v,done:false});it.at=new Date().toISOString();put("catalogItems",it);render();}return true;}
+  if(a==="catq")return true;
   return false;}
 function viewOverview(){
   const h=RANGE_H[ovRange]||168;const focus=ovCamp?campaignById(ovCamp):null;if(ovCamp&&!focus)ovCamp="";
@@ -2047,7 +2174,7 @@ document.addEventListener("click",e=>{
   if(a==="memenu"){meOpen=!meOpen;render();return;}
   if(a==="theme"){meOpen=false;sidePop=null;setTheme(t.dataset.v);return;}
   if(a==="me"||a==="signout"){meOpen=false;sidePop=null;if(confirm("Sign out of AutoTQ Marketing?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}return;}
-  if(a==="nav"){const to=t.dataset.v;if(SIDE_SUBS[to]&&SIDE.open[to]===false){delete SIDE.open[to];sideSave();}goView(to);return;}
+  if(a==="nav"){const to=t.dataset.v;if(to==="cat"){catSel="";catEdit=false;}if(SIDE_SUBS[to]&&SIDE.open[to]===false){delete SIDE.open[to];sideSave();}goView(to);return;}
   if(a==="sidetoggle"){sideToggle();return;}
   if(a==="sidews"){if(sideMini()){sideToggle();return;}sidePopSet(sidePop==="ws"?null:"ws");return;}
   if(a==="sideuser"){sidePopSet(sidePop==="user"?null:"user");return;}
@@ -2093,6 +2220,7 @@ document.addEventListener("click",e=>{
   if(a==="ovfocus"){ovCamp=ovCamp===t.dataset.id?"":t.dataset.id;view="over";sideOpen=false;render();window.scrollTo(0,0);return;}
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
   if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
+  if(a.indexOf("cat")===0&&catHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
