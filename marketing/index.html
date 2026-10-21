@@ -508,6 +508,41 @@ svg.usmap .dots{stroke:var(--dots)}
 .lichecks,.lilist{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}.lichecks li{display:flex;gap:8px;align-items:flex-start}.lichecks li .i{width:15px;height:15px;flex:none;margin-top:2px}
 .lichecks li.ok .i{color:var(--ok)}.lichecks li.no{color:var(--warn)}.lichecks li.no .i{color:var(--warn)}.lilist a{color:var(--ink)}
 @media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
+
+/* Marketing plan on Home + PDF viewer (2026-10-21) */
+.mrow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--rule-2)}.mrow:first-of-type{border-top:0}
+.mrow .n{font-variant-numeric:tabular-nums;font-weight:700;font-size:15px;min-width:34px;color:var(--coral)}
+.mrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}.mrow .nm b{font-size:14px}.mrow .nm small{color:var(--ink-3);font-size:12.5px}
+.mrow .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mtag{display:inline-flex;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--panel);border:1px solid var(--rule-3);color:var(--ink-2);margin:0 4px 0 0}
+.mfiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px;padding:16px}
+.mfile{display:flex;flex-direction:column;gap:6px;text-align:left;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--panel);padding:8px;cursor:pointer;font:inherit;color:var(--ink)}
+.mfile:hover,.mfile:focus-visible{border-color:var(--ink-3)}
+.mfile .th{aspect-ratio:8.5/11;background:#fff;border-radius:6px;overflow:hidden}.mfile .th.sq{aspect-ratio:4/5}
+.mfile img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.mfile b{font-size:12.5px;line-height:1.3;font-weight:600}.mfile small{font-size:11.5px;color:var(--ink-3)}
+.mweb svg{display:block;width:100%;max-width:980px;height:auto;margin:6px auto 4px;font-family:var(--font)}
+.mweb .e{fill:none;stroke:var(--rule-3);stroke-width:1.3}.mweb .e.on{stroke:var(--coral);stroke-opacity:.6}
+.mweb .nd{cursor:pointer;outline:none}.mweb .nd .b{fill:var(--panel);stroke:var(--rule-3);stroke-width:1.4}
+.mweb .nd:hover .b,.mweb .nd:focus-visible .b{stroke:var(--ink-2)}.mweb .nd:hover text.l2,.mweb .nd:focus-visible text.l2{text-decoration:underline}
+.mweb .root .card{fill:var(--panel);stroke:var(--coral);stroke-width:1.6}.mweb .root .g{fill:var(--coral);opacity:.12}
+.mweb text.l1{fill:var(--ink);font-size:13px;font-weight:650}.mweb text.l2{fill:var(--ink);font-size:12.5px;font-weight:550}.mweb text.s{fill:var(--ink-3);font-size:11px}
+.mweb .fi{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mweb .lg{display:flex;gap:14px;flex-wrap:wrap;padding:8px 16px 14px;font-size:12px;color:var(--ink-3)}.mweb .lg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.mlist .mch{padding:10px 16px 4px;font-weight:600;display:flex;gap:8px;align-items:center;border-top:1px solid var(--rule-2)}.mlist .mch:first-child{border-top:0}
+.mlist button.mit{display:flex;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 16px 8px 40px;background:none;border:0;color:var(--ink);font:inherit;cursor:pointer}.mlist button.mit small{display:block;color:var(--ink-3);font-size:12px}
+.mcols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}.mcols>.pan{margin-bottom:0}
+.msteps{list-style:none;margin:0;padding:4px 16px 12px}
+.msteps li{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--rule-2)}.msteps li:first-child{border-top:0}
+.msteps .k{flex:none;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;background:var(--panel);border:1px solid var(--rule-3);color:var(--ink-2)}
+.msteps .t{flex:1;min-width:0}.msteps .t b{font-size:13.5px;font-weight:600}.msteps .t small{display:block;color:var(--ink-3);font-size:12px;margin-top:2px}
+#pdfv{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.72);display:none;flex-direction:column;padding:18px}#pdfv.open{display:flex}
+.pdfv-bar{display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:8px 10px 8px 14px;color:var(--ink)}
+.pdfv-bar b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pdfv-body{flex:1;display:flex;background:#525659;border:1px solid var(--rule);border-top:0;border-radius:0 0 var(--r-lg) var(--r-lg);overflow:hidden}
+.pdfv-body iframe{flex:1;border:0;width:100%;height:100%}.pdfv-body .empty{margin:auto;color:#ddd}
+.liatt{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.liatt .mfile{width:132px}
+@media (max-width:900px){.mcols{grid-template-columns:1fr}.mrow{flex-wrap:wrap}.mrow .acts{width:100%;justify-content:flex-start;padding-left:46px}#pdfv{padding:0}}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script>
 </head>
@@ -539,7 +574,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=["liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
+const PULL_COLLECTIONS=["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1385,7 +1420,7 @@ function render(){
   const me=teamById(USER);const n=needsMe();
   const titles={start:"Home",li:"LinkedIn",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
   const subs={start:"",li:"Three posts a week — Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="start"?"":view==="li"?viewLinkedIn():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
+  const body=view==="start"?viewHome():view==="li"?viewLinkedIn():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
   const crumbs=["Marketing"].concat(view==="start"?["Home"]:view==="li"?["LinkedIn"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
@@ -1394,6 +1429,7 @@ function render(){
    '<main class="main">'+(view==="start"||view==="li"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
+  mktHydrate();
 }
 function fitVolume(){const el=document.querySelector("svg.vol");if(!el||!OV_CHART)return;const w=Math.round(el.parentElement.clientWidth);if(!w||Math.abs(w-el.viewBox.baseVal.width)<2)return;el.outerHTML=ovChartSVG(OV_CHART.ser,OV_CHART.st,OV_CHART.cs,OV_CHART.h,w).svg;}
 function campStatusWord(c){return c.paused?"paused":({draft:"draft",review:"in review",approved:"approved",active:"running",done:"done"}[c.status||"draft"]||c.status);}
@@ -1590,7 +1626,7 @@ function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStat
     '<span class="grow"></span><button class="btn sm ghost" data-act="liresearch"'+(keyMissing||st.running?' disabled':'')+'>Refresh research</button><button class="btn sm coral" data-act="ligen"'+(keyMissing||st.running?' disabled':'')+'>'+(posts.length>=3?'All three drafted':'Draft '+(posts.length?'the rest of ':'')+'this week')+'</button></div>';
   h+='<div class="liweek">'+LI_SLOTS.map(([s,day,add])=>{const p=posts.filter(x=>x.slot===s).sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0];const date=new Date(liWeek+"T12:00:00");date.setDate(date.getDate()+add);
     return '<button class="licard'+(p&&liSel===p.id?" on":"")+(p?'':' empty')+'" '+(p?'data-act="lisel" data-v="'+p.id+'"':'disabled')+'><span class="lid">'+day+' · '+date.toLocaleDateString("en-US",{month:"short",day:"numeric"})+' · 9:00 AM ET</span>'+
-      (p?'<span class="lip">'+esc(LI_PILLAR[p.pillar]||p.pillar)+'</span><b>'+esc(p.topic||"")+'</b><span class="lih">'+esc((liText(p).split("\n")[0]||"").slice(0,140))+'</span>'+liStatusPill(p):'<span class="t2">No draft yet</span>')+'</button>';}).join("")+'</div>';
+      (p?'<span class="lip">'+esc(LI_PILLAR[p.pillar]||p.pillar)+'</span><b>'+esc(p.topic||"")+'</b><span class="lih">'+esc((liText(p).split("\n")[0]||"").slice(0,140))+'</span><span class="row" style="gap:6px;flex-wrap:wrap">'+liStatusPill(p)+((p.attachments||[]).length?'<span class="pill info">PDF attached</span>':'')+'</span>':'<span class="t2">No draft yet</span>')+'</button>';}).join("")+'</div>';
   const sel=liPosts().find(p=>p.id===liSel&&p.week===liWeek)||posts.find(p=>p.status==="draft")||posts[0];if(sel){liSel=sel.id;h+=liPostHTML(sel);}
   return h;}
 function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||[]).map(id=>res.find(r=>r.id===id)).filter(Boolean);
@@ -1598,6 +1634,7 @@ function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||
   return '<div class="pan lipost"><div class="ph2">'+svg("file")+esc(LI_PILLAR[p.pillar]||p.pillar)+' · '+esc(liWhen(p.slotAt))+'<span class="meta">'+liStatusPill(p)+'</span></div><div class="libody">'+
     (liEdit?'<textarea class="f" id="liText" style="min-height:260px;width:100%;font:inherit;line-height:1.55">'+esc(liText(p))+'</textarea>':'<div class="litext">'+esc(liText(p))+'</div>')+
     ((p.hashtags||[]).length?'<p class="litags">'+p.hashtags.map(x=>'#'+esc(x)).join(" ")+'</p>':'')+
+    ((p.attachments||[]).length?'<div class="sectlabel" style="margin-top:16px">Attached to this post</div><div class="liatt">'+p.attachments.map(f=>mktFileCard(f,f.title,(f.pages?f.pages+" pages · ":"")+"PDF · attach it in LinkedIn")).join("")+'</div>':'')+
     '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:14px">'+(liEdit?'<button class="btn sm coral" data-act="lisave" data-v="'+p.id+'">Save edit</button><button class="btn sm ghost" data-act="liedit" data-v="">Cancel</button>':
       (p.status!=="approved"&&p.status!=="posted"?'<button class="btn sm coral" data-act="liapprove" data-v="'+p.id+'">Approve</button>':'')+'<button class="btn sm" data-act="liedit" data-v="'+p.id+'">Edit</button>'+(p.status!=="rejected"&&p.status!=="posted"?'<button class="btn sm ghost" data-act="lireject" data-v="'+p.id+'">Reject</button>':'')+
       '<button class="btn sm ghost" data-act="lirewrite" data-v="'+p.id+'">New version</button><button class="btn sm ghost" data-act="licopy" data-v="'+p.id+'">Copy</button>'+(p.status==="approved"?'<button class="btn sm ghost" data-act="liposted" data-v="'+p.id+'">Mark posted</button>':''))+'</div>'+
@@ -1627,6 +1664,76 @@ function liHandle(a,t){const id=t.dataset.v;
   if(a==="liresearch"){liCall("research").then(()=>toast("Researching…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="liaddres"){const u=(document.getElementById("liAddUrl")||{}).value||"",o=(document.getElementById("liAddOrg")||{}).value||"",w=(document.getElementById("liAddWhy")||{}).value||"";
     if(!/^https?:\/\//.test(u.trim())){toast("Paste the link first");return true;}put("liResearch",{id:"lr-m"+uid()+uid(),kind:"example",title:(o.trim()?o.trim()+" — ":"")+"post you liked",org:o.trim(),date:todayStr(),url:u.trim(),summary:"",takeaway:w.trim(),source:"manual",by:USER,at:new Date().toISOString()});render();toast("Added — the next drafts will use it");return true;}
+  return false;}
+
+/* ---------- Marketing plan on Home (2026-10-21): one `mktPlan` record per anchor piece (the white paper first). Its files live in
+   the private `marketing` storage bucket (Max + Hannah only); the hub fetches them with the signed-in user's token and shows
+   them in #pdfv. Nothing here publishes anything. ---------- */
+Object.assign(FI,{doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.7 3.9 5.5 3.9 8.5s-1.3 5.8-3.9 8.5c-2.6-2.7-3.9-5.5-3.9-8.5s1.3-5.8 3.9-8.5z"/>',share:'<circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/>',users:'<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.3 3-5 6-5s5.4 1.7 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14c2.4.2 4 1.7 4.5 4.5"/>'});
+const MKT_BUCKET="marketing",MKT_URL={},MKT_WAIT={};
+const MKT_ST={live:["ok","Live","var(--ok)"],posted:["ok","Posted","var(--ok)"],publishing:["warn","Publishing","var(--warn)"],review:["warn","Needs review","var(--warn)"],draft:["warn","Draft","var(--warn)"],approved:["info","Approved","var(--info)"],ready:["info","Ready","var(--info)"],planned:["","Planned","var(--ink-3)"],idea:["","Your call","var(--ink-4)"]};
+function mktPlans(){return (DB.mktPlan||[]).filter(p=>p&&p.id&&!p.removed).sort((a,b)=>(a.order||0)-(b.order||0));}
+function mktItemSt(it){if(it.liPost){const p=liFind(it.liPost);if(p)return p.status==="draft"?"review":p.status;}return it.status||"planned";}
+function mktPill(st){const m=MKT_ST[st]||["",st];return '<span class="pill '+m[0]+'">'+esc(m[1])+'</span>';}
+function mktBlob(path){if(MKT_URL[path])return Promise.resolve(MKT_URL[path]);if(MKT_WAIT[path])return MKT_WAIT[path];
+  MKT_WAIT[path]=supa("/storage/v1/object/authenticated/"+MKT_BUCKET+"/"+String(path).split("/").map(encodeURIComponent).join("/")).then(async r=>{if(!r.ok)throw new Error(r.status===400||r.status===404?"file not found":"HTTP "+r.status);const u=URL.createObjectURL(await r.blob());MKT_URL[path]=u;return u;}).finally(()=>{delete MKT_WAIT[path];});
+  return MKT_WAIT[path];}
+function mktHydrate(){document.querySelectorAll("[data-mkt]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");mktBlob(el.getAttribute("data-mkt")).then(u=>{if(el.tagName.toLowerCase()==="image")el.setAttribute("href",u);else el.src=u;}).catch(()=>{});});}
+async function mktOpen(path,title){let el=document.getElementById("pdfv");if(!el){el=document.createElement("div");el.id="pdfv";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el);}
+  const name=String(path).split("/").pop();
+  el.innerHTML='<div class="pdfv-bar"><b>'+esc(title||name)+'</b><span class="grow"></span><a class="btn sm ghost" id="pdfvNew" target="_blank" rel="noopener">Open in a new tab</a><a class="btn sm ghost" id="pdfvDl" download="'+esc(name)+'">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><div class="empty">Loading…</div></div>';
+  el.classList.add("open");const x=el.querySelector('[data-act="mktclose"]');if(x)x.focus();
+  try{const u=await mktBlob(path);el.querySelector(".pdfv-body").innerHTML='<iframe title="'+esc(title||name)+'" src="'+u+'"></iframe>';el.querySelector("#pdfvNew").href=u;el.querySelector("#pdfvDl").href=u;}
+  catch(e){el.querySelector(".pdfv-body").innerHTML='<div class="empty">Couldn’t open it ('+esc(e.message)+').</div>';}}
+function mktClose(){const el=document.getElementById("pdfv");if(el){el.classList.remove("open");el.innerHTML="";}}
+document.addEventListener("keydown",e=>{const el=document.getElementById("pdfv");if(e.key==="Escape"&&el&&el.classList.contains("open")){mktClose();e.stopPropagation();return;}
+  if((e.key==="Enter"||e.key===" ")&&e.target&&e.target.classList&&e.target.classList.contains("nd")&&e.target.dataset.act){e.preventDefault();e.target.dispatchEvent(new MouseEvent("click",{bubbles:true}));}},true);
+function mktFileCard(f,title,sub){return '<button class="mfile" data-act="mktpdf" data-path="'+esc(f.path)+'" data-title="'+esc(title)+'"><span class="th'+(f.shape==="4:5"?" sq":"")+'">'+(f.thumb?'<img alt="" data-mkt="'+esc(f.thumb)+'">':'')+'</span><b>'+esc(title)+'</b><small>'+esc(sub||((f.pages||1)+" page"+((f.pages||1)===1?"":"s")+" · PDF"))+'</small></button>';}
+function mktGlanceHTML(plans){const rows=[];
+  plans.forEach(p=>{rows.push('<div class="mrow"><span class="n">1×</span><span class="nm"><b>'+esc(p.kind)+' · '+esc(p.title)+'</b><small>'+(p.tags||[]).map(t=>'<span class="mtag">'+esc(t)+'</span>').join("")+esc(p.summary||"")+'</small></span><span class="acts">'+mktPill(p.status)+(p.file?'<button class="btn sm" data-act="mktpdf" data-path="'+esc(p.file.path)+'" data-title="'+esc(p.title)+'">See PDF</button>':'')+'</span></div>');
+    const groups={};(p.assets||[]).forEach(a=>{(groups[a.kind]=groups[a.kind]||[]).push(a);});
+    Object.keys(groups).forEach(k=>{const g=groups[k];rows.push('<div class="mrow"><span class="n">'+g.length+'×</span><span class="nm"><b>'+esc(k+(g.length>1?"s":""))+'</b><small>Made from the '+esc(String(p.kind).toLowerCase())+' · '+esc(g.map(a=>a.title).join(" · "))+'</small></span><span class="acts">'+mktPill(g[0].status||"ready")+g.map(a=>'<button class="btn sm ghost" data-act="mktpdf" data-path="'+esc(a.file.path)+'" data-title="'+esc(a.title)+'">'+(g.length>1?esc(a.short||a.title):'See PDF')+'</button>').join("")+'</span></div>');});});
+  const li=liPosts().filter(x=>x.status!=="rejected"&&x.slotAt&&new Date(x.slotAt).getTime()>=Date.now()-864e5);const rev=li.filter(x=>x.status==="draft").length;const withPdf=li.filter(x=>(x.attachments||[]).length).length;
+  if(li.length){const ts=li.map(x=>x.slotAt).sort();const d=s=>new Date(s).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/New_York"});
+    rows.push('<div class="mrow"><span class="n">'+li.length+'×</span><span class="nm"><b>LinkedIn posts</b><small>'+d(ts[0])+(ts.length>1?' – '+d(ts[ts.length-1]):'')+' · Mon / Wed / Fri at 9:00 AM ET'+(withPdf?' · '+withPdf+' with a PDF attached':'')+'</small></span><span class="acts">'+(rev?'<span class="pill warn">'+rev+' need'+(rev===1?'s':'')+' review</span>':'')+'<button class="btn sm ghost" data-act="nav" data-v="li">Open LinkedIn</button></span></div>');}
+  const run=campaigns().filter(c=>(c.status==="active"||c.status==="approved")&&!c.paused);
+  if(run.length)rows.push('<div class="mrow"><span class="n">'+run.length+'×</span><span class="nm"><b>Email campaigns</b><small>Conference follow-ups running · '+esc(run.map(c=>fleetName(c)).join(" · "))+'</small></span><span class="acts"><span class="pill ok">Running</span><button class="btn sm ghost" data-act="nav" data-v="over">Open campaigns</button></span></div>');
+  return '<div class="pan"><div class="ph2">'+svg("check")+'At a glance<span class="t2" style="margin-left:4px">· what we have and where it stands</span></div>'+rows.join("")+'</div>';}
+function mktWebHTML(p){const ch=p.channels||[];if(!ch.length)return "";
+  const head='<div class="ph2">'+svg("globe")+'Where the '+esc(String(p.kind).toLowerCase())+' goes<span class="t2" style="margin-left:4px">· where it lives and how each piece gets used · tap any item</span></div>';
+  const used=new Set();ch.forEach(c=>(c.items||[]).forEach(it=>used.add(mktItemSt(it))));
+  const legend='<div class="lg">'+Object.keys(MKT_ST).filter(k=>used.has(k)).map(k=>'<span><i style="background:'+MKT_ST[k][2]+'"></i>'+esc(MKT_ST[k][1])+'</span>').join("")+'</div>';
+  if(window.innerWidth<760)return '<div class="pan mweb"><div class="ph2">'+svg("globe")+'Where it goes</div><div class="mlist">'+'<div class="mch">'+esc(p.kind)+' · '+esc(p.title)+'</div>'+ch.map((c,ci)=>'<div class="mch">'+esc(c.label)+'</div>'+(c.items||[]).map((it,ii)=>'<button class="mit" data-act="mktnode" data-p="'+esc(p.id)+'" data-c="'+ci+'" data-i="'+ii+'"><span class="grow"><b>'+esc(it.label)+'</b>'+(it.sub?'<small>'+esc(it.sub)+'</small>':'')+'</span>'+mktPill(mktItemSt(it))+'</button>').join("")).join("")+'</div>'+legend+'</div>';
+  const W=980,ROW=40,GAP=10,TOP=24;let y=TOP;const pos=ch.map(c=>{const ys=(c.items||[]).map(()=>{const v=y+ROW/2;y+=ROW;return v;});y+=GAP;return {c,ys,cy:ys.length?(ys[0]+ys[ys.length-1])/2:y};});
+  const H=Math.max(y-GAP+TOP,230),ry=H/2,RX=34,RW=156,RH=176,PX=300,PW=172,PH=34,DX=566;let edges="",nodes="";
+  pos.forEach((q,ci)=>{const c=q.c,on=(c.items||[]).some(it=>mktItemSt(it)!=="idea");
+    edges+='<path class="e'+(on?' on':'')+'" d="M'+(RX+RW)+' '+ry+' C'+(RX+RW+60)+' '+ry+' '+(PX-60)+' '+q.cy+' '+PX+' '+q.cy+'"/>';
+    nodes+='<g><rect class="b" x="'+PX+'" y="'+(q.cy-PH/2)+'" width="'+PW+'" height="'+PH+'" rx="'+(PH/2)+'" style="fill:var(--panel);stroke:var(--rule-3)"/>'+fIcon(c.icon||"doc",PX+20,q.cy,16,"var(--ink-2)")+'<text class="l1" x="'+(PX+36)+'" y="'+(q.cy+4.5)+'">'+esc(c.label)+'</text></g>';
+    (c.items||[]).forEach((it,ii)=>{const iy=q.ys[ii],st=mktItemSt(it),col=(MKT_ST[st]||[])[2]||"var(--ink-3)";
+      edges+='<path class="e'+(st!=="idea"?' on':'')+'"'+(st==="idea"?' stroke-dasharray="3 4"':'')+' d="M'+(PX+PW)+' '+q.cy+' C'+(PX+PW+40)+' '+q.cy+' '+(DX-40)+' '+iy+' '+(DX-7)+' '+iy+'"/>';
+      const sub=((MKT_ST[st]||[])[1]||st)+(it.sub?' · '+it.sub:'');
+      nodes+='<g class="nd" tabindex="0" role="button" data-act="mktnode" data-p="'+esc(p.id)+'" data-c="'+ci+'" data-i="'+ii+'" aria-label="'+esc(it.label+" · "+sub)+'"><rect x="'+(DX-12)+'" y="'+(iy-17)+'" width="'+(W-DX+8)+'" height="34" fill="transparent"/><circle class="b" cx="'+DX+'" cy="'+iy+'" r="6.5" style="fill:'+col+';stroke:none"/>'+
+        '<text class="l2" x="'+(DX+16)+'" y="'+(iy-2)+'">'+esc(it.label)+(it.file?' ↗':'')+(it.url?' ↗':'')+'</text><text class="s" x="'+(DX+16)+'" y="'+(iy+13)+'">'+esc(sub)+'</text></g>';});});
+  const tl=String(p.title).split(" ");let l1="",l2="";tl.forEach(w=>{if((l1+" "+w).trim().length<=20&&!l2)l1=(l1+" "+w).trim();else l2=(l2+" "+w).trim();});
+  const root='<g class="nd root" tabindex="0" role="button" data-act="mktpdf" data-path="'+esc(p.file?p.file.path:"")+'" data-title="'+esc(p.title)+'" aria-label="'+esc("Open the "+p.kind+": "+p.title)+'"><rect class="g" x="'+(RX-6)+'" y="'+(ry-RH/2-6)+'" width="'+(RW+12)+'" height="'+(RH+12)+'" rx="16"/><rect class="card" x="'+RX+'" y="'+(ry-RH/2)+'" width="'+RW+'" height="'+RH+'" rx="12"/>'+
+    '<rect x="'+(RX+RW/2-36)+'" y="'+(ry-RH/2+12)+'" width="72" height="93" rx="3" fill="#fff"/>'+(p.file&&p.file.thumb?'<image data-mkt="'+esc(p.file.thumb)+'" x="'+(RX+RW/2-36)+'" y="'+(ry-RH/2+12)+'" width="72" height="93" preserveAspectRatio="xMidYMin slice"/>':'')+
+    '<text class="s" x="'+(RX+RW/2)+'" y="'+(ry+RH/2-48)+'" text-anchor="middle">'+esc(p.kind)+' · '+((p.file&&p.file.pages)||"")+' pages</text><text class="l1" x="'+(RX+RW/2)+'" y="'+(ry+RH/2-31)+'" text-anchor="middle">'+esc(l1)+'</text><text class="l1" x="'+(RX+RW/2)+'" y="'+(ry+RH/2-15)+'" text-anchor="middle">'+esc(l2)+'</text></g>';
+  return '<div class="pan mweb">'+head+'<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc("Where the "+p.kind+" goes: "+ch.map(c=>c.label).join(", "))+'">'+edges+root+nodes+'</svg>'+legend+'</div>';}
+function mktStepsHTML(p){return '<div class="pan"><div class="ph2">'+svg("chart")+'How we’ll use it<span class="t2" style="margin-left:4px">· in order</span></div><ol class="msteps">'+(p.steps||[]).map((s,i)=>'<li><span class="k">'+(i+1)+'</span><span class="t"><b>'+esc(s.label)+'</b>'+(s.when||s.who?'<small>'+esc([s.when,s.who].filter(Boolean).join(" · "))+'</small>':'')+'</span>'+mktPill(mktItemSt(s))+'</li>').join("")+'</ol></div>';}
+function mktFilesHTML(p){const fs=[];if(p.file)fs.push(mktFileCard(p.file,p.title,p.kind+" · "+(p.file.pages||1)+" pages"));(p.assets||[]).forEach(a=>fs.push(mktFileCard(a.file,a.title,a.kind+((a.file.pages||1)>1?" · "+a.file.pages+" pages":""))));
+  return '<div class="pan"><div class="ph2">'+svg("file")+'Files<span class="t2" style="margin-left:4px">· tap to read</span></div><div class="mfiles">'+fs.join("")+'</div></div>';}
+function viewHome(){const plans=mktPlans();
+  const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>';
+  if(!plans.length)return head+'<div class="empty">No plan yet.</div>';
+  return head+mktGlanceHTML(plans)+plans.map(p=>mktWebHTML(p)+'<div class="mcols">'+mktStepsHTML(p)+mktFilesHTML(p)+'</div>').join('<div style="height:14px"></div>');}
+function mktHandle(a,t){
+  if(a==="mktpdf"){if(t.dataset.path)mktOpen(t.dataset.path,t.dataset.title);return true;}
+  if(a==="mktclose"){mktClose();return true;}
+  if(a==="mktnode"){const p=mktPlans().find(x=>x.id===t.dataset.p);const c=p&&(p.channels||[])[+t.dataset.c];const it=c&&(c.items||[])[+t.dataset.i];if(!it)return true;
+    if(it.file){mktOpen(it.file.path,it.label);return true;}
+    if(it.liPost){const q=liFind(it.liPost);if(q){liWeek=q.week;liSel=q.id;liTab="week";liEdit=false;goView("li");}return true;}
+    if(it.url){window.open(it.url,"_blank","noopener");return true;}
+    toast(it.label+(it.sub?" — "+it.sub:""));return true;}
   return false;}
 function viewOverview(){
   const h=RANGE_H[ovRange]||168;const focus=ovCamp?campaignById(ovCamp):null;if(ovCamp&&!focus)ovCamp="";
@@ -1953,6 +2060,7 @@ document.addEventListener("click",e=>{
   if(a==="ovrange"){ovRange=t.dataset.v;localStorage.setItem("autotq_mkt_range",ovRange);render();return;}
   if(a==="ovfocus"){ovCamp=ovCamp===t.dataset.id?"":t.dataset.id;view="over";sideOpen=false;render();window.scrollTo(0,0);return;}
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
+  if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
