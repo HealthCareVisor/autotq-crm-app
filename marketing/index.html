@@ -346,7 +346,35 @@ svg.usmap .nd.act circle.c{stroke:var(--coral);stroke-width:2.5}svg.usmap .nd.ac
 .replycard{border:1px solid var(--rule-2);border-left:3px solid #3FB950;border-radius:10px;padding:12px 14px;margin:10px 0 14px;background:rgba(63,185,80,.05)}
 .replycard .rh{display:flex;justify-content:space-between;gap:10px;font-size:13px}.replycard .rh span{color:var(--ink-3);font-size:12px}
 .replycard .rs{font-size:12px;color:var(--ink-3);margin-top:2px}.replycard .rb{white-space:pre-wrap;margin-top:10px;font-size:14.5px;line-height:1.55;color:var(--ink)}
+
+/* ---- light mode (2026-10-21) — tokens first, then the few rules that used fixed dark colours ---- */
+:root{color-scheme:dark;--hover:rgba(255,255,255,.03);--tint:rgba(255,255,255,.02);--crumb-bg:rgba(11,11,12,.82);--scrim:rgba(0,0,0,.55);--scroll:#2E2F35;
+  --edge:#2C2E34;--edge-on:#4A3A33;--edge2:#24262B;--edge2-on:#34363C;--node:#3A3C42;--dots:#36383E;--live:#3FB950}
+:root[data-theme="light"]{color-scheme:light;
+  --ground:#F6F5F1; --paper:#FFFFFF; --panel:#FBFAF7; --rule:#E6E3DC; --rule-2:#EEECE6; --rule-3:#D9D5CC;
+  --ink:#1A1916; --ink-2:#45433D; --ink-3:#77746C; --ink-4:#A6A298;
+  --coral:#C4502A; --coral-ink:#A8441F; --coral-wash:rgba(196,80,42,.10);
+  --l1:#C4502A; --l2:#2F6DB5; --l3:#3E8A2E; --l4:#A64C86; --l5:#A87400; --l6:#1C8C88;
+  --ok:#2F8A3A; --ok-wash:rgba(47,138,58,.10); --warn:#9A6700; --warn-wash:rgba(154,103,0,.10); --bad:#C2362F; --bad-wash:rgba(194,54,47,.10); --info:#2D6CC0; --info-wash:rgba(45,108,192,.10);
+  --sh-2:0 0 0 1px var(--rule-3); --sh-3:0 24px 60px -24px rgba(26,25,22,.22),0 8px 20px -10px rgba(26,25,22,.14); --ring:0 0 0 3px rgba(196,80,42,.22);
+  --hover:rgba(26,25,22,.035); --tint:rgba(26,25,22,.02); --crumb-bg:rgba(246,245,241,.88); --scrim:rgba(26,25,22,.28); --scroll:#D9D5CC;
+  --edge:#DAD6CD; --edge-on:#E5BCA9; --edge2:#E8E5DE; --edge2-on:#D2CEC5; --node:#CFCBC2; --dots:#DCD8CF; --live:#2F8A3A}
+*{scrollbar-color:var(--scroll) transparent}::-webkit-scrollbar-thumb{background:var(--scroll)}
+.crumb{background:var(--crumb-bg)}#scrim,.sidescrim{background:var(--scrim)}
+svg.usmap .dots{stroke:var(--dots)}
+.actcamp:hover,.perfbtn:hover{background:var(--hover)}.mailcard{background:var(--tint)}
+.fleet .fe{stroke:var(--edge)}.fleet .fe.on{stroke:var(--edge-on)}.fleet .fe2{stroke:var(--edge2)}.fleet .fe2.on{stroke:var(--edge2-on)}.fleet .cn .b{stroke:var(--node)}
+.fleet .cn .ring{stroke:var(--live)}.flegend i.ring{border-color:var(--live)}.replycard{border-left-color:var(--live);background:var(--ok-wash)}
+/* profile menu */
+.crumb .right{position:relative}
+.memenu{position:absolute;top:calc(100% + 10px);right:0;min-width:230px;background:var(--panel);border:1px solid var(--rule-3);border-radius:12px;box-shadow:var(--sh-3);padding:6px;z-index:50}
+.memenu .mh{padding:8px 10px 10px;border-bottom:1px solid var(--rule);margin-bottom:4px}.memenu .mh b{display:block;font-size:13.5px}.memenu .mh small{color:var(--ink-3);font-size:12px}
+.memenu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;background:none;color:var(--ink);font:inherit;font-size:13.5px;text-align:left;border-radius:8px;cursor:pointer}
+.memenu button:hover,.memenu button:focus-visible{background:var(--hover);outline:none}.memenu button .i{width:16px;height:16px;color:var(--ink-3)}
+.memenu button .ck{margin-left:auto;color:var(--coral);font-weight:700}.memenu hr{border:0;border-top:1px solid var(--rule);margin:4px 2px}
+.memenu .out{color:var(--bad)}.memenu .out .i{color:var(--bad)}
 </style>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script>
 </head>
 <body>
 <div id="screen"></div>
@@ -591,14 +619,20 @@ function campOk(c){return (c.leads||[]).filter(l=>l.flag==="ok");}
 function campReady(c,step){if(step===1)return campOk(c).length>0;if(step===2)return (c.steps||[]).some(s=>(s.subject||"").trim()&&(s.body||"").trim());return ["approved","active","done"].includes(c.status);}
 function campNextStep(c){return !campReady(c,1)?1:!campReady(c,2)?2:3;}
 const BASIS_OPTS=["Met us at a show","Customer or distributor in the CRM","Asked us (inbound)","Other — say how"];
-const COLD_SES_TEXT="Cold lists can't go through Amazon SES — AWS's policy bans unsolicited mass email. Use the conference/CRM lists, or a cold-email tool on separate inboxes.";
+const COLD_SES_TEXT="Cold lists can't go through Amazon SES — AWS's policy bans unsolicited mass email. Send them from the cold inboxes (Microsoft 365) instead.";
 function campCold(c){const a=(c&&c.aud)||{};return a.src==="apollo"||/^\s*cold\b/i.test((c&&c.basis)||"")||((c&&c.leads)||[]).some(l=>l&&l.src==="apollo");} // found on Apollo (or a basis that says cold) — the same test runs in mail-run + mail-out
 function campColdSes(c){return campCold(c)&&(c.channel||"ses")==="ses";}
+function campColdReady(l){return !!(l&&l.vstatus)&&!l.risky;} // cold inboxes email only addresses Apollo verified: no bounce feed comes back from Microsoft 365 (mail-run does the same)
+function campLaneLeads(c){const ok=campOk(c);return c.channel==="mailbox"?ok.filter(campColdReady):ok;}
+function campChannelOk(c){return (c.channel||"ses")==="ses"?!campCold(c):c.channel==="mailbox";} // warm lists on SES, anything on the cold inboxes
 const SPAMMY=/\b(free|guarantee|act now|limited time|winner|100%|\$\$\$|click here|urgent|no obligation)\b/i;
 function campChecks(c){ // the SES terms, as checks a reviewer can read. hard = blocks approval; soft = shown
   const first=campOk(c)[0];const steps=c.steps||[];const out=[];
   const add=(ok,hard,text)=>out.push({ok,hard,text});
   if(campColdSes(c))add(false,true,COLD_SES_TEXT);
+  if(c.channel==="mailbox"){const ok=campOk(c),ver=ok.filter(campColdReady).length,boxes=senders().filter(x=>isMailbox(x)&&!x.paused);
+    add(boxes.length>0,true,boxes.length?"Sends from "+boxes.length+" cold inbox"+(boxes.length>1?"es":"")+" (Microsoft 365): "+boxes.map(x=>x.email).join(", "):"Add a cold inbox first (Schedule › Inboxes › Add a cold inbox)");
+    add(ver>0,true,ver?ver+" of "+ok.length+" addresses verified by Apollo — cold inboxes email only these"+(ver<ok.length?" (Reveal + check covers the rest)":""):"No Apollo-verified addresses yet — cold inboxes email only verified ones (Reveal + check on the Who step)");}
   add(!!(c.basis&&c.basis.trim()),true,c.basis?(campCold(c)?"How we found them: ":"They know us: ")+c.basis:"Say how these people know us (Audience step)");
   add(steps.length>0&&steps.every(st=>(st.subject||"").trim()&&(st.body||"").trim()),true,"Every email has a subject and a message");
   const left=new Set();if(first)steps.forEach(st=>(campFill(st.subject,first,c)+" "+campFill(st.body,first,c)).replace(/\{\{\s*([^}\s]*)\s*\}\}/g,(m,k)=>{left.add(k);return m;}));const leftover=left.size>0;
@@ -717,6 +751,12 @@ async function sendHtmlMail(p){const r=await supa("/functions/v1/send-invoice",{
 async function campSendStep(i){
   const c=campaignById(curCampaign);if(!c)return;if(campColdSes(c)){toast(COLD_SES_TEXT);return;}if(!campCanSend(c)){toast("Needs a reviewer's approval first");return;}
   const due=campDue(c,i);if(!due.length){toast("Nobody is due for this email today");return;}
+  if(c.channel==="mailbox"){const sb=senders().find(x=>isMailbox(x)&&!x.paused&&x.email===c.from);if(!sb){toast("Pick a cold inbox to send from");return;}
+    const room=senderLeft(sb),ready=due.filter(campColdReady);const batch=ready.slice(0,Math.min(room,Math.max(1,parseInt(c.dailyCap,10)||50)));
+    if(!batch.length){toast(!room?sb.email+" is at today's cap ("+senderCap(sb,0)+")":"No Apollo-verified address is due for this email");return;}
+    if(!confirm('Send "'+campFill(c.steps[i].subject,batch[0],c,sb).replace(/^Re: /,"")+'" to '+batch.length+' people now from '+sb.email+' (cold inbox)?'+(ready.length>batch.length?' ('+(ready.length-batch.length)+' more wait for tomorrow.)':'')))return;
+    const btn=document.getElementById("campSend"+i);if(btn){btn.disabled=true;btn.textContent="Sending…";}
+    const n=await campSendBatch(c,i,batch,sb);render();toast(n+" sent from "+sb.email);return;}
   const cap=Math.max(1,parseInt(c.dailyCap,10)||50);const batch=due.slice(0,cap);const s=c.steps[i];const ses=(c.channel||"ses")==="ses";
   const fromAddr=ses?(c.from||""):SALES_FROM;
   if(ses&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fromAddr)){toast("Pick a Send-from address first");return;}
@@ -763,14 +803,17 @@ function campTouched(c){if(c.status==="approved"&&Object.keys(c.approvals||{}).l
 
 /* ---------- outbound engine: senders + warmup, already-touched index, verification, the daily plan ---------- */
 const RAMP=[20,35,50,75,100,150,200]; // per sender per day; moves up one step after each clean sending day
+const COLD_RAMP=[10,15,20,25,30,35,40]; // cold inboxes (Microsoft 365): slower and lower — mailbox providers watch new senders closely (mail-run's COLD_RAMP)
+function isMailbox(s){return !!s&&s.via==="m365";}
+function laneFits(c,s){return isMailbox(s)===(c.channel==="mailbox");} // cold lanes ride the cold inboxes only, warm lanes the SES pool only
 const TOUCH_DAYS=30;                   // anyone touched (call, email, meeting) inside this window is left alone
 const DEFAULT_SENDERS=[ // seeded once; saved to the shared `senders` collection when Max first edits them. Only Max and Hannah use the hub.
  {id:"s-max",email:"max@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hello",email:"hello@autotq.net",name:"Max Herbst",owner:"max",pool:"A"},{id:"s-hannah",email:"hannah@auto-tq.com",name:"Hannah Herbst",owner:"hannah",pool:"B"}];
 function senders(){const live=(DB.senders||[]).filter(s=>s&&s.id); // saved edits ride on top of the defaults, so saving one inbox never drops the others
   return DEFAULT_SENDERS.map(d=>Object.assign({log:{},paused:false,hold:false},d,live.find(s=>s.id===d.id)||{})).concat(live.filter(s=>!DEFAULT_SENDERS.some(d=>d.id===s.id)));}
-function senderDomainOk(s){const st=MAILOUT_STATUS;if(!st||!st.ok)return null;const d=s.email.split("@")[1];return (st.identities||[]).some(i=>i.verified&&(i.name===d||i.name===s.email));}
+function senderDomainOk(s){const st=MAILOUT_STATUS;if(!st||!st.ok)return null;if(isMailbox(s))return (st.mailboxes||[]).includes(String(s.email).toLowerCase());const d=s.email.split("@")[1];return (st.identities||[]).some(i=>i.verified&&(i.name===d||i.name===s.email));}
 function senderDay(s){return Object.keys(s.log||{}).filter(d=>(s.log[d].sent||0)>0).length;} // clean sending days so far
-function senderCap(s,offset){if(s.paused)return 0;const day=senderDay(s)+(offset||0)-((s.hold&&!offset)?1:0);return RAMP[Math.max(0,Math.min(RAMP.length-1,day))];}
+function senderCap(s,offset){if(s.paused)return 0;const day=senderDay(s)+(offset||0)-((s.hold&&!offset)?1:0);const ramp=isMailbox(s)?COLD_RAMP:RAMP;return ramp[Math.max(0,Math.min(ramp.length-1,day))];}
 function senderSentToday(s){return ((s.log||{})[todayStr()]||{}).sent||0;}
 function senderLeft(s){return Math.max(0,senderCap(s,0)-senderSentToday(s));}
 function senderStats(s,date){const ids=new Set();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{Object.keys(l.msg||{}).forEach(k=>{if((l.by||{})[k]===s.email)ids.add(l.msg[k]);});}));
@@ -822,7 +865,7 @@ async function campApolloAdd(c,want){const a=c.aud;const ap=logState.ap;if(!ap||
       for(const x of (b.people||[])){if(added>=want)break;if(have.has(x.id)){continue;}const key=((x.first+" "+x.last).trim()+"|"+(x.company||"")).toLowerCase();if(known.has(key)){skipped++;continue;}
         const l={id:uid(),first:x.first,last:x.last,company:x.company,title:x.title,email:"",city:x.city,state:(x.state||"").length===2?x.state:(US_STATE_CODE[x.state]||x.state||""),industryRaw:x.industry,apolloId:x.id,apolloStatus:x.emailStatus,domain:x.domain,src:"apollo",flag:"verify"};l.ind=indGroupFor(l);c.leads.push(l);have.add(x.id);added++;}
       if(!(b.people||[]).length)break;page++;}
-    c.listName="Apollo: "+(ap.q.titles.slice(0,2).join(", ")||ap.q.keywords.slice(0,2).join(", "));if(!c.basis)c.basis="Cold — found on Apollo by title and industry";saveCamp(c);render();
+    c.listName="Apollo: "+(ap.q.titles.slice(0,2).join(", ")||ap.q.keywords.slice(0,2).join(", "));if(!c.basis)c.basis="Cold — found on Apollo by title and industry";if((c.channel||"ses")==="ses")c.channel="mailbox";saveCamp(c);render();
     toast(added+" added"+(skipped?" · "+skipped+" already in the CRM, skipped":"")+" — now reveal their emails");}
   catch(e){toast("Apollo: "+e.message);saveCamp(c);render();}}
 const US_STATE_CODE=Object.fromEntries(Object.entries(STATE_NAMES).map(([k,v])=>[v,k]));
@@ -847,15 +890,15 @@ async function campVerify(c){
   campApplyGuards(c);render();toast(done+" checked · "+bad+" undeliverable");}
 /* the plan: who goes out on which day, through which inbox */
 function campAutoPause(){campaigns().forEach(c=>{if(c.paused||c.status==="done")return;const d=campDelivery(c);const sent=(c.sendLog||[]).reduce((a,e)=>a+(e.count||0),0);if(sent>=50&&(d.complaint/sent>=0.001||d.bounce/sent>=0.03)){c.paused=true;c.pausedBy="auto";c.pausedWhy=d.complaint/sent>=0.001?"complaints above 0.1%":"bounces above 3%";(c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:"Paused automatically: "+c.pausedWhy+". Check the list and the message, then resume.",sys:true});saveCamp(c);}});}
-function planLanes(){campAutoPause();return campaigns().filter(c=>["approved","active"].includes(c.status)&&!c.paused&&c.basis&&!campCold(c)&&campOk(c).length).sort((a,b)=>(a.priority||5)-(b.priority||5)||String(a.createdAt).localeCompare(b.createdAt));}
+function planLanes(){campAutoPause();return campaigns().filter(c=>["approved","active"].includes(c.status)&&!c.paused&&c.basis&&campChannelOk(c)&&campLaneLeads(c).length).sort((a,b)=>(a.priority||5)-(b.priority||5)||String(a.createdAt).localeCompare(b.createdAt));}
 function buildPlan(days){ // simulation from today: each lane's leads walk the steps; capacity = the senders' ramps
   const lanes=planLanes(),S=senders().filter(s=>!s.paused),out={days:[],lanes:{},senders:{}};const today=new Date();today.setHours(0,0,0,0);
-  const state=lanes.map(c=>({c,leads:campOk(c).filter(l=>!l.outcome).map(l=>({sent:Object.assign({},l.sent||{})})),steps:c.steps||[]})); // anyone with an outcome gets nothing more
+  const state=lanes.map(c=>({c,leads:campLaneLeads(c).filter(l=>!l.outcome).map(l=>({sent:Object.assign({},l.sent||{})})),steps:c.steps||[]})); // anyone with an outcome gets nothing more
   for(let d=0;d<days;d++){const date=new Date(today.getTime()+d*86400000);const ds=date.toISOString().slice(0,10);const wk=date.getDay();const col={date:ds,total:0,byLane:{},bySender:{},byLaneSender:{},weekend:wk===0||wk===6};
     if(!col.weekend){let caps=S.map(s=>({s,left:Math.max(0,senderCap(s,d)-(d===0?senderSentToday(s):0))}));
       // which leads are due today per lane (step 1 = unsent, later = gap passed, measured from the simulated send day)
       const due=state.map(st=>st.leads.filter(l=>{for(let i=0;i<st.steps.length;i++){if(l.sent[i])continue;if(i===0)return l._i=0,true;const prev=l.sent[i-1];if(!prev)return false;const gap=(st.steps[i].day||1)-(st.steps[i-1].day||1);return (Math.floor((date-new Date(prev))/86400000)>=gap)?(l._i=i,true):false;}return false;}));
-      let moved=true;while(moved){moved=false;for(let li=0;li<state.length;li++){const q=due[li];if(!q.length)continue;const cap=caps.find(x=>x.left>0);if(!cap)break;const l=q.shift();l.sent[l._i]=ds+"T12:00:00Z";cap.left--;moved=true;
+      let moved=true;while(moved){moved=false;for(let li=0;li<state.length;li++){const q=due[li];if(!q.length)continue;const cap=caps.find(x=>x.left>0&&laneFits(state[li].c,x.s));if(!cap)continue;const l=q.shift();l.sent[l._i]=ds+"T12:00:00Z";cap.left--;moved=true;
         const lid=state[li].c.id;col.byLane[lid]=(col.byLane[lid]||0)+1;col.bySender[cap.s.id]=(col.bySender[cap.s.id]||0)+1;(col.byLaneSender[lid]=col.byLaneSender[lid]||{})[cap.s.id]=((col.byLaneSender[lid]||{})[cap.s.id]||0)+1;col.total++;}}}
     out.days.push(col);}
   lanes.forEach(c=>{const st=state.find(x=>x.c.id===c.id);out.lanes[c.id]={remaining:st.leads.filter(l=>!(c.steps||[]).every((_,k)=>l.sent[k])).length,finishDay:(()=>{for(let d=out.days.length-1;d>=0;d--)if(out.days[d].byLane[c.id])return out.days[d].date;return null;})()};});
@@ -868,12 +911,13 @@ async function runToday(){
   const plan=buildPlan(1).days[0];const total=plan.total;if(!total){toast("Nothing due today");return;}
   if(!confirm("Send "+total+" emails now across "+lanes.length+" campaign"+(lanes.length>1?"s":"")+" and "+S.length+" inboxes?"))return;
   let sent=0,si=0;
-  for(const c of lanes){for(let i=0;i<(c.steps||[]).length;i++){let due=campDue(c,i);while(due.length){const s=S[si%S.length];si++;const room=senderLeft(s);if(!room){if(S.every(x=>!senderLeft(x)))break;continue;}
+  for(const c of lanes){const pool=S.filter(s=>laneFits(c,s));if(!pool.length)continue;
+    for(let i=0;i<(c.steps||[]).length;i++){let due=campDue(c,i).filter(l=>c.channel!=="mailbox"||campColdReady(l));while(due.length){const s=pool[si%pool.length];si++;const room=senderLeft(s);if(!room){if(pool.every(x=>!senderLeft(x)))break;continue;}
       const batch=due.splice(0,Math.min(room,25));const n=await campSendBatch(c,i,batch,s);sent+=n;if(n<batch.length)break;}}}
   render();toast(sent+" sent today");}
 async function campSendBatch(c,i,batch,s){
   const step=c.steps[i];const owner=teamById(s.owner||USER);
-  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:s.email,fromName:s.name||owner.name,replyTo:REPLY_TO,campaign:c.name,campaignId:c.id,
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",via:isMailbox(s)?"m365":"ses",from:s.email,fromName:s.name||owner.name,replyTo:REPLY_TO,campaign:c.name,campaignId:c.id,
       items:batch.map(l=>{const vv=campVariant(step,l,i);return {to:l.email,subject:campFill(vv.subject,l,c,s),html:campTextHTML(campFill(vv.body,l,c,s)),text:campFill(vv.body,l,c,s),ref:l.refId||l.pid||""};})})});
     const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));let n=0;
     (b.results||[]).forEach(res=>{const l=batch.find(x=>String(x.email).toLowerCase()===res.to);if(!l)return;
@@ -884,7 +928,7 @@ async function campSendBatch(c,i,batch,s){
         if(l.refId){const x=(DB.confLeads||[]).find(y=>y.id===l.refId);if(x){x.lastEmail=todayStr();x.notes=((x.notes||"")+" | "+todayStr()+": "+note).slice(0,4000);put("confLeads",x);}}}
       else if(res.skipped==="suppressed")l.flag="suppressed";});
     s.log=s.log||{};s.log[todayStr()]=s.log[todayStr()]||{sent:0};s.log[todayStr()].sent+=n;saveSender(s);
-    if(n){c.status="active";c.launchedAt=c.launchedAt||new Date().toISOString();(c.sendLog=c.sendLog||[]).push({step:i,at:new Date().toISOString(),count:n,by:USER,from:s.email,channel:"ses"});}
+    if(n){c.status="active";c.launchedAt=c.launchedAt||new Date().toISOString();(c.sendLog=c.sendLog||[]).push({step:i,at:new Date().toISOString(),count:n,by:USER,from:s.email,channel:isMailbox(s)?"mailbox":"ses"});}
     if(campOk(c).length&&campOk(c).every(l=>l.outcome||c.steps.every((_,k)=>l.sent&&l.sent[k])))c.status="done";saveCamp(c);return n;}
   catch(e){toast("Stopped on "+s.email+": "+e.message);return 0;}}
 
@@ -985,11 +1029,12 @@ function viewSchedule(){
     h+='<tr><td class="lvname"><span class="lane" style="background:'+campColor(c)+'"></span><a href="#" data-act="campopen" data-id="'+c.id+'">'+esc(c.name)+'</a><div class="t2" style="margin-left:18px">'+esc(campAudienceLabel(c))+' · '+ok+' people · '+(c.steps||[]).length+' emails</div></td><td>'+campStatusTag(c)+'</td><td><span class="av" style="background:'+teamById(c.by).c+'">'+initials(teamById(c.by).name)+'</span></td><td><div class="bar"><i style="width:'+done+'%;background:'+campColor(c)+'"></i></div><div class="t2">'+done+'%</div></td><td class="num">'+(L.remaining||0)+'</td><td>'+(L.finishDay?fmtShort(L.finishDay):"—")+'</td>'+
       days.map(d=>{const n=d.byLane[c.id]||0;return '<td class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+(n?'<span class="cell" style="background:'+campColor(c)+'">'+n+'</span>':'')+'</td>';}).join("")+'</tr>';});
   h+='<tr class="tot"><td class="lvname">Total</td><td colspan="5"></td>'+days.map(d=>'<td class="dc'+(d.weekend?" we":"")+'"><b>'+(d.total||"")+'</b></td>').join("")+'</tr></tbody></table></div>';
-  h+='<div class="sech">Inboxes · warmup ramp '+RAMP.join(" → ")+' a day</div><div class="tablewrap sched"><table class="lv"><thead><tr><th style="min-width:240px">Inbox</th><th>Pool</th><th>Health</th><th>Warm day</th><th>Cap today</th><th>Sent today</th>'+days.map(d=>'<th class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+fmtShort(d.date)+'</th>').join("")+'</tr></thead><tbody>';
+  h+='<div class="sech">Inboxes · warmup ramp '+RAMP.join(" → ")+' a day · cold inboxes '+COLD_RAMP.join(" → ")+'</div><div class="tablewrap sched"><table class="lv"><thead><tr><th style="min-width:240px">Inbox</th><th>Pool</th><th>Health</th><th>Warm day</th><th>Cap today</th><th>Sent today</th>'+days.map(d=>'<th class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+fmtShort(d.date)+'</th>').join("")+'</tr></thead><tbody>';
   S.forEach(s=>{const hl=senderHealth(s);const ok=senderDomainOk(s);
-    h+='<tr style="'+(s.paused?"opacity:.5":"")+'"><td class="lvname"><a href="#" data-act="sender" data-id="'+s.id+'">'+esc(s.email)+'</a><div class="t2">'+esc(s.name||"")+(ok===false?' · <span style="color:var(--bad)">domain not verified in SES</span>':ok===null?' · SES status unknown':'')+'</div></td><td><span class="pill">'+esc(s.pool||"A")+'</span></td><td><span class="pill '+hl.cls+'">'+hl.label+'</span>'+(s.paused?' <span class="pill dang">Paused</span>':'')+'</td><td class="num">'+(senderDay(s)+1)+'</td><td class="num">'+senderCap(s,0)+'</td><td class="num">'+senderSentToday(s)+'</td>'+
+    h+='<tr style="'+(s.paused?"opacity:.5":"")+'"><td class="lvname"><a href="#" data-act="sender" data-id="'+s.id+'">'+esc(s.email)+'</a><div class="t2">'+esc(s.name||"")+(isMailbox(s)?' · cold inbox (Microsoft 365)'+(ok===false?' · <span style="color:var(--bad)">not in MAILOUT_MAILBOXES on mail-out</span>':''):ok===false?' · <span style="color:var(--bad)">domain not verified in SES</span>':ok===null?' · SES status unknown':'')+'</div></td><td><span class="pill">'+esc(s.pool||"A")+'</span></td><td><span class="pill '+hl.cls+'">'+hl.label+'</span>'+(s.paused?' <span class="pill dang">Paused</span>':'')+'</td><td class="num">'+(senderDay(s)+1)+'</td><td class="num">'+senderCap(s,0)+'</td><td class="num">'+senderSentToday(s)+'</td>'+
       days.map(d=>{const n=d.bySender[s.id]||0;return '<td class="dc'+(d.weekend?" we":"")+(d.date===todayStr()?" today":"")+'">'+(n?'<span class="cell soft">'+n+'</span>':'')+'</td>';}).join("")+'</tr>';});
   h+='</tbody></table></div><p class="t2" style="margin-top:8px">A simulation from today: weekends off, each inbox climbs the ramp one step per clean day, lanes are filled in priority order. Change a campaign\'s emails or audience and the plan changes with it.</p>';
+  if(admin())h+='<div class="reccard" style="margin-top:12px"><p class="t1">Add a cold inbox</p><p class="t2">A Microsoft 365 mailbox for lists that never met us (Apollo, attendee lists) — never Amazon SES. Use a real person\'s name: the one who stands behind the email. Best on a separate domain (autotourniquet.com), not goldenhourmedical.com. mail-out also needs the address in its MAILOUT_MAILBOXES secret before it will send.</p><div class="row" style="gap:10px;margin-top:8px;flex-wrap:wrap"><div class="grow" style="min-width:220px"><label class="fl" style="margin-top:0">Mailbox address</label><input class="f" id="ciEmail" placeholder="max@autotourniquet.com"></div><div class="grow" style="min-width:180px"><label class="fl" style="margin-top:0">Name on the email</label><input class="f" id="ciName" placeholder="Max Herbst"></div><button class="btn" data-act="coldadd" style="align-self:flex-end">'+svg("plus")+' Add</button></div></div>';
   return h;
 }
 function outboundSettings(){return (DB.settings||[]).find(x=>x.id==="outbound")||{id:"outbound",auto:false,startHour:14,endHour:21};}
@@ -1061,7 +1106,7 @@ function render(){
   const body=view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
   const crumbs=["Marketing"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Home"]);
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
-   '<div class="right"><label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="me" title="'+esc(me.name)+' · sign out">'+initials(me.name)+'</button></div></header>'+
+   '<div class="right"><label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
    '<nav class="mnav" aria-label="Sections">'+NAV.concat(NAV_MORE).map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+x[1]+(x[0]==="camp"&&n?' · '+n:'')+'</button>').join("")+'</nav>'+
    '<main class="main">'+(view!=="over"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
@@ -1228,6 +1273,15 @@ function fleetPanel(){const {rows,tot,S}=fleetData();const auto=outboundSettings
   return '<div class="pan fleet"><div class="ph2">'+svg("globe")+(ovCamp?'This campaign':'Outbound')+'<span class="t2" style="margin-left:4px">· '+(N?N+' campaign'+(N===1?'':'s')+' through inboxes 1–'+S.length:'nothing running')+(auto?'':' · Automation off')+'</span></div>'+
     (N?svgEl:'<div class="empty" style="padding:26px 16px">Nothing running. Approve a campaign under Campaigns and it branches off here.</div>')+
     '<div class="flegend"><span><i class="ring"></i>Running</span><span><i style="background:var(--coral)"></i>Needs you</span><span class="sep"></span><span><i style="background:#3FB950"></i>Inbox healthy</span><span><i style="background:#E3A008"></i>Watch</span><span><i style="background:var(--coral)"></i>Hold</span><span class="grow"></span><span class="t2" style="margin:0">'+(ovCamp?'':'Tap a campaign for its numbers.')+'</span></div>'+inboxRows+'</div>';}
+
+/* ---------- light / dark mode + profile menu (2026-10-21) ---------- */
+Object.assign(SVG,{sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',signout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5M5 12h11"/>'});
+let THEME=document.documentElement.dataset.theme==="light"?"light":"dark",meOpen=false;
+function setTheme(v){THEME=v==="light"?"light":"dark";document.documentElement.dataset.theme=THEME;try{localStorage.setItem("autotq_mkt_theme",THEME);}catch(e){}render();}
+function meMenuHTML(me){if(!meOpen)return "";const it=(v,ic,label)=>'<button role="menuitemradio" aria-checked="'+(THEME===v)+'" data-act="theme" data-v="'+v+'">'+svg(ic)+'<span>'+label+'</span>'+(THEME===v?'<span class="ck">'+svg("check")+'</span>':'')+'</button>';
+  return '<div class="memenu" role="menu"><div class="mh"><b>'+esc(me.name)+'</b><small>'+esc(userEmail(USER)||"")+'</small></div>'+it("light","sun","Light mode")+it("dark","moon","Dark mode")+'<hr><button class="out" role="menuitem" data-act="signout">'+svg("signout")+'<span>Sign out</span></button></div>';}
+document.addEventListener("click",e=>{if(meOpen&&!e.target.closest(".memenu")&&!e.target.closest('[data-act="memenu"]')){meOpen=false;render();}},true);
+document.addEventListener("keydown",e=>{if(meOpen&&e.key==="Escape"){meOpen=false;render();const b=document.querySelector('[data-act="memenu"]');if(b)b.focus();}});
 function viewOverview(){
   const h=RANGE_H[ovRange]||168;const focus=ovCamp?campaignById(ovCamp):null;if(ovCamp&&!focus)ovCamp="";
   const cs=campaigns().filter(c=>!ovCamp||c.id===ovCamp);const since=ovSince(h);
@@ -1278,7 +1332,7 @@ function perfMsgHTML(c,s,k,ppl){ // the email as one real person on the list get
 async function perfTest(cid,k){const c=campaignById(cid);if(!c)return;const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));const s=(c.steps||[])[k];if(!s)return;
   const {l,snd,v}=perfSample(c,s,k,ppl);const to=userEmail(USER);if(!to||!snd.email){toast("No inbox to send from");return;}
   const subject=campFill(v.subject||"",l,c,snd),body=campFill(v.body||"",l,c,snd);toast("Sending a test to "+to+"…");
-  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",from:snd.email,fromName:snd.name,replyTo:REPLY_TO,campaign:"test",items:[{to,subject,html:campTextHTML(body),text:body}]})});
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",via:isMailbox(senders().find(x=>x.email===snd.email))?"m365":"ses",from:snd.email,fromName:snd.name,replyTo:REPLY_TO,campaign:"test",items:[{to,subject,html:campTextHTML(body),text:body}]})});
     const b=await r.json().catch(()=>({}));const res=(b.results||[])[0]||{};if(!r.ok||!b.ok||!res.msgId)throw new Error(b.error||res.skipped||res.error||("HTTP "+r.status));
     toast("Sent — check "+to+" in a minute (it looks exactly like this)");}catch(e){toast("The test didn't send: "+e.message);}}
 function campPerfPanel(c){const op=PERF_OPEN[c.id]||(PERF_OPEN[c.id]=new Set([0]));const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));const steps=c.steps||[];const ev=(DB.mailEvents||[]).filter(HOME_HARD);
@@ -1442,16 +1496,20 @@ function campReviewUI(c){
   let h='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:10px">'+campStatusTag(c)+'<span class="t2" style="margin:0">'+(appr.length?'Approved by '+appr.map(u=>teamById(u).name+" · "+new Date(c.approvals[u]).toLocaleDateString()).join(", "):(c.status==="review"?'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or "):'Not sent for review yet'))+'</span></div>'+
    '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">'+(c.status==="draft"?'<button class="btn coral" data-act="campreview">Send for review</button>':'')+(campIsReviewer()&&!(c.approvals||{})[USER]&&c.status!=="done"?'<button class="btn coral" data-act="campapprove">'+svg("check")+' Approve</button>':'')+(appr.length&&c.status!=="done"&&campIsReviewer()?'<button class="btn ghost" data-act="campunapprove">Pull approval</button>':'')+'</div></div>';
   const chk=campChecks(c);h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Deliverability check</div>'+chk.map(x=>'<div class="tk" style="padding:6px 0"><span class="pill '+(x.ok?"ok":x.hard?"dang":"warn")+'" style="width:22px;height:20px;justify-content:center;padding:0">'+svg(x.ok?"check":"alert")+'</span><span>'+esc(x.text)+'</span></div>').join("")+'</div>';
-  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">What goes out</div><div class="tk"><b>Who</b><span>'+campOk(c).length+' people · '+esc(campAudienceLabel(c))+'</span></div><div class="tk"><b>From</b><span>'+((c.channel||"ses")==="ses"?'the AutoTQ inbox pool ('+senders().filter(s=>!s.paused).map(s=>esc(s.email)).join(", ")+') · replies to each rep\'s real address · unsubscribe link on every email':(esc(SALES_FROM)+', '+esc(teamById(USER).name)+' cc\'d'))+' · up to '+(c.dailyCap||50)+' a day</span></div>'+(c.steps||[]).map(s=>'<div class="tk"><b>Day '+(s.day||1)+'</b><span><b>'+esc(first?campFill(s.subject,first,c):s.subject)+'</b><br><span style="white-space:pre-wrap;color:var(--ink-3)">'+esc(first?campFill(s.body,first,c):s.body)+'</span></span></div>').join("")+'</div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">What goes out</div><div class="tk"><b>Who</b><span>'+campOk(c).length+' people · '+esc(campAudienceLabel(c))+'</span></div><div class="tk"><b>From</b><span>'+(c.channel==="mailbox"?'the cold inboxes ('+(senders().filter(x=>isMailbox(x)&&!x.paused).map(x=>esc(x.email)).join(", ")||"none yet")+') · Apollo-verified addresses only · replies to '+esc(REPLY_TO):(c.channel||"ses")==="ses"?'the AutoTQ inbox pool ('+senders().filter(s=>!s.paused).map(s=>esc(s.email)).join(", ")+') · replies to each rep\'s real address · unsubscribe link on every email':(esc(SALES_FROM)+', '+esc(teamById(USER).name)+' cc\'d'))+' · up to '+(c.dailyCap||50)+' a day</span></div>'+(c.steps||[]).map(s=>'<div class="tk"><b>Day '+(s.day||1)+'</b><span><b>'+esc(first?campFill(s.subject,first,c):s.subject)+'</b><br><span style="white-space:pre-wrap;color:var(--ink-3)">'+esc(first?campFill(s.body,first,c):s.body)+'</span></span></div>').join("")+'</div>';
   h+='<div class="sech">Comments</div><div class="list">'+((c.review||[]).length?(c.review||[]).map(r=>'<div class="card block'+(r.sys?'" style="opacity:.7':'')+'"><p class="t2" style="margin:0 0 3px"><b style="color:'+teamById(r.by).c+'">'+esc(teamById(r.by).name)+'</b> · '+new Date(r.at).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})+(r.step?' · on '+["","Audience","Emails","Review","Send"][r.step]:'')+'</p><p style="white-space:pre-wrap;margin:0">'+esc(r.text)+'</p></div>').join(""):'<div class="empty" style="padding:16px">No comments yet.</div>')+'</div>';
   return h+'<div class="reccard" style="margin-top:10px"><textarea class="f" id="campNote" rows="3" placeholder="Leave a note for the team — a line to change, a question, a go-ahead"></textarea><button class="btn" data-act="campcomment" style="margin-top:8px">Post</button></div>';
 }
 function campSendUI(c){
   const can=campCanSend(c);let h='<div class="sech">Send</div>';
-  if(campColdSes(c))h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Not through Amazon SES</p><p class="t2">'+esc(COLD_SES_TEXT)+'</p></div>';
+  if(campColdSes(c))h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Not through Amazon SES</p><p class="t2">'+esc(COLD_SES_TEXT)+' Pick Cold inboxes under Send through.</p></div>';
   else if(!can)h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Locked until a reviewer approves</p><p class="t2">'+(c.status==="draft"?'Send it for review first.':c.status==="done"?'Every email has gone out.':'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or ")+'.')+'</p></div>';
   const ses=(c.channel||"ses")==="ses";const st=MAILOUT_STATUS;
-  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Send through</div><div class="chips"><span class="chip'+(ses?" on":"")+'" data-act="campchan" data-v="ses">AutoTQ inbox pool (SES)</span><span class="chip'+(!ses?" on":"")+'" data-act="campchan" data-v="inbox">Our inbox · '+esc(SALES_FROM)+'</span></div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Send through</div><div class="chips"><span class="chip'+(ses?" on":"")+'" data-act="campchan" data-v="ses">AutoTQ inbox pool (SES)</span><span class="chip'+(c.channel==="mailbox"?" on":"")+'" data-act="campchan" data-v="mailbox">Cold inboxes (Microsoft 365)</span><span class="chip'+(c.channel==="inbox"?" on":"")+'" data-act="campchan" data-v="inbox">Our inbox · '+esc(SALES_FROM)+'</span></div>';
+  if(c.channel==="mailbox"){const boxes=senders().filter(isMailbox);
+    h+='<p class="t2" style="margin-top:10px">Real Microsoft 365 mailboxes, for lists that never met us. Only Apollo-verified addresses get an email, each inbox climbs '+COLD_RAMP.join(" → ")+' a day, and replies go to '+esc(REPLY_TO)+'.'+(st&&st.ok&&!st.m365?' <b style="color:var(--bad)">mail-out has no Microsoft 365 credentials.</b>':'')+'</p>'+
+      (boxes.length?'<div class="chips" style="margin-top:8px">'+boxes.map(x=>{const okb=senderDomainOk(x);return '<span class="chip'+(c.from===x.email?" on":"")+'" data-act="campfrom" data-v="'+esc(x.email)+'">'+esc(x.email)+' · '+senderLeft(x)+' left today'+(okb===false?' · not allowed on mail-out yet':'')+'</span>';}).join("")+'</div><p class="t2" style="margin-top:6px">Send now uses the inbox picked here; the day\'s run rotates through all of them.</p>':'<p class="t2" style="margin-top:8px"><b>No cold inbox yet.</b> Add one under Schedule › Inboxes.</p>');
+    if(!st)setTimeout(async()=>{await mailOutStatus();if(view==="camp"&&curCampaign===c.id&&campStep===3)render();},50);}
   if(ses){
     if(!st)h+='<p class="t2" style="margin-top:12px">Checking the outbound mail function…</p>';
     else if(!st.ok)h+='<div class="tk" style="margin-top:12px;border:0"><span class="pill dang">Not connected</span><span class="t2" style="margin:0">'+esc(st.error||"")+' — set up SES + deploy mail-out (SETUP_SES.md). Sends stay locked until it answers.</span></div>';
@@ -1464,7 +1522,7 @@ function campSendUI(c){
   if(ses&&st&&st.ok)h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Test the plumbing first</p><p class="t2">Sends Email 1 to Amazon\'s mailbox simulator as a delivery, a bounce and a complaint. Nothing reaches a person; the three events should appear below within a minute.</p></div><button class="btn" data-act="campsim"'+(c.from?'':' disabled')+'>Run simulator test</button></div></div>';
   h+='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:10px"><b>Daily cap</b><input class="f" id="campCap" value="'+(c.dailyCap||50)+'" inputmode="numeric" style="width:70px;text-align:center;padding:6px"><span class="t2" style="margin:0">per click. New sending domain: 50/day for two weeks, then double each week.</span></div></div>';
   const d=campDelivery(c);if(Object.values(d).some(x=>x))h+='<p class="t2" style="margin:0 0 10px">'+d.delivery+' delivered · '+d.open+' opened · '+d.click+' clicked · '+d.bounce+' bounced · '+d.complaint+' complaints</p>';
-  (c.steps||[]).forEach((s,i)=>{const due=campDue(c,i),sent=campSentCount(c,i),total=campOk(c).length;h+='<div class="reccard" style="margin-bottom:10px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Email '+(i+1)+' · day '+(s.day||1)+'</p><p class="t2">'+esc(s.subject)+'</p><p class="t2 num"><b style="color:var(--ink)">'+sent+'</b> of '+total+' sent · <b style="color:var(--ink)">'+due.length+'</b> due now ('+(i?'day '+(s.day||1)+' after the last':'everyone new')+')</p></div><button class="btn coral" id="campSend'+i+'" data-act="campsend" data-v="'+i+'"'+(can&&due.length&&(!ses||(st&&st.ok&&c.from))?'':' disabled')+'>Send now</button></div></div>';});
+  (c.steps||[]).forEach((s,i)=>{const due=campDue(c,i),sent=campSentCount(c,i),total=campOk(c).length;h+='<div class="reccard" style="margin-bottom:10px"><div class="row" style="gap:12px;flex-wrap:wrap"><div class="grow"><p class="t1">Email '+(i+1)+' · day '+(s.day||1)+'</p><p class="t2">'+esc(s.subject)+'</p><p class="t2 num"><b style="color:var(--ink)">'+sent+'</b> of '+total+' sent · <b style="color:var(--ink)">'+due.length+'</b> due now ('+(i?'day '+(s.day||1)+' after the last':'everyone new')+')</p></div><button class="btn coral" id="campSend'+i+'" data-act="campsend" data-v="'+i+'"'+(can&&due.length&&(c.channel==="mailbox"?senders().some(x=>isMailbox(x)&&!x.paused&&x.email===c.from):(!ses||(st&&st.ok&&c.from)))?'':' disabled')+'>Send now</button></div></div>';});
   h+=campSimEvents(c);
   if((c.sendLog||[]).length)h+='<div class="sech">Send log</div><div class="list">'+c.sendLog.slice().reverse().map(e=>'<div class="card"><div class="grow"><p class="t1">'+(e.step>=0?'Email '+(e.step+1):'The day\'s run')+' → '+e.count+' people</p><p class="t2">'+new Date(e.at).toLocaleString()+' · '+esc(e.by==="mail-run"?"automation":teamById(e.by).name)+(e.from?' · from '+esc(e.from):'')+'</p></div></div>').join("")+'</div>';
   return h;
@@ -1500,7 +1558,9 @@ document.addEventListener("click",e=>{
   if(a==="verifypw"){verifyPw();return;}if(a==="sendotp"){sendOtp(t.dataset.email);return;}if(a==="verifyotp"){verifyOtp();return;}
   if(a==="otpback"){logState.pwEmail=null;logState.otpEmail=null;renderLogin();return;}
   if(a==="setpwsave"){setPwSave();return;}if(a==="setpwskip"){logState.setPw=null;view="over";render();return;}
-  if(a==="me"){if(confirm("Sign out of AutoTQ Marketing?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}return;}
+  if(a==="memenu"){meOpen=!meOpen;render();return;}
+  if(a==="theme"){meOpen=false;setTheme(t.dataset.v);return;}
+  if(a==="me"||a==="signout"){meOpen=false;if(confirm("Sign out of AutoTQ Marketing?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}return;}
   if(a==="nav"){sideOpen=false;view=t.dataset.v;if(view==="camp")curCampaign=null;netFocus=null;closeInsp();render();window.scrollTo(0,0);return;}
   if(a==="mkttab"){mktTab=t.dataset.v;render();return;}
   if(a==="leadsconf"){leadsConf=t.dataset.v;render();return;}
@@ -1514,6 +1574,9 @@ document.addEventListener("click",e=>{
   if(a==="autowin"){const st=outboundSettings();const [a1,b1]=t.dataset.v.split("-").map(Number);st.startHour=a1;st.endHour=b1;put("settings",st);render();return;}
   if(a==="sender"){e.preventDefault();senderSheet(id);return;}
   if(a==="sowner"){const sd=senders().find(x=>x.id===id);if(sd){sd.owner=t.dataset.v;saveSender(sd);senderSheet(id);}return;}
+  if(a==="coldadd"){const em=(document.getElementById("ciEmail")||{}).value||"",nm=((document.getElementById("ciName")||{}).value||"").trim(),e2=em.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e2)){toast("Type the mailbox address");return;}if(!nm){toast("Add the name that goes on the email");return;}if(senders().some(x=>x.email.toLowerCase()===e2)){toast(e2+" is already an inbox");return;}
+    saveSender({id:"s-"+uid(),email:e2,name:nm,owner:USER,pool:"C",via:"m365",log:{},paused:false,hold:false,addedAt:new Date().toISOString(),by:USER});render();toast(e2+" added as a cold inbox · add it to MAILOUT_MAILBOXES on mail-out too");return;}
   if(a==="spause"){const sd=senders().find(x=>x.id===id);if(sd){sd.paused=!sd.paused;saveSender(sd);closeInsp();render();}return;}
   if(a==="shold"){const sd=senders().find(x=>x.id===id);if(sd){sd.hold=!sd.hold;saveSender(sd);senderSheet(id);}return;}
   if(a==="sreset"){const sd=senders().find(x=>x.id===id);if(sd&&confirm("Restart "+sd.email+" at day 1 of the ramp?")){sd.log={};sd.hold=false;saveSender(sd);closeInsp();render();}return;}
