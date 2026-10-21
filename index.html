@@ -1137,7 +1137,8 @@ function render(){
    '<div class="work"><header class="tbar">'+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
     '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+subs[view]+'</div></div>'+
     '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts & contacts…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
-    '<div class="tact"><button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>'+
+    '<div class="tact">'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
+    '<button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>'+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline — changes will sync when you\'re back")+'">'+(SYNC.online?"":"Offline")+'</span>'+
     '<button class="ibtn" data-act="help" title="How this CRM works" aria-label="How this CRM works">'+svg("help")+'</button>'+
     '<button class="av" style="background:'+me.c+'" data-act="menu" title="Menu" aria-label="Menu">'+initials(me.name)+'</button></div></header>'+
@@ -1407,6 +1408,10 @@ function teamAccessFor(u){return ["max","hannah","kellan","jamie"].includes(u);}
 function campAccessFor(u){return false;} /* Campaigns retired from the CRM 2026-10-16 (Max: handled separately); viewCampaignsHub stays in the file */
 function teamAccess(){return teamAccessFor(USER);}
 function campAccess(){return campAccessFor(USER);}
+/* the AutoTQ Marketing hub (its own page at /marketing/, Max + Hannah only — its HUB_USERS) — a switch in the CRM header
+   and the menu (Max, 2026-10-21: "an option up top for Hannah to switch to AutoTQ Marketing") */
+const MKT_URL="marketing/";
+function mktAccess(){return USER==="max"||USER==="hannah";}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
    Kellan = outreach (finds + categorizes leads, works the lists, hands off), admins direct it all, Laresa = billing. */
 function profile(u){u=u||USER;if(u==="laresa")return "billing";if(u==="kellan")return "outreach";if(u==="max"||u==="hannah"||u==="jamie")return "admin";return "sales";}
@@ -4634,6 +4639,7 @@ function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list
  railGroups(USER).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today")
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b class="grow">'+n[2]+'</b>'+chev()+'</button>').join("")+
  '</div><div class="list">'+
+ (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>':'')+
  '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
  '<button class="hub" data-act="backup">'+svg("dl")+'<b>Back up my data</b></button>'+
