@@ -508,6 +508,44 @@ svg.usmap .dots{stroke:var(--dots)}
 .lichecks,.lilist{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}.lichecks li{display:flex;gap:8px;align-items:flex-start}.lichecks li .i{width:15px;height:15px;flex:none;margin-top:2px}
 .lichecks li.ok .i{color:var(--ok)}.lichecks li.no{color:var(--warn)}.lichecks li.no .i{color:var(--warn)}.lilist a{color:var(--ink)}
 @media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
+/* LinkedIn › Post (2026-10-21, Max: "show MTWTF SS… past posts and the engagement… a brief overview of our profile… a high level
+   social media engine"): the profile up top, the week as seven days, then every past post with its numbers */
+.liprof .likpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--rule)}
+.likpi{padding:14px 16px;border-right:1px solid var(--rule);min-width:0}.likpi:last-child{border-right:0}
+.likpi small{display:block;font-size:12px;color:var(--ink-3)}.likpi b{display:block;font-size:22px;font-weight:650;margin:4px 0 2px;letter-spacing:-.01em;color:var(--ink)}
+.likpi span{display:block;font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.liprof .linote{padding:12px 16px 14px;margin:0;border-top:1px solid var(--rule-2);white-space:normal}
+.liprofform{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:12px 16px;border-top:1px solid var(--rule-2)}
+.liprofform label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--ink-3)}
+.liwk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;padding:14px 16px 16px}
+.liday{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:158px;min-width:0;padding:12px;border:1px solid var(--rule);border-radius:12px;background:var(--paper);color:var(--ink);text-align:left;font:inherit;cursor:default}
+.liday:not(.plan){background:transparent;border-style:dashed}
+.liday.has{cursor:pointer}.liday.has:hover{background:var(--hover)}.liday.on{border-color:var(--coral);box-shadow:var(--ring)}
+.lil{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;color:var(--ink-4);border:1.5px solid var(--rule-3);flex:none}
+.liday.plan .lil{border-color:var(--coral);color:var(--coral)}
+.liday.has .lil{background:var(--coral);border-color:var(--coral);color:#fff}
+.liday.st-posted .lil{background:var(--ok);border-color:var(--ok);color:#fff}
+.lidt{font-size:12px;color:var(--ink-3)}.liday.today .lidt{color:var(--coral);font-weight:650}
+.lit{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.lit.none{color:var(--ink-3);font-weight:500}
+.liwkhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lipast .nm{flex:1;min-width:0}.lipast .nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.limets{display:flex;gap:18px;flex:none;font-variant-numeric:tabular-nums}.limets span{display:flex;flex-direction:column;align-items:flex-end;font-weight:650;font-size:14px;color:var(--ink)}
+.limets small{font-size:11px;color:var(--ink-3);font-weight:500}.limets .er{color:var(--coral)}
+.limetin{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:6px}.limetin label{display:flex;flex-direction:column;gap:3px;width:112px}
+.limetin small{font-size:11.5px;color:var(--ink-3)}
+.limsg{max-width:720px}
+@media (max-width:1100px){.liprof .likpis{grid-template-columns:repeat(3,minmax(0,1fr))}.likpi{border-bottom:1px solid var(--rule)}.limets{gap:12px}}
+@media (max-width:900px){
+  .liwk{gap:4px;padding:12px}
+  .liday{min-height:0;padding:8px 4px;align-items:center;gap:4px;border-radius:10px}
+  .liday .lit,.liday .pill{display:none}
+  .lil{width:28px;height:28px;font-size:12.5px}.lidt{font-size:11px}
+  .liprof .likpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lipast{flex-wrap:wrap}.limets{width:100%;justify-content:space-between;padding-left:0}
+}
+.liwklist{display:none}
+@media (max-width:900px){.liwklist{display:block}}
 
 /* Marketing plan on Home + PDF viewer (2026-10-21) */
 .mfiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px;padding:16px}
@@ -1325,8 +1363,8 @@ const IS_MAC=/Mac|iPhone|iPad/.test(navigator.platform||"");
 const KEY_K=IS_MAC?"⌘K":"Ctrl K";
 /* the tabs: [view, icon, label] — Email Campaigns carries Conferences on a guide line */
 const SIDE_TABS=[["start","home","Home"],["over","mail","Email Campaigns"],["li","file","LinkedIn"]];
-const SIDE_SUBS={over:[["Conferences",()=>EMAIL_VIEWS.includes(view),"over"]]};
-function sideOn(v){return v==="over"?EMAIL_VIEWS.includes(view):view===v;}
+const SIDE_SUBS={over:[["Conferences",()=>EMAIL_VIEWS.includes(view),"over"]],li:[["Post",()=>view==="li","li"],["Messenger",()=>view==="limsg","limsg"]]};
+function sideOn(v){return v==="over"?EMAIL_VIEWS.includes(view):v==="li"?(view==="li"||view==="limsg"):view===v;}
 function sideItem(t,n){
   const v=t[0],on=sideOn(v),kids=SIDE_SUBS[v];
   const act=v==="over"?actItems().length:0,need=v==="over"?n:v==="li"?liPosts().filter(p=>p.status==="draft").length:0;
@@ -1410,7 +1448,7 @@ function palItems(q){
   const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
   const hit=s=>!ql||String(s).toLowerCase().includes(ql);
   const tabs=APP==="catalog"?[["box","All products","",()=>{catGroupF="";catSel="";goView("cat");}]].concat(CAT_GROUPS.map(g=>["box",g,"Catalog",()=>{catGroupF=g;catSel="";goView("cat");}]))
-    :[["home","Home","",()=>goView("start")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn","",()=>goView("li")]]);
+    :[["home","Home","",()=>goView("start")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn · Post","",()=>goView("li")],["file","LinkedIn · Messenger","",()=>goView("limsg")]]);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2],t[3]));
   const acts=[APP==="catalog"?["plus","New product","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],
     ["sun","Light mode",THEME==="light"?"on":"",()=>setTheme("light")],["moon","Dark mode",THEME==="dark"?"on":"",()=>setTheme("dark")],
@@ -1464,15 +1502,15 @@ function render(){
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
-  const titles={start:"Home",cat:"Catalog",li:"LinkedIn",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={start:"",li:"Three posts a week — Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
-  const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catFind(catSel).category||"Other",catFind(catSel).name]:[catGroupF||"All products"]):view==="start"?["Home"]:view==="li"?["LinkedIn"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const titles={start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
+  const subs={start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
+  const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catFind(catSel).category||"Other",catFind(catSel).name]:[catGroupF||"All products"]):view==="start"?["Home"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right">'+(APP==="catalog"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">Search products</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   (APP==="catalog"?'<nav class="mnav" aria-label="Groups">'+["",...CAT_GROUPS].map(g=>'<button class="'+(!catSel&&catGroupF===g?"on":"")+'" data-act="catgrp" data-v="'+esc(g)+'">'+esc(g||"All")+'</button>').join("")+'</nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>')+
-   '<main class="main">'+(view==="start"||view==="li"||view==="cat"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   (APP==="catalog"?'<nav class="mnav" aria-label="Groups">'+["",...CAT_GROUPS].map(g=>'<button class="'+(!catSel&&catGroupF===g?"on":"")+'" data-act="catgrp" data-v="'+esc(g)+'">'+esc(g||"All")+'</button>').join("")+'</nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>')+
+   '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
   mktHydrate();
@@ -1658,23 +1696,119 @@ function liStatusPill(p){if(!p)return '<span class="pill">Empty</span>';const m=
 function liText(p){return p.finalText||p.aiText||((p.hook||"")+"\n\n"+(p.body||""));}
 function liCall(action,extra){return supa(LI_FN,{method:"POST",body:JSON.stringify(Object.assign({action},extra||{}))}).then(async r=>{const b=await r.json().catch(()=>({}));if(!r.ok||b.error)throw new Error(b.error||("HTTP "+r.status));return b;});}
 async function liLoadStatus(){try{LI_STATUS=await liCall("status");}catch(e){LI_STATUS={error:e.message};}render();}
+const LI_DAYS=[["M","Mon"],["T","Tue"],["W","Wed"],["T","Thu"],["F","Fri"],["S","Sat"],["S","Sun"]];
+let liProfEdit=false;
+function liProfile(){return (DB.settings||[]).find(x=>x&&x.id==="liProfile")||{id:"liProfile"};}
+function liTitle(p){return p.topic||(liText(p).split("\n")[0]||"").slice(0,90)||"LinkedIn post";}
+function liPostedAt(p){return p.postedAt||p.slotAt||"";}
+function liPast(){return liPosts().filter(p=>p.status==="posted").sort((a,b)=>String(liPostedAt(b)).localeCompare(String(liPostedAt(a))));}
+function liEng(m){if(!m)return null;if(m.rate!=null&&m.rate!=="")return +m.rate;const i=+m.impressions||0;if(!i)return null;return ((+m.reactions||0)+(+m.comments||0)+(+m.reposts||0)+(+m.clicks||0)+(+m.follows||0))/i;}
+function liPct(x){return x==null?"—":(x*100).toFixed(1)+"%";}
+function liNum(x){return x==null||x===""?"—":Number(x).toLocaleString("en-US");}
+function liMondayOf(day){const d=new Date(day+"T12:00:00");d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10);}
+/* the profile: what we can gather without LinkedIn's partner API — the page's own export (Analytics → Export) and what is typed in */
+function liProfileHTML(){
+  const pr=liProfile(),past=liPast(),since=Date.now()-30*864e5,inLast=x=>new Date(x).getTime()>=since;
+  const last30=past.filter(p=>inLast(liPostedAt(p))),withM=last30.filter(p=>p.metrics&&+p.metrics.impressions);
+  const imp=withM.reduce((a,p)=>a+(+p.metrics.impressions||0),0),rates=withM.map(p=>liEng(p.metrics)).filter(x=>x!=null);
+  const avg=rates.length?rates.reduce((a,b)=>a+b,0)/rates.length:null;
+  const gains=(pr.gains||[]).filter(g=>inLast(g.d+"T12:00:00"));
+  const hist=pr.hist||[],h0=hist.filter(h=>!inLast(h.d+"T12:00:00")).slice(-1)[0];
+  const fDelta=gains.length?gains.reduce((a,g)=>a+(+g.n||0),0):(pr.followers!=null&&h0?pr.followers-h0.n:null);
+  const sched=past.filter(p=>p.slotAt&&!p.external),onTime=sched.filter(p=>String(p.postedAt||"").slice(0,10)<=String(p.slotAt).slice(0,10)).length;
+  const best=past.filter(p=>p.metrics&&liEng(p.metrics)!=null).sort((a,b)=>liEng(b.metrics)-liEng(a.metrics))[0];
+  const kp=(lab,val,sub)=>'<div class="likpi"><small>'+lab+'</small><b class="num">'+val+'</b><span>'+sub+'</span></div>';
+  const noData=pr.followers==null&&!past.some(p=>p.metrics);
+  return '<div class="pan liprof" style="margin-bottom:14px"><div class="ph2">'+svg("users")+'AutoTQ on LinkedIn'+(pr.url?'<a class="t2" href="'+esc(pr.url)+'" target="_blank" rel="noopener" style="margin-left:8px">Open the page</a>':'')+
+    '<span class="meta"><button class="btn sm ghost" data-act="liprofedit">Update numbers</button><label class="btn sm" style="cursor:pointer">Import LinkedIn analytics<input type="file" id="liImport" accept=".xls,.xlsx,.csv" hidden></label></span></div>'+
+   (liProfEdit?'<div class="liprofform"><label>Followers<input class="f num" id="liFol" inputmode="numeric" value="'+esc(pr.followers!=null?pr.followers:"")+'" style="width:130px"></label>'+
+     '<label style="flex:1;min-width:220px">Page link<input class="f" id="liUrl" value="'+esc(pr.url||"")+'" placeholder="https://www.linkedin.com/company/…"></label>'+
+     '<button class="btn sm coral" data-act="liprofsave">Save</button><button class="btn sm ghost" data-act="liprofedit">Cancel</button></div>':'')+
+   '<div class="likpis">'+
+    kp("Followers",pr.followers!=null?liNum(pr.followers):"—",fDelta!=null?(fDelta>=0?"+":"")+liNum(fDelta)+" in 30 days":(pr.followersAt?"as of "+String(pr.followersAt).slice(0,10):"type it in or import"))+
+    kp("Posts published",last30.length,"last 30 days · "+past.length+" all time")+
+    kp("Impressions",withM.length?liNum(imp):"—","last 30 days")+
+    kp("Engagement rate",liPct(avg),"average, last 30 days")+
+    kp("On schedule",sched.length?Math.round(onTime/sched.length*100)+"%":"—","posted on the planned day")+'</div>'+
+   (best?'<p class="t2 linote">Best post so far: <a href="#" data-act="lisel" data-v="'+best.id+'">'+esc(liTitle(best))+'</a> · '+liPct(liEng(best.metrics))+' engagement'+(best.metrics.impressions?' on '+liNum(best.metrics.impressions)+' impressions':'')+'</p>':'')+
+   (noData?'<p class="t2 linote">LinkedIn shares page analytics only with approved partner apps, so the numbers come from the page itself: on the AutoTQ page open <b>Analytics → Content</b> (and <b>Followers</b>) → <b>Export</b>, then <b>Import LinkedIn analytics</b> here. Or type a post&#39;s numbers in on the post.</p>':'')+'</div>';
+}
+/* the week as seven days: the planned days (Mon / Wed / Fri) light up, with the post's title and where it stands */
+function liWeekHTML(posts){
+  const today=todayStr(),slotFor=i=>LI_SLOTS.find(x=>x[2]===i);
+  const pick=sl=>posts.filter(x=>x.slot===sl).sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0];
+  const days=LI_DAYS.map((d,i)=>{const dt=new Date(liWeek+"T12:00:00");dt.setDate(dt.getDate()+i);const iso=dt.toISOString().slice(0,10);
+    const sl=slotFor(i),p=sl?pick(sl[0]):null;
+    return {d,i,iso,dt,sl,p,cls:['liday',sl?'plan':'',p?'has':'',p&&liSel===p.id?'on':'',iso===today?'today':'',p?'st-'+p.status:''].filter(Boolean).join(' ')};});
+  const lab=x=>x.dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  return '<div class="liwk">'+days.map(x=>'<button class="'+x.cls+'" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+' aria-label="'+esc(x.d[1]+' '+lab(x)+(x.p?' — '+liTitle(x.p):x.sl?' — planned, no draft yet':''))+'">'+
+     '<span class="lil">'+x.d[0]+'</span><span class="lidt">'+x.d[1]+' '+x.dt.getDate()+'</span>'+
+     (x.sl?(x.p?'<span class="lit">'+esc(liTitle(x.p))+'</span>'+liStatusPill(x.p):'<span class="lit none">No draft yet</span><span class="pill">9:00 AM ET</span>'):'')+'</button>').join("")+'</div>'+
+   '<div class="liwklist">'+days.filter(x=>x.sl).map(x=>'<button class="ibx" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+'><span class="nm"><b>'+x.d[1]+' '+lab(x)+' · '+(x.p?esc(liTitle(x.p)):'No draft yet')+'</b></span>'+(x.p?liStatusPill(x.p):'')+'</button>').join("")+'</div>';
+}
+function liPastHTML(){const ps=liPast();
+  return '<div class="pan" style="margin-top:14px"><div class="ph2">'+svg("chart")+'Past posts<span class="t2" style="margin-left:4px">· '+ps.length+' posted · tap one to see it or add its numbers</span></div>'+
+   (ps.length?ps.slice(0,80).map(p=>{const m=p.metrics;
+     return '<button class="ibx lipast" data-act="lisel" data-v="'+p.id+'"><span class="nm"><b>'+esc(liTitle(p))+'</b><small>'+esc(liWhen(liPostedAt(p)))+(p.pillar?' · '+esc(LI_PILLAR[p.pillar]||p.pillar):'')+(p.external?' · from LinkedIn':'')+'</small></span>'+
+      (m?'<span class="limets">'+[["Impressions",m.impressions],["Reactions",m.reactions],["Comments",m.comments],["Reposts",m.reposts],["Clicks",m.clicks]].map(x=>'<span>'+liNum(x[1])+'<small>'+x[0]+'</small></span>').join("")+'<span class="er">'+liPct(liEng(m))+'<small>Engagement</small></span></span>'
+         :'<span class="pill">No numbers yet</span>')+svg("chevR")+'</button>';}).join("")
+     :'<div class="empty" style="padding:22px 16px">Nothing posted yet. Approve a draft, post it on LinkedIn and tap Mark posted — or Import LinkedIn analytics to bring in what is already on the page.</div>')+'</div>';}
 function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStatus();}
   if(!liWeek)liWeek=liMonday(new Date().getDay()>=5||new Date().getDay()===0?1:0);
   const st=liState();const run=st.running?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Working: '+esc(st.running)+'…</p><p class="t2">Research and drafting take a minute or three. The drafts appear here by themselves.</p></div>':(st.lastError?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Last run stopped</p><p class="t2">'+esc(st.lastError)+'</p></div>':'');
   const keyMissing=LI_STATUS&&LI_STATUS.hasKey===false;
   let h=(keyMissing?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Turn on research and drafting</p><p class="t2">The studio uses Claude, and the hub has no Anthropic API key yet. Create one at platform.claude.com → API keys, save it as <code>ANTHROPIC_API_KEY=…</code> in <code>C:\\Users\\herbs\\.autotq\\anthropic.env</code>, and ask Claude to load it into the li-studio function. Everything else on this tab works now.</p></div>':'')+run;
-  h+='<div class="esec" style="margin-bottom:16px">'+[["week","This week's posts"],["research","Research"],["history","History"]].map(x=>'<button class="chip'+(liTab===x[0]?" on":"")+'" data-act="litab" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+  h+='<div class="esec" style="margin-bottom:16px">'+[["week","Posts"],["research","Research"]].map(x=>'<button class="chip'+(liTab===x[0]?" on":"")+'" data-act="litab" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
   if(liTab==="research")return h+liResearchHTML();
-  if(liTab==="history")return h+liHistoryHTML();
-  const weeks=[[liMonday(0),"This week"],[liMonday(1),"Next week"],[liMonday(2),"In two weeks"]];
+  h+=liProfileHTML();
   const posts=liPosts().filter(p=>p.week===liWeek&&p.status!=="rejected");
-  h+='<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">'+weeks.map(w=>'<button class="chip'+(liWeek===w[0]?" on":"")+'" data-act="liweek" data-v="'+w[0]+'">'+w[1]+' · '+new Date(w[0]+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"})+'</button>').join("")+
-    '<span class="grow"></span><button class="btn sm ghost" data-act="liresearch"'+(keyMissing||st.running?' disabled':'')+'>Refresh research</button><button class="btn sm coral" data-act="ligen"'+(keyMissing||st.running?' disabled':'')+'>'+(posts.length>=3?'All three drafted':'Draft '+(posts.length?'the rest of ':'')+'this week')+'</button></div>';
-  h+='<div class="liweek">'+LI_SLOTS.map(([s,day,add])=>{const p=posts.filter(x=>x.slot===s).sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0];const date=new Date(liWeek+"T12:00:00");date.setDate(date.getDate()+add);
-    return '<button class="licard'+(p&&liSel===p.id?" on":"")+(p?'':' empty')+'" '+(p?'data-act="lisel" data-v="'+p.id+'"':'disabled')+'><span class="lid">'+day+' · '+date.toLocaleDateString("en-US",{month:"short",day:"numeric"})+' · 9:00 AM ET</span>'+
-      (p?'<span class="lip">'+esc(LI_PILLAR[p.pillar]||p.pillar)+'</span><b>'+esc(p.topic||"")+'</b><span class="lih">'+esc((liText(p).split("\n")[0]||"").slice(0,140))+'</span><span class="row" style="gap:6px;flex-wrap:wrap">'+liStatusPill(p)+((p.attachments||[]).length?'<span class="pill info">PDF attached</span>':'')+'</span>':'<span class="t2">No draft yet</span>')+'</button>';}).join("")+'</div>';
-  const sel=liPosts().find(p=>p.id===liSel&&p.week===liWeek)||posts.find(p=>p.status==="draft")||posts[0];if(sel){liSel=sel.id;h+=liPostHTML(sel);}
-  return h;}
+  const wk=new Date(liWeek+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const prev=new Date(liWeek+"T12:00:00");prev.setDate(prev.getDate()-7);const next=new Date(liWeek+"T12:00:00");next.setDate(next.getDate()+7);
+  h+='<div class="pan"><div class="ph2 liwkhead">'+svg("cal")+'Week of '+esc(wk)+
+    '<button class="btn sm ghost" data-act="liweek" data-v="'+prev.toISOString().slice(0,10)+'" aria-label="Week before" style="padding:0 8px">‹</button><button class="btn sm ghost" data-act="liweek" data-v="'+next.toISOString().slice(0,10)+'" aria-label="Week after" style="padding:0 8px">›</button>'+
+    (liWeek!==liMonday(0)?'<button class="btn sm ghost" data-act="liweek" data-v="'+liMonday(0)+'">This week</button>':'')+
+    '<span class="meta"><button class="btn sm ghost" data-act="liresearch"'+(keyMissing||st.running?' disabled':'')+'>Refresh research</button><button class="btn sm coral" data-act="ligen"'+(keyMissing||st.running?' disabled':'')+'>'+(posts.length>=3?'All three drafted':'Draft '+(posts.length?'the rest of ':'')+'this week')+'</button></span></div>'+
+    liWeekHTML(posts)+'</div>';
+  const sel=liPosts().find(p=>p.id===liSel)||posts.find(p=>p.status==="draft"); /* a draft waiting for review opens by itself */
+  if(sel){liSel=sel.id;h+='<div style="margin-top:14px">'+liPostHTML(sel)+'</div>';}
+  return h+liPastHTML();}
+/* LinkedIn › Messenger — automated DMs, InMail and page-follow invites come here next (Max, 2026-10-21: "leave blank for now") */
+function viewLinkedInMsg(){return '<div class="pan limsg"><div class="empty" style="padding:34px 20px;text-align:left"><p class="t1" style="margin:0 0 6px">Nothing here yet</p><p class="t2" style="margin:0;white-space:normal">Messenger will run the automated side of LinkedIn: direct messages, InMail and invites to follow the AutoTQ page.</p></div></div>';}
+/* LinkedIn's own analytics export (the page's Analytics → Content / Followers → Export): posts' numbers and new followers */
+function liXlsx(){if(window.XLSX)return Promise.resolve(window.XLSX);return new Promise((ok,no)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";sc.onload=()=>ok(window.XLSX);sc.onerror=()=>no(new Error("Couldn't load the spreadsheet reader — save the export as CSV and import that"));document.head.appendChild(sc);});}
+function liN(v){if(v==null||v==="")return null;const n=parseFloat(String(v).replace(/[,%\s]/g,""));return isNaN(n)?null:n;}
+function liRate(v){if(v==null||v==="")return null;const t=String(v).trim();const n=parseFloat(t.replace(/[,%\s]/g,""));if(isNaN(n))return null;return /%/.test(t)||n>1?n/100:n;}
+function liDate(v){if(v==null||v==="")return "";if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);
+  if(typeof v==="number"&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return d.toISOString().slice(0,10);}
+  const t=String(v).trim();let m=t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){const y=m[3].length===2?"20"+m[3]:m[3];return y+"-"+pad2(+m[1])+"-"+pad2(+m[2]);}
+  m=t.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[0];const d=new Date(t);return isNaN(d)?"":d.toISOString().slice(0,10);}
+async function liImportFile(f){
+  try{let sheets=[];
+    if(/\.csv$/i.test(f.name))sheets=[csvRows(await f.text())];
+    else{const X=await liXlsx();const wb=X.read(await f.arrayBuffer(),{type:"array",cellDates:true});sheets=wb.SheetNames.map(nm=>X.utils.sheet_to_json(wb.Sheets[nm],{header:1,raw:true,defval:""}));}
+    let got=0,added=0;const pr=Object.assign({id:"liProfile"},liProfile());let gainsAt=0;
+    sheets.forEach(rows=>{
+      const low=r=>r.map(c=>String(c==null?"":c).trim().toLowerCase());
+      const hi=rows.findIndex(r=>{const L=low(r);return L.some(c=>/^impressions/.test(c))&&L.some(c=>/^post (link|title)|^created date/.test(c));});
+      if(hi>-1){const H=low(rows[hi]),col=re=>H.findIndex(c=>re.test(c));
+        const iT=col(/^post title/),iL=col(/^post link/),iD=col(/^created date|^date/),iI=col(/^impressions/),iC=col(/^clicks/),iRe=col(/^(likes|reactions)/),iCo=col(/^comments/),iRp=col(/^(reposts|shares)/),iF=col(/^follows/),iE=col(/^engagement rate/);
+        rows.slice(hi+1).forEach(r=>{const link=iL>-1?String(r[iL]||"").trim():"",title=iT>-1?String(r[iT]||"").trim():"";if(!link&&!title)return;
+          const day=iD>-1?liDate(r[iD]):"";const g=k=>k>-1?liN(r[k]):null;
+          const m={impressions:g(iI),clicks:g(iC),reactions:g(iRe),comments:g(iCo),reposts:g(iRp),follows:g(iF),rate:iE>-1?liRate(r[iE]):null,src:"import",at:new Date().toISOString()};
+          const act=(link.match(/activity[:-](\d{10,})/)||link.match(/(\d{15,})/)||[])[1];
+          let p=(act&&liPosts().find(x=>x.postedUrl&&x.postedUrl.includes(act)))||(day&&liPosts().find(x=>x.status==="posted"&&!x.external&&(String(x.postedAt||"").slice(0,10)===day||String(x.slotAt||"").slice(0,10)===day)));
+          if(!p){if(!day)return;p={id:"li-x"+(act||uid()+uid()),external:true,status:"posted",topic:title.split("\n")[0].slice(0,90),finalText:title,postedUrl:link,postedAt:day+"T14:00:00.000Z",slotAt:day+"T13:00:00.000Z",week:liMondayOf(day),pillar:"",at:new Date().toISOString(),by:USER};added++;}
+          if(link&&!p.postedUrl)p.postedUrl=link;p.metrics=m;put("liPosts",p);got++;});}
+      const fi=rows.findIndex(r=>low(r).some(c=>/organic followers|total followers/.test(c)));
+      if(fi>-1&&hi<0){const H=low(rows[fi]),iD=H.findIndex(c=>/^date/.test(c)),iT=H.findIndex(c=>/total followers/.test(c)),iO=H.findIndex(c=>/organic followers/.test(c));
+        const pts=rows.slice(fi+1).map(r=>({d:iD>-1?liDate(r[iD]):"",n:liN(r[iT>-1?iT:iO])})).filter(x=>x.d&&x.n!=null);
+        if(pts.length){const byD={};(pr.gains||[]).concat(pts).forEach(x=>{byD[x.d]=x.n;});pr.gains=Object.keys(byD).sort().slice(-400).map(d=>({d,n:byD[d]}));gainsAt=pts.length;}}
+    });
+    if(gainsAt){pr.gainsAt=new Date().toISOString();pr.by=USER;put("settings",pr);}
+    if(!got&&!gainsAt)throw new Error("That file isn't a LinkedIn page export — use Analytics → Content or Followers → Export");
+    render();toast((got?got+" post"+(got===1?"":"s")+" updated"+(added?" ("+added+" new from LinkedIn)":""):"")+(got&&gainsAt?" · ":"")+(gainsAt?gainsAt+" days of new followers":""));
+  }catch(e){toast(e.message||"Couldn't read that file");}
+}
 function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||[]).map(id=>res.find(r=>r.id===id)).filter(Boolean);
   const checks=(p.checks||[]).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
   return '<div class="pan lipost"><div class="ph2">'+svg("file")+esc(LI_PILLAR[p.pillar]||p.pillar)+' · '+esc(liWhen(p.slotAt))+'<span class="meta">'+liStatusPill(p)+'</span></div><div class="libody">'+
@@ -1683,7 +1817,9 @@ function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||
     ((p.attachments||[]).length?'<div class="sectlabel" style="margin-top:16px">Attached to this post</div><div class="liatt">'+p.attachments.map(f=>mktFileCard(f,f.title,(f.pages?f.pages+" pages · ":"")+"PDF · attach it in LinkedIn")).join("")+'</div>':'')+
     '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:14px">'+(liEdit?'<button class="btn sm coral" data-act="lisave" data-v="'+p.id+'">Save edit</button><button class="btn sm ghost" data-act="liedit" data-v="">Cancel</button>':
       (p.status!=="approved"&&p.status!=="posted"?'<button class="btn sm coral" data-act="liapprove" data-v="'+p.id+'">Approve</button>':'')+'<button class="btn sm" data-act="liedit" data-v="'+p.id+'">Edit</button>'+(p.status!=="rejected"&&p.status!=="posted"?'<button class="btn sm ghost" data-act="lireject" data-v="'+p.id+'">Reject</button>':'')+
-      '<button class="btn sm ghost" data-act="lirewrite" data-v="'+p.id+'">New version</button><button class="btn sm ghost" data-act="licopy" data-v="'+p.id+'">Copy</button>'+(p.status==="approved"?'<button class="btn sm ghost" data-act="liposted" data-v="'+p.id+'">Mark posted</button>':''))+'</div>'+
+      (p.external?'':'<button class="btn sm ghost" data-act="lirewrite" data-v="'+p.id+'">New version</button>')+'<button class="btn sm ghost" data-act="licopy" data-v="'+p.id+'">Copy</button>'+(p.status==="approved"?'<button class="btn sm ghost" data-act="liposted" data-v="'+p.id+'">Mark posted</button>':''))+'</div>'+
+    (p.status==="posted"?(function(){const m=p.metrics||{};return '<div class="sectlabel" style="margin-top:16px">Engagement</div><div class="limetin">'+[["impressions","Impressions"],["reactions","Reactions"],["comments","Comments"],["reposts","Reposts"],["clicks","Clicks"]].map(f=>'<label><small>'+f[1]+'</small><input class="f num" inputmode="numeric" id="lim_'+f[0]+'" value="'+esc(m[f[0]]!=null?m[f[0]]:"")+'"></label>').join("")+
+      '<button class="btn sm coral" data-act="limetrics" data-v="'+p.id+'">Save numbers</button></div>'+(m.at?'<p class="t2" style="margin-top:6px">'+(m.src==="import"?"From LinkedIn&#39;s export":"Typed in")+' · '+esc(String(m.at).slice(0,10))+(liEng(m)!=null?' · '+liPct(liEng(m))+' engagement':'')+'</p>':'');})():'')+
     (p.rejectReason?'<p class="t2" style="margin-top:10px">Rejected: '+esc(p.rejectReason)+'</p>':'')+(p.postedUrl?'<p class="t2" style="margin-top:10px">Posted: <a href="'+esc(p.postedUrl)+'" target="_blank" rel="noopener">'+esc(p.postedUrl)+'</a></p>':'')+
     '<div class="licols"><div><div class="sectlabel">Checks</div><ul class="lichecks">'+checks+'</ul>'+(p.why?'<div class="sectlabel" style="margin-top:12px">Why this post</div><p class="t2">'+esc(p.why)+'</p>':'')+((p.claimsUsed||[]).length?'<div class="sectlabel" style="margin-top:12px">Verified claims used</div><ul class="lilist">'+p.claimsUsed.map(c=>'<li>'+esc(c)+'</li>').join("")+'</ul>':'')+'</div>'+
     '<div><div class="sectlabel">Sources</div>'+((p.sources||[]).length?'<ul class="lilist">'+p.sources.map(s=>'<li><a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.title||s.url)+'</a></li>').join("")+'</ul>':'<p class="t2">Only verified AutoTQ claims; no outside facts.</p>')+
@@ -1692,13 +1828,18 @@ function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||
 function liResearchHTML(){const rs=(DB.liResearch||[]).slice().sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("plus")+'Add a post you liked<span class="t2" style="margin-left:4px">· a LinkedIn post or article that did well — it shapes the next drafts</span></div><div class="libody"><div class="row" style="gap:8px;flex-wrap:wrap"><input class="f" id="liAddUrl" placeholder="Link" style="flex:2;min-width:220px"><input class="f" id="liAddOrg" placeholder="Who posted it" style="flex:1;min-width:160px"></div><textarea class="f" id="liAddWhy" placeholder="What made it work (the hook, a number, a photo, the length, the reactions you saw)" style="width:100%;min-height:70px;margin-top:8px"></textarea><button class="btn sm coral" data-act="liaddres" style="margin-top:8px">Add to research</button></div></div>'+
     '<div class="pan"><div class="ph2">'+svg("search")+'Research<span class="t2" style="margin-left:4px">· '+rs.length+' items · every item keeps its link</span></div>'+(rs.length?rs.slice(0,80).map(r=>'<div class="actrow"><span class="nm"><b><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title||r.url)+'</a></b><small>'+esc([({news:"News",pattern:"What works",example:"Example post"})[r.kind]||r.kind,r.org,r.date].filter(Boolean).join(" · "))+(r.source==="manual"?' · added by hand':'')+'</small>'+(r.summary?'<small class="what">'+esc(r.summary)+'</small>':'')+(r.takeaway?'<small>Takeaway: '+esc(r.takeaway)+'</small>':'')+'</span></div>').join(""):'<div class="empty" style="padding:22px 16px">No research yet. Refresh research (needs the API key) or add a post you liked.</div>')+'</div>';}
-function liHistoryHTML(){const ps=liPosts().slice().sort((a,b)=>String(b.slotAt).localeCompare(String(a.slotAt)));
-  return '<div class="pan">'+(ps.length?ps.map(p=>'<button class="ibx actcamp" data-act="lisel" data-v="'+p.id+'" data-week="'+p.week+'"><span class="nm"><b>'+esc(p.topic||(liText(p).split("\n")[0]||"").slice(0,80))+'</b><small>'+esc(liWhen(p.slotAt))+' · '+esc(LI_PILLAR[p.pillar]||p.pillar)+'</small></span>'+liStatusPill(p)+svg("chevR")+'</button>').join(""):'<div class="empty" style="padding:22px 16px">Nothing drafted yet.</div>')+'</div>';}
 function liFind(id){return liPosts().find(p=>p.id===id);}
 function liHandle(a,t){const id=t.dataset.v;
   if(a==="litab"){liTab=t.dataset.v;liEdit=false;render();return true;}
   if(a==="liweek"){liWeek=t.dataset.v;liSel="";liEdit=false;render();return true;}
-  if(a==="lisel"){liSel=id;if(t.dataset.week){liWeek=t.dataset.week;liTab="week";}liEdit=false;render();return true;}
+  if(a==="lisel"){liSel=id;const q=liFind(id);if(q&&q.week)liWeek=q.week;liTab="week";liEdit=false;render();const el=document.querySelector(".lipost");if(el)el.scrollIntoView({block:"start",behavior:"smooth"});return true;}
+  if(a==="liprofedit"){liProfEdit=!liProfEdit;render();return true;}
+  if(a==="liprofsave"){const pr=Object.assign({id:"liProfile"},liProfile());const f=liN((document.getElementById("liFol")||{}).value),u=String((document.getElementById("liUrl")||{}).value||"").trim();
+    if(u&&!/^https?:\/\//.test(u)){toast("The page link should start with https://");return true;}
+    if(f!=null&&f!==pr.followers){pr.followers=f;pr.followersAt=todayStr();pr.hist=(pr.hist||[]).filter(h=>h.d!==todayStr()).concat([{d:todayStr(),n:f}]).slice(-400);}
+    pr.url=u;pr.by=USER;pr.at=new Date().toISOString();put("settings",pr);liProfEdit=false;render();toast("Saved");return true;}
+  if(a==="limetrics"){const p=liFind(id);if(!p)return true;const m={};let any=false;["impressions","reactions","comments","reposts","clicks"].forEach(k=>{const v=liN((document.getElementById("lim_"+k)||{}).value);m[k]=v;if(v!=null)any=true;});
+    if(!any){toast("Type at least one number");return true;}m.src="manual";m.at=new Date().toISOString();m.by=USER;p.metrics=m;put("liPosts",p);render();toast("Numbers saved");return true;}
   if(a==="liedit"){liEdit=!!id;render();return true;}
   if(a==="lisave"){const p=liFind(id);const v=(document.getElementById("liText")||{}).value||"";if(p&&v.trim()){p.finalText=v.trim();p.edited=true;p.editedBy=USER;p.editedAt=new Date().toISOString();put("liPosts",p);}liEdit=false;render();toast("Saved");return true;}
   if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
@@ -2284,7 +2425,7 @@ document.addEventListener("input",e=>{
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
 });
-document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
+document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()&&hubUser()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
