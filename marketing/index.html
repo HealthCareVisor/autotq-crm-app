@@ -373,6 +373,12 @@ svg.usmap .dots{stroke:var(--dots)}
 .memenu button:hover,.memenu button:focus-visible{background:var(--hover);outline:none}.memenu button .i{width:16px;height:16px;color:var(--ink-3)}
 .memenu button .ck{margin-left:auto;color:var(--coral);font-weight:700}.memenu hr{border:0;border-top:1px solid var(--rule);margin:4px 2px}
 .memenu .out{color:var(--bad)}.memenu .out .i{color:var(--bad)}
+
+/* Email Campaigns › Conferences (2026-10-21) */
+.snav button.sub{padding-left:40px;font-size:13px;min-height:32px}.snav button.sub span{color:inherit}
+.etabs{margin:0 0 18px}.etab-row{display:flex;gap:22px;border-bottom:1px solid var(--rule);margin-bottom:12px}
+.etab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:6px 0 10px;font:inherit;font-size:14px;font-weight:600;color:var(--ink-3);cursor:pointer}
+.etab.on{color:var(--ink);border-bottom-color:var(--coral)}.esec{display:flex;gap:6px;flex-wrap:wrap}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme")||"dark";}catch(e){document.documentElement.dataset.theme="dark";}</script>
 </head>
@@ -1099,27 +1105,35 @@ function needsMe(){return campaigns().filter(c=>c.status==="review"&&campIsRevie
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Marketing</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
-  if(view==="home"||view==="web")view="net";
+  if(view==="home")view="start";if(view==="web")view="net";
   const me=teamById(USER);const n=needsMe();
-  const titles={over:"Home",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
-  const crumbs=["Marketing"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Home"]);
+  const titles={start:"Home",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
+  const subs={start:"",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const body=view==="start"?"":view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
+  const crumbs=["Marketing"].concat(view==="start"?["Home"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right"><label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label><span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   '<nav class="mnav" aria-label="Sections">'+NAV.concat(NAV_MORE).map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+x[1]+(x[0]==="camp"&&n?' · '+n:'')+'</button>').join("")+'</nav>'+
-   '<main class="main">'+(view!=="over"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   '<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button></nav>'+
+   '<main class="main">'+(view==="start"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
 }
 function fitVolume(){const el=document.querySelector("svg.vol");if(!el||!OV_CHART)return;const w=Math.round(el.parentElement.clientWidth);if(!w||Math.abs(w-el.viewBox.baseVal.width)<2)return;el.outerHTML=ovChartSVG(OV_CHART.ser,OV_CHART.st,OV_CHART.cs,OV_CHART.h,w).svg;}
 function campStatusWord(c){return c.paused?"paused":({draft:"draft",review:"in review",approved:"approved",active:"running",done:"done"}[c.status||"draft"]||c.status);}
-function railHTML(n){const run=campaigns().filter(c=>["approved","active"].includes(c.status)).slice().sort((a,b)=>(a.status==="active"?0:1)-(b.status==="active"?0:1)||String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
-  const S=senders().filter(s=>!s.paused);const sentToday=S.reduce((a,s)=>a+senderSentToday(s),0),cap=S.reduce((a,s)=>a+senderCap(s,0),0);const plan=(buildPlan(1).days[0]||{total:0});
+const EMAIL_VIEWS=["over","camp","leads","sched","playbook","net"]; // everything under Email Campaigns › Conferences
+const EMAIL_SECTIONS=[["over","Overview"],["camp","Campaigns"],["leads","Leads"],["sched","Schedule"],["playbook","Playbook"],["net","The net"]];
+function railHTML(n){const inEmail=EMAIL_VIEWS.includes(view);const act=actItems().length;
+  let h='<aside class="side"><div class="sb">'+BRAND_MARK+'<div><b>AutoTQ</b><small>Marketing</small></div></div><nav class="snav" aria-label="Sections">'+
+   '<button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">'+svg("home")+'<span>Home</span></button>'+
+   '<button class="'+(inEmail?"on":"")+'" data-act="nav" data-v="over">'+svg("mail")+'<span>Email Campaigns</span>'+(act?'<em class="cnt act">'+act+'</em>':'')+(n?'<em class="cnt">'+n+'</em>':'')+'</button>'+
+   (inEmail?'<button class="sub on" data-act="nav" data-v="over"><span>Conferences</span></button>':'')+'</nav>';
+  if(!inEmail)return h+'</aside>';
+  const run=campaigns().filter(c=>["approved","active"].includes(c.status)).slice().sort((a,b)=>(a.status==="active"?0:1)-(b.status==="active"?0:1)||String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+  const S=senders().filter(s=>!s.paused);const sentToday=S.reduce((a,s)=>a+senderSentToday(s),0),cap=S.reduce((a,s)=>a+senderCap(s,0),0);
   const pct=cap?Math.min(100,Math.round(sentToday/cap*100)):0;
-  return '<aside class="side"><div class="sb">'+BRAND_MARK+'<div><b>AutoTQ</b><small>Marketing</small></div></div><nav class="snav" aria-label="Sections">'+NAV.map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+svg(NAV_ICON[x[0]])+'<span>'+x[1]+'</span>'+(x[0]==="camp"&&n?'<em class="cnt">'+n+'</em>':'')+(x[0]==="over"&&actItems().length?'<em class="cnt act">'+actItems().length+'</em>':'')+'</button>').join("")+'</nav>'+
-   '<div class="slabel more">More</div><nav class="snav more">'+NAV_MORE.map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="nav" data-v="'+x[0]+'">'+svg(NAV_ICON[x[0]])+'<span>'+x[1]+'</span></button>').join("")+'</nav>'+
-   '<div class="slabel">Campaigns</div><div class="sproj">'+(run.length?run.slice(0,8).map(c=>'<button class="'+(ovCamp===c.id?"on":"")+'" data-act="ovfocus" data-id="'+c.id+'" title="'+esc(c.name)+'"><i style="background:'+(c.status==="active"?campColor(c):"var(--ink-4)")+'"></i><span>'+esc(laneShort(c))+'</span><small>'+campStatusWord(c)+'</small></button>').join(""):'<p class="t2" style="padding:2px 10px 6px">Nothing running yet</p>')+'</div>'+
+  return h+'<div class="slabel">Campaigns</div><div class="sproj">'+(run.length?run.slice(0,8).map(c=>'<button class="'+(ovCamp===c.id?"on":"")+'" data-act="ovfocus" data-id="'+c.id+'" title="'+esc(c.name)+'"><i style="background:'+(c.status==="active"?campColor(c):"var(--ink-4)")+'"></i><span>'+esc(laneShort(c))+'</span><small>'+campStatusWord(c)+'</small></button>').join(""):'<p class="t2" style="padding:2px 10px 6px">Nothing running yet</p>')+'</div>'+
    '<div class="susage"><div class="row" style="justify-content:space-between"><span>Sent today</span><span class="t2" style="margin:0">'+new Date().toLocaleDateString([], {month:"short",day:"numeric"})+'</span></div><b class="num">'+sentToday+' <small>/ '+cap+' cap</small></b><div class="bar"><i class="'+(pct>=90?"hot":"")+'" style="width:'+pct+'%"></i></div>'+'</div></aside>';}
+function emailTabsHTML(n){return '<div class="etabs"><div class="etab-row" role="tablist"><button class="etab on" role="tab" aria-selected="true" data-act="nav" data-v="over">Conferences</button></div>'+
+  '<div class="esec">'+EMAIL_SECTIONS.map(x=>'<button class="chip'+(view===x[0]?" on":"")+'" data-act="nav" data-v="'+x[0]+'">'+x[1]+(x[0]==="camp"&&n?' · '+n:'')+'</button>').join("")+'</div></div>';}
 /* ---------- overview: the console ---------- */
 let ovRange=localStorage.getItem("autotq_mkt_range")||"7d",ovCamp="",sideOpen=false,MAP_DATA={};
 const RANGE_H={"24h":24,"7d":168,"30d":720,"90d":2160};
@@ -1557,7 +1571,7 @@ document.addEventListener("click",e=>{
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
   if(a==="verifypw"){verifyPw();return;}if(a==="sendotp"){sendOtp(t.dataset.email);return;}if(a==="verifyotp"){verifyOtp();return;}
   if(a==="otpback"){logState.pwEmail=null;logState.otpEmail=null;renderLogin();return;}
-  if(a==="setpwsave"){setPwSave();return;}if(a==="setpwskip"){logState.setPw=null;view="over";render();return;}
+  if(a==="setpwsave"){setPwSave();return;}if(a==="setpwskip"){logState.setPw=null;view="start";render();return;}
   if(a==="memenu"){meOpen=!meOpen;render();return;}
   if(a==="theme"){meOpen=false;setTheme(t.dataset.v);return;}
   if(a==="me"||a==="signout"){meOpen=false;if(confirm("Sign out of AutoTQ Marketing?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}return;}
@@ -1653,7 +1667,7 @@ let __rw=window.innerWidth<900,__fitT=null;window.addEventListener("resize",()=>
 /* boot */
 loadLocal();
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
-view="over";render();
+view="start";render();
 if(USER&&authed()&&hubUser())bootSync();
 
 </script>
