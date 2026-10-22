@@ -579,12 +579,18 @@ svg.usmap .dots{stroke:var(--dots)}
 .liatt{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.liatt .mfile{width:190px}
 /* Catalog by phase (2026-10-21, Max: Idea → Models → Quoting) */
 .cchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
-.crw{display:inline-flex;align-items:center;gap:6px;margin-top:2px}.crw.big{margin:0 4px}
-.cready{display:inline-block;width:64px;height:5px;border-radius:3px;background:var(--rule-3);overflow:hidden}.crw.big .cready{width:96px;height:6px}
-.cready i{display:block;height:100%;background:var(--ok)}.crlbl{font-size:11px;color:var(--ink-3);font-weight:600}
+.cnrow{display:flex;align-items:center;gap:14px;padding:12px 16px;border-top:1px solid var(--rule-2)}.cnrow:first-of-type{border-top:0}
+.cnimg{flex:none;width:64px;height:48px;padding:0;border:1px solid var(--rule);border-radius:8px;background:#fff;overflow:hidden;cursor:pointer}.cnimg img{width:100%;height:100%;object-fit:contain}.cnimg .cph{aspect-ratio:auto;height:100%}
+.cnbody{flex:1;min-width:0}.cnbody p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+.cnname{background:none;border:0;padding:0;font:inherit;font-weight:650;font-size:14px;color:var(--ink);cursor:pointer;text-align:left}.cnname:hover{text-decoration:underline}
+.cnact{display:flex;gap:6px;flex:none}
+.cnext{display:flex;align-items:center;gap:10px;margin:0 0 18px;padding:14px 16px;border:1px solid var(--rule);border-left:3px solid var(--coral);border-radius:var(--r-lg);background:var(--paper)}
+.cnext small{display:block;font-size:11px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}.cnext b{font-size:15px}
+.ccard .cnx{color:var(--ink-2)}.cpark{margin-top:4px}.cpark summary{cursor:pointer;color:var(--ink-3);font-size:13px}
+@media (max-width:700px){.cnrow{flex-wrap:wrap}.cnact{width:100%;padding-left:78px}.cnrow.idea .cnact{padding-left:0}}
+
 .cin{width:92px;display:inline-block;text-align:right;padding:4px 8px;min-height:30px}.cin.wide{width:150px;text-align:left}
 .cf.ctot{border-top:2px solid var(--rule-3)}.cf.ctot b{font-size:15px}.cf small{color:var(--ink-4)}
-.cplay{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.cplay span{font-size:12px;color:var(--ink-3);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:6px 10px}.cplay b{color:var(--ink);margin-right:4px}
 
 .cboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
 .ccol{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-lg);min-width:0}
@@ -1417,7 +1423,7 @@ function railHTML(n){
   const me=teamById(USER),mini=sideMini(),run=sideRunning(),st=sideSent();
   const act=actItems().length,lid=liPosts().filter(p=>p.status==="draft").length;
   const ring=(function(){const r=13,c=2*Math.PI*r,o=c*(1-st.pct/100);return '<svg class="ring" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="var(--rule-3)" stroke-width="3"/><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="'+(st.pct>=90?"var(--coral)":"var(--ink-2)")+'" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+o.toFixed(1)+'" transform="rotate(-90 16 16)"/></svg>';})();
-  const catNav=()=>{const its=catItems();const cur=catSel&&catFind(catSel)?catPhase(catFind(catSel)):catPhaseF;
+  const catNav=()=>{const its=catLive();const cur=catSel&&catFind(catSel)?catPhase(catFind(catSel)):catPhaseF;
     return sideGrp("Catalog",[["","box","All products"],["idea","spark","Idea"],["models","eye","Models"],["quoting","file","Quoting"]].map(([k,ic,lb])=>{const n=its.filter(x=>!k||catPhase(x)===k).length;const on=k?cur===k:(!catSel&&!catPhaseF);
     return '<button class="sitem'+(on?" on":"")+'" data-act="catph" data-v="'+k+'" data-tip="'+esc(lb+" · "+n)+'">'+svg(ic)+'<span class="lbl">'+esc(lb)+'</span><small>'+n+'</small></button>';}).join(""),0);};
   const nav=APP==="catalog"?catNav():sideGrp("Marketing",SIDE_TABS.map(t=>sideItem(t,n)).join(""),act+n+lid)+
@@ -2000,23 +2006,24 @@ function catQuoteLine(it){const ag=it.agreed||{},q=it.quote||{},t=(q.tiers||[]).
   if(t.length){const u=t.map(x=>+x.unit),qs=t.map(x=>+x.qty);return "Quote "+catMoney(Math.min(...u))+(Math.min(...u)!==Math.max(...u)?"–"+catMoney(Math.max(...u)).slice(1):"")+" /pc · "+Math.min(...qs).toLocaleString()+(qs.length>1?"–"+Math.max(...qs).toLocaleString():"")+" pcs";}
   if(q.range)return "Est. "+q.range;return "No quote yet";}
 function catThumb(it){const im=(it.images||[])[0];return im?'<img alt="" data-mkt="'+esc(im.thumb||im.path)+'">':'<span class="cph">'+svg("box")+'</span>';}
-function catCardLine(it){const ph=catPhase(it);
-  if(ph==="idea")return esc(((it.idea||{}).text||it.summary||"No description yet").slice(0,140));
-  if(ph==="models"){const n=(it.images||[]).length,f=(it.files||[]).length;return esc(n+" render"+(n===1?"":"s")+(f?" · "+f+" file"+(f===1?"":"s"):"")+((it.specs||[])[0]?" · "+it.specs[0][1]:""));}
-  return '<b>'+esc(catQuoteLine(it))+'</b><br>'+esc((it.maker||{}).name?"Maker: "+it.maker.name:"Maker: not chosen");}
-function catCard(it){const ph=catPhase(it),since=(it.phases||{})[ph];
-  return '<button class="ccard" data-act="catopen" data-id="'+esc(it.id)+'"><span class="cth">'+catThumb(it)+'</span><span class="cbd"><span class="ctag">'+esc(it.category||"Other")+(it.sku?' · '+esc(it.sku):'')+'</span><b>'+esc(it.name)+'</b><small>'+catCardLine(it)+'</small>'+catReadyBar(it)+(since?'<small class="csince">In '+esc(catPh(ph)[1])+' since '+esc(catDate(since))+'</small>':'')+'</span></button>';}
-function viewCatalog(){const all=catItems();if(catSel){const it=catFind(catSel);if(it)return catDetail(it);catSel="";}
-  const list=all.filter(x=>!catGroupF||(x.category||"Other")===catGroupF);const PH=catPhaseF?catPh(catPhaseF):null,phi=PH?CAT_PH.indexOf(PH):-1;
-  let h='<div class="ph"><h1>'+(PH?'<span class="cnum" style="background:'+PH[3]+';vertical-align:3px;margin-right:8px">'+(phi+1)+'</span>'+esc(PH[1]):'Catalog')+'</h1><p>'+(PH?esc(PH[2]):'White-label products: made by a maker, branded ours, sold through our distributors. Internal only.')+'</p><span class="grow"></span><button class="btn sm coral" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'>'+svg("plus")+'New idea</button></div>';
-  h+='<div class="cchips">'+["",...CAT_GROUPS].map(g=>{const n=all.filter(x=>(!PH||catPhase(x)===PH[0])&&(!g||(x.category||"Other")===g)).length;return '<button class="chip'+(catGroupF===g?" on":"")+'" data-act="catgrp" data-v="'+esc(g)+'">'+esc(g||"All groups")+' <span class="t2">'+n+'</span></button>';}).join("")+'</div>';
-  if(PH){const its=list.filter(x=>catPhase(x)===PH[0]);
-    return h+'<div class="cgrid">'+its.map(catCard).join("")+(PH[0]==="idea"?'<button class="ccard cnew" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'><span class="cph">'+svg("plus")+'</span><b>New idea</b><small>A white-label product, a kit, a case, a station. Start with what it is and why we\'d sell it.</small></button>':'')+'</div>'+(its.length||PH[0]==="idea"?'':'<div class="empty">Nothing in '+esc(PH[1])+(catGroupF?' for '+esc(catGroupF):'')+' yet.</div>');}
-  h+='<div class="cplay"><span><b>1 Idea</b> what it is, who buys it, which AutoTQ it pairs with</span><span><b>2 Models</b> designs + our brand on it (brand pack)</span><span><b>3 Quoting</b> maker, price, MOQ, landed cost</span><span><b>Ready</b> item number, barcode, papers, distributors</span></div>';
-  h+='<div class="cboard">'+CAT_PH.map((p,i)=>{const its=list.filter(x=>catPhase(x)===p[0]);
-    return '<section class="ccol"><header class="cch"><span class="cnum" style="background:'+p[3]+'">'+(i+1)+'</span><span><b>'+esc(p[1])+'</b><small>'+esc(p[2])+'</small></span><span class="ccount num">'+its.length+'</span></header><div class="ccb">'+its.map(catCard).join("")+
-      (p[0]==="idea"?'<button class="ccard cnew" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'><b>'+svg("plus")+(catGroupF==="White-label"||!catGroupF?'New idea · a white-label product, a kit, a case…':'New idea')+'</b></button>':(its.length?'':'<p class="cempty">Nothing here yet</p>'))+'</div></section>';}).join("")+'</div>';
-  return h;}
+function catLive(){return catItems().filter(x=>!x.parked);}
+function catNext(it){return ((it.next||{}).text)||"";}
+function catCard(it){const ph=catPhase(it),nx=catNext(it);
+  return '<button class="ccard" data-act="catopen" data-id="'+esc(it.id)+'"><span class="cth">'+catThumb(it)+'</span><span class="cbd"><span class="ctag">'+esc(it.category||"Other")+'</span><b>'+esc(it.name)+'</b>'+(ph==="quoting"?'<small><b>'+esc(catQuoteLine(it))+'</b></small>':'')+(nx?'<small class="cnx">Next: '+esc(nx)+'</small>':'')+'</span></button>';}
+function catNextRow(it){const nx=catNext(it);
+  return '<div class="cnrow"><button class="cnimg" data-act="catopen" data-id="'+esc(it.id)+'" aria-label="Open '+esc(it.name)+'">'+catThumb(it)+'</button><div class="cnbody"><div><button class="cnname" data-act="catopen" data-id="'+esc(it.id)+'">'+esc(it.name)+'</button> '+catPill(catPhase(it))+'</div><p>'+(nx?esc(nx):'<span class="t2">No next step yet</span>')+'</p></div><div class="cnact">'+(nx?'<button class="btn sm" data-act="catdone" data-id="'+esc(it.id)+'">'+svg("check")+'Done</button>':'')+'<button class="btn sm ghost" data-act="catsetnext" data-id="'+esc(it.id)+'">'+(nx?'Change':'Set next step')+'</button></div></div>';}
+function catIdeaRow(it){return '<div class="cnrow idea"><div class="cnbody"><div><button class="cnname" data-act="catopen" data-id="'+esc(it.id)+'">'+esc(it.name)+'</button> <span class="t2">'+esc(it.category||"Other")+'</span></div><p>'+esc(it.summary||((it.idea||{}).text||"").slice(0,160))+'</p></div><div class="cnact"><button class="btn sm coral" data-act="catgo" data-id="'+esc(it.id)+'">Go '+svg("arrow")+'</button><button class="btn sm ghost" data-act="catpark" data-id="'+esc(it.id)+'">Not now</button></div></div>';}
+function catParkedHTML(parked){return parked.length?'<details class="cpark"><summary>Not now · '+parked.length+'</summary><div class="pan" style="margin-top:8px">'+parked.map(it=>'<div class="cnrow idea"><div class="cnbody"><div><button class="cnname" data-act="catopen" data-id="'+esc(it.id)+'">'+esc(it.name)+'</button></div><p>'+esc(it.summary||"")+'</p></div><div class="cnact"><button class="btn sm ghost" data-act="catunpark" data-id="'+esc(it.id)+'">Bring back</button></div></div>').join("")+'</div></details>':'';}
+function viewCatalog(){if(catSel){const it=catFind(catSel);if(it)return catDetail(it);catSel="";}
+  const all=catLive(),parked=catItems().filter(x=>x.parked),PH=catPhaseF?catPh(catPhaseF):null;
+  let h='<div class="ph"><h1>'+(PH?esc(PH[1]):'Catalog')+'</h1><p>'+(PH?esc(PH[2]):'What moves each product forward, one step at a time.')+'</p><span class="grow"></span><button class="btn sm coral" data-act="catnew">'+svg("plus")+'New idea</button></div>';
+  if(PH){const its=all.filter(x=>catPhase(x)===PH[0]);
+    if(PH[0]==="idea")return h+(its.length?'<div class="pan">'+its.map(catIdeaRow).join("")+'</div>':'<div class="empty">No ideas waiting.</div>')+catParkedHTML(parked);
+    return h+(its.length?'<div class="cgrid">'+its.map(catCard).join("")+'</div>':'<div class="empty">Nothing in '+esc(PH[1])+' yet.</div>');}
+  const order=x=>-CAT_PH.findIndex(p=>p[0]===catPhase(x)),moving=all.filter(x=>catPhase(x)!=="idea").sort((a,b)=>order(a)-order(b)),ideas=all.filter(x=>catPhase(x)==="idea");
+  h+='<div class="pan"><div class="ph2">'+svg("arrow")+'Next steps<span class="t2" style="margin-left:4px">· '+moving.length+' product'+(moving.length===1?'':'s')+' moving</span></div>'+(moving.length?moving.map(catNextRow).join(""):'<div class="empty" style="padding:22px">Nothing moving yet. Say Go on an idea below.</div>')+'</div>';
+  h+='<div class="pan"><div class="ph2">'+svg("spark")+'Ideas waiting for a decision<span class="t2" style="margin-left:4px">· Go moves it to Models</span></div>'+(ideas.length?ideas.map(catIdeaRow).join(""):'<div class="empty" style="padding:22px">No ideas waiting.</div>')+'</div>';
+  return h+catParkedHTML(parked);}
 function catField(label,val,ph){return '<div class="cf"><span>'+esc(label)+'</span><b class="'+(val?"":"blank")+'">'+(val?esc(String(val)):esc(ph||"not set"))+'</b></div>';}
 function catStepper(it){const cur=CAT_PH.findIndex(p=>p[0]===catPhase(it)),dates=it.phases||{};
   return '<div class="cstep" role="list">'+CAT_PH.map((p,i)=>'<button role="listitem" class="cs'+(i<cur?" done":i===cur?" now":"")+'" data-act="catphase" data-id="'+esc(it.id)+'" data-v="'+p[0]+'" title="'+(i===cur?"Current phase":"Move to "+p[1])+'"><span class="cdot">'+(i<cur?svg("check"):(i+1))+'</span><span class="cl"><b>'+esc(p[1])+'</b><small>'+(dates[p[0]]?esc(catDate(dates[p[0]])):i===cur?"now":i>cur?"next":"")+'</small></span></button>').join('<span class="cline"></span>')+'</div>';}
@@ -2025,12 +2032,6 @@ function catSec(it,k,i,body){const cur=CAT_PH.findIndex(p=>p[0]===catPhase(it));
 /* White-label (2026-10-22, Max: "build it around whitelabeling"): every product is made by a maker, carries our brand, is sold
    through our distributors and ideally shipped by the maker. Two checklists say what is left before it can go on a distributor's
    list; the landed cost adds freight and import duty to the maker's price so the margin is real. */
-const WL_BRAND=[["logo","Our logo and colours on the product"],["pack","Packaging artwork (box, bag or sleeve)"],["label","Label: item number, barcode, country of origin, “Distributed by Golden Hour Medical”"],["insert","Insert or instructions card"],["photos","Listing photos on white"],["sample","Sample in hand and approved"]];
-const WL_LAUNCH=[["price","Production price and MOQ agreed"],["landed","Landed cost worked out (freight + duty)"],["sku","AutoTQ item number + UPC barcode"],["docs","Compliance papers (country of origin, Prop 65, FDA listing if medical)"],["ship","Maker drop-ships our orders"],["dist","Set up with distributors (Grainger, Fastenal…)"]];
-const WL_BRANDS=["AutoTQ","Golden Hour Medical","A distributor's own label"];
-function catReady(it){const c=it.checks||{},all=WL_BRAND.concat(WL_LAUNCH);const d=all.filter(x=>c[x[0]]).length;return {d,n:all.length,pct:Math.round(100*d/all.length)};}
-function catReadyBar(it,big){const r=catReady(it);return '<span class="crw'+(big?" big":"")+'" title="'+r.d+' of '+r.n+' white-label steps done"><span class="cready"><i style="width:'+r.pct+'%"></i></span><span class="crlbl">'+r.d+'/'+r.n+' ready</span></span>';}
-function catChecklist(it,list){const c=it.checks||{};return '<ul class="copen">'+list.map(([k,l])=>'<li class="'+(c[k]?"done":"")+'"><label><input type="checkbox" data-act="catck" data-id="'+esc(it.id)+'" data-v="'+k+'"'+(c[k]?' checked':'')+'><span>'+esc(l)+'</span></label></li>').join("")+'</ul>';}
 function catHas(v){return v!=null&&v!==""&&!isNaN(+v);}
 function catLanded(it){const wl=it.wl||{},ag=it.agreed||{},t=((it.quote||{}).tiers||[]).filter(x=>x&&x.unit!=null).slice().sort((a,b)=>a.qty-b.qty);
   const qty=+wl.orderQty||+ag.moq||(t[0]?+t[0].qty:0);let unit=catHas(ag.unit)?+ag.unit:null,from=unit!=null?"agreed price":"";
@@ -2041,25 +2042,31 @@ function catLanded(it){const wl=it.wl||{},ag=it.agreed||{},t=((it.quote||{}).tie
 function catLandedHTML(it){const wl=it.wl||{},pr=it.pricing||{},L=catLanded(it);
   const num=(f,v,ph)=>'<input class="f cin" type="number" step="any" min="0" data-catwl="'+f+'" data-id="'+esc(it.id)+'" value="'+(catHas(v)?esc(String(v)):"")+'" placeholder="'+esc(String(ph))+'" aria-label="'+f+'">';
   const mg=p=>p&&L.landed?Math.round(100*(p-L.landed)/p)+"%":"";
-  return '<div class="pan"><div class="ph2">'+svg("chart")+'Landed cost<span class="t2" style="margin-left:4px">· what one costs us at our door</span></div><div class="cfs">'+
+  return '<div class="pan"><div class="ph2">'+svg("chart")+'Cost and margin</div><div class="cfs">'+
     '<div class="cf"><span>Order size</span><b>'+num("orderQty",wl.orderQty,L.qty||"pcs")+' pcs</b></div>'+
     '<div class="cf"><span>Maker price'+(L.from?' <small>('+esc(L.from)+')</small>':'')+'</span><b class="'+(L.unit!=null?"":"blank")+'">'+(L.unit!=null?catMoney(L.unit):"no quote yet")+'</b></div>'+
     '<div class="cf"><span>Freight for the order</span><b>$ '+num("freightOrder",wl.freightOrder,"0")+'</b></div>'+
     '<div class="cf"><span>Import duty</span><b>'+num("dutyPct",wl.dutyPct,"0")+' %</b></div>'+
     '<div class="cf"><span>HTS code</span><b><input class="f cin wide" data-catwl="hts" data-id="'+esc(it.id)+'" value="'+esc(wl.hts||"")+'" placeholder="ask the broker" aria-label="HTS code"></b></div>'+
     (L.unit!=null?'<div class="cf ctot"><span>Landed, each</span><b>'+catMoney(L.landed)+'</b></div><div class="cf"><span>Cash for '+(L.qty||0).toLocaleString()+' pcs</span><b>'+catMoney(L.cash)+'</b></div>'+
-      (pr.distributor?'<div class="cf"><span>Margin at the distributor price ('+catMoney(pr.distributor)+')</span><b>'+mg(+pr.distributor)+'</b></div>':'')+
-      (pr.msrp?'<div class="cf"><span>Margin at MSRP ('+catMoney(pr.msrp)+')</span><b>'+mg(+pr.msrp)+'</b></div>':''):'')+
+'':'')+
+    catField("Distributor price",pr.distributor?catMoney(pr.distributor)+(mg(+pr.distributor)?" · "+mg(+pr.distributor)+" margin":""):"","not set")+
+    catField("MSRP",pr.msrp?catMoney(pr.msrp)+(mg(+pr.msrp)?" · "+mg(+pr.msrp)+" margin":""):"","not set")+
+    (pr.note?'<p class="t2 cnote">'+esc(pr.note)+'</p>':'')+
     (L.unit!=null&&(!L.hasFr||!L.hasDuty)?'<p class="t2 cnote">'+(!L.hasFr?'Add the freight quote for the order. ':'')+(!L.hasDuty?'Add the duty rate for its HTS code (a customs broker confirms it; goods from China can carry extra tariffs).':'')+'</p>':'')+'</div></div>';}
 function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=it.pricing||{},idea=it.idea||{};const ims=it.images||[];if(catImg>=ims.length)catImg=0;const main=ims[catImg];
   const LC=catLanded(it),cost=+((LC.unit!=null&&LC.landed)||ag.unit||pr.landed||0),price=+(pr.distributor||0),msrp=+(pr.msrp||0),mg=p=>p&&cost?Math.round(100*(p-cost)/p)+"%":"";
   const cur=CAT_PH.findIndex(p=>p[0]===catPhase(it)),next=CAT_PH[cur+1];
   let h='<div class="row" style="gap:8px;margin:2px 0 12px"><button class="btn sm ghost" data-act="catback">'+svg("back")+'Catalog</button></div>';
-  h+='<div class="ph" style="flex-wrap:wrap"><h1>'+esc(it.name)+'</h1><span class="t2">'+esc(it.category||"Other")+(it.sku?' · '+esc(it.sku):'')+'</span>'+catReadyBar(it,true)+'<span class="grow"></span>'+
-    (next&&!catEdit?'<button class="btn sm coral" data-act="catphase" data-id="'+esc(it.id)+'" data-v="'+next[0]+'">Move to '+esc(next[1])+' '+svg("arrow")+'</button>':'')+
+  h+='<div class="ph" style="flex-wrap:wrap"><h1>'+esc(it.name)+'</h1><span class="t2">'+esc(it.category||"Other")+(it.sku?' · '+esc(it.sku):'')+'</span><span class="grow"></span>'+
+    (next&&!catEdit&&catPhase(it)!=="idea"?'<button class="btn sm coral" data-act="catphase" data-id="'+esc(it.id)+'" data-v="'+next[0]+'">Move to '+esc(next[1])+' '+svg("arrow")+'</button>':'')+
     '<label class="btn sm">'+svg("plus")+'Add files<input type="file" multiple hidden data-catup="'+esc(it.id)+'"></label><button class="btn sm'+(catEdit?" coral":"")+'" data-act="'+(catEdit?"catsave":"catedit")+'" data-id="'+esc(it.id)+'">'+(catEdit?"Save":"Edit")+'</button>'+(catEdit?'<button class="btn sm ghost" data-act="catcancel">Cancel</button>':'')+'</div>';
   h+=catStepper(it);
   if(catEdit)return h+catForm(it);
+  const nx=catNext(it);
+  h+=it.parked?'<div class="cnext"><div><small>Parked</small><b>Not now</b></div><span class="grow"></span><button class="btn sm" data-act="catunpark" data-id="'+esc(it.id)+'">Bring back</button></div>'
+    :catPhase(it)==="idea"?'<div class="cnext"><div><small>Decision</small><b>Is this worth designing?</b></div><span class="grow"></span><button class="btn sm coral" data-act="catgo" data-id="'+esc(it.id)+'">Go '+svg("arrow")+'</button><button class="btn sm ghost" data-act="catpark" data-id="'+esc(it.id)+'">Not now</button></div>'
+    :'<div class="cnext"><div><small>Next step</small><b>'+(nx?esc(nx):'<span class="t2">Not set</span>')+'</b></div><span class="grow"></span>'+(nx?'<button class="btn sm coral" data-act="catdone" data-id="'+esc(it.id)+'">'+svg("check")+'Done</button>':'')+'<button class="btn sm ghost" data-act="catsetnext" data-id="'+esc(it.id)+'">'+(nx?'Change':'Set next step')+'</button></div>';
   const files=it.files||[],ftag=f=>(({quote:"Quote",spec:"Spec sheet",artwork:"Print file",schematic:"Schematic",pi:"Proforma invoice",bom:"Parts list",market:"Market pricing"})[f.role]||"File")+(f.pages?" · "+f.pages+" pages":"");
   const QROLES=["quote","pi","market"],modelFiles=files.filter(f=>!QROLES.includes(f.role)),quoteFiles=files.filter(f=>QROLES.includes(f.role));
   // 1 · Idea
@@ -2068,7 +2075,6 @@ function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=
   h+=catSec(it,"models",1,'<div class="cmod"><div class="pan cgal">'+(main?'<button class="cmain" data-act="mktpdf" data-path="'+esc(main.path)+'" data-title="'+esc(main.title||it.name)+'"><img alt="'+esc(main.title||"")+'" data-mkt="'+esc(main.path)+'"></button><div class="ccap">'+esc(main.title||"")+'<span class="t2"> · '+esc(({render:"Render",schematic:"Schematic",photo:"Photo",artwork:"Artwork"})[main.role]||"Image")+'</span></div>':'<div class="empty" style="padding:40px 16px">No models yet. Use Add files for renders, schematics and designs.</div>')+
       (ims.length>1?'<div class="cthumbs">'+ims.map((im,i)=>'<button class="'+(i===catImg?"on":"")+'" data-act="catimg" data-v="'+i+'" title="'+esc(im.title||"")+'"><img alt="" data-mkt="'+esc(im.thumb||im.path)+'"></button>').join("")+'</div>':'')+'</div>'+
     '<div>'+(modelFiles.length?'<div class="pan"><div class="ph2">'+svg("file")+'Design files</div><div class="mfiles">'+modelFiles.map(f=>mktFileCard(f,f.title||f.path.split("/").pop(),ftag(f))).join("")+'</div></div>':'')+
-      '<div class="pan"><div class="ph2">'+svg("box")+'Brand pack<span class="t2" style="margin-left:4px">· our brand on it, ready to sell</span></div>'+catChecklist(it,WL_BRAND)+'</div>'+
       ((it.specs||[]).length?'<div class="pan"><div class="ph2">'+svg("check")+'Specs</div><div class="cfs">'+it.specs.map(s=>catField(s[0],s[1])).join("")+'</div></div>':'')+'</div></div>');
   // 3 · Quoting
   h+=catSec(it,"quoting",2,'<div class="cquo"><div>'+
@@ -2076,9 +2082,7 @@ function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=
       '<div class="pan"><div class="ph2">'+svg("chart")+'Quote'+(q.date?'<span class="t2" style="margin-left:4px">· '+esc(catDate(q.date))+'</span>':'')+'</div>'+((q.tiers||[]).length?'<table class="ctier"><thead><tr><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead><tbody>'+q.tiers.map(t=>'<tr><td class="num">'+(+t.qty).toLocaleString()+' pcs</td><td class="num">'+catMoney(t.unit)+'</td><td class="num">'+catMoney(t.qty*t.unit)+'</td></tr>').join("")+'</tbody></table>':'<p class="t2" style="padding:12px 16px 0">No quote yet.'+(q.range?' Estimate: '+esc(q.range)+'.':'')+'</p>')+'<div class="cfs">'+(q.basis?catField("Covers",q.basis):'')+(q.ref?catField("Reference",q.ref):'')+'</div>'+
         (quoteFiles.length?'<div class="mfiles" style="padding-top:0">'+quoteFiles.map(f=>mktFileCard(f,f.title||f.path.split("/").pop(),ftag(f))).join("")+'</div>':'')+'</div>'+
       '<div class="pan"><div class="ph2">'+svg("check")+'Agreed with the maker</div><div class="cfs">'+catField("Unit price",catMoney(ag.unit))+catField("MOQ",ag.moq?(+ag.moq).toLocaleString()+" pcs":"")+catField("Lead time",ag.lead)+catField("Samples",ag.samples)+catField("Shipping",ag.shipping)+catField("Payment terms",ag.terms)+(ag.note?'<p class="t2 cnote">'+esc(ag.note)+'</p>':'')+'</div></div></div><div>'+catLandedHTML(it)+
-      '<div class="pan"><div class="ph2">'+svg("chart")+'Our pricing</div><div class="cfs">'+catField("Landed cost",LC.unit!=null?catMoney(LC.landed)+(LC.hasFr&&LC.hasDuty?"":" (before freight/duty)"):(catMoney(pr.landed)||pr.landedNote))+catField("Distributor price",price?catMoney(price)+(mg(price)?" · "+mg(price)+" margin":""):"")+catField("MSRP",msrp?catMoney(msrp)+(mg(msrp)?" · "+mg(msrp)+" margin":""):"")+(pr.note?'<p class="t2 cnote">'+esc(pr.note)+'</p>':'')+'</div></div>'+
-      '<div class="pan"><div class="ph2">'+svg("alert")+'Open questions<span class="t2" style="margin-left:4px">· '+(it.open||[]).filter(o=>!o.done).length+' open</span></div><ul class="copen">'+(it.open||[]).map((o,i)=>'<li class="'+(o.done?"done":"")+'"><label><input type="checkbox" data-act="catq" data-id="'+esc(it.id)+'" data-v="'+i+'"'+(o.done?' checked':'')+'><span>'+esc(o.text)+'</span></label></li>').join("")+'</ul><div class="row" style="gap:6px;padding:0 16px 14px"><input class="f" id="catQNew" placeholder="Add a question for the maker" style="flex:1"><button class="btn sm" data-act="catqadd" data-id="'+esc(it.id)+'">Add</button></div></div>'+
-      '<div class="pan"><div class="ph2">'+svg("check")+'Before it goes in the catalog</div>'+catChecklist(it,WL_LAUNCH)+'</div></div></div>');
+      '<div class="pan"><div class="ph2">'+svg("alert")+'Open questions<span class="t2" style="margin-left:4px">· '+(it.open||[]).filter(o=>!o.done).length+' open</span></div><ul class="copen">'+(it.open||[]).map((o,i)=>'<li class="'+(o.done?"done":"")+'"><label><input type="checkbox" data-act="catq" data-id="'+esc(it.id)+'" data-v="'+i+'"'+(o.done?' checked':'')+'><span>'+esc(o.text)+'</span></label></li>').join("")+'</ul><div class="row" style="gap:6px;padding:0 16px 14px"><input class="f" id="catQNew" placeholder="Add a question for the maker" style="flex:1"><button class="btn sm" data-act="catqadd" data-id="'+esc(it.id)+'">Add</button></div></div></div></div>');
   h+=(it.notes?'<div class="pan"><div class="ph2">'+svg("file")+'Notes</div><p class="cnote" style="padding:12px 16px;white-space:pre-wrap">'+esc(it.notes)+'</p></div>':'')+
     ((it.links||[]).length?'<div class="pan"><div class="ph2">'+svg("ext")+'Links</div><ul class="lilist" style="padding:10px 16px 14px">'+it.links.map(l=>'<li><a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.title||l.url)+'</a></li>').join("")+'</ul></div>':'')+
     '<p class="t2" style="margin-top:4px">Updated '+esc(catDate(it.at))+(it.by?' by '+esc(teamById(it.by).name||it.by):'')+'</p>';
@@ -2120,7 +2124,6 @@ async function catUpload(id,files){const it=catFind(id);if(!it)return;let ok=0;
     ok++;}
   if(ok){it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(ok+" file"+(ok===1?"":"s")+" added");}}
 document.addEventListener("change",e=>{const t=e.target;if(t&&t.dataset){if(t.dataset.catup&&t.files&&t.files.length){catUpload(t.dataset.catup,[...t.files]);t.value="";}
-  if(t.dataset.act==="catck"){const it=catFind(t.dataset.id);if(it){it.checks=Object.assign({},it.checks||{});it.checks[t.dataset.v]=t.checked;it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();}}
   if(t.dataset.catwl){const it=catFind(t.dataset.id);if(it){const f=t.dataset.catwl;it.wl=Object.assign({},it.wl||{});it.wl[f]=f==="hts"?t.value.trim():(t.value===""?null:+t.value);it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();}}
   if(t.dataset.act==="catq"){const it=catFind(t.dataset.id);const o=it&&(it.open||[])[+t.dataset.v];if(o){o.done=t.checked;it.at=new Date().toISOString();put("catalogItems",it);render();}}}});
 function catHandle(a,t){
@@ -2136,7 +2139,14 @@ function catHandle(a,t){
   if(a==="catnew"){const it={id:"cat-"+uid()+uid(),name:"New idea",category:t.dataset.v||"White-label",phase:"idea",phases:{idea:todayStr()},idea:{text:"",forWho:""},summary:"",images:[],files:[],open:[],at:new Date().toISOString(),by:USER};put("catalogItems",it);catSel=it.id;catEdit=true;render();window.scrollTo(0,0);return true;}
   if(a==="catdel"){const it=catFind(t.dataset.id);if(it&&confirm("Remove "+it.name+" from the catalog board? Its files stay in storage.")){it.removed=true;it.at=new Date().toISOString();put("catalogItems",it);catSel="";catEdit=false;render();}return true;}
   if(a==="catqadd"){const it=catFind(t.dataset.id);const v=((document.getElementById("catQNew")||{}).value||"").trim();if(it&&v){(it.open=it.open||[]).push({text:v,done:false});it.at=new Date().toISOString();put("catalogItems",it);render();}return true;}
-  if(a==="catq"||a==="catck")return true;
+  if(a==="catq")return true;
+  if(a==="catdone"||a==="catsetnext"){const it=catFind(t.dataset.id);if(!it)return true;const done=a==="catdone";const prev=catNext(it);
+    const v=prompt(done?"Done: “"+prev+"”. What's the next step for "+it.name+"?":"Next step for "+it.name+":",done?"":prev);if(v===null)return true;
+    if(done&&prev)(it.nextLog=it.nextLog||[]).push({text:prev,doneAt:new Date().toISOString(),by:USER});
+    it.next=v.trim()?{text:v.trim(),at:new Date().toISOString(),by:USER}:null;it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(done?"Done":"Saved");return true;}
+  if(a==="catgo"){const it=catFind(t.dataset.id);if(!it)return true;const v=prompt("Go on "+it.name+". First step in Models?","Get the designs made");if(v===null)return true;
+    catSetPhase(it,"models");it.next=v.trim()?{text:v.trim(),at:new Date().toISOString(),by:USER}:null;it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(it.name+" → Models");return true;}
+  if(a==="catpark"||a==="catunpark"){const it=catFind(t.dataset.id);if(!it)return true;it.parked=a==="catpark";it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);if(it.parked&&catSel===it.id)catSel="";render();toast(it.parked?"Parked: "+it.name:"Back: "+it.name);return true;}
   return false;}
 function viewOverview(){
   const h=RANGE_H[ovRange]||168;const focus=ovCamp?campaignById(ovCamp):null;if(ovCamp&&!focus)ovCamp="";
