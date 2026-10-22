@@ -577,6 +577,27 @@ svg.usmap .dots{stroke:var(--dots)}
 .pdfv-body{flex:1;display:flex;background:#525659;border:1px solid var(--rule);border-top:0;border-radius:0 0 var(--r-lg) var(--r-lg);overflow:hidden}
 .pdfv-body iframe{flex:1;border:0;width:100%;height:100%}.pdfv-body .empty{margin:auto;color:#ddd}
 .liatt{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.liatt .mfile{width:190px}
+/* Catalog by phase (2026-10-21, Max: Idea → Models → Quoting) */
+.cboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.ccol{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-lg);min-width:0}
+.cch{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--rule)}.cch b{display:block;font-size:14px}.cch small{display:block;font-size:11.5px;color:var(--ink-3)}
+.cnum{flex:none;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:700}
+.ccount{margin-left:auto;font-size:13px;font-weight:700;color:var(--ink-2)}
+.ccb{display:flex;flex-direction:column;gap:10px;padding:10px}.cempty{margin:6px 4px;color:var(--ink-4);font-size:12.5px}
+.ccol .ccard .cth{aspect-ratio:16/9}.ccard .ctag{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.ccard small b{color:var(--ink);font-weight:600}.ccard .csince{color:var(--ink-4);font-size:11.5px}
+.ccol .cnew{flex-direction:row;padding:12px 14px}.ccol .cnew b{display:flex;gap:8px;align-items:center;padding:0;margin:0;font-size:12.5px;font-weight:600;color:var(--ink-2)}.ccol .cnew .i{width:16px;height:16px;flex:none}
+.cstep{display:flex;align-items:center;gap:0;margin:0 0 18px;padding:12px 14px;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--paper)}
+.cs{display:flex;align-items:center;gap:10px;background:none;border:0;padding:4px 6px;border-radius:8px;font:inherit;color:var(--ink-3);cursor:pointer;text-align:left}.cs:hover{background:var(--hover)}
+.cs .cdot{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid var(--rule-3);color:var(--ink-3);background:var(--paper)}.cs .cdot .i{width:14px;height:14px}
+.cs.done .cdot{background:var(--ok);border-color:var(--ok);color:#fff}.cs.now .cdot{background:var(--coral);border-color:var(--coral);color:#fff}
+.cs .cl b{display:block;font-size:13px;color:var(--ink)}.cs .cl small{display:block;font-size:11.5px;color:var(--ink-3)}.cs.now .cl b{color:var(--coral)}
+.cline{flex:1;height:2px;background:var(--rule-3);margin:0 8px;min-width:18px}
+.csec{margin-bottom:18px}.csec.later{opacity:.55}
+.csh{display:flex;align-items:center;gap:10px;margin:0 0 10px}.csh b{font-size:16px}.csh small{color:var(--ink-3);font-size:12.5px}
+.cidea .cidea-t{padding:14px 16px 4px;font-size:14.5px;line-height:1.55;max-width:820px;margin:0}
+.cmod,.cquo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:1000px){.cboard{grid-template-columns:1fr}.cmod,.cquo{grid-template-columns:1fr}.cstep{flex-wrap:wrap;gap:6px}.cline{display:none}}
 /* Catalog (2026-10-21) */
 .cstages{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .cstage{display:flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid var(--rule);border-radius:999px;background:var(--paper);font:inherit;font-size:12.5px;color:var(--ink-2);cursor:pointer}
@@ -1452,12 +1473,12 @@ function palItems(q){
   const tabs=APP==="catalog"?[["box","All products","",()=>{catGroupF="";catSel="";goView("cat");}]].concat(CAT_GROUPS.map(g=>["box",g,"Catalog",()=>{catGroupF=g;catSel="";goView("cat");}]))
     :[["home","Home","",()=>goView("start")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn · Post","",()=>goView("li")],["file","LinkedIn · Messenger","",()=>goView("limsg")]]);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2],t[3]));
-  const acts=[APP==="catalog"?["plus","New product","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],
+  const acts=[APP==="catalog"?["plus","New idea","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],
     ["sun","Light mode",THEME==="light"?"on":"",()=>setTheme("light")],["moon","Dark mode",THEME==="dark"?"on":"",()=>setTheme("dark")],
     ["crm","Switch to AutoTQ CRM","",()=>{location.href=CRM_URL;}],[APP==="catalog"?"mail":"box","Switch to AutoTQ "+(APP==="catalog"?"Marketing":"Catalog"),"",()=>{location.href=HUB_URLS[APP==="catalog"?"marketing":"catalog"];}],
     ["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","",()=>sideToggle()],["signout","Sign out","",()=>{if(confirm("Sign out of AutoTQ "+APP_NAME+"?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}}]];
   acts.filter(a=>hit(a[1])).forEach(a=>add("Actions",a[0],a[1],a[2],a[3]));
-  if(APP==="catalog"){catItems().filter(it=>!ql||[it.name,it.sku,it.category,(it.maker||{}).name,it.summary].join(" ").toLowerCase().includes(ql)).slice(0,ql?10:6).forEach(it=>add("Products","box",it.name,[catSt(it.status)[1],(it.maker||{}).name].filter(Boolean).join(" · "),()=>{catSel=it.id;catEdit=false;catImg=0;goView("cat");}));return out;}
+  if(APP==="catalog"){catItems().filter(it=>!ql||[it.name,it.sku,it.category,(it.maker||{}).name,it.summary].join(" ").toLowerCase().includes(ql)).slice(0,ql?10:6).forEach(it=>add("Products","box",it.name,[catPh(catPhase(it))[1],(it.maker||{}).name].filter(Boolean).join(" · "),()=>{catSel=it.id;catEdit=false;catImg=0;goView("cat");}));return out;}
   const cs=campaigns().filter(c=>hit(c.name)||hit(laneShort(c))).slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
   cs.slice(0,ql?8:5).forEach(c=>add("Campaigns","mail",c.name,campStatusWord(c)+" · "+(c.leads||[]).length+" people",()=>{closeInsp();curCampaign=c.id;campStep=1;view="camp";sideOpen=false;render();window.scrollTo(0,0);}));
   if(ql.length>=2){
@@ -1953,68 +1974,88 @@ function mktHandle(a,t){
 /* ---------- Catalog (2026-10-21, Max): the side of the business that expands the AutoTQ catalog — signage, cabinets, white-label
    AutoTQ packaging. Each product = renders/schematics/designs + maker + quote tiers + agreed price/MOQ + our pricing. Records in
    `catalogItems` (Max + Hannah only); files in the private `marketing` bucket under catalog/<id>/. Unknowns stay visibly blank. ---------- */
-const CAT_ST=[["idea","Idea","var(--ink-4)"],["design","Designing","var(--info)"],["quoting","Asking for quotes","var(--warn)"],["quoted","Quoted","var(--warn)"],["agreed","Price agreed","var(--ok)"],["ordered","Ordered","var(--ok)"],["live","In the catalog","var(--ok)"]];
+/* phases of development toward the catalog (Max, 2026-10-21: "group the items by phases… Idea, Models, Quoting") */
+const CAT_PH=[["idea","Idea","What it is, why we'd sell it, who buys it","var(--ink-3)"],["models","Models","Renders, schematics, designs","var(--info)"],["quoting","Quoting","Makers, prices, MOQ, our pricing","var(--warn)"]];
 const CAT_GROUPS=["Signage","Cabinets","White-label","Other"];
-let catSel="",catEdit=false,catImg=0,catFilter="",catGroupF="";
+let catSel="",catEdit=false,catImg=0,catGroupF="";
 function catItems(){return (DB.catalogItems||[]).filter(x=>x&&x.id&&!x.removed);}
 function catFind(id){return catItems().find(x=>x.id===id);}
-function catSt(s){return CAT_ST.find(x=>x[0]===s)||CAT_ST[0];}
-function catPill(s){const m=catSt(s);return '<span class="pill" style="background:color-mix(in srgb,'+m[2]+' 14%,transparent);color:'+m[2]+'">'+esc(m[1])+'</span>';}
+function catPhase(it){const s=it.phase||it.status||"idea";return s==="idea"?"idea":(s==="models"||s==="design")?"models":"quoting";} // older records carried a status
+function catPh(k){return CAT_PH.find(x=>x[0]===k)||CAT_PH[0];}
+function catSt(k){return catPh(k);}
+function catPill(k){const m=catPh(k);return '<span class="pill" style="background:color-mix(in srgb,'+m[3]+' 15%,transparent);color:'+m[3]+'">'+esc(m[1])+'</span>';}
+function catDate(d){return d?new Date(String(d).slice(0,10)+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):"";}
 function catMoney(v){return v==null||v===""||isNaN(+v)?"":"$"+(+v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
 function catQuoteLine(it){const ag=it.agreed||{},q=it.quote||{},t=(q.tiers||[]).filter(x=>x&&x.unit!=null);
   if(ag.unit)return "Agreed "+catMoney(ag.unit)+" /pc"+(ag.moq?" · MOQ "+(+ag.moq).toLocaleString():"");
   if(t.length){const u=t.map(x=>+x.unit),qs=t.map(x=>+x.qty);return "Quote "+catMoney(Math.min(...u))+(Math.min(...u)!==Math.max(...u)?"–"+catMoney(Math.max(...u)).slice(1):"")+" /pc · "+Math.min(...qs).toLocaleString()+(qs.length>1?"–"+Math.max(...qs).toLocaleString():"")+" pcs";}
   if(q.range)return "Est. "+q.range;return "No quote yet";}
 function catThumb(it){const im=(it.images||[])[0];return im?'<img alt="" data-mkt="'+esc(im.thumb||im.path)+'">':'<span class="cph">'+svg("box")+'</span>';}
-function catCard(it){return '<button class="ccard" data-act="catopen" data-id="'+esc(it.id)+'"><span class="cth">'+catThumb(it)+'</span><span class="cbd"><span class="row" style="gap:6px;flex-wrap:wrap">'+catPill(it.status)+(it.sku?'<span class="t2">'+esc(it.sku)+'</span>':'')+'</span><b>'+esc(it.name)+'</b><small>'+esc(it.summary||"")+'</small><span class="cq">'+esc(catQuoteLine(it))+'</span><small>'+esc((it.maker||{}).name?"Maker: "+it.maker.name:"Maker: not chosen")+'</small></span></button>';}
+function catCardLine(it){const ph=catPhase(it);
+  if(ph==="idea")return esc(((it.idea||{}).text||it.summary||"No description yet").slice(0,140));
+  if(ph==="models"){const n=(it.images||[]).length,f=(it.files||[]).length;return esc(n+" render"+(n===1?"":"s")+(f?" · "+f+" file"+(f===1?"":"s"):"")+((it.specs||[])[0]?" · "+it.specs[0][1]:""));}
+  return '<b>'+esc(catQuoteLine(it))+'</b><br>'+esc((it.maker||{}).name?"Maker: "+it.maker.name:"Maker: not chosen");}
+function catCard(it){const ph=catPhase(it),since=(it.phases||{})[ph];
+  return '<button class="ccard" data-act="catopen" data-id="'+esc(it.id)+'"><span class="cth">'+catThumb(it)+'</span><span class="cbd"><span class="ctag">'+esc(it.category||"Other")+(it.sku?' · '+esc(it.sku):'')+'</span><b>'+esc(it.name)+'</b><small>'+catCardLine(it)+'</small>'+(since?'<small class="csince">In '+esc(catPh(ph)[1])+' since '+esc(catDate(since))+'</small>':'')+'</span></button>';}
 function viewCatalog(){const all=catItems();if(catSel){const it=catFind(catSel);if(it)return catDetail(it);catSel="";}
-  let h='<div class="ph"><h1>'+esc(catGroupF||"Catalog")+'</h1><p>New products that expand the AutoTQ catalog: designs, makers, quotes, MOQ and our pricing. Internal only.</p><span class="grow"></span><button class="btn sm coral" data-act="catnew">'+svg("plus")+'New product</button></div>';
-  h+='<div class="cstages">'+CAT_ST.map(s=>{const n=all.filter(x=>x.status===s[0]).length;return '<button class="cstage'+(catFilter===s[0]?" on":"")+'" data-act="catfilter" data-v="'+s[0]+'"'+(n?'':' disabled')+'><i style="background:'+s[2]+'"></i><b class="num">'+n+'</b><span>'+esc(s[1])+'</span></button>';}).join("")+'</div>';
-  const list=(catFilter?all.filter(x=>x.status===catFilter):all).filter(x=>!catGroupF||(x.category||"Other")===catGroupF);
-  CAT_GROUPS.filter(g=>!catGroupF||g===catGroupF).forEach(g=>{const its=list.filter(x=>(x.category||"Other")===g);if(!its.length&&!(g==="White-label"&&!catFilter))return;
-    h+='<div class="sech">'+esc(g)+'<span class="t2" style="margin-left:6px;font-weight:400">'+(its.length?its.length+' product'+(its.length===1?'':'s'):'')+'</span></div><div class="cgrid">'+its.map(catCard).join("")+
-      (g==="White-label"?'<button class="ccard cnew" data-act="catnew" data-v="White-label"><span class="cph">'+svg("plus")+'</span><b>Start a white-label product</b><small>AutoTQ packaged a new way: a kit, a case, a station. Add renders, a maker and quotes as they come.</small></button>':'')+'</div>';});
-  if(!all.length)h+='<div class="empty">Nothing here yet. Add the first product.</div>';
-  else if(!list.length&&catGroupF!=="White-label")h+='<div class="empty">No '+esc(catFilter?catSt(catFilter)[1].toLowerCase()+" ":"")+'products'+(catGroupF?' in '+esc(catGroupF):'')+' yet.</div>';
+  const list=all.filter(x=>!catGroupF||(x.category||"Other")===catGroupF);
+  let h='<div class="ph"><h1>'+esc(catGroupF||"Catalog")+'</h1><p>New products on their way into the AutoTQ catalog, by phase. Internal only.</p><span class="grow"></span><button class="btn sm coral" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'>'+svg("plus")+'New idea</button></div>';
+  h+='<div class="cboard">'+CAT_PH.map((p,i)=>{const its=list.filter(x=>catPhase(x)===p[0]);
+    return '<section class="ccol"><header class="cch"><span class="cnum" style="background:'+p[3]+'">'+(i+1)+'</span><span><b>'+esc(p[1])+'</b><small>'+esc(p[2])+'</small></span><span class="ccount num">'+its.length+'</span></header><div class="ccb">'+its.map(catCard).join("")+
+      (p[0]==="idea"?'<button class="ccard cnew" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'><b>'+svg("plus")+(catGroupF==="White-label"||!catGroupF?'New idea · a white-label product, a kit, a case…':'New idea')+'</b></button>':(its.length?'':'<p class="cempty">Nothing here yet</p>'))+'</div></section>';}).join("")+'</div>';
   return h;}
 function catField(label,val,ph){return '<div class="cf"><span>'+esc(label)+'</span><b class="'+(val?"":"blank")+'">'+(val?esc(String(val)):esc(ph||"not set"))+'</b></div>';}
-function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=it.pricing||{};const ims=it.images||[];if(catImg>=ims.length)catImg=0;const main=ims[catImg];
-  const cost=+(ag.unit||pr.landed||0),price=+(pr.distributor||0),msrp=+(pr.msrp||0);
-  const mg=(p)=>p&&cost?Math.round(100*(p-cost)/p)+"%":"";
+function catStepper(it){const cur=CAT_PH.findIndex(p=>p[0]===catPhase(it)),dates=it.phases||{};
+  return '<div class="cstep" role="list">'+CAT_PH.map((p,i)=>'<button role="listitem" class="cs'+(i<cur?" done":i===cur?" now":"")+'" data-act="catphase" data-id="'+esc(it.id)+'" data-v="'+p[0]+'" title="'+(i===cur?"Current phase":"Move to "+p[1])+'"><span class="cdot">'+(i<cur?svg("check"):(i+1))+'</span><span class="cl"><b>'+esc(p[1])+'</b><small>'+(dates[p[0]]?esc(catDate(dates[p[0]])):i===cur?"now":i>cur?"next":"")+'</small></span></button>').join('<span class="cline"></span>')+'</div>';}
+function catSec(it,k,i,body){const cur=CAT_PH.findIndex(p=>p[0]===catPhase(it));const p=CAT_PH[i];
+  return '<section class="csec'+(i>cur?" later":"")+'" id="csec-'+k+'"><div class="csh"><span class="cnum" style="background:'+(i>cur?"var(--ink-4)":p[3])+'">'+(i+1)+'</span><b>'+esc(p[1])+'</b><small>'+esc(p[2])+'</small>'+(i===cur?'<span class="pill info" style="margin-left:6px">Now</span>':i>cur?'<span class="pill" style="margin-left:6px">Not started</span>':'')+'</div>'+body+'</section>';}
+function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=it.pricing||{},idea=it.idea||{};const ims=it.images||[];if(catImg>=ims.length)catImg=0;const main=ims[catImg];
+  const cost=+(ag.unit||pr.landed||0),price=+(pr.distributor||0),msrp=+(pr.msrp||0),mg=p=>p&&cost?Math.round(100*(p-cost)/p)+"%":"";
+  const cur=CAT_PH.findIndex(p=>p[0]===catPhase(it)),next=CAT_PH[cur+1];
   let h='<div class="row" style="gap:8px;margin:2px 0 12px"><button class="btn sm ghost" data-act="catback">'+svg("back")+'Catalog</button></div>';
-  h+='<div class="ph" style="flex-wrap:wrap"><h1>'+esc(it.name)+'</h1>'+catPill(it.status)+(it.sku?'<span class="t2">'+esc(it.sku)+'</span>':'')+'<span class="grow"></span>'+
-    '<select class="f" style="width:auto" data-act="catstatus" data-id="'+esc(it.id)+'" aria-label="Stage">'+CAT_ST.map(s=>'<option value="'+s[0]+'"'+(it.status===s[0]?' selected':'')+'>'+esc(s[1])+'</option>').join("")+'</select>'+
+  h+='<div class="ph" style="flex-wrap:wrap"><h1>'+esc(it.name)+'</h1><span class="t2">'+esc(it.category||"Other")+(it.sku?' · '+esc(it.sku):'')+'</span><span class="grow"></span>'+
+    (next&&!catEdit?'<button class="btn sm coral" data-act="catphase" data-id="'+esc(it.id)+'" data-v="'+next[0]+'">Move to '+esc(next[1])+' '+svg("arrow")+'</button>':'')+
     '<label class="btn sm">'+svg("plus")+'Add files<input type="file" multiple hidden data-catup="'+esc(it.id)+'"></label><button class="btn sm'+(catEdit?" coral":"")+'" data-act="'+(catEdit?"catsave":"catedit")+'" data-id="'+esc(it.id)+'">'+(catEdit?"Save":"Edit")+'</button>'+(catEdit?'<button class="btn sm ghost" data-act="catcancel">Cancel</button>':'')+'</div>';
-  if(it.summary&&!catEdit)h+='<p class="t2" style="margin:-8px 0 14px;max-width:760px">'+esc(it.summary)+'</p>';
+  h+=catStepper(it);
   if(catEdit)return h+catForm(it);
-  const files=(it.files||[]);
-  h+='<div class="cdet"><div><div class="pan cgal">'+(main?'<button class="cmain" data-act="mktpdf" data-path="'+esc(main.path)+'" data-title="'+esc(main.title||it.name)+'"><img alt="'+esc(main.title||"")+'" data-mkt="'+esc(main.path)+'"></button><div class="ccap">'+esc(main.title||"")+'<span class="t2"> · '+esc(({render:"Render",schematic:"Schematic",photo:"Photo",artwork:"Artwork"})[main.role]||"Image")+'</span></div>':'<div class="empty" style="padding:40px 16px">No renders yet. Add files to put designs here.</div>')+
+  const files=it.files||[],ftag=f=>(({quote:"Quote",spec:"Spec sheet",artwork:"Print file",schematic:"Schematic",pi:"Proforma invoice",bom:"Parts list"})[f.role]||"File")+(f.pages?" · "+f.pages+" pages":"");
+  const modelFiles=files.filter(f=>f.role!=="quote"),quoteFiles=files.filter(f=>f.role==="quote");
+  // 1 · Idea
+  h+=catSec(it,"idea",0,'<div class="pan cidea"><p class="cidea-t">'+esc(idea.text||it.summary||"Describe the idea: what it is and why we'd sell it.")+'</p><div class="cfs">'+catField("For",idea.forWho,"who buys it")+catField("Started",catDate((it.phases||{}).idea),"")+(it.summary&&idea.text?catField("In one line",it.summary):'')+'</div></div>');
+  // 2 · Models
+  h+=catSec(it,"models",1,'<div class="cmod"><div class="pan cgal">'+(main?'<button class="cmain" data-act="mktpdf" data-path="'+esc(main.path)+'" data-title="'+esc(main.title||it.name)+'"><img alt="'+esc(main.title||"")+'" data-mkt="'+esc(main.path)+'"></button><div class="ccap">'+esc(main.title||"")+'<span class="t2"> · '+esc(({render:"Render",schematic:"Schematic",photo:"Photo",artwork:"Artwork"})[main.role]||"Image")+'</span></div>':'<div class="empty" style="padding:40px 16px">No models yet. Use Add files for renders, schematics and designs.</div>')+
       (ims.length>1?'<div class="cthumbs">'+ims.map((im,i)=>'<button class="'+(i===catImg?"on":"")+'" data-act="catimg" data-v="'+i+'" title="'+esc(im.title||"")+'"><img alt="" data-mkt="'+esc(im.thumb||im.path)+'"></button>').join("")+'</div>':'')+'</div>'+
-    (files.length?'<div class="pan"><div class="ph2">'+svg("file")+'Files<span class="t2" style="margin-left:4px">· quotes, schematics, print files</span></div><div class="mfiles">'+files.map(f=>mktFileCard(f,f.title||f.path.split("/").pop(),(({quote:"Quote",spec:"Spec sheet",artwork:"Print file",schematic:"Schematic",pi:"Proforma invoice",bom:"Parts list"})[f.role]||"File")+(f.pages?" · "+f.pages+" pages":""))).join("")+'</div></div>':'')+
-    ((it.specs||[]).length?'<div class="pan"><div class="ph2">'+svg("check")+'Specs</div><div class="cfs">'+it.specs.map(s=>catField(s[0],s[1])).join("")+'</div></div>':'')+'</div>'+
-    '<div><div class="pan"><div class="ph2">'+svg("users")+'Maker</div><div class="cfs">'+catField("Manufacturer",mk.name,"not chosen")+catField("Contact",mk.contact)+catField("Where",mk.where)+(mk.url?'<div class="cf"><span>Link</span><b><a href="'+esc(mk.url)+'" target="_blank" rel="noopener">'+esc(mk.url.replace(/^https?:\/\//,"").slice(0,48))+'</a></b></div>':'')+(mk.note?'<p class="t2 cnote">'+esc(mk.note)+'</p>':'')+'</div></div>'+
-    '<div class="pan"><div class="ph2">'+svg("chart")+'Quote'+(q.date?'<span class="t2" style="margin-left:4px">· '+esc(q.date)+'</span>':'')+'</div>'+((q.tiers||[]).length?'<table class="ctier"><thead><tr><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead><tbody>'+q.tiers.map(t=>'<tr><td class="num">'+(+t.qty).toLocaleString()+' pcs</td><td class="num">'+catMoney(t.unit)+'</td><td class="num">'+catMoney(t.qty*t.unit)+'</td></tr>').join("")+'</tbody></table>':'<p class="t2" style="padding:12px 16px 0">No quote yet.'+(q.range?' Estimate: '+esc(q.range)+'.':'')+'</p>')+'<div class="cfs">'+(q.basis?catField("Covers",q.basis):'')+(q.ref?catField("Reference",q.ref):'')+'</div></div>'+
-    '<div class="pan"><div class="ph2">'+svg("check")+'Agreed with the maker</div><div class="cfs">'+catField("Unit price",catMoney(ag.unit))+catField("MOQ",ag.moq?(+ag.moq).toLocaleString()+" pcs":"")+catField("Lead time",ag.lead)+catField("Samples",ag.samples)+catField("Shipping",ag.shipping)+catField("Payment terms",ag.terms)+(ag.note?'<p class="t2 cnote">'+esc(ag.note)+'</p>':'')+'</div></div>'+
-    '<div class="pan"><div class="ph2">'+svg("chart")+'Our pricing</div><div class="cfs">'+catField("Landed cost",catMoney(pr.landed)||pr.landedNote)+catField("Distributor price",price?catMoney(price)+(mg(price)?" · "+mg(price)+" margin":""):"")+catField("MSRP",msrp?catMoney(msrp)+(mg(msrp)?" · "+mg(msrp)+" margin":""):"")+(pr.note?'<p class="t2 cnote">'+esc(pr.note)+'</p>':'')+'</div></div>'+
-    '<div class="pan"><div class="ph2">'+svg("alert")+'Open questions<span class="t2" style="margin-left:4px">· '+(it.open||[]).filter(o=>!o.done).length+' open</span></div><ul class="copen">'+(it.open||[]).map((o,i)=>'<li class="'+(o.done?"done":"")+'"><label><input type="checkbox" data-act="catq" data-id="'+esc(it.id)+'" data-v="'+i+'"'+(o.done?' checked':'')+'><span>'+esc(o.text)+'</span></label></li>').join("")+'</ul><div class="row" style="gap:6px;padding:0 16px 14px"><input class="f" id="catQNew" placeholder="Add a question for the maker" style="flex:1"><button class="btn sm" data-act="catqadd" data-id="'+esc(it.id)+'">Add</button></div></div>'+
-    (it.notes?'<div class="pan"><div class="ph2">'+svg("file")+'Notes</div><p class="cnote" style="padding:12px 16px;white-space:pre-wrap">'+esc(it.notes)+'</p></div>':'')+
+    '<div>'+(modelFiles.length?'<div class="pan"><div class="ph2">'+svg("file")+'Design files</div><div class="mfiles">'+modelFiles.map(f=>mktFileCard(f,f.title||f.path.split("/").pop(),ftag(f))).join("")+'</div></div>':'')+
+      ((it.specs||[]).length?'<div class="pan"><div class="ph2">'+svg("check")+'Specs</div><div class="cfs">'+it.specs.map(s=>catField(s[0],s[1])).join("")+'</div></div>':'')+'</div></div>');
+  // 3 · Quoting
+  h+=catSec(it,"quoting",2,'<div class="cquo"><div>'+
+      '<div class="pan"><div class="ph2">'+svg("users")+'Maker</div><div class="cfs">'+catField("Manufacturer",mk.name,"not chosen")+catField("Contact",mk.contact)+catField("Where",mk.where)+(mk.url?'<div class="cf"><span>Link</span><b><a href="'+esc(mk.url)+'" target="_blank" rel="noopener">'+esc(mk.url.replace(/^https?:\/\//,"").slice(0,48))+'</a></b></div>':'')+(mk.note?'<p class="t2 cnote">'+esc(mk.note)+'</p>':'')+'</div></div>'+
+      '<div class="pan"><div class="ph2">'+svg("chart")+'Quote'+(q.date?'<span class="t2" style="margin-left:4px">· '+esc(catDate(q.date))+'</span>':'')+'</div>'+((q.tiers||[]).length?'<table class="ctier"><thead><tr><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead><tbody>'+q.tiers.map(t=>'<tr><td class="num">'+(+t.qty).toLocaleString()+' pcs</td><td class="num">'+catMoney(t.unit)+'</td><td class="num">'+catMoney(t.qty*t.unit)+'</td></tr>').join("")+'</tbody></table>':'<p class="t2" style="padding:12px 16px 0">No quote yet.'+(q.range?' Estimate: '+esc(q.range)+'.':'')+'</p>')+'<div class="cfs">'+(q.basis?catField("Covers",q.basis):'')+(q.ref?catField("Reference",q.ref):'')+'</div>'+
+        (quoteFiles.length?'<div class="mfiles" style="padding-top:0">'+quoteFiles.map(f=>mktFileCard(f,f.title||f.path.split("/").pop(),ftag(f))).join("")+'</div>':'')+'</div>'+
+      '<div class="pan"><div class="ph2">'+svg("check")+'Agreed with the maker</div><div class="cfs">'+catField("Unit price",catMoney(ag.unit))+catField("MOQ",ag.moq?(+ag.moq).toLocaleString()+" pcs":"")+catField("Lead time",ag.lead)+catField("Samples",ag.samples)+catField("Shipping",ag.shipping)+catField("Payment terms",ag.terms)+(ag.note?'<p class="t2 cnote">'+esc(ag.note)+'</p>':'')+'</div></div></div><div>'+
+      '<div class="pan"><div class="ph2">'+svg("chart")+'Our pricing</div><div class="cfs">'+catField("Landed cost",catMoney(pr.landed)||pr.landedNote)+catField("Distributor price",price?catMoney(price)+(mg(price)?" · "+mg(price)+" margin":""):"")+catField("MSRP",msrp?catMoney(msrp)+(mg(msrp)?" · "+mg(msrp)+" margin":""):"")+(pr.note?'<p class="t2 cnote">'+esc(pr.note)+'</p>':'')+'</div></div>'+
+      '<div class="pan"><div class="ph2">'+svg("alert")+'Open questions<span class="t2" style="margin-left:4px">· '+(it.open||[]).filter(o=>!o.done).length+' open</span></div><ul class="copen">'+(it.open||[]).map((o,i)=>'<li class="'+(o.done?"done":"")+'"><label><input type="checkbox" data-act="catq" data-id="'+esc(it.id)+'" data-v="'+i+'"'+(o.done?' checked':'')+'><span>'+esc(o.text)+'</span></label></li>').join("")+'</ul><div class="row" style="gap:6px;padding:0 16px 14px"><input class="f" id="catQNew" placeholder="Add a question for the maker" style="flex:1"><button class="btn sm" data-act="catqadd" data-id="'+esc(it.id)+'">Add</button></div></div></div></div>');
+  h+=(it.notes?'<div class="pan"><div class="ph2">'+svg("file")+'Notes</div><p class="cnote" style="padding:12px 16px;white-space:pre-wrap">'+esc(it.notes)+'</p></div>':'')+
     ((it.links||[]).length?'<div class="pan"><div class="ph2">'+svg("ext")+'Links</div><ul class="lilist" style="padding:10px 16px 14px">'+it.links.map(l=>'<li><a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.title||l.url)+'</a></li>').join("")+'</ul></div>':'')+
-    '<p class="t2" style="margin-top:4px">Updated '+esc(String(it.at||"").slice(0,10))+(it.by?' by '+esc(teamById(it.by).name||it.by):'')+'</p></div></div>';
+    '<p class="t2" style="margin-top:4px">Updated '+esc(catDate(it.at))+(it.by?' by '+esc(teamById(it.by).name||it.by):'')+'</p>';
   return h;}
 function catForm(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=it.pricing||{};
   const inp=(id,label,v,ph,w)=>'<div class="cfi'+(w?" w":"")+'"><label class="fl">'+esc(label)+'</label><input class="f" id="'+id+'" value="'+esc(v==null?"":String(v))+'" placeholder="'+esc(ph||"")+'"></div>';
   const ta=(id,label,v,ph)=>'<div class="cfi w"><label class="fl">'+esc(label)+'</label><textarea class="f" id="'+id+'" placeholder="'+esc(ph||"")+'" style="min-height:84px;width:100%">'+esc(v||"")+'</textarea></div>';
   return '<div class="pan"><div class="libody cform">'+
+    '<div class="sectlabel">Idea</div>'+ta("cIdea","What it is and why we'd sell it",(it.idea||{}).text)+inp("cFor","Who buys it",(it.idea||{}).forWho,"EHS managers, campuses…",1)+'<div class="cfi"><label class="fl">Phase</label><select class="f" id="cPhase">'+CAT_PH.map(p=>'<option value="'+p[0]+'"'+(catPhase(it)===p[0]?' selected':'')+'>'+p[1]+'</option>').join("")+'</select></div>'+
     '<div class="sectlabel">Product</div>'+inp("cName","Name",it.name,"",1)+inp("cSku","SKU",it.sku,"e.g. 7200-W10")+'<div class="cfi"><label class="fl">Group</label><select class="f" id="cCat">'+CAT_GROUPS.map(g=>'<option'+((it.category||"Other")===g?' selected':'')+'>'+g+'</option>').join("")+'</select></div>'+ta("cSum","One-line description",it.summary)+ta("cSpecs","Specs (one per line, Name: value)",(it.specs||[]).map(s=>s[0]+": "+s[1]).join("\n"),"Size: 178 x 254 mm")+
-    '<div class="sectlabel">Maker</div>'+inp("cMk","Manufacturer",mk.name)+inp("cMkC","Contact",mk.contact)+inp("cMkW","Where",mk.where,"Alibaba, US shop…")+inp("cMkU","Link",mk.url,"https://…",1)+ta("cMkN","Notes on the maker",mk.note)+
+    '<div class="sectlabel">Quoting · Maker</div>'+inp("cMk","Manufacturer",mk.name)+inp("cMkC","Contact",mk.contact)+inp("cMkW","Where",mk.where,"Alibaba, US shop…")+inp("cMkU","Link",mk.url,"https://…",1)+ta("cMkN","Notes on the maker",mk.note)+
     '<div class="sectlabel">Quote</div>'+inp("cQd","Date",q.date,"2026-10-12")+inp("cQb","Covers",q.basis,"product only, FOB…",1)+ta("cQt","Tiers (one per line: quantity = unit price)",(q.tiers||[]).map(t=>t.qty+" = "+t.unit).join("\n"),"100 = 1.00\n500 = 0.80")+inp("cQr","Reference",q.ref,"PI number, chat link…",1)+
     '<div class="sectlabel">Agreed with the maker</div>'+inp("cAu","Unit price ($)",ag.unit)+inp("cAm","MOQ (pcs)",ag.moq)+inp("cAl","Lead time",ag.lead,"15 days after payment")+inp("cAs","Samples",ag.samples)+inp("cAsh","Shipping",ag.shipping)+inp("cAt","Payment terms",ag.terms)+ta("cAn","Notes",ag.note)+
     '<div class="sectlabel">Our pricing</div>'+inp("cPl","Landed cost ($)",pr.landed)+inp("cPd","Distributor price ($)",pr.distributor)+inp("cPm","MSRP ($)",pr.msrp)+ta("cPn","Pricing notes",pr.note)+
     '<div class="sectlabel">Notes</div>'+ta("cNotes","Anything else",it.notes)+
     '<div class="row" style="gap:8px;margin-top:12px"><button class="btn sm coral" data-act="catsave" data-id="'+esc(it.id)+'">Save</button><button class="btn sm ghost" data-act="catcancel">Cancel</button><span class="grow"></span><button class="btn sm ghost" data-act="catdel" data-id="'+esc(it.id)+'">Remove product</button></div></div></div>';}
+function catSetPhase(it,ph){it.phase=ph;delete it.status;it.phases=Object.assign({},it.phases||{});if(!it.phases[ph])it.phases[ph]=todayStr();}
 function catNum(v){v=String(v||"").replace(/[$,\s]/g,"");return v===""||isNaN(+v)?null:+v;}
 function catSaveForm(it){const g=id=>((document.getElementById(id)||{}).value||"").trim();
   it.name=g("cName")||it.name;it.sku=g("cSku");it.category=g("cCat")||"Other";it.summary=g("cSum");
+  it.idea=Object.assign({},it.idea||{},{text:g("cIdea"),forWho:g("cFor")});const ph=g("cPhase");if(ph&&ph!==catPhase(it))catSetPhase(it,ph);
   it.specs=g("cSpecs").split("\n").map(l=>l.trim()).filter(Boolean).map(l=>{const i=l.indexOf(":");return i>0?[l.slice(0,i).trim(),l.slice(i+1).trim()]:["",l];});
   it.maker={name:g("cMk"),contact:g("cMkC"),where:g("cMkW"),url:g("cMkU"),note:g("cMkN")};
   it.quote=Object.assign({},it.quote||{},{date:g("cQd"),basis:g("cQb"),ref:g("cQr"),tiers:g("cQt").split("\n").map(l=>l.split(/[=:]/)).filter(p=>p.length===2&&catNum(p[0])!=null&&catNum(p[1])!=null).map(p=>({qty:catNum(p[0]),unit:catNum(p[1])}))});
@@ -2034,18 +2075,17 @@ async function catUpload(id,files){const it=catFind(id);if(!it)return;let ok=0;
     ok++;}
   if(ok){it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(ok+" file"+(ok===1?"":"s")+" added");}}
 document.addEventListener("change",e=>{const t=e.target;if(t&&t.dataset){if(t.dataset.catup&&t.files&&t.files.length){catUpload(t.dataset.catup,[...t.files]);t.value="";}
-  if(t.dataset.act==="catstatus"){const it=catFind(t.dataset.id);if(it){it.status=t.value;it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();}}
   if(t.dataset.act==="catq"){const it=catFind(t.dataset.id);const o=it&&(it.open||[])[+t.dataset.v];if(o){o.done=t.checked;it.at=new Date().toISOString();put("catalogItems",it);render();}}}});
 function catHandle(a,t){
   if(a==="catopen"){catSel=t.dataset.id;catEdit=false;catImg=0;render();window.scrollTo(0,0);return true;}
   if(a==="catback"){catSel="";catEdit=false;render();return true;}
-  if(a==="catgrp"){catGroupF=t.dataset.v||"";catSel="";catEdit=false;catFilter="";sideOpen=false;render();window.scrollTo(0,0);return true;}
-  if(a==="catfilter"){catFilter=catFilter===t.dataset.v?"":t.dataset.v;render();return true;}
+  if(a==="catgrp"){catGroupF=t.dataset.v||"";catSel="";catEdit=false;sideOpen=false;render();window.scrollTo(0,0);return true;}
+  if(a==="catphase"){const it=catFind(t.dataset.id);if(it&&t.dataset.v!==catPhase(it)){catSetPhase(it,t.dataset.v);it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(it.name+" → "+catPh(t.dataset.v)[1]);const el=document.getElementById("csec-"+t.dataset.v);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}return true;}
   if(a==="catimg"){catImg=+t.dataset.v;render();return true;}
   if(a==="catedit"){catEdit=true;render();return true;}
   if(a==="catcancel"){catEdit=false;render();return true;}
   if(a==="catsave"){const it=catFind(t.dataset.id);if(it){catSaveForm(it);toast("Saved");}catEdit=false;render();return true;}
-  if(a==="catnew"){const it={id:"cat-"+uid()+uid(),name:"New product",category:t.dataset.v||"White-label",status:"idea",summary:"",images:[],files:[],open:[],at:new Date().toISOString(),by:USER};put("catalogItems",it);catSel=it.id;catEdit=true;render();window.scrollTo(0,0);return true;}
+  if(a==="catnew"){const it={id:"cat-"+uid()+uid(),name:"New idea",category:t.dataset.v||"White-label",phase:"idea",phases:{idea:todayStr()},idea:{text:"",forWho:""},summary:"",images:[],files:[],open:[],at:new Date().toISOString(),by:USER};put("catalogItems",it);catSel=it.id;catEdit=true;render();window.scrollTo(0,0);return true;}
   if(a==="catdel"){const it=catFind(t.dataset.id);if(it&&confirm("Remove "+it.name+" from the catalog board? Its files stay in storage.")){it.removed=true;it.at=new Date().toISOString();put("catalogItems",it);catSel="";catEdit=false;render();}return true;}
   if(a==="catqadd"){const it=catFind(t.dataset.id);const v=((document.getElementById("catQNew")||{}).value||"").trim();if(it&&v){(it.open=it.open||[]).push({text:v,done:false});it.at=new Date().toISOString();put("catalogItems",it);render();}return true;}
   if(a==="catq")return true;
