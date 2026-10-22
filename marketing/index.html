@@ -2018,8 +2018,8 @@ function catDetail(it){const mk=it.maker||{},q=it.quote||{},ag=it.agreed||{},pr=
     '<label class="btn sm">'+svg("plus")+'Add files<input type="file" multiple hidden data-catup="'+esc(it.id)+'"></label><button class="btn sm'+(catEdit?" coral":"")+'" data-act="'+(catEdit?"catsave":"catedit")+'" data-id="'+esc(it.id)+'">'+(catEdit?"Save":"Edit")+'</button>'+(catEdit?'<button class="btn sm ghost" data-act="catcancel">Cancel</button>':'')+'</div>';
   h+=catStepper(it);
   if(catEdit)return h+catForm(it);
-  const files=it.files||[],ftag=f=>(({quote:"Quote",spec:"Spec sheet",artwork:"Print file",schematic:"Schematic",pi:"Proforma invoice",bom:"Parts list"})[f.role]||"File")+(f.pages?" · "+f.pages+" pages":"");
-  const modelFiles=files.filter(f=>f.role!=="quote"),quoteFiles=files.filter(f=>f.role==="quote");
+  const files=it.files||[],ftag=f=>(({quote:"Quote",spec:"Spec sheet",artwork:"Print file",schematic:"Schematic",pi:"Proforma invoice",bom:"Parts list",market:"Market pricing"})[f.role]||"File")+(f.pages?" · "+f.pages+" pages":"");
+  const QROLES=["quote","pi","market"],modelFiles=files.filter(f=>!QROLES.includes(f.role)),quoteFiles=files.filter(f=>QROLES.includes(f.role));
   // 1 · Idea
   h+=catSec(it,"idea",0,'<div class="pan cidea"><p class="cidea-t">'+esc(idea.text||it.summary||"Describe the idea: what it is and why we'd sell it.")+'</p><div class="cfs">'+catField("For",idea.forWho,"who buys it")+catField("Started",catDate((it.phases||{}).idea),"")+(it.summary&&idea.text?catField("In one line",it.summary):'')+'</div></div>');
   // 2 · Models
