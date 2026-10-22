@@ -578,6 +578,7 @@ svg.usmap .dots{stroke:var(--dots)}
 .pdfv-body iframe{flex:1;border:0;width:100%;height:100%}.pdfv-body .empty{margin:auto;color:#ddd}
 .liatt{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.liatt .mfile{width:190px}
 /* Catalog by phase (2026-10-21, Max: Idea → Models → Quoting) */
+.cchips{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
 .cboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
 .ccol{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r-lg);min-width:0}
 .cch{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--rule)}.cch b{display:block;font-size:14px}.cch small{display:block;font-size:11.5px;color:var(--ink-3)}
@@ -1409,8 +1410,9 @@ function railHTML(n){
   const me=teamById(USER),mini=sideMini(),run=sideRunning(),st=sideSent();
   const act=actItems().length,lid=liPosts().filter(p=>p.status==="draft").length;
   const ring=(function(){const r=13,c=2*Math.PI*r,o=c*(1-st.pct/100);return '<svg class="ring" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="var(--rule-3)" stroke-width="3"/><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="'+(st.pct>=90?"var(--coral)":"var(--ink-2)")+'" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+o.toFixed(1)+'" transform="rotate(-90 16 16)"/></svg>';})();
-  const catNav=()=>{const its=catItems();return sideGrp("Catalog",["",...CAT_GROUPS].map(g=>{const k=its.filter(x=>!g||(x.category||"Other")===g).length;const on=!catSel&&catGroupF===g;
-    return '<button class="sitem'+(on?" on":"")+'" data-act="catgrp" data-v="'+esc(g)+'" data-tip="'+esc((g||"All products")+" · "+k)+'">'+svg(g===""?"box":g==="Signage"?"alert":g==="Cabinets"?"inbox":g==="White-label"?"plus":"file")+'<span class="lbl">'+esc(g||"All products")+'</span><small>'+k+'</small></button>';}).join(""),0);};
+  const catNav=()=>{const its=catItems();const cur=catSel&&catFind(catSel)?catPhase(catFind(catSel)):catPhaseF;
+    return sideGrp("Catalog",[["","box","All products"],["idea","spark","Idea"],["models","eye","Models"],["quoting","file","Quoting"]].map(([k,ic,lb])=>{const n=its.filter(x=>!k||catPhase(x)===k).length;const on=k?cur===k:(!catSel&&!catPhaseF);
+    return '<button class="sitem'+(on?" on":"")+'" data-act="catph" data-v="'+k+'" data-tip="'+esc(lb+" · "+n)+'">'+svg(ic)+'<span class="lbl">'+esc(lb)+'</span><small>'+n+'</small></button>';}).join(""),0);};
   const nav=APP==="catalog"?catNav():sideGrp("Marketing",SIDE_TABS.map(t=>sideItem(t,n)).join(""),act+n+lid)+
     sideGrp("Campaigns",run.length?run.slice(0,8).map(c=>'<button class="sitem'+(ovCamp===c.id&&view==="over"?" on":"")+'" data-act="ovfocus" data-id="'+c.id+'" data-tip="'+esc(c.name)+' · '+campStatusWord(c)+'"><span class="dot"><i style="background:'+(c.status==="active"?campColor(c):"var(--ink-4)")+'"></i></span><span class="lbl">'+esc(laneShort(c))+'</span><small>'+campStatusWord(c)+'</small></button>').join(""):'<p class="snone">Nothing running yet</p>',0);
   return '<aside class="side"><div class="sbox">'+
@@ -1470,7 +1472,7 @@ function palItems(q){
   q=String(q||"").trim();const ql=q.toLowerCase();
   const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
   const hit=s=>!ql||String(s).toLowerCase().includes(ql);
-  const tabs=APP==="catalog"?[["box","All products","",()=>{catGroupF="";catSel="";goView("cat");}]].concat(CAT_GROUPS.map(g=>["box",g,"Catalog",()=>{catGroupF=g;catSel="";goView("cat");}]))
+  const tabs=APP==="catalog"?[["box","All products","",()=>{catPhaseF="";catSel="";goView("cat");}]].concat(CAT_PH.map(p=>[p[0]==="idea"?"spark":p[0]==="models"?"eye":"file",p[1],"Catalog phase",()=>{catPhaseF=p[0];catSel="";goView("cat");}]))
     :[["home","Home","",()=>goView("start")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn · Post","",()=>goView("li")],["file","LinkedIn · Messenger","",()=>goView("limsg")]]);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2],t[3]));
   const acts=[APP==="catalog"?["plus","New idea","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],
@@ -1528,11 +1530,11 @@ function render(){
   const titles={start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
   const subs={start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
-  const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catFind(catSel).category||"Other",catFind(catSel).name]:[catGroupF||"All products"]):view==="start"?["Home"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right">'+(APP==="catalog"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">Search products</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   (APP==="catalog"?'<nav class="mnav" aria-label="Groups">'+["",...CAT_GROUPS].map(g=>'<button class="'+(!catSel&&catGroupF===g?"on":"")+'" data-act="catgrp" data-v="'+esc(g)+'">'+esc(g||"All")+'</button>').join("")+'</nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>')+
+   (APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_PH.map(p=>[p[0],p[1]])).map(([k,lb])=>'<button class="'+(!catSel&&catPhaseF===k?"on":"")+'" data-act="catph" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'</nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>')+
    '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
@@ -1977,7 +1979,7 @@ function mktHandle(a,t){
 /* phases of development toward the catalog (Max, 2026-10-21: "group the items by phases… Idea, Models, Quoting") */
 const CAT_PH=[["idea","Idea","What it is, why we'd sell it, who buys it","var(--ink-3)"],["models","Models","Renders, schematics, designs","var(--info)"],["quoting","Quoting","Makers, prices, MOQ, our pricing","var(--warn)"]];
 const CAT_GROUPS=["Signage","Cabinets","White-label","Other"];
-let catSel="",catEdit=false,catImg=0,catGroupF="";
+let catSel="",catEdit=false,catImg=0,catGroupF="",catPhaseF="";
 function catItems(){return (DB.catalogItems||[]).filter(x=>x&&x.id&&!x.removed);}
 function catFind(id){return catItems().find(x=>x.id===id);}
 function catPhase(it){const s=it.phase||it.status||"idea";return s==="idea"?"idea":(s==="models"||s==="design")?"models":"quoting";} // older records carried a status
@@ -1998,8 +2000,11 @@ function catCardLine(it){const ph=catPhase(it);
 function catCard(it){const ph=catPhase(it),since=(it.phases||{})[ph];
   return '<button class="ccard" data-act="catopen" data-id="'+esc(it.id)+'"><span class="cth">'+catThumb(it)+'</span><span class="cbd"><span class="ctag">'+esc(it.category||"Other")+(it.sku?' · '+esc(it.sku):'')+'</span><b>'+esc(it.name)+'</b><small>'+catCardLine(it)+'</small>'+(since?'<small class="csince">In '+esc(catPh(ph)[1])+' since '+esc(catDate(since))+'</small>':'')+'</span></button>';}
 function viewCatalog(){const all=catItems();if(catSel){const it=catFind(catSel);if(it)return catDetail(it);catSel="";}
-  const list=all.filter(x=>!catGroupF||(x.category||"Other")===catGroupF);
-  let h='<div class="ph"><h1>'+esc(catGroupF||"Catalog")+'</h1><p>New products on their way into the AutoTQ catalog, by phase. Internal only.</p><span class="grow"></span><button class="btn sm coral" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'>'+svg("plus")+'New idea</button></div>';
+  const list=all.filter(x=>!catGroupF||(x.category||"Other")===catGroupF);const PH=catPhaseF?catPh(catPhaseF):null,phi=PH?CAT_PH.indexOf(PH):-1;
+  let h='<div class="ph"><h1>'+(PH?'<span class="cnum" style="background:'+PH[3]+';vertical-align:3px;margin-right:8px">'+(phi+1)+'</span>'+esc(PH[1]):'Catalog')+'</h1><p>'+(PH?esc(PH[2]):'New products on their way into the AutoTQ catalog, by phase. Internal only.')+'</p><span class="grow"></span><button class="btn sm coral" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'>'+svg("plus")+'New idea</button></div>';
+  h+='<div class="cchips">'+["",...CAT_GROUPS].map(g=>{const n=all.filter(x=>(!PH||catPhase(x)===PH[0])&&(!g||(x.category||"Other")===g)).length;return '<button class="chip'+(catGroupF===g?" on":"")+'" data-act="catgrp" data-v="'+esc(g)+'">'+esc(g||"All groups")+' <span class="t2">'+n+'</span></button>';}).join("")+'</div>';
+  if(PH){const its=list.filter(x=>catPhase(x)===PH[0]);
+    return h+'<div class="cgrid">'+its.map(catCard).join("")+(PH[0]==="idea"?'<button class="ccard cnew" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'><span class="cph">'+svg("plus")+'</span><b>New idea</b><small>A white-label product, a kit, a case, a station. Start with what it is and why we\'d sell it.</small></button>':'')+'</div>'+(its.length||PH[0]==="idea"?'':'<div class="empty">Nothing in '+esc(PH[1])+(catGroupF?' for '+esc(catGroupF):'')+' yet.</div>');}
   h+='<div class="cboard">'+CAT_PH.map((p,i)=>{const its=list.filter(x=>catPhase(x)===p[0]);
     return '<section class="ccol"><header class="cch"><span class="cnum" style="background:'+p[3]+'">'+(i+1)+'</span><span><b>'+esc(p[1])+'</b><small>'+esc(p[2])+'</small></span><span class="ccount num">'+its.length+'</span></header><div class="ccb">'+its.map(catCard).join("")+
       (p[0]==="idea"?'<button class="ccard cnew" data-act="catnew"'+(catGroupF?' data-v="'+esc(catGroupF)+'"':'')+'><b>'+svg("plus")+(catGroupF==="White-label"||!catGroupF?'New idea · a white-label product, a kit, a case…':'New idea')+'</b></button>':(its.length?'':'<p class="cempty">Nothing here yet</p>'))+'</div></section>';}).join("")+'</div>';
@@ -2079,7 +2084,8 @@ document.addEventListener("change",e=>{const t=e.target;if(t&&t.dataset){if(t.da
 function catHandle(a,t){
   if(a==="catopen"){catSel=t.dataset.id;catEdit=false;catImg=0;render();window.scrollTo(0,0);return true;}
   if(a==="catback"){catSel="";catEdit=false;render();return true;}
-  if(a==="catgrp"){catGroupF=t.dataset.v||"";catSel="";catEdit=false;sideOpen=false;render();window.scrollTo(0,0);return true;}
+  if(a==="catgrp"){catGroupF=t.dataset.v||"";catSel="";catEdit=false;sideOpen=false;render();return true;}
+  if(a==="catph"){catPhaseF=t.dataset.v||"";catSel="";catEdit=false;sideOpen=false;render();window.scrollTo(0,0);return true;}
   if(a==="catphase"){const it=catFind(t.dataset.id);if(it&&t.dataset.v!==catPhase(it)){catSetPhase(it,t.dataset.v);it.at=new Date().toISOString();it.by=USER;put("catalogItems",it);render();toast(it.name+" → "+catPh(t.dataset.v)[1]);const el=document.getElementById("csec-"+t.dataset.v);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}return true;}
   if(a==="catimg"){catImg=+t.dataset.v;render();return true;}
   if(a==="catedit"){catEdit=true;render();return true;}
