@@ -508,6 +508,22 @@ svg.usmap .dots{stroke:var(--dots)}
 .lichecks,.lilist{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}.lichecks li{display:flex;gap:8px;align-items:flex-start}.lichecks li .i{width:15px;height:15px;flex:none;margin-top:2px}
 .lichecks li.ok .i{color:var(--ok)}.lichecks li.no{color:var(--warn)}.lichecks li.no .i{color:var(--warn)}.lilist a{color:var(--ink)}
 @media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
+/* LinkedIn visuals (2026-10-25): the stat card and the product photo, side by side at the feed's 4:5 */
+.livis{display:grid;grid-template-columns:repeat(2,minmax(0,230px));gap:16px}
+.livfig{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.livimg{display:block;width:100%;aspect-ratio:4/5;padding:0;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--panel);cursor:zoom-in}
+.livimg img{display:block;width:100%;height:100%;object-fit:cover}.livimg.photo{background:#fff}.livimg.photo img{object-fit:contain}
+.livimg:hover,.livimg:focus-visible{border-color:var(--ink-3)}.livimg:disabled{cursor:default}
+.livfig figcaption b{display:block;font-size:13px;font-weight:600}.livfig figcaption small{display:block;font-size:12px;color:var(--ink-3);line-height:1.4;margin-top:2px}
+.livfig figcaption{flex:1;display:flex;flex-direction:column}.livbtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:8px}
+.livpick{margin-top:14px;padding:14px;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--panel)}
+.livchips{display:flex;flex-wrap:wrap;gap:6px}.livchips .chip{height:auto;min-height:30px;padding:5px 12px;white-space:normal;text-align:left;justify-content:flex-start;line-height:1.35}
+.livchips .chip b{font-weight:650;margin-right:6px;white-space:nowrap}.livchips .pill{margin-left:6px;white-space:nowrap}
+.livgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.livgrid button{display:flex;flex-direction:column;gap:4px;padding:5px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.livgrid button:hover,.livgrid button:focus-visible{border-color:var(--ink-3)}.livgrid button.on{border-color:var(--coral);box-shadow:var(--ring)}
+.livgrid img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#fff;border-radius:6px}.livgrid small{font-size:11px;line-height:1.3;color:var(--ink-3)}
+@media (max-width:520px){.livis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
 /* LinkedIn › Post (2026-10-21, Max: "show MTWTF SS… past posts and the engagement… a brief overview of our profile… a high level
    social media engine"): the profile up top, the week as seven days, then every past post with its numbers */
 .liprof .likpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--rule)}
@@ -660,6 +676,7 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 <div id="screen"></div>
 <div id="scrim" data-act="closesheet"></div><aside id="insp" aria-label="Details"></aside>
 <div class="toast" id="toast"></div>
+<script src="assets/li_photos.js"></script>
 <script>
 /* ===== AutoTQ Marketing — the marketing hub, separate from the CRM, same shared database. =====
    Reads the team's lead data (conference leads, contacts, accounts, call lists) straight from Supabase with the
@@ -1551,7 +1568,7 @@ function render(){
    '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
-  mktHydrate();
+  mktHydrate();liHydrate();
 }
 function fitVolume(){const el=document.querySelector("svg.vol");if(!el||!OV_CHART)return;const w=Math.round(el.parentElement.clientWidth);if(!w||Math.abs(w-el.viewBox.baseVal.width)<2)return;el.outerHTML=ovChartSVG(OV_CHART.ser,OV_CHART.st,OV_CHART.cs,OV_CHART.h,w).svg;}
 function campStatusWord(c){return c.paused?"paused":({draft:"draft",review:"in review",approved:"approved",active:"running",done:"done"}[c.status||"draft"]||c.status);}
@@ -1848,11 +1865,12 @@ async function liImportFile(f){
   }catch(e){toast(e.message||"Couldn't read that file");}
 }
 function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||[]).map(id=>res.find(r=>r.id===id)).filter(Boolean);
-  const checks=(p.checks||[]).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
+  const checks=(p.checks||[]).concat([livCheck(p)].filter(Boolean)).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
   return '<div class="pan lipost"><div class="ph2">'+svg("file")+esc(LI_PILLAR[p.pillar]||p.pillar)+' · '+esc(liWhen(p.slotAt))+'<span class="meta">'+liStatusPill(p)+'</span></div><div class="libody">'+
     (liEdit?'<textarea class="f" id="liText" style="min-height:260px;width:100%;font:inherit;line-height:1.55">'+esc(liText(p))+'</textarea>':'<div class="litext">'+esc(liText(p))+'</div>')+
     ((p.hashtags||[]).length?'<p class="litags">'+p.hashtags.map(x=>'#'+esc(x)).join(" ")+'</p>':'')+
     ((p.attachments||[]).length?'<div class="sectlabel" style="margin-top:16px">Attached to this post</div><div class="liatt">'+p.attachments.map(f=>mktFileCard(f,f.title,(f.pages?f.pages+" pages · ":"")+"PDF · attach it in LinkedIn")).join("")+'</div>':'')+
+    liVisualHTML(p)+
     '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:14px">'+(liEdit?'<button class="btn sm coral" data-act="lisave" data-v="'+p.id+'">Save edit</button><button class="btn sm ghost" data-act="liedit" data-v="">Cancel</button>':
       (p.status!=="approved"&&p.status!=="posted"?'<button class="btn sm coral" data-act="liapprove" data-v="'+p.id+'">Approve</button>':'')+'<button class="btn sm" data-act="liedit" data-v="'+p.id+'">Edit</button>'+(p.status!=="rejected"&&p.status!=="posted"?'<button class="btn sm ghost" data-act="lireject" data-v="'+p.id+'">Reject</button>':'')+
       (p.external?'':'<button class="btn sm ghost" data-act="lirewrite" data-v="'+p.id+'">New version</button>')+'<button class="btn sm ghost" data-act="licopy" data-v="'+p.id+'">Copy</button>'+(p.status==="approved"?'<button class="btn sm ghost" data-act="liposted" data-v="'+p.id+'">Mark posted</button>':''))+'</div>'+
@@ -1880,16 +1898,145 @@ function liHandle(a,t){const id=t.dataset.v;
     if(!any){toast("Type at least one number");return true;}m.src="manual";m.at=new Date().toISOString();m.by=USER;p.metrics=m;put("liPosts",p);render();toast("Numbers saved");return true;}
   if(a==="liedit"){liEdit=!!id;render();return true;}
   if(a==="lisave"){const p=liFind(id);const v=(document.getElementById("liText")||{}).value||"";if(p&&v.trim()){p.finalText=v.trim();p.edited=true;p.editedBy=USER;p.editedAt=new Date().toISOString();put("liPosts",p);}liEdit=false;render();toast("Saved");return true;}
-  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
+  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).concat([livCheck(p)].filter(Boolean)).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;livStamp(p);p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
   if(a==="lireject"){const p=liFind(id);if(!p)return true;const why=prompt("Why reject it? (the next drafts learn from this)","");if(why===null)return true;p.status="rejected";p.rejectReason=why.trim()||"no reason given";p.rejectedBy=USER;p.rejectedAt=new Date().toISOString();put("liPosts",p);liSel="";render();toast("Rejected — Draft this week fills the empty slot");return true;}
   if(a==="lirewrite"){const p=liFind(id);if(!p)return true;const note=prompt("What should the new version do differently?","");if(note===null)return true;liCall("rewrite",{id,note}).then(()=>toast("Writing a new version…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
-  if(a==="licopy"){const p=liFind(id);if(p){const txt=liText(p)+((p.hashtags||[]).length?"\n\n"+p.hashtags.map(x=>"#"+x).join(" "):"");try{navigator.clipboard.writeText(txt);toast("Copied — paste it into LinkedIn");}catch(e){}}return true;}
-  if(a==="liposted"){const p=liFind(id);if(!p)return true;const u=prompt("Link to the live LinkedIn post (optional)","");if(u===null)return true;p.status="posted";p.postedAt=new Date().toISOString();p.postedUrl=u.trim();p.postedBy=USER;put("liPosts",p);render();toast("Marked posted");return true;}
+  if(a==="licopy"){const p=liFind(id);if(p){const txt=liText(p)+((p.hashtags||[]).length?"\n\n"+p.hashtags.map(x=>"#"+x).join(" "):"");try{navigator.clipboard.writeText(txt);toast(p.external?"Copied — paste it into LinkedIn":"Copied — paste it into LinkedIn, then add the card and the photo");}catch(e){}}return true;}
+  if(a==="liposted"){const p=liFind(id);if(!p)return true;const u=prompt("Link to the live LinkedIn post (optional)","");if(u===null)return true;if(!p.external)livStamp(p);p.status="posted";p.postedAt=new Date().toISOString();p.postedUrl=u.trim();p.postedBy=USER;put("liPosts",p);render();toast("Marked posted");return true;}
   if(a==="ligen"){liCall("generate",{week:liWeek}).then(()=>{toast("Researching and drafting — about a minute or three");setTimeout(render,1500);}).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="liresearch"){liCall("research").then(()=>toast("Researching…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="liaddres"){const u=(document.getElementById("liAddUrl")||{}).value||"",o=(document.getElementById("liAddOrg")||{}).value||"",w=(document.getElementById("liAddWhy")||{}).value||"";
     if(!/^https?:\/\//.test(u.trim())){toast("Paste the link first");return true;}put("liResearch",{id:"lr-m"+uid()+uid(),kind:"example",title:(o.trim()?o.trim()+" — ":"")+"post you liked",org:o.trim(),date:todayStr(),url:u.trim(),summary:"",takeaway:w.trim(),source:"manual",by:USER,at:new Date().toISOString()});render();toast("Added — the next drafts will use it");return true;}
+  if(a.indexOf("liv")===0)return livHandle(a,t);
   return false;}
+
+/* ---------- LinkedIn visuals (2026-10-25, Max: every draft comes with "a branded stat card made from each draft's checked number
+   (PNG to download) plus a matching real product photo from the library"). The cards restate li-studio's VERIFIED claims and
+   nothing else (change both together). The photos are real product shots from Desktop\master: tools/li_photos.py writes
+   assets/li_photos.js and puts the files in the private bucket at linkedin/photos/. Until someone changes a pick or approves
+   the post, both picks are worked out from the post's own words; then they are stored as p.visual {card, theme, photo}.
+   The card's look is the 2026-10-12 poster set (Finance/AutoTQ_Social_Shorts/build_posters.py): 1080x1350, drawn at 2x. ---------- */
+const LI_CARDS=[
+ {id:"bleed5",eyebrow:"A severe limb bleed can take a life in about",big:"5 min",head:["The median ambulance","arrives in about seven."],source:"Stop the Bleed · Mell et al., JAMA Surgery 2017",re:/\b(five|5)[ -]min(ute)?s?\b/i},
+ {id:"windlass",eyebrow:"In studies of untrained adults, fewer than",big:"1 in 4",accent:" in ",head:["get a windlass tourniquet","on correctly."],source:"Goralnick 2018 · Ross 2018 · Goolsby 2015, 2023",re:/\bone in four\b|\b1 in 4\b|\bwindlass/i},
+ {id:"first36",eyebrow:"First-time users in AutoTQ testing",big:"36/36",accent:"/",head:["got AutoTQ on.","33 with no help."],source:"AutoTQ testing, company-run, n = 36",re:/\b36 of 36\b|\b36\/36\b|\b33 with no help\b/i},
+ {id:"occl54",eyebrow:"AutoTQ occlusion study · IRB-reviewed",big:"54/54",accent:"/",head:["applications reached arterial occlusion,","Doppler-verified."],sub:"27 adults, at about 290 mmHg.",source:"theautotq.com/occlusion",re:/\b54 (of 54|applications)\b|\b290 ?mmHg\b|\bDoppler/i},
+ {id:"aurora4",eyebrow:"Aurora, CO · 43 tourniquet cases",big:"~4 min",head:["Police arrived before EMS,","on average."],source:"JSOM, 2021",re:/\bAurora\b|\bfour minutes before\b/i},
+ {id:"survey98",eyebrow:"National survey",big:"98%",head:["would try to help a family member","with a bleeding leg wound."],sub:"Only 36% said they would apply a tourniquet.",source:"Hartford Consensus survey, J Am Coll Surg 2016",re:/\b98%/},
+ {id:"patts88",eyebrow:"After a brief course",big:"88%",head:["applied a tourniquet correctly.","3 to 9 months later, 55% could."],sub:"16% did with no instruction.",source:"PATTS randomized trial, JAMA Surgery 2018",re:/\b88%|\b55%|\bPATTS\b/},
+ {id:"kragh87",eyebrow:"Battlefield survival with a needed tourniquet",big:"87%",head:["when one was applied.","0% when it wasn't."],source:"Kragh et al., Annals of Surgery 2009",re:/\b87%/},
+ {id:"kragh90",eyebrow:"Survival with a tourniquet before shock: about",big:"90%",head:["After shock,","about 10%."],source:"Kragh et al., Annals of Surgery 2009",re:/\b90%|\bbefore (the onset of )?shock\b/i},
+ {id:"hem40",eyebrow:"Bleeding causes up to",big:"40%",head:["of all","trauma deaths."],sub:"A third to more than half of those deaths happen before the hospital.",source:"Kauvar et al., Journal of Trauma 2006",re:/\b40%/},
+ {id:"aed8",eyebrow:"Bystanders use an AED in about",big:"1 in 8",accent:" in ",head:["cardiac arrests","in public places."],source:"CARES 2024",re:/\bone in eight\b|\b1 in 8\b/i},
+ {id:"aha22m",eyebrow:"CPR training each year",big:"22M+",accent:"+",head:["people, trained by the","American Heart Association."],sub:"CPR is a high-school graduation requirement in 40 states and DC.",source:"American Heart Association",re:/\b22 million\b/i},
+ {id:"stb10m",eyebrow:"An estimated",big:"10 million",head:["people worldwide trained","through Stop the Bleed."],source:"STOP THE BLEED, Sept 30, 2026",re:/\b10 million\b/i},
+ {id:"campus150",eyebrow:"A Florida university police department",big:"150",head:["AutoTQ units: every patrol car,","beside nearly every AED."],source:"Golden Hour Medical",re:/\b150\b/},
+ {id:"panthers13",eyebrow:"Florida Panthers",big:"13",head:["AutoTQ units","in their arena."],source:"Golden Hour Medical",re:/\bPanthers\b/i},
+ {id:"mfg1348",eyebrow:"Manufacturing · 2024",big:"1,348",head:["amputations reported","by employers."],source:"OSHA",re:/\b1,348\b/},
+ {id:"cons1034",eyebrow:"Construction · 2024",big:"1,034",head:["workplace deaths,","the most of any private industry."],source:"U.S. Bureau of Labor Statistics",re:/\b1,034\b/},
+ {id:"fork84",eyebrow:"Forklifts · 2024",big:"84",head:["work-related deaths","involved a forklift."],source:"National Safety Council",re:/\b84\b[^.]{0,80}forklift|forklift[^.]{0,80}\b84\b/i},
+ {id:"fish888",eyebrow:"Fishing and hunting workers · 2024",big:"88.8",head:["fatal injuries per 100,000.","3.3 for all workers."],source:"U.S. Bureau of Labor Statistics",re:/\b88\.8\b/},
+ {id:"schools",eyebrow:"Public schools in the United States",big:"99,073",head:["with about","49 million students."],source:"NCES",re:/\b99,073\b|\b49 million students\b/i},
+];
+const LI_PHOTO_DIR="linkedin/photos/";
+let livPick="";const LIV_URL={};
+function liCard(id){return LI_CARDS.find(c=>c.id===id)||LI_CARDS[0];}
+function liPhotos(){return window.LI_PHOTOS||[];}
+function liPhoto(id){return liPhotos().find(x=>x.id===id)||null;}
+const LIV_RE={};function livTagRe(t){return LIV_RE[t]||(LIV_RE[t]=new RegExp("\\b"+t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i"));}
+function livHash(s){let h=0;for(const ch of s)h=(h*31+ch.charCodeAt(0))>>>0;return h;}
+/* the card: the checked number the post itself uses first; a post with none gets its pillar's card (flagged) */
+function livAutoCard(p){const t=liText(p);let best=null;LI_CARDS.forEach(c=>{const i=t.search(c.re);if(i>-1&&(!best||i<best.i))best={c,i};});
+  return best?{id:best.c.id,fallback:false}:{id:p.pillar==="product"?"first36":"bleed5",fallback:true};}
+/* the photo: most tag words found in the post, then the pillar, then the group's best shot; not a photo any post in the two
+   weeks before it already uses */
+function livRank(p){const t=liText(p)+" "+(p.topic||"");
+  return liPhotos().map(ph=>{const hits=ph.tags.filter(g=>livTagRe(g).test(t));return {ph,hits,s:hits.length*2+(ph.pillars.includes(p.pillar)?1:0)+(ph.lead?.5:0)+(livHash(p.id+ph.id)%100)/250};}).sort((a,b)=>b.s-a.s);}
+function livAutoPhoto(p,memo){memo=memo||{};if(memo[p.id])return memo[p.id];const used=new Set(),at=String(p.slotAt||""),from=at&&!isNaN(new Date(at))?new Date(new Date(at).getTime()-14*864e5).toISOString():"";
+  liPosts().filter(q=>q.id!==p.id&&q.status!=="rejected"&&!q.external&&String(q.slotAt||"")<at&&String(q.slotAt||"")>=from).forEach(q=>used.add(q.visual&&q.visual.photo||livAutoPhoto(q,memo).id));
+  const r=livRank(p),pick=r.find(x=>!used.has(x.ph.id))||r[0];memo[p.id]=pick?{id:pick.ph.id,hits:pick.hits}:{id:"",hits:[]};return memo[p.id];}
+function liVisual(p){const v=p.visual||{},ac=livAutoCard(p),ap=v.photo?null:livAutoPhoto(p);
+  return {card:v.card||ac.id,cardFallback:!v.card&&ac.fallback,theme:v.theme||"night",photo:v.photo||(ap&&ap.id)||"",picked:{card:!!v.card,photo:!!v.photo}};}
+function livStamp(p){const v=liVisual(p);p.visual=Object.assign({},p.visual||{},{card:v.card,theme:v.theme,photo:v.photo,at:(p.visual&&p.visual.at)||new Date().toISOString()});}
+/* drawing the card */
+const LIV_IMG={};function livImg(src){return LIV_IMG[src]||(LIV_IMG[src]=new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>{delete LIV_IMG[src];no(new Error("couldn't load "+src));};im.src=src;}));}
+async function livCardCanvas(id,theme){const c=liCard(id),day=theme==="day";
+  if(document.fonts&&document.fonts.load)await Promise.all([300,500,600].map(w=>document.fonts.load(w+' 100px "Inter"'))).catch(()=>{});
+  const logo=await livImg(day?"assets/lockup_ink.png":"assets/lockup_light.png").catch(()=>null);
+  const W=1080,H=1350,S=2,L=72,MW=W-2*L,cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;const g=cv.getContext("2d");g.scale(S,S);
+  const C=day?{bg:"#F2F0EB",ink:"#0E0E10",mute:"#6B6B70",src:"#86868C",track:"#DCD9D2"}:{bg:"#0A0A0C",ink:"#F2F0EB",mute:"#9A9AA0",src:"#77777D",track:"#26262B"},RED="#D9291C";
+  const set=(w,s,sp)=>{g.font=w+" "+s+'px Inter, "Helvetica Neue", Arial, sans-serif';if("letterSpacing" in g)g.letterSpacing=((sp||0)*s).toFixed(2)+"px";};
+  const tw=x=>g.measureText(x).width;
+  const wrap=x=>{const out=[];let cur="";String(x||"").split(/\s+/).filter(Boolean).forEach(w=>{const n=cur?cur+" "+w:w;if(cur&&tw(n)>MW){out.push(cur);cur=w;}else cur=n;});if(cur)out.push(cur);return out;};
+  // two lines split where the longer one is shortest, so no word sits alone on a line
+  const two=x=>{const ws=String(x||"").split(/\s+/).filter(Boolean);let best=null;for(let i=1;i<ws.length;i++){const a=ws.slice(0,i).join(" "),b=ws.slice(i).join(" "),m=Math.max(tw(a),tw(b));if(m<=MW&&(!best||m<best.m))best={m,ls:[a,b]};}return best&&best.ls;};
+  // one line if it fits between max and min size, else two balanced lines, else as many as it takes
+  const fit=(x,w,max,min,sp)=>{for(let s=max;s>=min;s-=2){set(w,s,sp);if(tw(x)<=MW)return {s,ls:[x]};}
+    for(let s=max;s>=min;s-=2){set(w,s,sp);const ls=two(x);if(ls)return {s,ls};}set(w,min,sp);return {s:min,ls:wrap(x)};};
+  // lay the card out at scale k (everything under the eyebrow), smaller until it clears the footer
+  let Y=null;for(const k of [1,.92,.84,.76,.68]){const o={};
+    o.eb=fit(c.eyebrow.toUpperCase(),500,28,22,.14);o.ebTop=96;const ebBot=o.ebTop+o.eb.ls.length*o.eb.s*1.3;
+    o.bs=Math.round(372*k);set(300,o.bs,-.06);while(tw(c.big)>MW+24&&o.bs>110){o.bs-=6;set(300,o.bs,-.06);}
+    o.numTop=Math.max(150,ebBot+26);const numBot=o.numTop+o.bs;
+    // the two head lines (light, then bold) share one size: each on one line if it can stay at 62 or more, else balanced pairs
+    const hmax=Math.round(84*k),head=c.head||[];o.hs=null;
+    for(let s=hmax;s>=62;s-=2){if(head.every((x,i)=>{set(i?600:300,s,-.03);return tw(x)<=MW;})){o.hs=s;o.hl=head.map(x=>[x]);break;}}
+    if(!o.hs)for(let s=hmax;s>=46;s-=2){const ls=head.map((x,i)=>{set(i?600:300,s,-.03);return tw(x)<=MW?[x]:two(x);});if(ls.every(Boolean)&&ls.reduce((a,b)=>a+b.length,0)<=3){o.hs=s;o.hl=ls;break;}}
+    if(!o.hs){o.hs=46;o.hl=head.map((x,i)=>{set(i?600:300,46,-.03);return wrap(x);});}
+    o.headTop=numBot+Math.max(70,Math.round(o.bs*.344));let y=o.headTop+o.hl.reduce((a,b)=>a+b.length,0)*o.hs*1.02;
+    if(c.sub){const sm=Math.round(34*Math.max(k,.85));set(400,sm,-.01);const sl=tw(c.sub)<=MW?[c.sub]:two(c.sub)||wrap(c.sub);o.ss=sm;o.sl=sl;o.subTop=y+34;y=o.subTop+o.sl.length*o.ss*1.35;}
+    o.barTop=y+56;set(400,24,.01);o.srl=wrap(c.source);o.srcTop=o.barTop+6+26;y=o.srcTop+o.srl.length*24*1.3;
+    if(y<=1186||k===.68){Y=o;break;}}
+  const o=Y,bl=(top,s,lh)=>top+((lh-1.2109)/2+.96875)*s;
+  g.fillStyle=C.bg;g.fillRect(0,0,W,H);g.textBaseline="alphabetic";
+  set(500,o.eb.s,.14);g.fillStyle=C.mute;o.eb.ls.forEach((x,i)=>g.fillText(x,L,bl(o.ebTop+i*o.eb.s*1.3,o.eb.s,1.21)));
+  set(300,o.bs,-.06);const nb=bl(o.numTop,o.bs,1);let nx=L-12;
+  const parts=c.accent&&c.big.indexOf(c.accent)>-1?[c.big.slice(0,c.big.indexOf(c.accent)),c.accent,c.big.slice(c.big.indexOf(c.accent)+c.accent.length)]:[c.big];
+  parts.forEach((x,i)=>{g.fillStyle=i===1?RED:C.ink;g.fillText(x,nx,nb);nx+=tw(x);});
+  g.fillStyle=C.ink;let ln=0;o.hl.forEach((ls,i)=>{set(i?600:300,o.hs,-.03);ls.forEach(x=>{g.fillText(x,L,bl(o.headTop+ln*o.hs*1.02,o.hs,1.02));ln++;});});
+  if(c.sub){set(400,o.ss,-.01);g.fillStyle=C.mute;o.sl.forEach((x,i)=>g.fillText(x,L,bl(o.subTop+i*o.ss*1.35,o.ss,1.35)));}
+  const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();g.fill();};
+  g.fillStyle=RED;rr(L,o.barTop,MW,6,3);
+  set(400,24,.01);g.fillStyle=C.src;o.srl.forEach((x,i)=>g.fillText(x,L,bl(o.srcTop+i*24*1.3,24,1.21)));
+  if(logo){const lh=44,lw=Math.round(logo.width*lh/logo.height);g.drawImage(logo,L,1257-lh/2,lw,lh);}
+  else{set(600,34,-.01);g.fillStyle=C.ink;g.fillText("AutoTQ",L,1269);}
+  set(500,26,.01);g.fillStyle=C.ink;g.textAlign="right";g.fillText("theAutoTQ.com",W-L,1266);g.textAlign="left";
+  return cv;}
+function livCardBlob(id,theme){return livCardCanvas(id,theme).then(cv=>new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error("couldn't make the PNG")),"image/png")));}
+function livCardURL(id,theme){const k=id+"|"+theme;return LIV_URL[k]||(LIV_URL[k]=livCardBlob(id,theme).then(b=>URL.createObjectURL(b)).catch(e=>{delete LIV_URL[k];throw e;}));}
+function liHydrate(){document.querySelectorAll("img[data-licard]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");const [id,th]=el.getAttribute("data-licard").split("|");livCardURL(id,th).then(u=>{el.src=u;}).catch(()=>{el.alt="Couldn't draw the card";});});}
+function livSave(url,name){const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();}
+function livName(p,kind,ext){return "AutoTQ_LinkedIn_"+String(p.slotAt||todayStr()).slice(0,10)+"_"+kind+"."+ext;}
+async function livDownload(p,what){const v=liVisual(p);
+  try{if(what!=="photo"){livSave(await livCardURL(v.card,v.theme),livName(p,"card-"+v.card,"png"));}
+    if(what!=="card"&&v.photo){if(what==="both")await new Promise(r=>setTimeout(r,400));livSave(await mktBlob(LI_PHOTO_DIR+v.photo+".jpg"),livName(p,"photo-"+v.photo,"jpg"));}
+    toast(what==="both"?"Downloaded the card and the photo":"Downloaded");}
+  catch(e){toast("Couldn't download: "+(e.message||e));}}
+function livOpen(url,title){let el=document.getElementById("pdfv");if(!el){el=document.createElement("div");el.id="pdfv";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el);}
+  el.innerHTML='<div class="pdfv-bar"><b>'+esc(title)+'</b><span class="grow"></span><a class="btn sm ghost" href="'+url+'" download="'+esc(title.replace(/[^\w.-]+/g,"_"))+'.png">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><img class="pdfv-img" alt="'+esc(title)+'" src="'+url+'"></div>';
+  el.classList.add("open");const x=el.querySelector('[data-act="mktclose"]');if(x)x.focus();}
+function liVisualHTML(p){if(p.external)return "";const v=liVisual(p),c=liCard(v.card),ph=liPhoto(v.photo),pdf=(p.attachments||[]).length,open=livPick.split(":"),mine=open[0]===p.id;
+  const t=liText(p);
+  const cardPick=mine&&open[1]==="card"?'<div class="livpick"><div class="sectlabel">Pick the number for the card</div><div class="livchips">'+LI_CARDS.slice().sort((a,b)=>(b.re.test(t)?1:0)-(a.re.test(t)?1:0)).map(x=>'<button class="chip'+(x.id===v.card?" on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="card" data-v="'+x.id+'"><b>'+esc(x.big)+'</b> '+esc((s=>s.length>46?s.slice(0,44).replace(/[\s,.:;]+\S*$/,"")+"…":s)(x.head.join(" ")))+(x.re.test(t)?' <span class="pill ok">in this post</span>':'')+'</button>').join("")+'</div></div>':'';
+  const photoPick=mine&&open[1]==="photo"?'<div class="livpick"><div class="sectlabel">Pick the photo</div><div class="livgrid">'+livRank(p).map(x=>'<button class="'+(x.ph.id===v.photo?"on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="photo" data-v="'+x.ph.id+'" title="'+esc(x.ph.title)+'"><img alt="" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+x.ph.id+'.jpg"><small>'+esc(x.ph.title)+'</small></button>').join("")+'</div></div>':'';
+  return '<div class="sectlabel" style="margin-top:18px">Visuals</div><p class="t2" style="margin:-4px 0 10px">'+(pdf?'LinkedIn puts either a PDF or images on a post, not both. This post carries the PDF, so keep these for the first comment or another post.':'Add both to the post in LinkedIn, the card first.')+'</p>'+
+   '<div class="livis"><figure class="livfig"><button class="livimg" data-act="livzoom" data-p="'+p.id+'" data-k="card" aria-label="Open the stat card full size"><img alt="Stat card: '+esc(c.big+" "+c.head.join(" "))+'" data-licard="'+c.id+'|'+v.theme+'"></button>'+
+     '<figcaption><b>Stat card</b><small>'+esc(c.big)+' · '+esc(c.source)+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="card">PNG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="card">Change</button><button class="btn sm ghost" data-act="livtheme" data-p="'+p.id+'">'+(v.theme==="day"?"Dark":"Light")+'</button></span></figcaption></figure>'+
+    '<figure class="livfig"><button class="livimg photo" data-act="livzoom" data-p="'+p.id+'" data-k="photo" aria-label="Open the photo full size"'+(ph?'':' disabled')+'>'+(ph?'<img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+ph.id+'.jpg">':'<span class="t2">The photo set didn’t load</span>')+'</button>'+
+     '<figcaption><b>Product photo</b><small>'+(ph?esc(ph.title):'—')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="photo"'+(ph?'':' disabled')+'>JPG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="photo">Change</button></span></figcaption></figure></div>'+
+   cardPick+photoPick+
+   '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="both"'+(ph?'':' disabled')+'>Download both</button>'+(v.picked.card||v.picked.photo?'<button class="btn sm ghost" data-act="livreset" data-p="'+p.id+'">Back to the automatic picks</button>':'')+'</div>';}
+/* the card's own check, shown with the post's other checks */
+function livCheck(p){if(p.external)return null;const v=liVisual(p),c=liCard(v.card);
+  return c.re.test(liText(p))?{ok:true,text:"The card repeats a number this post uses ("+c.big+")"}:{ok:false,text:v.cardFallback?"This post quotes no checked number, so the card shows "+c.big+": change it if it doesn't fit":"The card's number ("+c.big+") isn't in the post"};}
+function livHandle(a,t){const p=liFind(t.dataset.p);if(!p)return true;const k=t.dataset.k;
+  if(a==="livdl"){livDownload(p,k);return true;}
+  if(a==="livpick"){livPick=livPick===p.id+":"+k?"":p.id+":"+k;render();return true;}
+  if(a==="livset"){livStamp(p);p.visual[k]=t.dataset.v;p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livPick="";render();toast(k==="card"?"Card changed":"Photo changed");return true;}
+  if(a==="livtheme"){livStamp(p);p.visual.theme=p.visual.theme==="day"?"night":"day";p.visual.by=USER;put("liPosts",p);render();return true;}
+  if(a==="livreset"){delete p.visual;put("liPosts",p);livPick="";render();toast("Back to the automatic picks");return true;}
+  if(a==="livzoom"){const v=liVisual(p);if(k==="photo"){const ph=liPhoto(v.photo);if(ph)mktOpen(LI_PHOTO_DIR+ph.id+".jpg",ph.title);}else livCardURL(v.card,v.theme).then(u=>livOpen(u,"AutoTQ stat card — "+liCard(v.card).big)).catch(e=>toast("Couldn't draw the card: "+e.message));return true;}
+  return true;}
 
 /* ---------- Marketing plan on Home (2026-10-21): one `mktPlan` record per anchor piece (the white paper first). Its files live in
    the private `marketing` storage bucket (Max + Hannah only); the hub fetches them with the signed-in user's token and shows
