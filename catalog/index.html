@@ -588,6 +588,8 @@ svg.usmap .dots{stroke:var(--dots)}
 .limetin{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:6px}.limetin label{display:flex;flex-direction:column;gap:3px;width:112px}
 .limetin small{font-size:11.5px;color:var(--ink-3)}
 .limsg{max-width:720px}
+.liinv .pill{flex:none}.liinv .btn{flex:none}.liinv .nm a{color:var(--ink);text-decoration:none}.liinv .nm a:hover{text-decoration:underline}
+@media (max-width:700px){.liinv{flex-wrap:wrap}.liinv .nm{flex:1 1 100%}}
 @media (max-width:1100px){.liprof .likpis{grid-template-columns:repeat(3,minmax(0,1fr))}.likpi{border-bottom:1px solid var(--rule)}.limets{gap:12px}}
 @media (max-width:900px){
   .liwk{gap:4px;padding:12px}
@@ -741,7 +743,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=APP==="catalog"?["catalogItems"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
+const PULL_COLLECTIONS=APP==="catalog"?["catalogItems"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites"]; // orders: the past-buyer guard (pastBuyers); liInvites: LinkedIn › Messenger › Follow invites
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1642,7 +1644,7 @@ function render(){
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
   const titles={calls:"Calls",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Invite the buyers among your connections to follow the AutoTQ page. DMs and InMail come later.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
   const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="calls"?["Calls"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
@@ -1912,7 +1914,100 @@ function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStat
   if(sel){liSel=sel.id;h+='<div style="margin-top:14px">'+liPostHTML(sel)+'</div>';}
   return h+liPastHTML();}
 /* LinkedIn › Messenger — automated DMs, InMail and page-follow invites come here next (Max, 2026-10-21: "leave blank for now") */
-function viewLinkedInMsg(){return '<div class="pan limsg"><div class="empty" style="padding:34px 20px;text-align:left"><p class="t1" style="margin:0 0 6px">Nothing here yet</p><p class="t2" style="margin:0;white-space:normal">Messenger will run the automated side of LinkedIn: direct messages, InMail and invites to follow the AutoTQ page.</p></div></div>';}
+/* LinkedIn › Messenger › Follow invites (Max, 2026-10-26: "connect to LinkedIn and find potential buyers of AutoTQ; then invite
+   them to follow our Company page until you run out of invitations"). Max uploads LinkedIn's own Connections.csv export; the
+   panel ranks the buyers among his 1st-degree connections (safety / EHS, campus & school safety, public safety, venues &
+   facilities — end users only) and keeps them in the synced `liInvites` collection. He approves a batch here; Claude sends it
+   through the Page's own Invite connections window in his Chrome (the linkedin-follow-invites skill) and marks the results
+   here. Credits: a monthly pool shared by the page's admins, renewed on the 1st; an accepted invite returns its credit. */
+const LIINV_PERSONA={safety:["Safety / EHS","info"],campus:["Campus & school","ok"],public:["Public safety","warn"],venue:["Venues & facilities",""]};
+const LIINV_ST={candidate:"Ranked",approved:"Approved",invited:"Invited",notfound:"Not found",skipped:"Skipped"};
+let liInvShow=25,liInvBusy=false;
+function liInvites(){return (DB.liInvites||[]).filter(r=>r&&r.id&&r.name);}
+function liInvState(){return (DB.settings||[]).find(x=>x&&x.id==="liInviteState")||{id:"liInviteState"};}
+/* who is a buyer: title + company, end users only. Returns {persona, score, reason} or null */
+const LIINV_OUT=/golden hour medical|autotq|grainger|fastenal|msc industrial|cintas|unifirst|ritz safety|medique|henry schein|mckesson|bound tree|north american rescue|moore medical|school health corp|airgas|global industrial|zoro|uline|vallen|applied industrial|w\.?\s?w\.? grainger|safeware|ferguson|wesco|mallory/i;
+const LIINV_NOT=/\b(student|intern|retired|recruit\w*|talent acquisition|staffing|sales|account (manager|executive)|business development|territory manager|distribut\w*|reseller|wholesale|marketing|realtor|real estate agent|cyber\w*|information security|infosec|it security|network security|software|consultant)\b/i;
+function liInvRank(position,company){
+  const p=String(position||""),c=String(company||""),pc=p+" "+c;
+  if(!p.trim()||LIINV_OUT.test(c)||LIINV_NOT.test(p))return null;
+  const senior=/\b(chief|director|head|vp|vice president|president|superintendent|commander|captain|lieutenant|deputy chief|assistant chief|manager|coordinator|administrator|supervisor|officer|lead|specialist|sergeant|marshal|owner|principal)\b/i.test(p);
+  const exec=/\b(chief|director|head|vp|vice president|president|superintendent|commander|captain|deputy chief|assistant chief|owner)\b/i.test(p);
+  const school=/\b(universit|college|school|isd|usd|academy|k-?12|campus|district schools|public schools)/i.test(c)||/\bcampus\b/i.test(p);
+  const pub=/\b(police|sheriff|deputy|trooper|law enforcement|fire|firefighter|ems\b|emt\b|paramedic|rescue|emergency (management|manager|services)|911|public safety|swat|tactical|homeland security)\b/i;
+  const safe=/\b(ehs|hse|she|safety|environmental health|occupational|osha|risk manag\w*|loss prevention|industrial hygien\w*|emergency (preparedness|response|planning)|security)\b/i;
+  const ven=/\b(arena|stadium|venue|convention|amphitheat\w*|casino|resort|hotel|country club|gun club|shooting|range|athletic\w*|sports|ballpark|speedway|fairground|theme park|zoo|aquarium|museum|church|ymca)\b/i;
+  const fac=/\b(facilit\w*|property manag\w*|building (operations|manager|services)|operations manag\w*|guest services|aed)\b/i;
+  let persona=null,score=0,why="";
+  if(school&&(pub.test(p)||safe.test(p)||fac.test(p)||/\b(health services|emergency)\b/i.test(p))){persona="campus";score=6;why="runs safety, police or facilities at a school / campus";}
+  else if(pub.test(p)||(senior&&/\b(police|sheriff|fire (department|rescue|district|authority)|county|city of|state patrol|highway patrol|ems|emergency management)\b/i.test(c))){persona="public";score=5;why="public-safety leadership — first on scene";}
+  else if(safe.test(p)){persona="safety";score=5;why="safety / EHS role — owns bleeding-control readiness";}
+  else if(/\brange (master|officer|safety)/i.test(p)||(ven.test(c)&&(fac.test(p)||safe.test(p)||/\b(operations|general manager|gm)\b/i.test(p)))){persona="venue";score=4;why="runs a venue that already keeps AEDs";}
+  else if(fac.test(p)){persona="venue";score=3;why="facilities role — places AEDs and first-aid";}
+  if(!persona)return null;
+  if(exec)score+=3;else if(senior)score+=1;
+  return {persona,score,reason:(p.length>70?p.slice(0,68)+"…":p)+(c?" at "+c:"")+" — "+why};
+}
+function liInvId(row){const u=String(row.url||"").replace(/\/+$/,"").split("/").pop();return "lii-"+(u||(row.name+"-"+row.company)).toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,80);}
+function liInvUpload(f){
+  f.text().then(t=>{
+    const rows=csvRows(t),hi=rows.findIndex(r=>r.some(c=>/^first name$/i.test(String(c).trim())));
+    if(hi<0)throw new Error("That isn't LinkedIn's Connections.csv — Settings & Privacy → Data privacy → Get a copy of your data → Connections");
+    const H=rows[hi].map(c=>String(c).trim().toLowerCase()),col=n=>H.indexOf(n);
+    const iF=col("first name"),iL=col("last name"),iU=col("url"),iE=col("email address"),iC=col("company"),iP=col("position"),iO=col("connected on");
+    const now=new Date().toISOString(),have={};liInvites().forEach(r=>{have[r.id]=r;});
+    let scanned=0,buyers=0,added=0;
+    rows.slice(hi+1).forEach(r=>{const first=String(r[iF]||"").trim(),last=String(r[iL]||"").trim();if(!first&&!last)return;scanned++;
+      const row={name:(first+" "+last).trim(),first,last,url:iU>-1?String(r[iU]||"").trim():"",email:iE>-1?String(r[iE]||"").trim():"",company:iC>-1?String(r[iC]||"").trim():"",position:iP>-1?String(r[iP]||"").trim():"",connectedOn:iO>-1?String(r[iO]||"").trim():""};
+      const k=liInvRank(row.position,row.company);if(!k)return;buyers++;
+      const id=liInvId(row),old=have[id];
+      const rec=Object.assign({},old||{id,status:"candidate",importedAt:now},row,k,{seenAt:now});
+      if(!old)added++;put("liInvites",rec);});
+    const st=Object.assign(liInvState(),{exportAt:now,exportFile:f.name,scanned,buyers,by:USER});put("settings",st);
+    render();toast(scanned+" connections read · "+buyers+" likely buyers"+(added?" ("+added+" new)":""));
+  }).catch(e=>toast(e.message||"Couldn't read that file"));
+}
+function liInvRow(r,acts){const pm=LIINV_PERSONA[r.persona]||["",""];
+  return '<div class="actrow liinv"><span class="nm"><b>'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+'</b><small class="what">'+esc(r.reason||"")+'</small>'+
+   (r.invitedAt?'<small>Invited '+esc(String(r.invitedAt).slice(0,10))+'</small>':'')+'</span><span class="pill '+pm[1]+'">'+pm[0]+'</span>'+acts+'</div>';}
+function viewLinkedInMsg(){
+  const all=liInvites(),st=liInvState(),by=s=>all.filter(r=>r.status===s).sort((a,b)=>(b.score||0)-(a.score||0)||String(a.name).localeCompare(String(b.name)));
+  const appr=by("approved"),cand=by("candidate"),inv=by("invited").sort((a,b)=>String(b.invitedAt||"").localeCompare(String(a.invitedAt||""))),nf=by("notfound");
+  const month=todayStr().slice(0,7),invMonth=inv.filter(r=>String(r.invitedAt||"").slice(0,7)===month).length;
+  const age=st.exportAt?Math.floor((Date.now()-new Date(st.exportAt).getTime())/864e5):null;
+  const kp=(lab,val,sub)=>'<div class="likpi"><small>'+lab+'</small><b class="num">'+val+'</b><span>'+sub+'</span></div>';
+  let h='<div class="pan liprof" style="margin-bottom:14px"><div class="ph2">'+svg("users")+'Follow invites<span class="t2" style="margin-left:4px">· your connections most likely to buy AutoTQ, invited to follow the page</span>'+
+    '<span class="meta"><button class="btn sm ghost" data-act="liinvbal">Set credits left</button><label class="btn sm" style="cursor:pointer">Upload connections<input type="file" id="liInvFile" accept=".csv" hidden></label></span></div>'+
+   '<div class="likpis">'+kp("Likely buyers",cand.length+appr.length,"waiting to be invited")+kp("Approved",appr.length,"ready to send")+kp("Invited",inv.length,invMonth+" this month")+
+    kp("Credits left",st.balance!=null?liNum(st.balance):"—",st.balanceAt?"read "+String(st.balanceAt).slice(0,10)+" · renew on the 1st":"read when Claude sends")+
+    kp("Connections export",st.exportAt?(age===0?"Today":age+"d ago"):"—",st.exportAt?(st.scanned||0)+" read · "+(st.buyers||0)+" buyers":"upload Connections.csv")+'</div>'+
+   (!st.exportAt||age>30?'<p class="t2 linote">'+(st.exportAt?'The export is over a month old — new connections are missing. ':'')+'Get it from LinkedIn: <b>Me → Settings &amp; Privacy → Data privacy → Get a copy of your data → Connections</b> → Request archive. It arrives by email in about ten minutes; upload the <b>Connections.csv</b> inside.</p>':'')+'</div>';
+  if(appr.length)h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("check")+'Approved — ready to send<span class="t2" style="margin-left:4px">· '+appr.length+' · say “send” to Claude and it invites them in LinkedIn</span>'+
+    '<span class="meta"><button class="btn sm ghost" data-act="liinvback">Move back</button><button class="btn sm" data-act="liinvdone">Mark the rest invited</button></span></div>'+
+    appr.map(r=>liInvRow(r,'<button class="btn sm ghost" data-act="liinvnf" data-id="'+esc(r.id)+'">Not found</button>')).join("")+'</div>';
+  h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("spark")+'Next up<span class="t2" style="margin-left:4px">· best match first</span>'+
+    (cand.length?'<span class="meta">'+[10,25,50].filter((n,i)=>i===0||cand.length>[10,25,50][i-1]).map(n=>'<button class="btn sm'+(n===25?' coral':'')+'" data-act="liinvapprove" data-n="'+n+'">Approve next '+Math.min(n,cand.length)+'</button>').join("")+'</span>':'')+'</div>'+
+    (cand.length?cand.slice(0,liInvShow).map(r=>liInvRow(r,'<button class="btn sm ghost" data-act="liinvskip" data-id="'+esc(r.id)+'">Skip</button>')).join("")+
+      (cand.length>liInvShow?'<button class="ibx" data-act="liinvmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(50,cand.length-liInvShow)+' more of '+cand.length+'</button>':'')
+     :'<div class="empty" style="padding:22px 16px">'+(all.length?'Everyone ranked has been invited, approved or skipped. Upload a fresh export to find new connections.':'Upload your Connections.csv to rank the buyers among your connections.')+'</div>')+'</div>';
+  if(inv.length||nf.length)h+='<details class="pan"><summary class="ph2" style="cursor:pointer">'+svg("mail")+'Sent<span class="t2" style="margin-left:4px">· '+inv.length+' invited'+(nf.length?' · '+nf.length+' not found in LinkedIn':'')+'</span></summary>'+
+    inv.slice(0,200).map(r=>liInvRow(r,'')).join("")+nf.map(r=>liInvRow(r,'<span class="pill">Not found</span>')).join("")+'</details>';
+  h+='<p class="t2" style="margin-top:12px;white-space:normal">Invites go out under Max&#39;s own name, from the AutoTQ page&#39;s <b>Invite connections</b> window. The page shares one monthly pool of credits across its admins; it renews on the 1st, and an accepted invite returns its credit. Premium auto-invites to people who engage with posts run by themselves and use no credits.</p>';
+  return h;
+}
+function liInvHandle(a,t){
+  if(a==="liinvapprove"){const n=+t.dataset.n||25,now=new Date().toISOString(),cand=liInvites().filter(r=>r.status==="candidate").sort((x,y)=>(y.score||0)-(x.score||0)||String(x.name).localeCompare(String(y.name))).slice(0,n);
+    cand.forEach(r=>{r.status="approved";r.batch=todayStr();r.approvedBy=USER;r.approvedAt=now;put("liInvites",r);});render();toast(cand.length+" approved — tell Claude “send” to invite them");return true;}
+  if(a==="liinvskip"){const r=liInvites().find(x=>x.id===t.dataset.id);if(r){r.status="skipped";r.skippedBy=USER;r.skippedAt=new Date().toISOString();put("liInvites",r);render();}return true;}
+  if(a==="liinvnf"){const r=liInvites().find(x=>x.id===t.dataset.id);if(r){r.status="notfound";r.notfoundAt=new Date().toISOString();put("liInvites",r);render();}return true;}
+  if(a==="liinvback"){liInvites().filter(r=>r.status==="approved").forEach(r=>{r.status="candidate";delete r.batch;put("liInvites",r);});render();return true;}
+  if(a==="liinvdone"){const ap=liInvites().filter(r=>r.status==="approved");if(!ap.length)return true;if(!confirm("Mark "+ap.length+" as invited in LinkedIn?"))return true;
+    const now=new Date().toISOString();ap.forEach(r=>{r.status="invited";r.invitedAt=now;r.invitedBy=USER;put("liInvites",r);});render();toast(ap.length+" marked invited");return true;}
+  if(a==="liinvbal"){const v=prompt("Credits left in LinkedIn's Invite connections window",liInvState().balance!=null?liInvState().balance:"");if(v===null)return true;const n=liN(v);if(n==null){toast("Type a number");return true;}
+    const st=Object.assign(liInvState(),{balance:n,balanceAt:new Date().toISOString(),by:USER});put("settings",st);render();return true;}
+  if(a==="liinvmore"){liInvShow+=50;render();return true;}
+  return false;
+}
 /* LinkedIn's own analytics export (the page's Analytics → Content / Followers → Export): posts' numbers and new followers */
 function liXlsx(){if(window.XLSX)return Promise.resolve(window.XLSX);return new Promise((ok,no)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";sc.onload=()=>ok(window.XLSX);sc.onerror=()=>no(new Error("Couldn't load the spreadsheet reader — save the export as CSV and import that"));document.head.appendChild(sc);});}
 function liN(v){if(v==null||v==="")return null;const n=parseFloat(String(v).replace(/[,%\s]/g,""));return isNaN(n)?null:n;}
@@ -2985,6 +3080,7 @@ document.addEventListener("click",e=>{
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
   if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
   if(a.indexOf("cat")===0&&catHandle(a,t))return;
+  if(a.indexOf("liinv")===0&&liInvHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a.indexOf("call")===0&&callHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
@@ -3048,7 +3144,7 @@ document.addEventListener("input",e=>{
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
 });
-document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
+document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liInvFile"&&e.target.files&&e.target.files[0]){liInvUpload(e.target.files[0]);e.target.value="";return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()&&hubUser()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
