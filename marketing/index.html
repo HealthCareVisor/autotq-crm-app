@@ -2237,33 +2237,41 @@ function lgCompanyOf(title,lines){const m=String(title||"").match(/\s(?:at|@)\s+
 /* the newer people cards put the job in a summary line ("✦ Safety Engineer at Lockheed Martin since September 2025, …")
    while the headline is a slogan ("Leader | Engineer | System & Process Safety") */
 function lgSummary(lines){for(const raw of lines||[]){const x=String(raw).replace(/^[✦✧★☆*•·\s]+/,"").trim();
-    const m=x.match(/^(.{2,80}?)\s+at\s+(.+?)(?=\s+since\b|\s+from\b|\s+for\s+\d|\s*[,.;(]|\s+[—–-]\s|$)/i);
+    const m=x.match(/^(.{2,80}?)\s+at\s+(.+?)(?=\s+since\b|\s+from\b|\s+for\s+(?:\d|the\b|over\b|nearly\b|almost\b|about\b)|\s*[,.;(]|\s+[—–-]\s|$)/i);
     if(m&&!/mutual connection/i.test(x)&&!/^(current|past):/i.test(x))return {role:m[1].replace(/^(currently|now)\s+(an?\s+)?/i,"").trim(),company:m[2].trim()};}
   return null;}
 function lgRow(name,rest,li,coLink){const head=rest[0]||"",loc=rest.slice(1).find(x=>LG_LOC.test(x))||"";
-  const sum=lgSummary(rest.slice(1).filter(x=>x!==loc));
-  const company=coLink||lgCompanyOf(head,rest)||(sum?sum.company:"");
-  const title=sum&&!/\s(at|@)\s/i.test(head)?sum.role:head;
-  return {id:li||(name+"|"+head).toLowerCase(),name,title,company,loc,li,head};}
-function lgParse(html,text){const out=[],seen=new Set();
-  if(html){const doc=new DOMParser().parseFromString(html,"text/html");const isP=a=>!!lgLink(a.getAttribute("href"));
-    /* one result card = its list item; newer cards also link the mutual connections, so only the card's first profile link is the person */
-    const cards=[];doc.querySelectorAll('a[href]').forEach(a=>{if(!isP(a))return;
-      let c=a.closest('li,[data-view-name="search-entity-result-universal-template"],[data-x-search-result]');
-      if(!c){c=a;while(c.parentElement&&c.parentElement!==doc.body){const n=new Set([...c.parentElement.querySelectorAll('a[href]')].map(x=>lgLink(x.getAttribute("href"))).filter(Boolean));if(n.size>1)break;c=c.parentElement;}}
-      if(!cards.includes(c))cards.push(c);});
-    cards.forEach(c=>{const as=(c.matches('a[href]')?[c]:[]).concat([...c.querySelectorAll('a[href]')]).filter(isP);if(!as.length)return;
-      const li=lgLink(as[0].getAttribute("href"));if(seen.has(li))return;
-      const name=lgName(as.filter(a=>lgLink(a.getAttribute("href"))===li).map(a=>lgLines(a).find(x=>!LG_JUNK.test(x))||"").find(Boolean));
-      if(!name||/^linkedin member$/i.test(name)||name.split(" ").length<2)return;
-      const other=new Set(as.filter(a=>lgLink(a.getAttribute("href"))!==li).flatMap(a=>lgLines(a)));
-      const co=c.querySelector('a[href*="/company/"]');const coLink=co?lgLines(co).find(x=>!LG_JUNK.test(x))||"":"";
-      const rest=lgLines(c).filter(x=>!other.has(x)&&!/^[,&]/.test(x)).map(lgClean).filter(x=>x&&lgName(x)!==name&&!LG_JUNK.test(x)&&!x.toLowerCase().startsWith(name.toLowerCase()+" ")&&x!==coLink);
-      seen.add(li);out.push(lgRow(name,rest,li,coLink));});}
-  if(!out.length&&text){const L=String(text).split(/\r?\n/).map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean);
-    for(let i=0;i<L.length;i++){const m=L[i].match(/^View (.+?)[’']s? profile$/i);if(!m)continue;const name=lgName(m[1]),rest=[];
-      for(let j=i+1;j<L.length&&rest.length<4&&!/^View .+ profile$/i.test(L[j]);j++){const x=lgClean(L[j]);if(x&&lgName(x)!==name&&!LG_JUNK.test(x))rest.push(x);}
-      const r=lgRow(name,rest,"","");if(!seen.has(r.id)){seen.add(r.id);out.push(r);}}}
+  const sum=lgSummary(rest.slice(1).filter(x=>x!==loc)),hm=head.match(/^(.+?)\s(?:at|@)\s+(.+)$/i);
+  const company=(hm?hm[2].replace(/\s*[|·•].*$/,"").trim():"")||coLink||(sum?sum.company:"")||lgCompanyOf("",rest);
+  const title=hm?hm[1].trim():sum?sum.role:head;
+  return {id:li||name.toLowerCase(),name,title,company,loc,li,head};}
+/* the page as a stream, top to bottom: text pieces and links (a profile link keeps its address; a company link is flagged) */
+function lgTokens(html){const doc=new DOMParser().parseFromString(html,"text/html"),out=[];
+  const walk=n=>{for(const c of n.childNodes){
+    if(c.nodeType===3){const t=c.nodeValue.replace(/\s+/g," ").trim();if(t)out.push({t});continue;}
+    if(c.nodeType!==1||/^(script|style|noscript|svg|img)$/i.test(c.tagName))continue;
+    if(c.tagName.toLowerCase()==="a"){const href=c.getAttribute("href")||"",li=lgLink(href),txt=lgLines(c).filter(x=>!/^view .*profile$/i.test(x));
+      if(li)out.push({t:txt.join(" ").replace(/\s+/g," ").trim(),li});else if(/\/company\//.test(href))out.push({t:txt.join(" "),co:true});else txt.forEach(t=>out.push({t}));continue;}
+    walk(c);}};
+  walk(doc.body);return out;}
+const LG_DEG=/^[•·]?\s*(1st|2nd|3rd\+?)$/i,LG_DEGEND=/\s*[•·]\s*(1st|2nd|3rd\+?)\s*$/i;
+/* "Brandon Booth, PE, CSP" / "James Scarbrough LAT, ATC" / "Heather MacDougall, CSP and JD" -> the name alone */
+function lgPerson(x){let n=lgClean(String(x||"").replace(LG_DEGEND,"")).split(",")[0].trim();const w=n.split(" ");
+  while(w.length>2&&/^[A-Z]{2,6}$/.test(w[w.length-1]))w.pop();return w.join(" ");}
+/* people = a name followed by its connection degree; everything up to the next such name is that person's card, minus
+   the profile links inside it (those are the mutual connections) */
+function lgParse(html,text){const seen=new Set(),out=[];
+  const toks=html?lgTokens(html):String(text||"").split(/\r?\n/).map(t=>({t:t.replace(/\s+/g," ").trim()})).filter(x=>x.t);
+  const isStart=i=>{const k=toks[i];if(!k||!k.t)return false;if(html&&!k.li)return false;
+    const nm=lgPerson(k.t);if(nm.split(" ").length<2||/\d/.test(nm)||LG_JUNK.test(k.t))return false;
+    if(LG_DEGEND.test(k.t))return true;for(let j=i+1;j<Math.min(toks.length,i+4);j++){const t=toks[j].t;if(toks[j].li)return false;if((html?LG_DEG.test(t):/^[•·]\s*(1st|2nd|3rd\+?)$/i.test(t))||/degree connection/i.test(t))return true;if(!LG_JUNK.test(t))return false;}return false;}; /* plain text: the degree needs its bullet, so the filter bar's "1st / 2nd" isn't a person */
+  const starts=[];toks.forEach((_,i)=>{if(isStart(i))starts.push(i);});
+  starts.forEach((s,n)=>{const end=n+1<starts.length?starts[n+1]:toks.length,k=toks[s],name=lgPerson(k.t),li=k.li||"";
+    const id=li||name.toLowerCase();if(seen.has(id))return;seen.add(id);
+    const seg=toks.slice(s+1,end).filter(x=>!x.li&&x.t&&!LG_DEG.test(x.t)&&!LG_JUNK.test(x.t)&&!/^[,&*]|mutual connection|^are$|^is a$/i.test(x.t));
+    const coLink=(seg.find(x=>x.co)||{}).t||"";
+    const rest=seg.map(x=>lgClean(x.t)).filter(x=>x&&x!==coLink&&lgPerson(x)!==name&&!/^(\d+|next|previous|are these results helpful\?.*)$/i.test(x));
+    out.push(lgRow(name,rest,li,coLink));});
   return out;}
 function lgNorm(x){return String(x||"").toLowerCase().replace(/\b(inc|llc|ltd|corp|corporation|company|co|the|of|na|usa|america|americas|north)\b/g," ").replace(/[^a-z0-9]+/g,"");}
 function lgMatch(company){const c=lgNorm(company);if(c.length<3)return "";const k=prosCur();
