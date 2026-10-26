@@ -544,7 +544,7 @@ svg.usmap .dots{stroke:var(--dots)}
 .lichecks li.ok .i{color:var(--ok)}.lichecks li.no{color:var(--warn)}.lichecks li.no .i{color:var(--warn)}.lilist a{color:var(--ink)}
 @media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
 /* LinkedIn visuals (2026-10-25): the stat card and the product photo, side by side at the feed's 4:5 */
-.livis{display:grid;grid-template-columns:repeat(2,minmax(0,230px));gap:16px}
+.livis{display:grid;grid-template-columns:repeat(2,minmax(0,240px));gap:16px}
 .livfig{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 .livimg{display:block;width:100%;aspect-ratio:4/5;padding:0;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--panel);cursor:zoom-in}
 .livimg img{display:block;width:100%;height:100%;object-fit:cover}.livimg.photo{background:#fff}.livimg.photo img{object-fit:contain}
@@ -559,6 +559,16 @@ svg.usmap .dots{stroke:var(--dots)}
 .livgrid button:hover,.livgrid button:focus-visible{border-color:var(--ink-3)}.livgrid button.on{border-color:var(--coral);box-shadow:var(--ring)}
 .livgrid img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#fff;border-radius:6px}.livgrid small{font-size:11px;line-height:1.3;color:var(--ink-3)}
 @media (max-width:520px){.livis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.lived{display:grid;grid-template-columns:minmax(0,300px) minmax(0,460px);gap:20px;align-items:start}
+.livprev,.livframe{aspect-ratio:4/5;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--paper)}
+.livprev canvas{display:block;width:100%;height:100%}
+.livframe{position:relative;background:#fff;cursor:grab;touch-action:none;user-select:none}.livframe:active{cursor:grabbing}
+.livframe:focus-visible{outline:none;border-color:var(--ink-3);box-shadow:var(--ring)}
+.livframe img,.livcrop img{position:absolute;max-width:none;pointer-events:none}
+.livcrop{position:relative;display:block;width:100%;height:100%;overflow:hidden}.livimg.photo .livcrop img{object-fit:fill}
+.livform{display:flex;flex-direction:column;gap:10px;min-width:0}.livform label small{display:block;font-size:12px;color:var(--ink-3);margin-bottom:4px}
+.livform input.f{width:100%}.livform input[type=range]{width:100%;accent-color:var(--coral)}.livform .lichecks{margin:0}
+@media (max-width:640px){.lived{grid-template-columns:minmax(0,1fr)}.livprev,.livframe{max-width:300px}}
 /* LinkedIn › Post (2026-10-21, Max: "show MTWTF SS… past posts and the engagement… a brief overview of our profile… a high level
    social media engine"): the profile up top, the week as seven days, then every past post with its numbers */
 .liprof .likpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--rule)}
@@ -2272,7 +2282,7 @@ async function liImportFile(f){
   }catch(e){toast(e.message||"Couldn't read that file");}
 }
 function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||[]).map(id=>res.find(r=>r.id===id)).filter(Boolean);
-  const checks=(p.checks||[]).concat([livCheck(p)].filter(Boolean)).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
+  const checks=(p.checks||[]).concat(livChecks(p)).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
   return '<div class="pan lipost"><div class="ph2">'+svg("file")+esc(LI_PILLAR[p.pillar]||p.pillar)+' · '+esc(liWhen(p.slotAt))+'<span class="meta">'+liStatusPill(p)+'</span></div><div class="libody">'+
     (liEdit?'<textarea class="f" id="liText" style="min-height:260px;width:100%;font:inherit;line-height:1.55">'+esc(liText(p))+'</textarea>':'<div class="litext">'+esc(liText(p))+'</div>')+
     ((p.hashtags||[]).length?'<p class="litags">'+p.hashtags.map(x=>'#'+esc(x)).join(" ")+'</p>':'')+
@@ -2305,7 +2315,7 @@ function liHandle(a,t){const id=t.dataset.v;
     if(!any){toast("Type at least one number");return true;}m.src="manual";m.at=new Date().toISOString();m.by=USER;p.metrics=m;put("liPosts",p);render();toast("Numbers saved");return true;}
   if(a==="liedit"){liEdit=!!id;render();return true;}
   if(a==="lisave"){const p=liFind(id);const v=(document.getElementById("liText")||{}).value||"";if(p&&v.trim()){p.finalText=v.trim();p.edited=true;p.editedBy=USER;p.editedAt=new Date().toISOString();put("liPosts",p);}liEdit=false;render();toast("Saved");return true;}
-  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).concat([livCheck(p)].filter(Boolean)).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;livStamp(p);p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
+  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).concat(livChecks(p)).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;livStamp(p);p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
   if(a==="lireject"){const p=liFind(id);if(!p)return true;const why=prompt("Why reject it? (the next drafts learn from this)","");if(why===null)return true;p.status="rejected";p.rejectReason=why.trim()||"no reason given";p.rejectedBy=USER;p.rejectedAt=new Date().toISOString();put("liPosts",p);liSel="";render();toast("Rejected — Draft this week fills the empty slot");return true;}
   if(a==="lirewrite"){const p=liFind(id);if(!p)return true;const note=prompt("What should the new version do differently?","");if(note===null)return true;liCall("rewrite",{id,note}).then(()=>toast("Writing a new version…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="licopy"){const p=liFind(id);if(p){const txt=liText(p)+((p.hashtags||[]).length?"\n\n"+p.hashtags.map(x=>"#"+x).join(" "):"");try{navigator.clipboard.writeText(txt);toast(p.external?"Copied — paste it into LinkedIn":"Copied — paste it into LinkedIn, then add the card and the photo");}catch(e){}}return true;}
@@ -2329,7 +2339,7 @@ const LI_CARDS=[
  {id:"first36",eyebrow:"First-time users in AutoTQ testing",big:"36/36",accent:"/",head:["got AutoTQ on.","33 with no help."],source:"AutoTQ testing, company-run, n = 36",re:/\b36 of 36\b|\b36\/36\b|\b33 with no help\b/i},
  {id:"occl54",eyebrow:"AutoTQ occlusion study · IRB-reviewed",big:"54/54",accent:"/",head:["applications reached arterial occlusion,","Doppler-verified."],sub:"27 adults, at about 290 mmHg.",source:"theautotq.com/occlusion",re:/\b54 (of 54|applications)\b|\b290 ?mmHg\b|\bDoppler/i},
  {id:"aurora4",eyebrow:"Aurora, CO · 43 tourniquet cases",big:"~4 min",head:["Police arrived before EMS,","on average."],source:"JSOM, 2021",re:/\bAurora\b|\bfour minutes before\b/i},
- {id:"survey98",eyebrow:"National survey",big:"98%",head:["would try to help a family member","with a bleeding leg wound."],sub:"Only 36% said they would apply a manual tourniquet.",source:"Hartford Consensus survey, J Am Coll Surg 2016",re:/\b98%/},
+ {id:"survey98",eyebrow:"National survey",big:"98%",head:["would try to stop a family member's","severe bleeding."],sub:"Only 36% said they would use a manual tourniquet.",source:"Hartford Consensus survey, J Am Coll Surg 2016",re:/\b98%/},
  {id:"patts88",eyebrow:"After a brief course",big:"88%",head:["applied a tourniquet correctly.","3 to 9 months later, 55% could."],sub:"16% did with no instruction.",source:"PATTS randomized trial, JAMA Surgery 2018",re:/\b88%|\b55%|\bPATTS\b/},
  {id:"kragh87",eyebrow:"Battlefield survival with a needed tourniquet",big:"87%",head:["when one was applied.","0% when it wasn't."],source:"Kragh et al., Annals of Surgery 2009",re:/\b87%/},
  {id:"kragh90",eyebrow:"Survival with a tourniquet before shock: about",big:"90%",head:["After shock,","about 10%."],source:"Kragh et al., Annals of Surgery 2009",re:/\b90%|\bbefore (the onset of )?shock\b/i},
@@ -2365,9 +2375,40 @@ function livAutoPhoto(p,memo){memo=memo||{};if(memo[p.id])return memo[p.id];cons
 function liVisual(p){const v=p.visual||{},ac=livAutoCard(p),ap=v.photo?null:livAutoPhoto(p);
   return {card:v.card||ac.id,cardFallback:!v.card&&ac.fallback,theme:v.theme||"night",photo:v.photo||(ap&&ap.id)||"",picked:{card:!!v.card,photo:!!v.photo}};}
 function livStamp(p){const v=liVisual(p);p.visual=Object.assign({},p.visual||{},{card:v.card,theme:v.theme,photo:v.photo,at:(p.visual&&p.visual.at)||new Date().toISOString()});}
+/* Max's own adjustments (2026-10-26, "edit/adjust image 1 and 2"): p.visual.cardEdit {of, eyebrow, big, head[2], sub, source}
+   rewords the picked card; p.visual.photoAdj {of, z, x, y} frames the picked photo in the card's 4:5 (z 1 = the whole photo,
+   x/y = the photo point at the frame's centre, 0–1). Each holds only for the card / photo it was made on (`of`); Change or
+   "Back to the automatic picks" drops it. livEd / livAdj are the open editor's working copy, so a sync redraw keeps what's typed. */
+let livEd=null,livAdj=null;const LIV_CARD={},LIV_A=4/5,LIV_W=["zero","one","two","three","four","five","six","seven","eight","nine","ten"];
+function livNorm(s){return String(s||"").replace(/\s+/g," ").trim().toLowerCase();}
+/* a typed number as a pattern: "97%" also finds "97 percent", "1 in 3" "one in three", "36/36" "36 of 36", "5 min" "five minutes" */
+function livNumRe(big){const s=String(big||"").replace(/^[~≈]\s*/,"").replace(/\+$/,"").trim();if(!s)return null;
+  const e=s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/(^|[^\d,.])(\d{1,2})(?![\d,.])/g,(m,a,d)=>a+(LIV_W[+d]?"(?:"+d+"|"+LIV_W[+d]+")":d))
+    .replace(/\s+/g,"[\\s-]+").replace(/\//g,"(?:/| of )").replace(/%/g,"(?:%|[\\s-]*percent)").replace(/min$/i,"min(?:ute)?s?");
+  return new RegExp("(?:^|[^\\w.,])"+e+"(?!\\w|[.,]\\d)","i");}
+function livCardWith(c,e){const big=String(e.big||"").trim();
+  return Object.assign({},c,{eyebrow:String(e.eyebrow||"").trim(),big,head:(e.head||[]).map(x=>String(x||"").trim()).filter(Boolean),sub:String(e.sub||"").trim(),source:String(e.source||"").trim(),re:livNorm(big)===livNorm(c.big)?c.re:livNumRe(big)||/$^/,edited:true});}
+/* the card as drawn: the picked one, in Max's words when he edited it */
+function livCardOf(p){const c=liCard(liVisual(p).card),e=p.visual&&p.visual.cardEdit;return e&&e.of===c.id?livCardWith(c,e):c;}
+function livCardKey(c,theme){const k=c.id+"|"+theme+(c.edited?"|"+livHash(JSON.stringify([c.eyebrow,c.big,c.head,c.sub,c.source])):"");LIV_CARD[k]=c;return k;}
+/* numbers a card may carry: the studio's verified claims (LI_CARDS restates them), the claims this post used, its cited sources */
+function livLoose(p,c){const known=LI_CARDS.map(x=>[x.eyebrow,x.big,x.head.join(" "),x.sub||"",x.source].join(" ")).concat(p.claimsUsed||[],(p.sources||[]).map(s=>s.title||"")).join(" "),
+    toks=new Set(known.match(/\d[\d,.]*\d|\d/g)||[]),k=livNorm(known),w=n=>LIV_W[+n]||n;let out=[];
+  [c.eyebrow,c.big].concat(c.head||[],[c.sub]).forEach(x=>(String(x||"").match(/\d[\d,.]*\d|\d/g)||[]).forEach(n=>{if(!toks.has(n)&&!out.includes(n))out.push(n);}));
+  const m=String(c.big||"").match(/(\d+)\s*in\s*(\d+)/i);
+  if(m&&!k.includes(m[1]+" in "+m[2])&&!k.includes(w(m[1])+" in "+w(m[2]))){out=out.filter(n=>n!==m[1]&&n!==m[2]);out.push(m[1]+" in "+m[2]);}
+  return out;}
+function livLooseText(lo){return lo.length===1?"The card's "+lo[0]+" isn't a verified or sourced number":"The card's "+lo.join(", ")+" aren't verified or sourced numbers";}
+function livPhotoAdj(p){const a=p.visual&&p.visual.photoAdj;return a&&a.of===liVisual(p).photo?a:null;}
+/* where the photo sits in the 4:5 frame, as parts of the frame: zoom 1 shows the whole photo; a photo wider (or taller) than the
+   frame can't be moved past its edges */
+function livGeo(ph,a){const R=(ph&&ph.w||4)/(ph&&ph.h||3),zFill=Math.max(R/LIV_A,LIV_A/R),zMax=Math.max(2,2*zFill),z=Math.min(zMax,Math.max(1,+(a&&a.z)||1));
+  const w=Math.min(1,R/LIV_A)*z,h=w*LIV_A/R,cl=(v,s)=>s>1.0001?Math.min(1-.5/s,Math.max(.5/s,v)):.5;
+  const x=cl(a&&a.x!=null?+a.x:.5,w),y=cl(a&&a.y!=null?+a.y:.5,h);return {x,y,z,w,h,l:.5-x*w,t:.5-y*h,zFill,zMax};}
+function livGeoCss(g){return "left:"+(g.l*100).toFixed(3)+"%;top:"+(g.t*100).toFixed(3)+"%;width:"+(g.w*100).toFixed(3)+"%;height:"+(g.h*100).toFixed(3)+"%";}
 /* drawing the card */
 const LIV_IMG={};function livImg(src){return LIV_IMG[src]||(LIV_IMG[src]=new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>{delete LIV_IMG[src];no(new Error("couldn't load "+src));};im.src=src;}));}
-async function livCardCanvas(id,theme){const c=liCard(id),day=theme==="day";
+async function livCardCanvas(id,theme){const c=typeof id==="object"?id:liCard(id),day=theme==="day";
   if(document.fonts&&document.fonts.load)await Promise.all([300,500,600].map(w=>document.fonts.load(w+' 100px "Inter"'))).catch(()=>{});
   const logo=await livImg(day?"assets/lockup_ink.png":"assets/lockup_light.png").catch(()=>null);
   const W=1080,H=1350,S=2,L=72,MW=W-2*L,cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;const g=cv.getContext("2d");g.scale(S,S);
@@ -2410,39 +2451,96 @@ async function livCardCanvas(id,theme){const c=liCard(id),day=theme==="day";
   set(500,26,.01);g.fillStyle=C.ink;g.textAlign="right";g.fillText("theAutoTQ.com",W-L,1266);g.textAlign="left";
   return cv;}
 function livCardBlob(id,theme){return livCardCanvas(id,theme).then(cv=>new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error("couldn't make the PNG")),"image/png")));}
-function livCardURL(id,theme){const k=id+"|"+theme;return LIV_URL[k]||(LIV_URL[k]=livCardBlob(id,theme).then(b=>URL.createObjectURL(b)).catch(e=>{delete LIV_URL[k];throw e;}));}
-function liHydrate(){document.querySelectorAll("img[data-licard]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");const [id,th]=el.getAttribute("data-licard").split("|");livCardURL(id,th).then(u=>{el.src=u;}).catch(()=>{el.alt="Couldn't draw the card";});});}
+function livCardURL(id,theme){const c=typeof id==="object"?id:liCard(id),k=livCardKey(c,theme);return LIV_URL[k]||(LIV_URL[k]=livCardBlob(c,theme).then(b=>URL.createObjectURL(b)).catch(e=>{delete LIV_URL[k];throw e;}));}
+function liHydrate(){document.querySelectorAll("img[data-licard]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");const k=el.getAttribute("data-licard"),[id,th]=k.split("|");livCardURL(LIV_CARD[k]||id,th).then(u=>{el.src=u;}).catch(()=>{el.alt="Couldn't draw the card";});});livWire();}
+/* the photo as framed: the full-size JPG drawn into the card's 4:5 at the card's size, white where the photo doesn't reach */
+function livPhotoURL(p){const v=liVisual(p),a=livPhotoAdj(p)||{},k="ph|"+v.photo+"|"+[a.z,a.x,a.y].join("|");
+  return LIV_URL[k]||(LIV_URL[k]=mktBlob(LI_PHOTO_DIR+v.photo+".jpg").then(livImg).then(im=>{const g=livGeo({w:im.naturalWidth,h:im.naturalHeight},a),W=2160,H=2700,cv=document.createElement("canvas");cv.width=W;cv.height=H;
+    const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.imageSmoothingQuality="high";x.drawImage(im,g.l*W,g.t*H,g.w*W,g.h*H);
+    return new Promise((ok,no)=>cv.toBlob(b=>b?ok(URL.createObjectURL(b)):no(new Error("couldn't make the JPG")),"image/jpeg",.92));}).catch(e=>{delete LIV_URL[k];throw e;}));}
+/* the two editors: the card redraws into its preview as Max types; the photo moves by drag, wheel, arrow keys or the zoom slider */
+let livEdSeq=0;
+function livEdDraw(){if(!livEd||!document.getElementById("livEdPrev"))return;const n=++livEdSeq,p=liFind(livEd.pid),c=livCardWith(liCard(livEd.of),livEd);
+  livCardCanvas(c,livEd.theme).then(cv=>{const el=document.getElementById("livEdPrev");if(n!==livEdSeq||!el)return;cv.setAttribute("role","img");cv.setAttribute("aria-label","Card preview");el.replaceChildren(cv);}).catch(()=>{});
+  const ck=document.getElementById("livEdChk");if(ck&&p)ck.innerHTML=livEdChkHTML(p,c);}
+function livAdjDraw(){if(!livAdj)return;const g=livGeo(liPhoto(livAdj.of),livAdj);livAdj.x=g.x;livAdj.y=g.y;livAdj.z=g.z;
+  const im=document.querySelector("#livAdjFrame img");if(im)im.setAttribute("style",livGeoCss(g));
+  const zm=document.getElementById("livAdjZoom");if(zm&&document.activeElement!==zm)zm.value=g.z.toFixed(2);
+  document.querySelectorAll('[data-act="livadjz"]').forEach(b=>b.classList.toggle("on",Math.abs(g.z-(b.dataset.v==="fill"?g.zFill:1))<.01));}
+function livWire(){const pv=document.getElementById("livEdPrev");if(pv&&!pv.dataset.on){pv.dataset.on="1";livEdDraw();}
+  document.querySelectorAll("[data-lived]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");el.addEventListener("input",()=>{if(!livEd)return;const k=el.dataset.lived;
+    if(k==="h0"||k==="h1")livEd.head[+k[1]]=el.value;else livEd[k]=el.value;clearTimeout(livWire.t);livWire.t=setTimeout(livEdDraw,150);});});
+  const zm=document.getElementById("livAdjZoom");if(zm&&!zm.dataset.on){zm.dataset.on="1";zm.addEventListener("input",()=>{if(livAdj){livAdj.z=+zm.value;livAdjDraw();}});}
+  const fr=document.getElementById("livAdjFrame");if(!fr||fr.dataset.on)return;fr.dataset.on="1";
+  fr.addEventListener("pointerdown",e=>{if(!livAdj||e.button>0)return;e.preventDefault();fr.focus();const r=fr.getBoundingClientRect(),g=livGeo(liPhoto(livAdj.of),livAdj),s={x:e.clientX,y:e.clientY,ax:g.x,ay:g.y};
+    const mv=ev=>{if(!livAdj)return;livAdj.x=s.ax-(ev.clientX-s.x)/(r.width*g.w);livAdj.y=s.ay-(ev.clientY-s.y)/(r.height*g.h);livAdjDraw();},
+      up=()=>{removeEventListener("pointermove",mv);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);};
+    addEventListener("pointermove",mv);addEventListener("pointerup",up);addEventListener("pointercancel",up);});
+  fr.addEventListener("wheel",e=>{if(!livAdj)return;e.preventDefault();livAdj.z=livGeo(liPhoto(livAdj.of),livAdj).z*Math.exp(-e.deltaY/600);livAdjDraw();},{passive:false});
+  fr.addEventListener("keydown",e=>{const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d||!livAdj)return;e.preventDefault();const g=livGeo(liPhoto(livAdj.of),livAdj);
+    livAdj.x=g.x-d[0]*.03/g.w;livAdj.y=g.y-d[1]*.03/g.h;livAdjDraw();});}
+function livEdOpen(p){const v=liVisual(p),c=livCardOf(p);livEd={pid:p.id,of:v.card,eyebrow:c.eyebrow,big:c.big,head:[c.head[0]||"",c.head[1]||""],sub:c.sub||"",source:c.source,theme:v.theme};}
+function livAdjOpen(p){const v=liVisual(p),a=livPhotoAdj(p)||{};livAdj={pid:p.id,of:v.photo,z:a.z||1,x:a.x!=null?a.x:.5,y:a.y!=null?a.y:.5};}
+function livEdChkHTML(p,c){return livChecks(p,c,true).map(x=>'<li class="'+(x.ok?"ok":"no")+'">'+svg(x.ok?"check":"alert")+'<span>'+esc(x.text)+'</span></li>').join("");}
+function livEdHTML(p){const e=livEd,val=k=>k==="h0"?e.head[0]:k==="h1"?e.head[1]:e[k];
+  return '<div class="livpick"><div class="lived"><div class="livprev" id="livEdPrev"></div><div class="livform">'+
+    [["eyebrow","Top line"],["big","Number"],["h0","Line 1"],["h1","Line 2, bold"],["sub","Small line"],["source","Source"]].map(f=>'<label><small>'+f[1]+'</small><input class="f" data-lived="'+f[0]+'" value="'+esc(val(f[0])||"")+'"></label>').join("")+
+    '<div class="chips">'+[["night","Dark"],["day","Light"]].map(x=>'<button class="chip'+(e.theme===x[0]?" on":"")+'" data-act="livedtheme" data-p="'+p.id+'" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+    '<ul class="lichecks" id="livEdChk">'+livEdChkHTML(p,livCardWith(liCard(e.of),e))+'</ul>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm coral" data-act="livedsave" data-p="'+p.id+'">Save card</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="edit">Cancel</button><button class="btn sm ghost" data-act="livedorig" data-p="'+p.id+'">Original wording</button></div></div></div></div>';}
+function livAdjHTML(p){const ph=liPhoto(livAdj.of);if(!ph)return "";const g=livGeo(ph,livAdj);
+  return '<div class="livpick"><div class="lived"><div class="livframe" id="livAdjFrame" tabindex="0" role="img" aria-label="'+esc(ph.title)+' — drag, scroll or use the arrow keys to move it"><img alt="" draggable="false" data-mkt="'+LI_PHOTO_DIR+ph.id+'.jpg" style="'+livGeoCss(g)+'"></div><div class="livform">'+
+    '<label><small>Zoom</small><input type="range" id="livAdjZoom" min="1" max="'+g.zMax.toFixed(2)+'" step="0.01" value="'+g.z.toFixed(2)+'"></label>'+
+    '<div class="chips">'+[["1","Whole photo",1],["fill","Fill the frame",g.zFill]].map(x=>'<button class="chip'+(Math.abs(g.z-x[2])<.01?" on":"")+'" data-act="livadjz" data-p="'+p.id+'" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+    '<p class="t2">Drag the photo to move it. The JPG downloads exactly as framed here.</p>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm coral" data-act="livadjsave" data-p="'+p.id+'">Save photo</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="adjust">Cancel</button></div></div></div></div>';}
 function livSave(url,name){const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();}
 function livName(p,kind,ext){return "AutoTQ_LinkedIn_"+String(p.slotAt||todayStr()).slice(0,10)+"_"+kind+"."+ext;}
 async function livDownload(p,what){const v=liVisual(p);
-  try{if(what!=="photo"){livSave(await livCardURL(v.card,v.theme),livName(p,"card-"+v.card,"png"));}
-    if(what!=="card"&&v.photo){if(what==="both")await new Promise(r=>setTimeout(r,400));livSave(await mktBlob(LI_PHOTO_DIR+v.photo+".jpg"),livName(p,"photo-"+v.photo,"jpg"));}
+  try{if(what!=="photo"){livSave(await livCardURL(livCardOf(p),v.theme),livName(p,"card-"+v.card,"png"));}
+    if(what!=="card"&&v.photo){if(what==="both")await new Promise(r=>setTimeout(r,400));livSave(await (livPhotoAdj(p)?livPhotoURL(p):mktBlob(LI_PHOTO_DIR+v.photo+".jpg")),livName(p,"photo-"+v.photo,"jpg"));}
     toast(what==="both"?"Downloaded the card and the photo":"Downloaded");}
   catch(e){toast("Couldn't download: "+(e.message||e));}}
-function livOpen(url,title){let el=document.getElementById("pdfv");if(!el){el=document.createElement("div");el.id="pdfv";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el);}
-  el.innerHTML='<div class="pdfv-bar"><b>'+esc(title)+'</b><span class="grow"></span><a class="btn sm ghost" href="'+url+'" download="'+esc(title.replace(/[^\w.-]+/g,"_"))+'.png">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><img class="pdfv-img" alt="'+esc(title)+'" src="'+url+'"></div>';
+function livOpen(url,title,ext){let el=document.getElementById("pdfv");if(!el){el=document.createElement("div");el.id="pdfv";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el);}
+  el.innerHTML='<div class="pdfv-bar"><b>'+esc(title)+'</b><span class="grow"></span><a class="btn sm ghost" href="'+url+'" download="'+esc(title.replace(/[^\w.-]+/g,"_"))+'.'+(ext||"png")+'">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><img class="pdfv-img" alt="'+esc(title)+'" src="'+url+'"></div>';
   el.classList.add("open");const x=el.querySelector('[data-act="mktclose"]');if(x)x.focus();}
-function liVisualHTML(p){if(p.external)return "";const v=liVisual(p),c=liCard(v.card),ph=liPhoto(v.photo),pdf=(p.attachments||[]).length,open=livPick.split(":"),mine=open[0]===p.id;
+function liVisualHTML(p){if(p.external)return "";const v=liVisual(p),c=livCardOf(p),ph=liPhoto(v.photo),adj=livPhotoAdj(p),pdf=(p.attachments||[]).length,open=livPick.split(":"),mine=open[0]===p.id;
   const t=liText(p);
+  if(mine&&open[1]==="edit"&&(!livEd||livEd.pid!==p.id))livEdOpen(p);if(mine&&open[1]==="adjust"&&(!livAdj||livAdj.pid!==p.id))livAdjOpen(p);
+  const edPanel=mine&&open[1]==="edit"?livEdHTML(p):mine&&open[1]==="adjust"&&ph?livAdjHTML(p):'';
   const cardPick=mine&&open[1]==="card"?'<div class="livpick"><div class="sectlabel">Pick the number for the card</div><div class="livchips">'+LI_CARDS.slice().sort((a,b)=>(b.re.test(t)?1:0)-(a.re.test(t)?1:0)).map(x=>'<button class="chip'+(x.id===v.card?" on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="card" data-v="'+x.id+'"><b>'+esc(x.big)+'</b> '+esc((s=>s.length>46?s.slice(0,44).replace(/[\s,.:;]+\S*$/,"")+"…":s)(x.head.join(" ")))+(x.re.test(t)?' <span class="pill ok">in this post</span>':'')+'</button>').join("")+'</div></div>':'';
   const photoPick=mine&&open[1]==="photo"?'<div class="livpick"><div class="sectlabel">Pick the photo</div><div class="livgrid">'+livRank(p).map(x=>'<button class="'+(x.ph.id===v.photo?"on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="photo" data-v="'+x.ph.id+'" title="'+esc(x.ph.title)+'"><img alt="" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+x.ph.id+'.jpg"><small>'+esc(x.ph.title)+'</small></button>').join("")+'</div></div>':'';
   return '<div class="sectlabel" style="margin-top:18px">Visuals</div><p class="t2" style="margin:-4px 0 10px">'+(pdf?'LinkedIn puts either a PDF or images on a post, not both. This post carries the PDF, so keep these for the first comment or another post.':'Add both to the post in LinkedIn, the card first.')+'</p>'+
-   '<div class="livis"><figure class="livfig"><button class="livimg" data-act="livzoom" data-p="'+p.id+'" data-k="card" aria-label="Open the stat card full size"><img alt="Stat card: '+esc(c.big+" "+c.head.join(" "))+'" data-licard="'+c.id+'|'+v.theme+'"></button>'+
-     '<figcaption><b>Stat card</b><small>'+esc(c.big)+' · '+esc(c.source)+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="card">PNG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="card">Change</button><button class="btn sm ghost" data-act="livtheme" data-p="'+p.id+'">'+(v.theme==="day"?"Dark":"Light")+'</button></span></figcaption></figure>'+
-    '<figure class="livfig"><button class="livimg photo" data-act="livzoom" data-p="'+p.id+'" data-k="photo" aria-label="Open the photo full size"'+(ph?'':' disabled')+'>'+(ph?'<img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+ph.id+'.jpg">':'<span class="t2">The photo set didn’t load</span>')+'</button>'+
-     '<figcaption><b>Product photo</b><small>'+(ph?esc(ph.title):'—')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="photo"'+(ph?'':' disabled')+'>JPG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="photo">Change</button></span></figcaption></figure></div>'+
-   cardPick+photoPick+
+   '<div class="livis"><figure class="livfig"><button class="livimg" data-act="livzoom" data-p="'+p.id+'" data-k="card" aria-label="Open the stat card full size"><img alt="Stat card: '+esc(c.big+" "+c.head.join(" "))+'" data-licard="'+esc(livCardKey(c,v.theme))+'"></button>'+
+     '<figcaption><b>Stat card</b><small>'+esc(c.big)+' · '+esc(c.source)+(c.edited?' · edited':'')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="card">PNG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="card">Change</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="edit">Edit</button><button class="btn sm ghost" data-act="livtheme" data-p="'+p.id+'">'+(v.theme==="day"?"Dark":"Light")+'</button></span></figcaption></figure>'+
+    '<figure class="livfig"><button class="livimg photo" data-act="livzoom" data-p="'+p.id+'" data-k="photo" aria-label="Open the photo full size"'+(ph?'':' disabled')+'>'+(ph?(adj?'<span class="livcrop"><img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+ph.id+'.jpg" style="'+livGeoCss(livGeo(ph,adj))+'"></span>':'<img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+ph.id+'.jpg">'):'<span class="t2">The photo set didn’t load</span>')+'</button>'+
+     '<figcaption><b>Product photo</b><small>'+(ph?esc(ph.title)+(adj?' · framed':''):'—')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="photo"'+(ph?'':' disabled')+'>JPG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="photo">Change</button>'+(ph?'<button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="adjust">Adjust</button>':'')+'</span></figcaption></figure></div>'+
+   cardPick+photoPick+edPanel+
    '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="both"'+(ph?'':' disabled')+'>Download both</button>'+(v.picked.card||v.picked.photo?'<button class="btn sm ghost" data-act="livreset" data-p="'+p.id+'">Back to the automatic picks</button>':'')+'</div>';}
-/* the card's own check, shown with the post's other checks */
-function livCheck(p){if(p.external)return null;const v=liVisual(p),c=liCard(v.card);
-  return c.re.test(liText(p))?{ok:true,text:"The card repeats a number this post uses ("+c.big+")"}:{ok:false,text:v.cardFallback?"This post quotes no checked number, so the card shows "+c.big+": change it if it doesn't fit":"The card's number ("+c.big+") isn't in the post"};}
+/* the card's own checks, shown with the post's other checks (and live in the card editor, for the wording being typed): its
+   number is in the post; an edited card carries only verified or sourced numbers */
+function livChecks(p,c,live){if(p.external)return [];const v=liVisual(p);c=c||livCardOf(p);
+  const out=[c.re.test(liText(p))?{ok:true,text:"The card repeats a number this post uses ("+c.big+")"}:{ok:false,text:v.cardFallback&&!c.edited?"This post quotes no checked number, so the card shows "+c.big+": change it if it doesn't fit":"The card's number ("+c.big+") isn't in the post"}];
+  const lo=c.edited?livLoose(p,c):[];if(lo.length)out.push({ok:false,text:livLooseText(lo)});else if(live)out.push({ok:true,text:"Every number on the card is verified or sourced"});
+  return out;}
 function livHandle(a,t){const p=liFind(t.dataset.p);if(!p)return true;const k=t.dataset.k;
   if(a==="livdl"){livDownload(p,k);return true;}
-  if(a==="livpick"){livPick=livPick===p.id+":"+k?"":p.id+":"+k;render();return true;}
-  if(a==="livset"){livStamp(p);p.visual[k]=t.dataset.v;p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livPick="";render();toast(k==="card"?"Card changed":"Photo changed");return true;}
+  if(a==="livpick"){const on=livPick===p.id+":"+k;livPick=on?"":p.id+":"+k;livEd=null;livAdj=null;if(!on&&k==="edit")livEdOpen(p);if(!on&&k==="adjust")livAdjOpen(p);render();return true;}
+  if(a==="livedtheme"&&livEd){livEd.theme=t.dataset.v;render();return true;}
+  if(a==="livedorig"&&livEd){const c=liCard(livEd.of);Object.assign(livEd,{eyebrow:c.eyebrow,big:c.big,head:[c.head[0]||"",c.head[1]||""],sub:c.sub||"",source:c.source});render();return true;}
+  if(a==="livedsave"){if(!livEd||livEd.pid!==p.id)return true;const c=liCard(livEd.of),e=livCardWith(c,livEd);if(!e.big){toast("The card needs a number");return true;}
+    livStamp(p);p.visual.card=c.id;p.visual.theme=livEd.theme;
+    if(e.eyebrow===c.eyebrow&&e.big===c.big&&e.head.join("|")===c.head.join("|")&&e.sub===(c.sub||"")&&e.source===c.source)delete p.visual.cardEdit;
+    else p.visual.cardEdit={of:c.id,eyebrow:e.eyebrow,big:e.big,head:e.head,sub:e.sub,source:e.source};
+    p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livEd=null;livPick="";render();toast("Card saved");return true;}
+  if(a==="livadjz"&&livAdj){livAdj.z=t.dataset.v==="fill"?livGeo(liPhoto(livAdj.of),livAdj).zFill:1;livAdjDraw();return true;}
+  if(a==="livadjsave"){if(!livAdj||livAdj.pid!==p.id)return true;const g=livGeo(liPhoto(livAdj.of),livAdj);livStamp(p);p.visual.photo=livAdj.of;
+    if(g.z<1.005)delete p.visual.photoAdj;else p.visual.photoAdj={of:livAdj.of,z:+g.z.toFixed(3),x:+g.x.toFixed(4),y:+g.y.toFixed(4)};
+    p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livAdj=null;livPick="";render();toast("Photo saved");return true;}
+  if(a==="livset"){livStamp(p);p.visual[k]=t.dataset.v;delete p.visual[k==="card"?"cardEdit":"photoAdj"];p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livPick="";render();toast(k==="card"?"Card changed":"Photo changed");return true;}
   if(a==="livtheme"){livStamp(p);p.visual.theme=p.visual.theme==="day"?"night":"day";p.visual.by=USER;put("liPosts",p);render();return true;}
-  if(a==="livreset"){delete p.visual;put("liPosts",p);livPick="";render();toast("Back to the automatic picks");return true;}
-  if(a==="livzoom"){const v=liVisual(p);if(k==="photo"){const ph=liPhoto(v.photo);if(ph)mktOpen(LI_PHOTO_DIR+ph.id+".jpg",ph.title);}else livCardURL(v.card,v.theme).then(u=>livOpen(u,"AutoTQ stat card — "+liCard(v.card).big)).catch(e=>toast("Couldn't draw the card: "+e.message));return true;}
+  if(a==="livreset"){delete p.visual;put("liPosts",p);livPick="";livEd=null;livAdj=null;render();toast("Back to the automatic picks");return true;}
+  if(a==="livzoom"){const v=liVisual(p),c=livCardOf(p);if(k==="photo"){const ph=liPhoto(v.photo);if(ph&&livPhotoAdj(p))livPhotoURL(p).then(u=>livOpen(u,ph.title,"jpg")).catch(e=>toast("Couldn't frame the photo: "+e.message));else if(ph)mktOpen(LI_PHOTO_DIR+ph.id+".jpg",ph.title);}else livCardURL(c,v.theme).then(u=>livOpen(u,"AutoTQ stat card — "+c.big)).catch(e=>toast("Couldn't draw the card: "+e.message));return true;}
   return true;}
 
 /* ---------- Marketing plan on Home (2026-10-21): one `mktPlan` record per anchor piece (the white paper first). Its files live in
