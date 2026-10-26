@@ -124,6 +124,7 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .callbtn{font-size:16px;padding:10px 16px;text-decoration:none}.cc-ctx{margin-top:14px;padding:10px 12px;border:1px solid var(--rule-2);border-radius:10px;background:var(--panel-2,transparent)}.cc-ctx p{margin:3px 0;font-size:13.5px}.cc-ctx b{color:var(--ink-3);font-weight:600;margin-right:6px}
 .cc-hist{margin-top:10px}.cc-hist p{margin:4px 0}.callouts .chip{min-height:38px;padding:0 14px}
 .callnext .ibx.on{background:var(--rule-2)}
+.cc-fu{margin-top:12px;padding:10px 12px;border:1px dashed var(--rule);border-radius:10px}.cc-fu .btn{text-decoration:none}
 .reccard{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);padding:16px 18px}
 .lists{display:flex;flex-direction:column;margin-top:6px}.lrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--rule-2)}.lrow:first-child{border-top:0}
 .lrow .grow{display:flex;flex-direction:column;min-width:0}.lrow b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lrow small{color:var(--ink-3);font-size:12.5px;margin-top:2px}
@@ -965,7 +966,7 @@ function campChecks(c){ // the SES terms, as checks a reviewer can read. hard = 
   add(!steps.some(st=>SPAMMY.test(st.subject||"")||SPAMMY.test(st.body||"")),false,"No spam-filter trigger words");
   add(true,false,"Unsubscribe link, List-Unsubscribe headers and our postal address go on every email automatically");
   add(true,false,"Every reply goes to "+REPLY_TO);
-  const ok=campOk(c),ver=ok.filter(l=>l.vstatus).length;add(ok.length===0||ver/ok.length>=0.5,false,ok.length?(ver+" of "+ok.length+" addresses checked with Apollo"+(ver/ok.length<0.5?" — check the rest before sending":"")):"no one to email yet");
+  const ok=campOk(c),ver=ok.filter(l=>l.vstatus).length;add(ok.length===0||ver/ok.length>=0.8,(c.channel||"ses")==="ses",ok.length?(ver+" of "+ok.length+" addresses checked with Apollo"+(ver/ok.length<0.8?" — check at least 80% before approval (Who › Check with Apollo); bounces near 4% halt all sending":"")):"no one to email yet");
   const nl=newsletterSet();const onNl=nl.size?ok.filter(l=>nl.has(String(l.email||"").toLowerCase())).length:0;if(onNl)add(true,false,onNl+" also get the Squarespace newsletter — don't send in the same week as a broadcast");
   const risky=ok.filter(l=>/^(info|sales|admin|office|contact|support|hello)@/i.test(l.email||"")).length;add(risky===0,false,risky?risky+" role addresses (info@, sales@…) — these complain most":"No role addresses (info@, sales@…)");
   const bought=(c.leads||[]).filter(l=>campFlagNow(l)==="bought").length,bRev=ok.filter(l=>buyerHit(l)).length;
@@ -1160,7 +1161,9 @@ async function campSimTest(){const c=campaignById(curCampaign);if(!c||!c.from){t
 function campSimEvents(c){if(!c.simTest)return "";const ids=new Set(c.simTest.ids||[]);const ev=(DB.mailEvents||[]).filter(e=>ids.has(e.msgId));if(!ev.length)return '<p class="t2">Simulator test sent '+new Date(c.simTest.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+' — waiting for SES events…</p>';
   return '<p class="t2">Simulator events: '+ev.map(e=>e.type).sort().join(", ")+'</p>';}
 /* review */
-function campSendForReview(){const c=campaignById(curCampaign);if(!c)return;if(!campReady(c,1)){toast("Build the audience first");campStep=1;render();return;}if(!(c.basis&&c.basis.trim())){toast("Say how these people know us first");campStep=1;render();return;}if(campColdSes(c)){toast(COLD_SES_TEXT);return;}if(!campReady(c,2)){toast("Write the emails first");campStep=2;render();return;}
+async function campSendForReview(){const c=campaignById(curCampaign);if(!c)return;if(!campReady(c,1)){toast("Build the audience first");campStep=1;render();return;}if(!(c.basis&&c.basis.trim())){toast("Say how these people know us first");campStep=1;render();return;}if(campColdSes(c)){toast(COLD_SES_TEXT);return;}if(!campReady(c,2)){toast("Write the emails first");campStep=2;render();return;}
+  const unchecked=campOk(c).filter(l=>!l.vstatus).length; /* clean the list before anyone approves it: bounces were near the 4% halt line (2026-10-26) */
+  if(unchecked&&(c.channel||"ses")==="ses"){await campVerify(c,{auto:true});if(campOk(c).filter(l=>!l.vstatus).length/Math.max(1,campOk(c).length)>0.2){toast("Check the addresses first — under 80% are checked with Apollo");campStep=1;render();return;}}
   c.status="review";c.reviewAskedAt=new Date().toISOString();c.reviewAskedBy=USER;
   if(!(DB.tasks||[]).some(t=>t.campId===c.id&&!t.done&&!t.removed))put("tasks",{id:uid(),owner:USER,title:"Review campaign: "+c.name,type:"review",due:todayStr(),done:false,createdAt:new Date().toISOString(),assignees:CAMP_REVIEWERS.slice(),campId:c.id});
   saveCamp(c);campStep=3;render();toast("Sent to Hannah for review");}
@@ -1246,9 +1249,9 @@ function campClean(c){const before=c.leads.length;const seen=new Set();let dropp
   campFlagLeads(c.leads.filter(l=>l.email));c.leads.forEach(l=>{if(l.apolloId&&!l.email)l.flag="verify";});campApplyGuards(c);saveCamp(c);render();
   const parts=Object.keys(dropped).filter(k=>dropped[k]).map(k=>dropped[k]+" "+({invalid:"undeliverable",bad:"bad address",dupe:"duplicate",missing:"no email"}[k]));toast(parts.length?"Removed "+parts.join(", ")+" · "+c.leads.length+" left":"Nothing to clean — "+before+" people, all good");}
 /* verification through Apollo (people/bulk_match by email, 10 per call, ~1 credit per match) */
-async function campVerify(c){
-  const todo=(c.leads||[]).filter(l=>(l.flag==="ok"&&!l.vstatus)||(l.apolloId&&!l.email&&l.flag!=="invalid"));if(!todo.length){toast("Everyone here is already checked");return;}
-  const reveal=todo.filter(l=>l.apolloId&&!l.email).length;if(!confirm((reveal?"Reveal "+reveal+" emails and check "+(todo.length-reveal)+" with Apollo?":"Check "+todo.length+" addresses with Apollo?")+" Up to "+todo.length+" credits."))return;
+async function campVerify(c,opt){opt=opt||{};
+  const todo=(c.leads||[]).filter(l=>(l.flag==="ok"&&!l.vstatus)||(!opt.auto&&l.apolloId&&!l.email&&l.flag!=="invalid"));if(!todo.length){if(!opt.auto)toast("Everyone here is already checked");return;}
+  const reveal=todo.filter(l=>l.apolloId&&!l.email).length;if(!confirm(opt.auto?"Before this goes for review: check "+todo.length+" unchecked addresses with Apollo so bad ones don't bounce? Up to "+todo.length+" credits.":(reveal?"Reveal "+reveal+" emails and check "+(todo.length-reveal)+" with Apollo?":"Check "+todo.length+" addresses with Apollo?")+" Up to "+todo.length+" credits."))return;
   toast("Checking "+todo.length+"…");let done=0,bad=0;
   for(let i=0;i<todo.length;i+=10){const chunk=todo.slice(i,i+10);
     try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"verify",people:chunk.map(l=>l.apolloId&&!l.email?{id:l.apolloId}:{email:l.email})})});const b=await r.json().catch(()=>({}));
@@ -2642,7 +2645,7 @@ function repliedSectionHTML(){const ps=repliedPeople();if(!ps.length)return "";
 const CALL_OUTS=[["noanswer","No answer",0],["vm","Voicemail",0],["talked","Talked",1],["interested","Interested",1],["demo","Demo / quote",1],["callback","Call back",1],["notint","Not interested",1],["wrong","Wrong number",0]];
 const CALL_DONE_OUTS=["notint","wrong","demo"]; // off the queue (demo/quote goes to the pipeline; a callback date brings anyone back)
 const TZ_OFF={Eastern:-4,Central:-5,Mountain:-6,Pacific:-7,Alaska:-8,Hawaii:-10};
-let callConfs=null, callSkip=new Set(), callCur=null, callOutSel="", callTab="queue";
+let callConfs=null, callSkip=new Set(), callCur=null, callOutSel="", callTab="queue", callDistVal=null;
 function callGoal(){try{return +localStorage.getItem("autotq_call_goal_"+USER)||50;}catch(e){return 50;}}
 function callGoalSet(n){try{localStorage.setItem("autotq_call_goal_"+USER,String(n));}catch(e){}}
 function callDigits(p){return String(p||"").replace(/\D/g,"").replace(/^1(?=\d{10}$)/,"");}
@@ -2710,6 +2713,19 @@ function viewCalls(){
   return h;}
 function callConfsHTML(cls){return '<div class="pan callconfs '+cls+'"><div class="ph2">'+svg("chart")+'Getting through the lists</div>'+callConfList().map(o=>{const on=!callConfs||!callConfs.size||callConfs.has(o.conf);const p=o.total?Math.round(o.called/o.total*100):0;
       return '<button class="ccrow'+(on?"":" off")+'" data-act="callconf" data-v="'+esc(o.conf)+'"><span class="ck">'+(on?svg("check"):"")+'</span><span class="grow"><b>'+esc(o.conf)+'</b><small>'+o.called+' of '+o.total+' reached at least once · '+o.left+' left to call</small><span class="cbar"><i style="width:'+p+'%"></i></span></span><span class="num">'+p+'%</span></button>';}).join("")+'</div>';}
+/* follow-up email after a call (2026-10-26): Max's own template, from his own mail app (mailto — the email leaves from his real inbox),
+   territory rep on cc, ordering routed through the contact's distributor. No pricing. */
+const REP_BY_TERR={East:"johnm",Central:"john",West:"tim"};
+function callTerritory(l){const st=String(l.state||"").toUpperCase().slice(0,2);
+  if(/^(MT|WY|CO|NM|AZ|UT|NV|ID|WA|OR|CA|AK|HI)$/.test(st))return "West";if(/^(IL|WI|MN|IA|MO|AR|LA|OK|TX|KS|NE|SD|ND)$/.test(st))return "Central";return st?"East":"";}
+const DIST_NAMES=["Grainger","Fastenal","MSC","Cintas","UniFirst","Ritz Safety","PMG","Medique","Industrial Supply","Airgas","Global Industrial","Bound Tree","Henry Schein","HD Supply","Rescue1","Copper State","Ballard","Mallory","Bunzl","Magid","Uline","Zoro","Amazon"];
+function callGuessDist(l){const t=[l.notes,l.status,l.next].concat(callsOf(l).map(c=>c.note)).join(" ");return DIST_NAMES.find(d=>new RegExp("\\b"+d.replace(/ /g,"\\s+")+"\\b","i").test(t))||"";}
+function callFollowupHref(l,dist){const me=teamById(USER);const rep=REP_BY_TERR[callTerritory(l)];const repT=rep&&rep!==USER?teamById(rep):null;const repEmail=repT?userEmail(rep):"";
+  const first=String(l.name||"").trim().split(/\s+/)[0]||"there";
+  const body="Hi "+first+",\n\nI enjoyed speaking with you over the phone today.\n\nAs promised, a quick overview of AutoTQ: it's an automatic tourniquet with one-button activation. Place the cuff above the bleed, press Inflate, and it applies consistent compression on its own and talks the person through it, so anyone can apply it rapidly under stress.\n\n"+
+    (dist?"Since you purchase through "+dist+", they can offer you a quote and a demo."+(repT?" I've copied "+repT.name.split(" ")[0]+" from our team, who works with them in your area and can set that up.":""):(repT?repT.name.split(" ")[0]+" from our team covers your area (copied here) and can set up a quote and a demo through the distributor you already use.":"Let me know which distributor you buy safety supplies through, and they can offer you a quote and a demo."))+
+    "\n\nTraining is free for your team: "+SITE_URL+"training\n\nBest,\n"+(me.name||"")+"\nAutoTQ | Golden Hour Medical";
+  return "mailto:"+encodeURIComponent(l.email||"")+"?subject="+encodeURIComponent("AutoTQ — great speaking with you")+(repEmail?"&cc="+encodeURIComponent(repEmail):"")+"&body="+encodeURIComponent(body);}
 function callOutPill(o){const x=CALL_OUTS.find(z=>z[0]===o)||[o,o,0];const cls=o==="demo"||o==="interested"?"ok":o==="callback"||o==="talked"?"info":o==="notint"||o==="wrong"?"dang":"";return '<span class="pill '+cls+'">'+esc(x[1])+'</span>';}
 function callCardHTML(l,b){const phones=callPhones(l);const hist=callsOf(l);const lastEmail=l.lastEmail?'Emailed '+esc(l.lastEmail):'';
   const inCamp=campaigns().filter(c=>(c.leads||[]).some(x=>x.refId===l.id&&x.sent&&Object.keys(x.sent).length)).map(c=>c.name);
@@ -2720,6 +2736,7 @@ function callCardHTML(l,b){const phones=callPhones(l);const hist=callsOf(l);cons
     (hist.length?'<div class="cc-hist">'+hist.slice(-4).reverse().map(c=>'<p>'+callOutPill(c.out)+' <span class="t2" style="margin:0">'+new Date(c.at).toLocaleDateString([], {month:"short",day:"numeric"})+' · '+esc(shortName(c.by||""))+(c.note?' · '+esc(c.note):'')+'</span></p>').join("")+'</div>':'')+
     '<div class="sectlabel" style="margin-top:16px">How did it go?</div><div class="chips callouts">'+CALL_OUTS.map(o=>'<span class="chip'+(callOutSel===o[0]?" on":"")+'" data-act="callout" data-v="'+o[0]+'">'+o[1]+'</span>').join("")+'</div>'+
     (callOutSel==="callback"||callOutSel==="interested"||callOutSel==="demo"?'<div class="row" style="gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap"><span class="t2" style="margin:0">Call back on</span><input class="f" type="date" id="callCb" value="'+callDefaultCb(callOutSel)+'" style="max-width:180px"></div>':'')+
+    (["talked","interested","demo","callback"].includes(callOutSel)&&l.email?'<div class="cc-fu"><div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><span class="t2" style="margin:0">Buys through</span><input class="f" id="callDist" value="'+esc(callDistVal!=null?callDistVal:callGuessDist(l))+'" placeholder="Grainger, Fastenal, Cintas…" style="max-width:220px"><a class="btn" id="callFuBtn" data-act="callfu" data-id="'+esc(l.id)+'" href="'+esc(callFollowupHref(l,callDistVal!=null?callDistVal:callGuessDist(l)))+'">'+svg("mail")+' Email follow-up</a></div><p class="t2" style="margin:6px 0 0">Opens your mail app with your follow-up written: no pricing, ordering through their distributor'+(REP_BY_TERR[callTerritory(l)]?', '+esc(teamById(REP_BY_TERR[callTerritory(l)]).name)+' on cc':'')+'.'+(l.fuAt?' Last sent '+esc(l.fuAt.slice(5,10).replace("-","/"))+'.':'')+'</p></div>':'')+
     '<textarea class="f" id="callNote" rows="2" placeholder="Notes — who you spoke to, what they need, the distributor they buy from" style="margin-top:10px"></textarea>'+
     '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn coral" data-act="callsave" data-id="'+esc(l.id)+'"'+(callOutSel?'':' disabled')+'>Log it · next call '+svg("chevR")+'</button><button class="btn ghost" data-act="callskip" data-id="'+esc(l.id)+'">Skip for today</button></div></div>';}
 function callDefaultCb(o){const d=new Date();d.setDate(d.getDate()+(o==="callback"?2:o==="interested"?5:7));while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return callDayKey(d.toISOString());}
@@ -2727,12 +2744,13 @@ function callHandle(a,t){
   if(a==="callgoal"){callGoalSet(+t.dataset.v);render();return true;}
   if(a==="calltab"){callTab=t.dataset.v;render();return true;}
   if(a==="callconf"){const all=callConfList().map(o=>o.conf);if(!callConfs)callConfs=new Set(all);const v=t.dataset.v;if(callConfs.has(v))callConfs.delete(v);else callConfs.add(v);if(callConfs.size===all.length)callConfs=null;callCur=null;render();return true;}
-  if(a==="callpick"){callCur=t.dataset.id;callTab="queue";callOutSel="";render();window.scrollTo(0,0);return true;}
-  if(a==="callout"){const n=document.getElementById("callNote");const keep=n?n.value:"";callOutSel=t.dataset.v;render();const n2=document.getElementById("callNote");if(n2)n2.value=keep;return true;}
+  if(a==="callpick"){callCur=t.dataset.id;callTab="queue";callOutSel="";callDistVal=null;render();window.scrollTo(0,0);return true;}
+  if(a==="callout"){const n=document.getElementById("callNote");const keep=n?n.value:"";const dEl=document.getElementById("callDist");if(dEl)callDistVal=dEl.value;callOutSel=t.dataset.v;render();const n2=document.getElementById("callNote");if(n2)n2.value=keep;return true;}
+  if(a==="callfu"){const l=(DB.confLeads||[]).find(x=>x.id===t.dataset.id);if(l){const d=((document.getElementById("callDist")||{}).value||"").trim();t.href=callFollowupHref(l,d);l.fuAt=new Date().toISOString();l.fuBy=USER;if(d)l.dist=d;put("confLeads",l);put("activities",{id:uid(),type:"email",by:USER,date:l.fuAt,note:"Follow-up email after call"+(d?" · via "+d:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null});toast("Follow-up opened in your mail app");}return false;}
   if(a==="callskip"){callSkip.add(t.dataset.id);callCur=null;callOutSel="";render();return true;}
   if(a==="callsave"){const l=(DB.confLeads||[]).find(x=>x.id===t.dataset.id);if(!l||!callOutSel)return true;const note=((document.getElementById("callNote")||{}).value||"").trim();
     const cbEl=document.getElementById("callCb");const cb=cbEl&&cbEl.value?cbEl.value:(callOutSel==="callback"?callDefaultCb("callback"):"");
-    callLog(l,callOutSel,note,cb);const s=callStats();callOutSel="";callCur=null;render();window.scrollTo(0,0);
+    callLog(l,callOutSel,note,cb);const s=callStats();callOutSel="";callDistVal=null;callCur=null;render();window.scrollTo(0,0);
     const g=callGoal();toast(s.today.dials===g?"That's "+g+" — goal hit for today":"Logged · "+s.today.dials+"/"+g+" today");return true;}
   return false;}
 function viewLeads(){
