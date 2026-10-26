@@ -614,6 +614,10 @@ svg.usmap .dots{stroke:var(--dots)}
 .ptok{background:var(--coral-wash);color:var(--coral-ink);border-radius:4px;padding:0 3px;font-weight:600}
 .pcampnone{padding:10px 16px;margin:0;border-top:1px solid var(--rule-2)}
 .psteps{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lgb{padding:0 16px 14px;display:flex;flex-direction:column;gap:10px}
+.lgpaste{min-height:46px;resize:vertical;font-size:13px}
+.lgt td{white-space:normal;min-width:110px}.lgt td.nm{min-width:150px}.lgt select{max-width:220px}
+.lgact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pstep{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--ok-wash);color:var(--ok);font:inherit;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer}
 .pstep .i{width:12px;height:12px}
 @media (max-width:900px){.pmsgs{grid-template-columns:1fr}}
@@ -2141,7 +2145,7 @@ function prosHTML(){const L=prosLists(),k=prosCur(),meta=prosMeta(k),rows=prosRo
     '<input class="f" id="prosQ" value="'+esc(prosQ)+'" placeholder="Search company, city, state, person" aria-label="Search the list"></div>'+
    '<p class="t2 linote prosnote"><b>'+inList.length+'</b> companies · <b>'+nF+'</b> with an email format · <b>'+nL+'</b> with a LinkedIn page · <b>'+ppl.length+'</b> '+(ppl.length===1?'person':'people')+' added'+
     (ppl.length&&!(meta&&meta.group==="hot")?' · <b>'+cnt("connect")+'</b> '+(cnt("connect")===1?'note':'notes')+' sent · <b>'+cnt("accepted")+'</b> accepted · <b>'+cnt("replied")+'</b> replied':'')+'. '+
-    'To grab someone: open <b>People: Safety</b>, click the person, copy the address bar (<b>linkedin.com/in/…</b>), then <b>Add a person</b> and paste it.</p>'+prosCampHTML(meta);
+    'To grab someone: open <b>People: Safety</b>, click the person, copy the address bar (<b>linkedin.com/in/…</b>), then <b>Add a person</b> and paste it.</p>'+prosCampHTML(meta)+lgHTML();
   h+=rows.length?rows.slice(0,prosShow).map(r=>prosRow(r,meta)).join("")+(rows.length>prosShow?'<button class="ibx" data-act="prosmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(60,rows.length-prosShow)+' more of '+rows.length+'</button>':'')
     :'<div class="empty" style="padding:22px 16px">Nothing matches “'+esc(prosQ)+'”.</div>';
   return h+'</div>';}
@@ -2208,7 +2212,90 @@ async function prosCheck(r,p){const w=prosNameWords(p.name);
     else toast(p.checkStatus==="no_match"?"Apollo doesn't know "+p.name+" — keep the pattern, verify another way":"Apollo: "+p.checkStatus+(em?" ("+em+")":""));
     put("prospects",r);render();
   }catch(e){toast("Couldn't check — "+(e.message||e));}}
+/* Paste LinkedIn results (Max, 2026-10-26: "I create a filter search and ... then I go next page"). Max runs the search on
+   LinkedIn or Sales Navigator himself; on each results page he copies the page (Ctrl+A, Ctrl+C) and pastes it here. The paste
+   is parsed in the browser (name, title, company, location, profile link); nothing here opens or reads LinkedIn. The working
+   table is this viewer's own (localStorage); "Add" writes the people into the synced prospects under the company picked. */
+const LG_KEY="autotq_lg_v1";
+let lgOpen=null;
+function lgLoad(){try{const v=JSON.parse(localStorage.getItem(LG_KEY)||"null");if(v&&Array.isArray(v.rows))return v;}catch(e){}return {rows:[],pages:0};}
+let LG=lgLoad();
+function lgSave(){try{localStorage.setItem(LG_KEY,JSON.stringify(LG));}catch(e){}}
+const LG_JUNK=/^(view .*profile|.*degree connection|[•·]?\s*(1st|2nd|3rd\+?)|connect|message|follow|following|save|saved|pending|send inmail|add note|more|premium|verified|open to work|hiring|status is .*|.*mutual connections?|.*followers?|\d+\+? connections|provides services.*|viewed|new|lead|in \d+ lists?|…?see more|show more|show less|current:?|past:?|about:?|summary:?|·|•|\|)$/i;
+const LG_LOC=/,\s*(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|PA|RI|S[CD]|T[NX]|UT|V[AT]|W[AIVY])\b|united states|canada|\barea$|metropolitan|^greater /i;
+function lgLink(h){h=String(h||"");let m=h.match(/linkedin\.com\/in\/([^/?#\s]+)/i)||h.match(/^\/in\/([^/?#\s]+)/i);if(m)return "https://www.linkedin.com/in/"+m[1]+"/";
+  m=h.match(/\/sales\/(lead|people)\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/sales/"+m[1].toLowerCase()+"/"+m[2]:"";}
+/* text nodes in order, one line each (a parsed paste has no layout, so innerText can't split lines) */
+function lgLines(el){if(!el)return [];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),out=[];let n;
+  while((n=w.nextNode())){const p=n.parentElement;if(p&&/^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.tagName))continue;const t=n.nodeValue.replace(/\s+/g," ").trim();if(t&&out[out.length-1]!==t)out.push(t);}
+  return out;}
+function lgName(x){return String(x||"").replace(/\s*\((he|she|they)\/[^)]*\)/ig,"").replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,"").replace(/\s+/g," ").trim();}
+function lgCompanyOf(title,lines){const m=String(title||"").match(/\s(?:at|@)\s+(.+)$/i);if(m)return m[1].replace(/\s*[|·•].*$/,"").trim();
+  const L=lines||[],c=L.find(x=>/^current:/i.test(x)&&/\sat\s/i.test(x));if(c)return c.replace(/^.*\sat\s+/i,"").trim();
+  const i=L.findIndex(x=>/^current:.*\sat$/i.test(x));return i>=0&&L[i+1]&&!LG_LOC.test(L[i+1])?L[i+1]:"";}
+function lgRow(name,rest,li,coLink){const title=rest[0]||"",loc=rest.slice(1).find(x=>LG_LOC.test(x))||"";
+  let company=coLink||lgCompanyOf(title,rest);if(!company&&rest[1]&&rest[1]!==loc&&!LG_LOC.test(rest[1]))company=rest[1];
+  return {id:li||(name+"|"+title).toLowerCase(),name,title,company,loc,li};}
+function lgParse(html,text){const out=[],seen=new Set();
+  if(html){const doc=new DOMParser().parseFromString(html,"text/html");const by={};
+    doc.querySelectorAll('a[href]').forEach(a=>{const li=lgLink(a.getAttribute("href"));if(li)(by[li]=by[li]||[]).push(a);});
+    Object.keys(by).forEach(li=>{const as=by[li];
+      const name=lgName(as.map(a=>lgLines(a).find(x=>!LG_JUNK.test(x))||"").find(Boolean));if(!name||/^linkedin member$/i.test(name)||seen.has(li))return;
+      let box=as[0];while(box.parentElement&&box.parentElement!==doc.body){const links=new Set([...box.parentElement.querySelectorAll('a[href]')].map(a=>lgLink(a.getAttribute("href"))).filter(Boolean));if(links.size>1)break;box=box.parentElement;}
+      const co=box.querySelector('a[href*="/company/"]');const coLink=co?lgLines(co).find(x=>!LG_JUNK.test(x))||"":"";
+      const rest=lgLines(box).map(lgName).filter(x=>x&&x!==name&&!LG_JUNK.test(x)&&!x.toLowerCase().startsWith(name.toLowerCase()+" ")&&x!==coLink);
+      seen.add(li);out.push(lgRow(name,rest,li,coLink));});}
+  if(!out.length&&text){const L=String(text).split(/\r?\n/).map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean);
+    for(let i=0;i<L.length;i++){const m=L[i].match(/^View (.+?)[’']s? profile$/i);if(!m)continue;const name=lgName(m[1]),rest=[];
+      for(let j=i+1;j<L.length&&rest.length<4&&!/^View .+ profile$/i.test(L[j]);j++){const x=lgName(L[j]);if(x&&x!==name&&!LG_JUNK.test(x))rest.push(x);}
+      const r=lgRow(name,rest,"","");if(!seen.has(r.id)){seen.add(r.id);out.push(r);}}}
+  return out;}
+function lgNorm(x){return String(x||"").toLowerCase().replace(/\b(inc|llc|ltd|corp|corporation|company|co|the|of|na|usa|america|americas|north)\b/g," ").replace(/[^a-z0-9]+/g,"");}
+function lgMatch(company){const c=lgNorm(company);if(c.length<3)return "";const k=prosCur();
+  const hits=prospects().filter(r=>{const n=lgNorm(r.company);return n.length>=3&&(n.includes(c)||c.includes(n));});
+  const h=hits.find(r=>(r.list||"other")===k)||hits[0];return h?h.id:"";}
+function lgHTML(){const R=LG.rows;if(lgOpen==null)lgOpen=!!R.length;const k=prosCur();
+  const cos=prospects().filter(r=>(r.list||"other")===k).sort((a,b)=>String(a.company).localeCompare(String(b.company)));
+  const opts=t=>{const extra=t&&!cos.some(r=>r.id===t)?[prosById(t)].filter(Boolean):[];
+    return '<option value="">Not added</option>'+extra.concat(cos).map(r=>'<option value="'+esc(r.id)+'"'+(r.id===t?' selected':'')+'>'+esc(r.company)+'</option>').join("");};
+  const ready=R.filter(r=>r.target&&!r.added).length;
+  let h='<details class="pcamp lgrab" id="lgFold"'+(lgOpen?' open':'')+'><summary>'+svg("users")+'<b>Paste LinkedIn results</b><span class="t2">'+
+    (R.length?R.length+' '+(R.length===1?'person':'people')+' from '+LG.pages+' '+(LG.pages===1?'page':'pages'):'run your search on LinkedIn or Sales Navigator, then paste each results page here')+'</span>'+svg("chevD","fchev")+'</summary>'+
+    '<div class="lgb"><textarea class="f lgpaste" id="lgPaste" rows="2" placeholder="On a results page press Ctrl+A, then Ctrl+C. Click here and press Ctrl+V. Go to the next page and repeat."></textarea>';
+  if(R.length)h+='<div class="tablewrap" style="max-height:420px"><table class="lv lgt"><thead><tr><th>Name</th><th>Add to</th><th>Title</th><th>Company</th><th>Location</th><th></th></tr></thead><tbody>'+
+    R.map(r=>'<tr><td class="nm">'+(r.li?'<a href="'+esc(r.li)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+'</td>'+
+      '<td>'+(r.added?'<span class="pill ok">added · '+esc(r.added)+'</span>':'<select class="sel lgsel" data-id="'+esc(r.id)+'" aria-label="Add '+esc(r.name)+' to">'+opts(r.target)+'</select>')+'</td>'+
+      '<td>'+esc(r.title)+'</td><td>'+esc(r.company)+'</td><td>'+esc(r.loc)+'</td>'+
+      '<td><button class="ibtn" data-act="proslgdel" data-id="'+esc(r.id)+'" aria-label="Remove '+esc(r.name)+'">'+svg("x")+'</button></td></tr>').join("")+'</tbody></table></div>'+
+    '<div class="lgact">'+(ready?'<button class="btn sm coral" data-act="proslgadd">'+svg("plus")+'Add '+ready+' to their companies</button>':'<span class="t2">Pick a company under “Add to” to add someone.</span>')+
+      '<button class="btn sm" data-act="proslgexport">'+svg("dl")+'Export to Excel</button><button class="btn sm ghost" data-act="proslgclear">Clear the table</button></div>';
+  return h+'</div></details>';}
+function lgHandle(a,t){
+  if(a==="proslgdel"){LG.rows=LG.rows.filter(r=>r.id!==t.dataset.id);lgSave();render();return true;}
+  if(a==="proslgclear"){if(!confirm("Clear the pasted table? People already added stay on their companies."))return true;LG={rows:[],pages:0};lgSave();render();return true;}
+  if(a==="proslgexport"){const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+    const out=[["Name","Title","Company","Location","LinkedIn","Page","Added to"]].concat(LG.rows.map(r=>[r.name,r.title,r.company,r.loc,r.li,r.page,r.added||""]));
+    const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
+    livSave(u,"LinkedIn results "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+LG.rows.length+" people — opens in Excel");return true;}
+  if(a==="proslgadd"){const now=new Date().toISOString();let n=0;const touched={};
+    LG.rows.filter(r=>r.target&&!r.added).forEach(x=>{const r=prosById(x.target);if(!r)return;r.people=r.people||[];
+      if(r.people.some(p=>(x.li&&p.li===x.li)||String(p.name).toLowerCase()===x.name.toLowerCase())){x.added=r.company+" (already there)";return;}
+      const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),x.name):"";
+      r.people.push({id:uid(),name:x.name,title:x.title,li:x.li,email:built,kind:built?"pattern":"",loc:x.loc,src:"LinkedIn search (pasted)",steps:{},addedAt:now,by:USER});
+      touched[r.id]=r;x.added=r.company;n++;});
+    Object.values(touched).forEach(r=>put("prospects",r));lgSave();render();toast(n+" added"+(n?" — emails built from a company's format are patterns: verify before sending":""));return true;}
+  return false;}
+document.addEventListener("paste",e=>{if(!e.target||e.target.id!=="lgPaste")return;e.preventDefault();const cd=e.clipboardData||window.clipboardData;if(!cd)return;
+  const got=lgParse(cd.getData("text/html"),cd.getData("text/plain"));
+  if(!got.length){toast("No people found in that paste — on the results page press Ctrl+A, then Ctrl+C");return;}
+  const have=new Set(LG.rows.map(r=>r.id));let n=0;LG.pages++;
+  got.forEach(r=>{if(have.has(r.id))return;have.add(r.id);r.page=LG.pages;r.target=lgMatch(r.company);LG.rows.push(r);n++;});
+  lgSave();lgOpen=true;render();toast(n+" new "+(n===1?"person":"people")+" from page "+LG.pages+(got.length>n?" · "+(got.length-n)+" already in the table":""));
+  setTimeout(()=>{const p=document.getElementById("lgPaste");if(p)p.focus();},30);});
+document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("lgsel"))return;const r=LG.rows.find(x=>x.id===el.dataset.id);if(r){r.target=el.value;lgSave();render();}});
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="lgFold")lgOpen=e.target.open;},true);
 function prosHandle(a,t){
+  if(a.indexOf("proslg")===0)return lgHandle(a,t);
   if(a==="prosmore"){prosShow+=60;render();return true;}
   if(a==="prosexport"){prosExport();return true;}
   if(a==="prosadd"){const r=prosById(t.dataset.id);if(r)prosAddSheet(r);return true;}
