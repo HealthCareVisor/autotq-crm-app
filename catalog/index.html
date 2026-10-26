@@ -1696,7 +1696,7 @@ function render(){
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
   const titles={calls:"Calls",ind:"Industries",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.",limsg:"Follow invites for your own connections. The industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
   const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="calls"?["Calls"]:view==="ind"?["Industries"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
@@ -2063,7 +2063,7 @@ const PROS_FMT_OK=/^(\{(first|last|f|l)\}[._-]?)+$/;
 const PROS_TITLES=["Safety manager","EHS manager","Procurement manager","Purchasing manager","Range manager","General manager","Owner"];
 const PROS_NEXT=[["connect","Connection note","Copy connection note"],["accepted","Accepted","They accepted"],["m1","Message 1","Copy message 1"],["m2","Message 2","Copy message 2"]];
 let prosList="",prosQ="",prosShow=40,liInvOpen=false,prosCampOpen=null;
-function prospects(){return (DB.prospects||[]).filter(r=>r&&r.id&&r.company&&r.kind!=="list");}
+function prospects(){return (DB.prospects||[]).filter(r=>r&&r.id&&r.company&&!/^(list|inmail|inmaillist)$/.test(r.kind||""));}
 function prosMeta(key){return (DB.prospects||[]).find(r=>r&&r.kind==="list"&&r.list===key)||null;}
 function prosLists(){const m={};prospects().forEach(r=>{const k=r.list||"other";const x=m[k]=m[k]||{key:k,name:r.listName||PROS_LISTS[k]||k,n:0,at:""};x.n++;if(String(r.importedAt||"")>x.at)x.at=String(r.importedAt||"");});
   Object.values(m).forEach(x=>{const mt=prosMeta(x.key);if(mt){x.name=mt.listName||x.name;x.group=mt.group;x.at=mt.createdAt||x.at;}x.group=PROS_GROUPS.some(g=>g[0]===x.group)?x.group:/gun|range|sport|hunt|ammo/.test(x.key)?"ranges":"other";});
@@ -2214,13 +2214,28 @@ async function prosCheck(r,p){const w=prosNameWords(p.name);
   }catch(e){toast("Couldn't check — "+(e.message||e));}}
 /* Paste LinkedIn results (Max, 2026-10-26: "I create a filter search and ... then I go next page"). Max runs the search on
    LinkedIn or Sales Navigator himself; on each results page he copies the page (Ctrl+A, Ctrl+C) and pastes it here. The paste
-   is parsed in the browser (name, title, company, location, profile link); nothing here opens or reads LinkedIn. The working
-   table is this viewer's own (localStorage); "Add" writes the people into the synced prospects under the company picked. */
-const LG_KEY="autotq_lg_v1";
-let lgOpen=null;
-function lgLoad(){try{const v=JSON.parse(localStorage.getItem(LG_KEY)||"null");if(v&&Array.isArray(v.rows))return v;}catch(e){}return {rows:[],pages:0};}
-let LG=lgLoad();
-function lgSave(){try{localStorage.setItem(LG_KEY,JSON.stringify(LG));}catch(e){}}
+   is parsed in the browser (name, title, company, location, profile link); nothing here opens or reads LinkedIn. The people go
+   straight into an InMail list (below); "Add" also files them under a company in the prospect lists. */
+/* InMail lists (Max, 2026-10-26: "automatically post paste immediately begin creating a linkedin in mail campaign list on the
+   marketing tab; once this is created we can build something to do the inmailing"). Every paste lands at once in the current
+   InMail list, synced in the `prospects` collection (Max + Hannah only): a list record {kind:"inmaillist", key, name, pages}
+   and one record per person {kind:"inmail", camp, name, title, company, loc, li, status:"new", target, added}. The first paste
+   with no list picked starts one named from the search ("InMail · Safety · Oct 26"). Shown in Industries and in LinkedIn ›
+   Messenger (where the InMail step goes). The picked list is this viewer's own (localStorage). */
+const LG_KEY="autotq_lg_list_v1";
+let lgOpen=null,lgUndo=null;
+let lgCamp=(()=>{try{return localStorage.getItem(LG_KEY)||"";}catch(e){return "";}})();
+function lgSave(){try{localStorage.setItem(LG_KEY,lgCamp||"");}catch(e){}}
+function lgLists(){return (DB.prospects||[]).filter(r=>r&&r.kind==="inmaillist"&&!r.removed).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));}
+function lgList(){const L=lgLists();if(!L.find(x=>x.key===lgCamp))lgCamp=L.length?L[0].key:"";return L.find(x=>x.key===lgCamp)||null;}
+function lgPeople(key){return (DB.prospects||[]).filter(r=>r&&r.kind==="inmail"&&r.camp===key).sort((a,b)=>String(a.pastedAt).localeCompare(String(b.pastedAt))||String(a.name).localeCompare(String(b.name)));}
+function lgSlug(x){return String(x||"").toLowerCase().replace(/^https?:\/\/(www\.)?linkedin\.com\//,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,80);}
+/* the search words, read from the result page's own links (…/search/results/people/?keywords=Safety…) */
+function lgQuery(html){const m=String(html||"").match(/search\/results\/people\/\?[^"'\s<>]*?keywords=([^&"'\s<>]+)/i);if(!m)return "";
+  try{return decodeURIComponent(m[1].replace(/\+/g," ")).replace(/&amp;$/,"").trim();}catch(e){return "";}}
+function lgNewList(name){const now=new Date().toISOString(),key=Date.now().toString(36);
+  const rec={id:"inmaillist-"+key,kind:"inmaillist",key,name:name||("InMail · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})),pages:0,createdAt:now,by:USER};
+  put("prospects",rec);lgCamp=key;lgSave();return rec;}
 const LG_JUNK=/^(view .*profile|.*degree connection|[•·]?\s*(1st|2nd|3rd\+?)|connect|message|follow|following|save|saved|pending|withdraw|invitation sent|send inmail|add note|more|premium|verified|open to work|hiring|status is .*|.*mutual connections?|.*followers?|\d+\+? connections|provides services.*|viewed|new|lead|in \d+ lists?|…?see more|show more|show less|current:?|past:?|about:?|summary:?|·|•|✦|\|)$/i;
 const LG_LOC=/,\s*(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|PA|RI|S[CD]|T[NX]|UT|V[AT]|W[AIVY])\b|united states|canada|\barea$|metropolitan|^greater /i;
 function lgLink(h){h=String(h||"");let m=h.match(/linkedin\.com\/in\/([^/?#\s]+)/i)||h.match(/^\/in\/([^/?#\s]+)/i);if(m)return "https://www.linkedin.com/in/"+m[1]+"/";
@@ -2277,45 +2292,54 @@ function lgNorm(x){return String(x||"").toLowerCase().replace(/\b(inc|llc|ltd|co
 function lgMatch(company){const c=lgNorm(company);if(c.length<3)return "";const k=prosCur();
   const hits=prospects().filter(r=>{const n=lgNorm(r.company);return n.length>=3&&(n.includes(c)||c.includes(n));});
   const h=hits.find(r=>(r.list||"other")===k)||hits[0];return h?h.id:"";}
-function lgHTML(){const R=LG.rows;if(lgOpen==null)lgOpen=!!R.length;const k=prosCur();
+function lgHTML(){const list=lgList(),R=list?lgPeople(list.key):[],L=lgLists();if(lgOpen==null)lgOpen=!!R.length||view==="limsg";const k=prosCur();
   const cos=prospects().filter(r=>(r.list||"other")===k).sort((a,b)=>String(a.company).localeCompare(String(b.company)));
   const opts=t=>{const extra=t&&!cos.some(r=>r.id===t)?[prosById(t)].filter(Boolean):[];
     return '<option value="">Not added</option>'+extra.concat(cos).map(r=>'<option value="'+esc(r.id)+'"'+(r.id===t?' selected':'')+'>'+esc(r.company)+'</option>').join("");};
   const ready=R.filter(r=>r.target&&!r.added).length;
-  let h='<details class="pcamp lgrab" id="lgFold"'+(lgOpen?' open':'')+'><summary>'+svg("users")+'<b>Paste LinkedIn results</b><span class="t2">'+
-    (R.length?R.length+' '+(R.length===1?'person':'people')+' from '+LG.pages+' '+(LG.pages===1?'page':'pages'):'run your search on LinkedIn or Sales Navigator, then paste each results page here')+'</span>'+svg("chevD","fchev")+'</summary>'+
-    '<div class="lgb"><textarea class="f lgpaste" id="lgPaste" rows="2" placeholder="On a results page press Ctrl+A, then Ctrl+C. Click here and press Ctrl+V. Go to the next page and repeat."></textarea>';
+  let h='<details class="pcamp lgrab" id="lgFold"'+(lgOpen?' open':'')+'><summary>'+svg("users")+'<b>LinkedIn InMail list</b><span class="t2">'+
+    (list?esc(list.name)+' · '+R.length+' '+(R.length===1?'person':'people')+(list.pages?' from '+list.pages+' '+(list.pages===1?'page':'pages'):''):'paste a LinkedIn or Sales Navigator results page to start one')+'</span>'+svg("chevD","fchev")+'</summary><div class="lgb">'+
+    '<div class="lgact">'+(L.length?'<select class="sel lglist" id="lgListSel" aria-label="InMail list">'+L.map(x=>'<option value="'+esc(x.key)+'"'+(list&&x.key===list.key?' selected':'')+'>'+esc(x.name)+' · '+lgPeople(x.key).length+'</option>').join("")+'</select>':'')+
+      '<button class="btn sm ghost" data-act="proslgnew">'+svg("plus")+'New list</button>'+
+      (R.length?'<button class="btn sm ghost" data-act="proslgclear">Clear list</button>':'')+(lgUndo?'<button class="btn sm" data-act="proslgundo">Undo clear ('+lgUndo.rows.length+')</button>':'')+'</div>'+
+    '<textarea class="f lgpaste" id="lgPaste" rows="2" placeholder="On a LinkedIn results page press Ctrl+A, then Ctrl+C. Click here and press Ctrl+V. Everyone goes straight into this InMail list. Next page, repeat."></textarea>';
   if(R.length)h+='<div class="tablewrap" style="max-height:420px"><table class="lv lgt"><thead><tr><th>Name</th><th>Add to</th><th>Title</th><th>Company</th><th>Location</th><th></th></tr></thead><tbody>'+
     R.map(r=>'<tr><td class="nm">'+(r.li?'<a href="'+esc(r.li)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+'</td>'+
       '<td>'+(r.added?'<span class="pill ok">added · '+esc(r.added)+'</span>':'<select class="sel lgsel" data-id="'+esc(r.id)+'" aria-label="Add '+esc(r.name)+' to">'+opts(r.target)+'</select>')+'</td>'+
       '<td>'+esc(r.title)+'</td><td>'+esc(r.company)+'</td><td>'+esc(r.loc)+'</td>'+
       '<td><button class="ibtn" data-act="proslgdel" data-id="'+esc(r.id)+'" aria-label="Remove '+esc(r.name)+'">'+svg("x")+'</button></td></tr>').join("")+'</tbody></table></div>'+
-    '<div class="lgact">'+(ready?'<button class="btn sm coral" data-act="proslgadd">'+svg("plus")+'Add '+ready+' to their companies</button>':'<span class="t2">Pick a company under “Add to” to add someone.</span>')+
-      '<button class="btn sm" data-act="proslgexport">'+svg("dl")+'Export to Excel</button><button class="btn sm ghost" data-act="proslgclear">Clear the table</button></div>';
+    '<div class="lgact">'+(ready?'<button class="btn sm coral" data-act="proslgadd">'+svg("plus")+'Add '+ready+' to their companies</button>':'<span class="t2">Optional: pick a company under “Add to” to file someone under an account.</span>')+
+      '<button class="btn sm" data-act="proslgexport">'+svg("dl")+'Export to Excel</button></div>';
   return h+'</div></details>';}
-function lgHandle(a,t){
-  if(a==="proslgdel"){LG.rows=LG.rows.filter(r=>r.id!==t.dataset.id);lgSave();render();return true;}
-  if(a==="proslgclear"){if(!confirm("Clear the pasted table? People already added stay on their companies."))return true;LG={rows:[],pages:0};lgSave();render();return true;}
-  if(a==="proslgexport"){const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
-    const out=[["Name","Title","Company","Location","LinkedIn","Page","Added to"]].concat(LG.rows.map(r=>[r.name,r.title,r.company,r.loc,r.li,r.page,r.added||""]));
+function lgHandle(a,t){const list=lgList();
+  if(a==="proslgnew"){const nm=prompt("Name for the new InMail list","InMail · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));if(nm===null)return true;lgNewList(nm.trim()||undefined);lgUndo=null;lgOpen=true;render();return true;}
+  if(a==="proslgdel"){del("prospects",t.dataset.id);render();return true;}
+  if(a==="proslgclear"){if(!list)return true;const rows=lgPeople(list.key);rows.forEach(r=>del("prospects",r.id));lgUndo={key:list.key,rows,pages:list.pages||0};list.pages=0;put("prospects",list);render();toast("Cleared "+rows.length+" from "+list.name+" — Undo is on the list");return true;}
+  if(a==="proslgundo"){if(!lgUndo)return true;lgUndo.rows.forEach(r=>put("prospects",r));const l=lgLists().find(x=>x.key===lgUndo.key);if(l){l.pages=lgUndo.pages;put("prospects",l);}toast("Put back "+lgUndo.rows.length);lgUndo=null;render();return true;}
+  if(a==="proslgexport"){const R=list?lgPeople(list.key):[];const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+    const out=[["Name","Title","Company","Location","LinkedIn","InMail list","Status","Added to"]].concat(R.map(r=>[r.name,r.title,r.company,r.loc,r.li,list.name,r.status||"new",r.added||""]));
     const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
-    livSave(u,"LinkedIn results "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+LG.rows.length+" people — opens in Excel");return true;}
-  if(a==="proslgadd"){const now=new Date().toISOString();let n=0;const touched={};
-    LG.rows.filter(r=>r.target&&!r.added).forEach(x=>{const r=prosById(x.target);if(!r)return;r.people=r.people||[];
-      if(r.people.some(p=>(x.li&&p.li===x.li)||String(p.name).toLowerCase()===x.name.toLowerCase())){x.added=r.company+" (already there)";return;}
+    livSave(u,(list?list.name:"InMail list").replace(/[^\w ·-]+/g,"")+" "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+R.length+" people — opens in Excel");return true;}
+  if(a==="proslgadd"){if(!list)return true;const now=new Date().toISOString();let n=0;const touched={};
+    lgPeople(list.key).filter(r=>r.target&&!r.added).forEach(x=>{const r=prosById(x.target);if(!r)return;r.people=r.people||[];
+      if(r.people.some(p=>(x.li&&p.li===x.li)||String(p.name).toLowerCase()===String(x.name).toLowerCase())){x.added=r.company+" (already there)";put("prospects",x);return;}
       const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),x.name):"";
       r.people.push({id:uid(),name:x.name,title:x.title,li:x.li,email:built,kind:built?"pattern":"",loc:x.loc,src:"LinkedIn search (pasted)",steps:{},addedAt:now,by:USER});
-      touched[r.id]=r;x.added=r.company;n++;});
-    Object.values(touched).forEach(r=>put("prospects",r));lgSave();render();toast(n+" added"+(n?" — emails built from a company's format are patterns: verify before sending":""));return true;}
+      touched[r.id]=r;x.added=r.company;put("prospects",x);n++;});
+    Object.values(touched).forEach(r=>put("prospects",r));render();toast(n+" added"+(n?" — emails built from a company's format are patterns: verify before sending":""));return true;}
   return false;}
 document.addEventListener("paste",e=>{if(!e.target||e.target.id!=="lgPaste")return;e.preventDefault();const cd=e.clipboardData||window.clipboardData;if(!cd)return;
-  const got=lgParse(cd.getData("text/html"),cd.getData("text/plain"));
+  const html=cd.getData("text/html"),got=lgParse(html,cd.getData("text/plain"));
   if(!got.length){toast("No people found in that paste — on the results page press Ctrl+A, then Ctrl+C");return;}
-  const have=new Set(LG.rows.map(r=>r.id));let n=0;LG.pages++;
-  got.forEach(r=>{if(have.has(r.id))return;have.add(r.id);r.page=LG.pages;r.target=lgMatch(r.company);LG.rows.push(r);n++;});
-  lgSave();lgOpen=true;render();toast(n+" new "+(n===1?"person":"people")+" from page "+LG.pages+(got.length>n?" · "+(got.length-n)+" already in the table":""));
+  let list=lgList();if(!list){const q=lgQuery(html);list=lgNewList("InMail · "+(q?q.replace(/\b\w/g,c=>c.toUpperCase())+" · ":"")+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));}
+  const have=new Set(lgPeople(list.key).map(r=>r.id)),now=new Date().toISOString();let n=0;list.pages=(list.pages||0)+1;
+  got.forEach(r=>{const id="inmail-"+list.key+"-"+lgSlug(r.li||r.name);if(have.has(id))return;have.add(id);
+    put("prospects",{id,kind:"inmail",camp:list.key,name:r.name,title:r.title,company:r.company,loc:r.loc,li:r.li,head:r.head||"",page:list.pages,status:"new",target:lgMatch(r.company),pastedAt:now,by:USER});n++;});
+  put("prospects",list);lgUndo=null;lgOpen=true;render();toast(n+" added to "+list.name+(got.length>n?" · "+(got.length-n)+" already on it":""));
   setTimeout(()=>{const p=document.getElementById("lgPaste");if(p)p.focus();},30);});
-document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("lgsel"))return;const r=LG.rows.find(x=>x.id===el.dataset.id);if(r){r.target=el.value;lgSave();render();}});
+document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList)return;
+  if(el.id==="lgListSel"){lgCamp=el.value;lgSave();lgUndo=null;render();return;}
+  if(!el.classList.contains("lgsel"))return;const r=(DB.prospects||[]).find(x=>x.id===el.dataset.id);if(r){r.target=el.value;put("prospects",r);render();}});
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="lgFold")lgOpen=e.target.open;},true);
 function prosHandle(a,t){
   if(a.indexOf("proslg")===0)return lgHandle(a,t);
@@ -2347,7 +2371,7 @@ function prosHandle(a,t){
    group "hot") carry heat + a contact strategy ("Source & call"). */
 function viewIndustries(){return prosHTML();}
 function viewLinkedInMsg(){const all=liInvites(),st=liInvState(),wait=all.filter(r=>r.status==="candidate"||r.status==="approved").length;
-  return '<details class="lifold" id="liInvFold" open'+'><summary>'+svg("users")+'<b>Follow invites</b><span class="t2">· '+
+  return '<div class="pan pros" style="margin-bottom:14px">'+lgHTML()+'</div><details class="lifold" id="liInvFold" open'+'><summary>'+svg("users")+'<b>Follow invites</b><span class="t2">· '+
     (all.length?wait+' of your connections waiting'+(st.balance!=null?' · '+liNum(st.balance)+' credits left':''):'invite the buyers among your connections to follow the AutoTQ page')+'</span>'+svg("chevD","fchev")+'</summary>'+
     '<div class="lifoldb">'+liInvHTML()+'</div></details>';}
 function liInvHandle(a,t){
