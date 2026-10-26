@@ -591,6 +591,21 @@ svg.usmap .dots{stroke:var(--dots)}
 .pros .prostools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--rule-2)}
 .pros .prostools .chips{margin:0;justify-content:flex-start}
 .pros #prosQ{max-width:300px;margin-left:auto}
+.pros select.prossel{height:40px;font-size:13.5px;font-weight:600;max-width:380px;flex:0 1 auto}
+.pcamp{border-top:1px solid var(--rule-2);border-bottom:1px solid var(--rule-2);background:var(--panel)}
+.pcamp>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:10px 16px;cursor:pointer;font-size:13.5px;flex-wrap:wrap}
+.pcamp>summary::-webkit-details-marker{display:none}.pcamp>summary .t2{white-space:normal}
+.pcamp .fchev{margin-left:auto;transition:transform .2s}.pcamp[open] .fchev{transform:rotate(180deg)}
+.pmsgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 16px 14px}
+.pmsg{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.pmsg small{font-size:11.5px;font-weight:650;color:var(--ink-3);text-transform:uppercase;letter-spacing:.03em}
+.pmsg p{margin:0;font-size:13px;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere;flex:1}.pmsg .btn{align-self:flex-start}
+.ptok{background:var(--coral-wash);color:var(--coral-ink);border-radius:4px;padding:0 3px;font-weight:600}
+.pcampnone{padding:10px 16px;margin:0;border-top:1px solid var(--rule-2)}
+.psteps{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pstep{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--ok-wash);color:var(--ok);font:inherit;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer}
+.pstep .i{width:12px;height:12px}
+@media (max-width:900px){.pmsgs{grid-template-columns:1fr}}
 .pros .prosnote{padding:10px 16px 12px;margin:0;white-space:normal;line-height:1.5}
 .prow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1.4fr) auto;gap:6px 18px;align-items:center;padding:12px 16px;border-top:1px solid var(--rule)}
 .prow .pco b{display:block;line-height:1.35}.prow .pco a{color:var(--ink);text-decoration:none}.prow .pco a:hover{text-decoration:underline}
@@ -2021,13 +2036,23 @@ function liInvHTML(){
    hundred or so, tell me where to grab the LinkedIn link for their bio, and snag the email structure from any role at the
    company so I can find the safety manager and one other person, maybe procurement"). One record per company in the synced
    `prospects` collection, grouped by `list`. A company's email `format` counts only when Claude saw a real address there
-   (`formatExample` + `formatSource`); every address built from it is a pattern — "verify before sending". */
+   (`formatExample` + `formatSource`); every address built from it is a pattern — "verify before sending".
+   Same day, later (Max: "do this every day with 100 folks in different industries and create a mini campaign"): a weekday
+   Claude run adds one industry list a day (tools/prospects_push.py, rotation in tools/prospect_rotation.json) with a list
+   record `{kind:"list", list, listName, group, angle, messages:[{step,label,text}]}` = the LinkedIn mini campaign Max sends by
+   hand: connection note → (accepted) → message 1 → message 2. People carry `steps:{connect,accepted,m1,m2,replied}` dates.
+   Email checks spend Apollo credits only on the people Max adds, one at a time, after he confirms. */
 const PROS_LISTS={"gun-makers":"Gun manufacturers","gun-ranges":"Gun ranges"};
+const PROS_GROUPS=[["ranges","Ranges, gun makers & sporting"],["venues","Arenas, stadiums & venues"],["schools","Schools & universities"],["industrial","Industrial EHS"],["other","Other lists"]];
 const PROS_FMT_OK=/^(\{(first|last|f|l)\}[._-]?)+$/;
 const PROS_TITLES=["Safety manager","EHS manager","Procurement manager","Purchasing manager","Range manager","General manager","Owner"];
-let prosList="",prosQ="",prosShow=40,liInvOpen=false;
-function prospects(){return (DB.prospects||[]).filter(r=>r&&r.id&&r.company);}
-function prosLists(){const m={};prospects().forEach(r=>{const k=r.list||"other";(m[k]=m[k]||{key:k,name:r.listName||PROS_LISTS[k]||k,n:0}).n++;});return Object.values(m).sort((a,b)=>a.name.localeCompare(b.name));}
+const PROS_NEXT=[["connect","Connection note","Copy connection note"],["accepted","Accepted","They accepted"],["m1","Message 1","Copy message 1"],["m2","Message 2","Copy message 2"]];
+let prosList="",prosQ="",prosShow=40,liInvOpen=false,prosCampOpen=null;
+function prospects(){return (DB.prospects||[]).filter(r=>r&&r.id&&r.company&&r.kind!=="list");}
+function prosMeta(key){return (DB.prospects||[]).find(r=>r&&r.kind==="list"&&r.list===key)||null;}
+function prosLists(){const m={};prospects().forEach(r=>{const k=r.list||"other";const x=m[k]=m[k]||{key:k,name:r.listName||PROS_LISTS[k]||k,n:0,at:""};x.n++;if(String(r.importedAt||"")>x.at)x.at=String(r.importedAt||"");});
+  Object.values(m).forEach(x=>{const mt=prosMeta(x.key);if(mt){x.name=mt.listName||x.name;x.group=mt.group;x.at=mt.createdAt||x.at;}x.group=PROS_GROUPS.some(g=>g[0]===x.group)?x.group:/gun|range|sport|hunt|ammo/.test(x.key)?"ranges":"other";});
+  return Object.values(m).sort((a,b)=>String(b.at).localeCompare(String(a.at))||a.name.localeCompare(b.name));}
 function prosById(id){return prospects().find(r=>r.id===id);}
 function prosHref(u){u=String(u||"").trim();return !u?"":/^https?:\/\//i.test(u)?u:"https://"+u.replace(/^\/+/,"");}
 function prosDomain(r){const d=String(r.domain||"").trim().toLowerCase();if(d)return d.replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\/.*$/,"");
@@ -2038,14 +2063,17 @@ function prosPeopleUrl(r,kw){const c=prosLi(r);return c?c+"people/?keywords="+en
 function prosKws(r){return r.type==="range"?[["Safety","safety"],["Manager / owner","manager OR owner"]]:[["Safety","safety OR EHS"],["Procurement","procurement OR purchasing"]];}
 /* a format is shown (and used) only with the address it was learned from and where that address was seen */
 function prosFmtOk(r){return PROS_FMT_OK.test(String(r.format||""))&&!!r.formatExample&&!!r.formatSource&&!!prosDomain(r);}
-function prosNameParts(n){const w=String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\([^)]*\)|"[^"]*"/g," ").split(",")[0].trim().split(/\s+/)
-    .filter(x=>x&&!/^(dr|mr|mrs|ms|jr|sr|ii|iii|iv|phd|md|csp|chst|ohst|cih|pe|mba|asp)\.?$/i.test(x));
+function prosNameWords(n){return String(n||"").replace(/\([^)]*\)|"[^"]*"/g," ").split(",")[0].trim().split(/\s+/).filter(x=>x&&!/^(dr|mr|mrs|ms|jr|sr|ii|iii|iv|phd|md|csp|chst|ohst|cih|pe|mba|asp)\.?$/i.test(x));}
+function prosNameParts(n){const w=prosNameWords(String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,""));
   const cl=x=>String(x||"").toLowerCase().replace(/[^a-z-]/g,"").replace(/^-+|-+$/g,"");
   return {first:cl(w[0]),last:cl(w.length>1?w[w.length-1]:"")};}
 function prosEmail(fmt,domain,name){const p=prosNameParts(name);if(!PROS_FMT_OK.test(String(fmt||""))||!domain||!p.first)return "";
   if(/\{(last|l)\}/.test(fmt)&&!p.last)return "";
   const tok={first:p.first.replace(/-/g,""),last:p.last.replace(/-/g,""),f:p.first.charAt(0),l:p.last.charAt(0)};
   const local=fmt.replace(/\{(first|last|f|l)\}/g,(_,k)=>tok[k]);return /^[a-z0-9][a-z0-9._-]*$/.test(local)?local+"@"+domain:"";}
+/* the format a real address follows, from the person's name (used when Apollo confirms an address at a company with none) */
+function prosDeriveFmt(name,email){const loc=String(email||"").toLowerCase().split("@")[0];if(!loc)return "";
+  return ["{first}.{last}","{f}{last}","{first}{last}","{first}","{first}_{last}","{f}.{last}","{first}{l}","{last}{f}","{last}","{first}-{last}","{last}.{first}"].find(f=>prosEmail(f,"x.x",name)===loc+"@x.x")||"";}
 function prosLiPerson(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/in/"+m[1]+"/":"";}
 function prosNameFromLi(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?#\s]+)/i);if(!m)return "";
   let s="";try{s=decodeURIComponent(m[1]);}catch(e){s=m[1];}
@@ -2053,13 +2081,33 @@ function prosNameFromLi(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?
 function prosCur(){const L=prosLists();if(!L.find(x=>x.key===prosList))prosList=L.length?L[0].key:"";return prosList;}
 function prosRows(){const k=prosCur(),q=prosQ.trim().toLowerCase();
   return prospects().filter(r=>(r.list||"other")===k&&(!q||[r.company,r.city,r.state,r.note,r.domain].concat((r.people||[]).map(p=>p.name+" "+(p.title||""))).join(" ").toLowerCase().includes(q)))
-    .sort((a,b)=>String(a.company).localeCompare(String(b.company)));}
-function prosPersonHTML(r,p){
+    .sort((a,b)=>((b.people||[]).length?1:0)-((a.people||[]).length?1:0)||String(a.company).localeCompare(String(b.company)));}
+/* the mini campaign: {first} / {company} filled per person */
+function prosShortCo(c){return String(c||"").replace(/,?\s+(inc|llc|l\.l\.c|ltd|co|corp|corporation|company|incorporated)\.?$/i,"").trim();}
+function prosFill(text,r,p){const first=prosNameWords(p&&p.name)[0]||"";
+  return String(text||"").replace(/\{first\}/g,first?first.charAt(0).toUpperCase()+first.slice(1):"there").replace(/\{company\}/g,prosShortCo(r&&r.company)||"your team");}
+function prosMsg(meta,step){return ((meta&&meta.messages)||[]).find(m=>m.step===step);}
+function prosCampHTML(meta){if(!meta||!(meta.messages||[]).length)return '<p class="t2 linote pcampnone">No campaign messages for this list yet — they come with each daily list.</p>';
+  const tk=t=>esc(t).replace(/\{(first|company)\}/g,(_,k)=>'<span class="ptok">'+(k==="first"?"first name":"company")+'</span>');
+  if(prosCampOpen==null)prosCampOpen=innerWidth>640;
+  return '<details class="pcamp" id="prosCamp"'+(prosCampOpen?' open':'')+'><summary>'+svg("spark")+'<b>Mini campaign · LinkedIn</b><span class="t2">'+esc(meta.angle||"you send each step by hand; the buttons on each person copy it with their name filled in")+'</span>'+svg("chevD","fchev")+'</summary>'+
+   '<div class="pmsgs">'+meta.messages.map(m=>{const n=m.step==="connect"?String(m.text||"").replace(/\{first\}/g,"Christopher").replace(/\{company\}/g,"Company name").length:0;
+     return '<div class="pmsg"><small>'+esc(m.label||m.step)+(n?' · '+n+' / 200 characters':'')+'</small><p>'+tk(m.text)+'</p><button class="btn sm ghost" data-act="prosmsgcopy" data-v="'+esc(m.step)+'">Copy</button></div>';}).join("")+'</div></details>';}
+function prosNextStep(p){return PROS_NEXT.find(s=>!(p.steps||{})[s[0]]);}
+function prosStepsHTML(r,p,meta){const st=p.steps||{},nx=prosNextStep(p);
+  const done=PROS_NEXT.concat([["replied","Replied"]]).filter(s=>st[s[0]]).map(s=>'<button class="pstep" data-act="prosstepundo" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" data-v="'+s[0]+'" title="Undo">'+svg("check")+s[1]+' '+esc(String(st[s[0]]).slice(5).replace("-","/"))+'</button>').join("");
+  const next=st.replied?'':nx?'<button class="btn sm'+(nx[0]==="accepted"?' ghost':' coral')+'" data-act="prosnext" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" data-v="'+nx[0]+'">'+(nx[0]!=="accepted"&&!prosMsg(meta,nx[0])?'Mark '+nx[1].toLowerCase()+' sent':nx[2])+'</button>':'';
+  const rep=st.connect&&!st.replied?'<button class="btn sm ghost" data-act="prosnext" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" data-v="replied">Replied</button>':'';
+  return '<span class="psteps">'+done+next+rep+'</span>';}
+function prosPersonHTML(r,p,meta){const vk=p.kind==="verified";
+  const tag=vk?'<span class="pill ok">verified by Apollo</span>':p.kind==="typed"?'<span class="pill">typed in</span>':'<span class="pill warn">pattern — verify before sending</span>';
+  const chk=p.email&&!vk&&prosDomain(r)&&prosNameParts(p.name).last&&!p.checkStatus?'<button class="btn sm ghost" data-act="proscheck" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'">Check email · 1 credit</button>':
+    p.checkStatus&&!vk?'<span class="pill" title="Apollo checked '+esc(String(p.checkedAt||"").slice(0,10))+'">Apollo: '+esc(p.checkStatus==="no_match"?"no match":p.checkStatus)+'</span>':'';
   return '<div class="ppl"><span class="nm"><b>'+(p.li?'<a href="'+esc(p.li)+'" target="_blank" rel="noopener">'+esc(p.name)+'</a>':esc(p.name))+'</b>'+(p.title?'<small>'+esc(p.title)+'</small>':'')+'</span>'+
-   (p.email?'<span class="pem"><code>'+esc(p.email)+'</code>'+(p.kind==="typed"?'<span class="pill">typed in</span>':'<span class="pill warn">pattern — verify before sending</span>')+'</span>'+
-     '<button class="btn sm ghost" data-act="proscopy" data-v="'+esc(p.email)+'">Copy</button>':'<span class="t2">no email — the company has no format yet</span>')+
+   (p.email?'<span class="pem"><code>'+esc(p.email)+'</code>'+tag+'<button class="btn sm ghost" data-act="proscopy" data-v="'+esc(p.email)+'">Copy</button>'+chk+'</span>':'<span class="t2">no email yet</span>')+
+   prosStepsHTML(r,p,meta)+
    '<button class="ibtn" data-act="prosdel" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" aria-label="Remove '+esc(p.name)+'">'+svg("x")+'</button></div>';}
-function prosRow(r){const dom=prosDomain(r),li=prosLi(r),ok=prosFmtOk(r),loc=[r.city,r.state].filter(Boolean).join(", ");
+function prosRow(r,meta){const dom=prosDomain(r),li=prosLi(r),ok=prosFmtOk(r),loc=[r.city,r.state].filter(Boolean).join(", ");
   const ex=ok?prosEmail(r.format,dom,"Jane Smith"):"";
   return '<div class="prow"><div class="pco"><b>'+(r.website?'<a href="'+esc(prosHref(r.website))+'" target="_blank" rel="noopener">'+esc(r.company)+'</a>':esc(r.company))+'</b>'+
      '<small>'+esc(loc||"—")+(r.note?' · '+esc(r.note):'')+'</small></div>'+
@@ -2068,17 +2116,20 @@ function prosRow(r){const dom=prosDomain(r),li=prosLi(r),ok=prosFmtOk(r),loc=[r.
    '<div class="pfmt">'+(ok?'<small>Email format</small><b>Jane Smith → '+esc(ex)+'</b><small>seen: '+esc(r.formatExample)+' · '+(/^https?:/i.test(r.formatSource)?'<a href="'+esc(r.formatSource)+'" target="_blank" rel="noopener">source</a>':esc(r.formatSource))+'</small>'
      :'<small>Email format</small><b class="none">No format found</b><small>'+(r.generic?'general inbox: '+esc(r.generic):'no address published')+'</small>')+'</div>'+
    '<button class="btn sm" data-act="prosadd" data-id="'+esc(r.id)+'">'+svg("plus")+'Add a person</button>'+
-   ((r.people||[]).length?'<div class="ppls">'+r.people.map(p=>prosPersonHTML(r,p)).join("")+'</div>':'')+'</div>';}
-function prosHTML(){const L=prosLists(),k=prosCur(),rows=prosRows(),inList=prospects().filter(r=>(r.list||"other")===k);
-  const nF=inList.filter(prosFmtOk).length,nL=inList.filter(r=>prosLi(r)).length,nP=inList.reduce((s,r)=>s+(r.people||[]).length,0);
+   ((r.people||[]).length?'<div class="ppls">'+r.people.map(p=>prosPersonHTML(r,p,meta)).join("")+'</div>':'')+'</div>';}
+function prosHTML(){const L=prosLists(),k=prosCur(),meta=prosMeta(k),rows=prosRows(),inList=prospects().filter(r=>(r.list||"other")===k);
+  const ppl=inList.reduce((a,r)=>a.concat(r.people||[]),[]),nF=inList.filter(prosFmtOk).length,nL=inList.filter(r=>prosLi(r)).length;
+  const cnt=s=>ppl.filter(p=>(p.steps||{})[s]).length;
   let h='<div class="pan pros" style="margin-bottom:14px"><div class="ph2">'+svg("globe")+'Prospects by industry'+
     '<span class="meta"><label class="btn sm ghost" style="cursor:pointer">Import list<input type="file" id="prosFile" accept=".json,.csv" hidden></label>'+(inList.length?'<button class="btn sm" data-act="prosexport">'+svg("dl")+'Export to Excel</button>':'')+'</span></div>';
   if(!L.length)return h+'<div class="empty" style="padding:26px 16px">No industry lists yet. Ask Claude for one (“gun manufacturers and gun ranges”): it finds the companies, their LinkedIn pages and the email format each one uses, and you import the file here.</div></div>';
-  h+='<div class="prostools"><div class="chips">'+L.map(x=>'<span class="chip'+(x.key===k?" on":"")+'" data-act="proslist" data-v="'+esc(x.key)+'">'+esc(x.name)+' · '+x.n+'</span>').join("")+'</div>'+
+  const grp=PROS_GROUPS.filter(g=>L.some(x=>x.group===g[0]));
+  h+='<div class="prostools"><select class="sel prossel" id="prosSel" aria-label="Industry list">'+grp.map(g=>'<optgroup label="'+esc(g[1])+'">'+L.filter(x=>x.group===g[0]).map(x=>'<option value="'+esc(x.key)+'"'+(x.key===k?' selected':'')+'>'+esc(x.name)+' · '+x.n+(x.at?' · '+esc(new Date(x.at).toLocaleDateString([], {month:"short",day:"numeric"})):'')+'</option>').join("")+'</optgroup>').join("")+'</select>'+
     '<input class="f" id="prosQ" value="'+esc(prosQ)+'" placeholder="Search company, city, state, person" aria-label="Search the list"></div>'+
-   '<p class="t2 linote prosnote"><b>'+inList.length+'</b> companies · <b>'+nF+'</b> with an email format · <b>'+nL+'</b> with a LinkedIn page · <b>'+nP+'</b> '+(nP===1?'person':'people')+' added. '+
-    'To grab someone: open <b>People: Safety</b>, click the person, copy the address bar (<b>linkedin.com/in/…</b>), then <b>Add a person</b> and paste it. Their email is built from the company&#39;s format, so it&#39;s a pattern — verify before sending.</p>';
-  h+=rows.length?rows.slice(0,prosShow).map(prosRow).join("")+(rows.length>prosShow?'<button class="ibx" data-act="prosmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(60,rows.length-prosShow)+' more of '+rows.length+'</button>':'')
+   '<p class="t2 linote prosnote"><b>'+inList.length+'</b> companies · <b>'+nF+'</b> with an email format · <b>'+nL+'</b> with a LinkedIn page · <b>'+ppl.length+'</b> '+(ppl.length===1?'person':'people')+' added'+
+    (ppl.length?' · <b>'+cnt("connect")+'</b> '+(cnt("connect")===1?'note':'notes')+' sent · <b>'+cnt("accepted")+'</b> accepted · <b>'+cnt("replied")+'</b> replied':'')+'. '+
+    'To grab someone: open <b>People: Safety</b>, click the person, copy the address bar (<b>linkedin.com/in/…</b>), then <b>Add a person</b> and paste it.</p>'+prosCampHTML(meta);
+  h+=rows.length?rows.slice(0,prosShow).map(r=>prosRow(r,meta)).join("")+(rows.length>prosShow?'<button class="ibx" data-act="prosmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(60,rows.length-prosShow)+' more of '+rows.length+'</button>':'')
     :'<div class="empty" style="padding:22px 16px">Nothing matches “'+esc(prosQ)+'”.</div>';
   return h+'</div>';}
 function prosAddSheet(r,keep){const dom=prosDomain(r),ok=prosFmtOk(r),v=keep||{};
@@ -2096,36 +2147,55 @@ function prosSheetSync(){const b=document.querySelector('[data-act="prossave"]')
   const nm=document.getElementById("prosPName"),em=document.getElementById("prosPEmail"),why=document.getElementById("prosPWhy");
   const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),nm.value):"";
   if(!em.dataset.edited)em.value=built;
-  why.innerHTML=em.value&&em.value===built?'Built from '+esc(r.formatExample)+' — a pattern, <b>verify before sending</b>.':em.value?'Typed in — kept as you wrote it.':prosFmtOk(r)?'Type the name and the email builds itself.':'No format for this company yet'+(r.generic?' (general inbox: '+esc(r.generic)+')':'')+'. Add their email if you found it.';}
+  why.innerHTML=em.value&&em.value===built?'Built from '+esc(r.formatExample)+' — a pattern, <b>verify before sending</b> (Check email on their row asks Apollo, 1 credit).':em.value?'Typed in — kept as you wrote it.':prosFmtOk(r)?'Type the name and the email builds itself.':'No format for this company yet'+(r.generic?' (general inbox: '+esc(r.generic)+')':'')+'. Add their email if you found it.';}
+/* one list: the company rows + its list record (name, industry group, the LinkedIn messages). Re-import keeps people. */
+function prosImportRows(rows,list,listName,meta){const g=(o,...ks)=>{for(const k of ks){const v=o[k];if(v!=null&&String(v).trim())return String(v).trim();}return "";};
+  const have={};prospects().forEach(r=>{have[r.id]=r;});const now=new Date().toISOString();let added=0,updated=0;
+  rows.forEach(o=>{if(!o||typeof o!=="object")return;const company=g(o,"name","company","companyname");if(!company)return;
+    const rec={list,listName,company,type:g(o,"type").toLowerCase()||(/range/.test(list)?"range":/maker|manufact/.test(list)?"maker":""),city:g(o,"city"),state:g(o,"state").toUpperCase(),
+      website:g(o,"website","site","url"),domain:g(o,"domain").toLowerCase(),liCompany:g(o,"liCompany","licompany","linkedin","linkedincompany"),format:g(o,"format","emailformat"),
+      formatExample:g(o,"formatExample","formatexample","example"),formatSource:g(o,"formatSource","formatsource","source"),generic:g(o,"generic","generalinbox","info"),note:g(o,"note","notes")};
+    if(!PROS_FMT_OK.test(rec.format))rec.format="";
+    const key=(prosDomain(rec)||company).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+    const id="pros-"+list+"-"+key,old=have[id];
+    put("prospects",Object.assign({id,people:[],importedAt:now},old||{},rec,{updatedAt:now,by:USER}));have[id]=1;if(old)updated++;else added++;});
+  if(meta&&(meta.messages||meta.group||meta.angle)){const old=prosMeta(list)||{};
+    put("prospects",Object.assign({id:"proslist-"+list,kind:"list",createdAt:now},old,{list,listName,group:meta.group||old.group||"",angle:meta.angle||old.angle||"",messages:meta.messages||old.messages||[],updatedAt:now,by:USER}));}
+  return {added,updated};}
 function prosImport(f){
-  f.text().then(t=>{let rows=[],list="",listName="";
-    if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(t)){const j=JSON.parse(t);rows=Array.isArray(j)?j:(j.rows||j.companies||[]);if(!Array.isArray(j)){list=j.list||"";listName=j.listName||"";}}
+  f.text().then(t=>{let rows=[],list="",listName="",meta=null;
+    if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(t)){const j=JSON.parse(t);rows=Array.isArray(j)?j:(j.rows||j.companies||[]);if(!Array.isArray(j)){list=j.list||"";listName=j.listName||"";meta=j;}}
     else{const R=csvRows(t),H=(R[0]||[]).map(x=>String(x).trim().toLowerCase().replace(/[^a-z]/g,""));rows=R.slice(1).map(r=>{const o={};H.forEach((x,i)=>{o[x]=r[i];});return o;});}
     list=String(list||f.name.replace(/\.[^.]+$/,"")).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"list";
     listName=listName||PROS_LISTS[list]||list.replace(/-/g," ").replace(/^./,c=>c.toUpperCase());
-    const g=(o,...ks)=>{for(const k of ks){const v=o[k];if(v!=null&&String(v).trim())return String(v).trim();}return "";};
-    const have={};prospects().forEach(r=>{have[r.id]=r;});const now=new Date().toISOString();let added=0,updated=0;
-    rows.forEach(o=>{if(!o||typeof o!=="object")return;const company=g(o,"name","company","companyname");if(!company)return;
-      const rec={list,listName,company,type:g(o,"type").toLowerCase()||(/range/.test(list)?"range":/maker|manufact/.test(list)?"maker":""),city:g(o,"city"),state:g(o,"state").toUpperCase(),
-        website:g(o,"website","site","url"),domain:g(o,"domain").toLowerCase(),liCompany:g(o,"liCompany","licompany","linkedin","linkedincompany"),format:g(o,"format","emailformat"),
-        formatExample:g(o,"formatExample","formatexample","example"),formatSource:g(o,"formatSource","formatsource","source"),generic:g(o,"generic","generalinbox","info"),note:g(o,"note","notes")};
-      if(!PROS_FMT_OK.test(rec.format))rec.format="";
-      const key=(prosDomain(rec)||company).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-      const id="pros-"+list+"-"+key,old=have[id];
-      put("prospects",Object.assign({id,people:[],importedAt:now},old||{},rec,{updatedAt:now,by:USER}));have[id]=1;if(old)updated++;else added++;});
-    prosList=list;prosShow=40;render();toast(listName+": "+added+" added"+(updated?" · "+updated+" updated":"")+" — the people you added are kept");
+    const n=prosImportRows(rows,list,listName,meta);
+    prosList=list;prosShow=40;render();toast(listName+": "+n.added+" added"+(n.updated?" · "+n.updated+" updated":"")+" — the people you added are kept");
   }).catch(e=>toast(e&&e.message?"Couldn't read that file — "+e.message:"Couldn't read that file"));}
 function prosExport(){const k=prosCur(),L=prosLists().find(x=>x.key===k),list=prospects().filter(r=>(r.list||"other")===k).sort((a,b)=>String(a.company).localeCompare(String(b.company)));
   const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
-  const out=[["Company","City","State","Website","LinkedIn company page","People: safety","People: second search","Email format","Format learned from","Where it was seen","General inbox","Person","Title","Person's LinkedIn","Email","Email status"]];
+  const out=[["Company","City","State","Website","LinkedIn company page","People: safety","People: second search","Email format","Format learned from","Where it was seen","General inbox","Person","Title","Person's LinkedIn","Email","Email status","LinkedIn steps"]];
   list.forEach(r=>{const ok=prosFmtOk(r),kw=prosKws(r),base=[r.company,r.city,r.state,prosHref(r.website),prosLi(r),prosPeopleUrl(r,kw[0][1]),prosPeopleUrl(r,kw[1][1]),
       ok?"Jane Smith → "+prosEmail(r.format,prosDomain(r),"Jane Smith"):"No format found",ok?r.formatExample:"",ok?r.formatSource:"",r.generic||""];
-    const ps=r.people||[];if(!ps.length)out.push(base.concat(["","","","",""]));
-    ps.forEach(p=>out.push(base.concat([p.name,p.title||"",p.li||"",p.email||"",p.email?(p.kind==="typed"?"typed in":"pattern — verify before sending"):""])));});
+    const ps=r.people||[];if(!ps.length)out.push(base.concat(["","","","","",""]));
+    ps.forEach(p=>out.push(base.concat([p.name,p.title||"",p.li||"",p.email||"",p.email?(p.kind==="verified"?"verified by Apollo":p.kind==="typed"?"typed in":"pattern — verify before sending"):"",
+      PROS_NEXT.concat([["replied","Replied"]]).filter(s=>(p.steps||{})[s[0]]).map(s=>s[1]+" "+p.steps[s[0]]).join("; ")])));});
   const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
   livSave(u,(L?L.name:"Prospects")+" — prospects "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+list.length+" companies — opens in Excel");}
+function prosClip(v,msg){return (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{toast(msg||("Copied "+v));return true;},()=>{toast("Couldn't copy — select it by hand");return false;});}
+async function prosCheck(r,p){const w=prosNameWords(p.name);
+  if(!confirm("Check "+p.name+"'s email at "+r.company+" in Apollo?\n\nThis uses 1 Apollo credit (your plan has 2,500 a month)."))return;
+  toast("Asking Apollo…");
+  try{const res=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"verify",people:[{first:w[0],last:w[w.length-1],domain:prosDomain(r)}]})});const b=await res.json().catch(()=>({}));
+    if(!res.ok||!b.ok)throw new Error(b.error||("HTTP "+res.status));
+    const x=(b.results||[])[0]||{},em=String(x.apolloEmail||"").toLowerCase(),now=new Date().toISOString();
+    p.checkedAt=now;p.checkStatus=x.status||"no_match";
+    if(em&&x.status==="verified"){const was=p.email;p.email=em;p.kind="verified";
+      if(!prosFmtOk(r)){const f=prosDeriveFmt(p.name,em);if(f){r.format=f;r.formatExample=em;r.formatSource="Apollo-verified ("+todayStr()+")";r.domain=r.domain||em.split("@")[1];}}
+      toast(was&&was!==em?"Apollo found a different address: "+em:"Verified: "+em);}
+    else toast(p.checkStatus==="no_match"?"Apollo doesn't know "+p.name+" — keep the pattern, verify another way":"Apollo: "+p.checkStatus+(em?" ("+em+")":""));
+    put("prospects",r);render();
+  }catch(e){toast("Couldn't check — "+(e.message||e));}}
 function prosHandle(a,t){
-  if(a==="proslist"){prosList=t.dataset.v;prosShow=40;render();return true;}
   if(a==="prosmore"){prosShow+=60;render();return true;}
   if(a==="prosexport"){prosExport();return true;}
   if(a==="prosadd"){const r=prosById(t.dataset.id);if(r)prosAddSheet(r);return true;}
@@ -2134,11 +2204,19 @@ function prosHandle(a,t){
     const li=prosLiPerson(v("prosPLi")),name=v("prosPName").trim()||prosNameFromLi(li);if(!name){toast("Add their name");return true;}
     const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),name):"",email=(v("prosPEmail").trim()||built).toLowerCase();
     if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("That email doesn't look right");return true;}
-    r.people=(r.people||[]).concat([{id:uid(),name,title:v("prosPTitle").trim(),li,email,kind:email&&email===built?"pattern":email?"typed":"",addedAt:new Date().toISOString(),by:USER}]);
+    r.people=(r.people||[]).concat([{id:uid(),name,title:v("prosPTitle").trim(),li,email,kind:email&&email===built?"pattern":email?"typed":"",steps:{},addedAt:new Date().toISOString(),by:USER}]);
     put("prospects",r);closeInsp();render();toast(name+" added to "+r.company);return true;}
   if(a==="prosdel"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p)return true;if(!confirm("Remove "+p.name+" from "+r.company+"?"))return true;
     r.people=r.people.filter(x=>x.id!==p.id);put("prospects",r);render();return true;}
-  if(a==="proscopy"){const v=t.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Copied "+v),()=>toast(v));return true;}
+  if(a==="proscopy"){prosClip(t.dataset.v);return true;}
+  if(a==="prosmsgcopy"){const m=prosMsg(prosMeta(prosCur()),t.dataset.v);if(m)prosClip(m.text,"Copied — {first} and {company} still need filling in");return true;}
+  if(a==="prosnext"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p)return true;const k=t.dataset.v,m=prosMsg(prosMeta(r.list),k);
+    const stamp=()=>{p.steps=Object.assign({},p.steps||{},{[k]:todayStr()});put("prospects",r);render();};
+    if(m&&k!=="accepted"&&k!=="replied")prosClip(prosFill(m.text,r,p),k==="connect"?"Copied — on their profile: Connect → Add a note → paste":"Copied — paste it into your LinkedIn chat with "+(prosNameWords(p.name)[0]||"them")).then(okc=>{if(okc)stamp();});
+    else stamp();return true;}
+  if(a==="prosstepundo"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p||!p.steps)return true;const k=t.dataset.v,lab=(PROS_NEXT.concat([["replied","Replied"]]).find(s=>s[0]===k)||[k,k])[1];
+    if(!confirm("Undo “"+lab+"” for "+p.name+"?"))return true;const st=Object.assign({},p.steps);delete st[k];p.steps=st;put("prospects",r);render();return true;}
+  if(a==="proscheck"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(p)prosCheck(r,p);return true;}
   return false;
 }
 function viewLinkedInMsg(){const all=liInvites(),st=liInvState(),wait=all.filter(r=>r.status==="candidate"||r.status==="approved").length;
@@ -3299,8 +3377,8 @@ document.addEventListener("input",e=>{
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
 });
-document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liInvFile"&&e.target.files&&e.target.files[0]){liInvUpload(e.target.files[0]);e.target.value="";return;}if(e.target.id==="prosFile"&&e.target.files&&e.target.files[0]){prosImport(e.target.files[0]);e.target.value="";return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
-document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="liInvFold")liInvOpen=e.target.open;},true);
+document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liInvFile"&&e.target.files&&e.target.files[0]){liInvUpload(e.target.files[0]);e.target.value="";return;}if(e.target.id==="prosFile"&&e.target.files&&e.target.files[0]){prosImport(e.target.files[0]);e.target.value="";return;}if(e.target.id==="prosSel"){prosList=e.target.value;prosShow=40;prosQ="";render();return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="liInvFold")liInvOpen=e.target.open;if(e.target&&e.target.id==="prosCamp")prosCampOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()&&hubUser()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
