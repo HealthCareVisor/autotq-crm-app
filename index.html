@@ -1048,7 +1048,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let VIEWAS=null; /* admin rail preview — render-only, never changes who's logged in */
-let curList=null, regionF="", acctFilter="setup", contactFilter="distrep", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let curList=null, regionF="", acctFilter="all", contactFilter="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 let fltOpen=null; const FLT_RESET={}; /* the one filter button per list — see filterBar() */
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
@@ -1907,8 +1907,8 @@ function viewAccounts(){
   if(q)pool=pool.filter(c=>(c.name||"").toLowerCase().includes(q)||(c.state||"").toLowerCase().includes(q)||(c.territory||"").toLowerCase().includes(q));
   const cc=contactCountMap(),s=sortState.accounts;
   pool=pool.slice().sort((a,b)=>cmpv(accountVal(a,s.key,cc),accountVal(b,s.key,cc))*s.dir);
-  FLT_RESET.accts=()=>{acctFilter="setup";regionF="";};
-  let h='<div class="lvhead">'+filterBar("accts",[fltGroup("Accounts","acctfilter",[["all","All",base.length],["potential","Potential distributors",cnt.potential],["setup","Set-up distributors",cnt.setup],["enduser","End-user accounts",cnt.enduser],["manrep","Man-rep groups",cnt.manrep]],acctFilter,"setup"),regionGroup()])+
+  FLT_RESET.accts=()=>{acctFilter="all";regionF="";};
+  let h='<div class="lvhead">'+filterBar("accts",[fltGroup("Accounts","acctfilter",[["all","All",base.length],["potential","Potential distributors",cnt.potential],["setup","Set-up distributors",cnt.setup],["enduser","End-user accounts",cnt.enduser],["manrep","Man-rep groups",cnt.manrep]],acctFilter,"all"),regionGroup()])+
     '<div class="lvsearch"><input id="lvsearch" placeholder="Search this list…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   h+=pool.length?accountTableHTML(pool,true):'<div class="empty">No accounts here yet.</div>';
   return h;
@@ -1928,9 +1928,9 @@ function viewContacts(){
   if(q)pool=pool.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q)||(p.role||"").toLowerCase().includes(q));
   const s=sortState.contacts;
   pool=pool.slice().sort((a,b)=>cmpv(contactVal(a,s.key),contactVal(b,s.key))*s.dir);
-  FLT_RESET.contacts=()=>{contactFilter="distrep";regionF="";contactStateF="";};
+  FLT_RESET.contacts=()=>{contactFilter="all";regionF="";contactStateF="";};
   let h='<div class="lvhead">'+filterBar("contacts",[
-     fltGroup("Contacts","contactfilter",[["all","All",scoped.length-cnt.sellers],["manrep","Man-reps",cnt.manrep],["distrep","Distributor reps",cnt.distrep],["enduser","End users",cnt.enduser]].concat(cnt.sellers?[["sellers","Grainger sellers",cnt.sellers]]:[]),contactFilter,"distrep"),
+     fltGroup("Contacts","contactfilter",[["all","All",scoped.length-cnt.sellers],["manrep","Man-reps",cnt.manrep],["distrep","Distributor reps",cnt.distrep],["enduser","End users",cnt.enduser]].concat(cnt.sellers?[["sellers","Grainger sellers",cnt.sellers]]:[]),contactFilter,"all"),
      regionGroup(),
      {t:"State",cur:contactStateF,def:"",sumOf:v=>v||"",html:'<select id="contactState" class="f" style="max-width:220px"><option value="">All states</option>'+stateOpts.map(x=>'<option'+(x===contactStateF?" selected":"")+'>'+x+'</option>').join("")+'</select>'}])+
      '<div class="lvsearch">'+
