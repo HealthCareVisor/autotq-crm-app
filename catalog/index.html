@@ -2221,7 +2221,7 @@ let lgOpen=null;
 function lgLoad(){try{const v=JSON.parse(localStorage.getItem(LG_KEY)||"null");if(v&&Array.isArray(v.rows))return v;}catch(e){}return {rows:[],pages:0};}
 let LG=lgLoad();
 function lgSave(){try{localStorage.setItem(LG_KEY,JSON.stringify(LG));}catch(e){}}
-const LG_JUNK=/^(view .*profile|.*degree connection|[•·]?\s*(1st|2nd|3rd\+?)|connect|message|follow|following|save|saved|pending|send inmail|add note|more|premium|verified|open to work|hiring|status is .*|.*mutual connections?|.*followers?|\d+\+? connections|provides services.*|viewed|new|lead|in \d+ lists?|…?see more|show more|show less|current:?|past:?|about:?|summary:?|·|•|\|)$/i;
+const LG_JUNK=/^(view .*profile|.*degree connection|[•·]?\s*(1st|2nd|3rd\+?)|connect|message|follow|following|save|saved|pending|withdraw|invitation sent|send inmail|add note|more|premium|verified|open to work|hiring|status is .*|.*mutual connections?|.*followers?|\d+\+? connections|provides services.*|viewed|new|lead|in \d+ lists?|…?see more|show more|show less|current:?|past:?|about:?|summary:?|·|•|✦|\|)$/i;
 const LG_LOC=/,\s*(A[KLRZ]|C[AOT]|D[CE]|FL|GA|HI|I[ADLN]|K[SY]|LA|M[ADEINOST]|N[CDEHJMVY]|O[HKR]|PA|RI|S[CD]|T[NX]|UT|V[AT]|W[AIVY])\b|united states|canada|\barea$|metropolitan|^greater /i;
 function lgLink(h){h=String(h||"");let m=h.match(/linkedin\.com\/in\/([^/?#\s]+)/i)||h.match(/^\/in\/([^/?#\s]+)/i);if(m)return "https://www.linkedin.com/in/"+m[1]+"/";
   m=h.match(/\/sales\/(lead|people)\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/sales/"+m[1].toLowerCase()+"/"+m[2]:"";}
@@ -2229,25 +2229,40 @@ function lgLink(h){h=String(h||"");let m=h.match(/linkedin\.com\/in\/([^/?#\s]+)
 function lgLines(el){if(!el)return [];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),out=[];let n;
   while((n=w.nextNode())){const p=n.parentElement;if(p&&/^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.tagName))continue;const t=n.nodeValue.replace(/\s+/g," ").trim();if(t&&out[out.length-1]!==t)out.push(t);}
   return out;}
-function lgName(x){return String(x||"").replace(/\s*\((he|she|they)\/[^)]*\)/ig,"").replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,"").replace(/\s+/g," ").trim();}
+function lgClean(x){return String(x||"").replace(/\s*\((he|she|they)\/[^)]*\)/ig,"").replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu,"").replace(/\s+/g," ").trim();}
+function lgName(x){return lgClean(x).replace(/(,\s*(?:[A-Z]{2,6}|(?:[A-Z][a-z]?\.){1,3}|Jr\.?|Sr\.?|I{2,3}|IV))+\s*$/,"").trim();}
 function lgCompanyOf(title,lines){const m=String(title||"").match(/\s(?:at|@)\s+(.+)$/i);if(m)return m[1].replace(/\s*[|·•].*$/,"").trim();
   const L=lines||[],c=L.find(x=>/^current:/i.test(x)&&/\sat\s/i.test(x));if(c)return c.replace(/^.*\sat\s+/i,"").trim();
   const i=L.findIndex(x=>/^current:.*\sat$/i.test(x));return i>=0&&L[i+1]&&!LG_LOC.test(L[i+1])?L[i+1]:"";}
-function lgRow(name,rest,li,coLink){const title=rest[0]||"",loc=rest.slice(1).find(x=>LG_LOC.test(x))||"";
-  let company=coLink||lgCompanyOf(title,rest);if(!company&&rest[1]&&rest[1]!==loc&&!LG_LOC.test(rest[1]))company=rest[1];
-  return {id:li||(name+"|"+title).toLowerCase(),name,title,company,loc,li};}
+/* the newer people cards put the job in a summary line ("✦ Safety Engineer at Lockheed Martin since September 2025, …")
+   while the headline is a slogan ("Leader | Engineer | System & Process Safety") */
+function lgSummary(lines){for(const raw of lines||[]){const x=String(raw).replace(/^[✦✧★☆*•·\s]+/,"").trim();
+    const m=x.match(/^(.{2,80}?)\s+at\s+(.+?)(?=\s+since\b|\s+from\b|\s+for\s+\d|\s*[,.;(]|\s+[—–-]\s|$)/i);
+    if(m&&!/mutual connection/i.test(x)&&!/^(current|past):/i.test(x))return {role:m[1].replace(/^(currently|now)\s+(an?\s+)?/i,"").trim(),company:m[2].trim()};}
+  return null;}
+function lgRow(name,rest,li,coLink){const head=rest[0]||"",loc=rest.slice(1).find(x=>LG_LOC.test(x))||"";
+  const sum=lgSummary(rest.slice(1).filter(x=>x!==loc));
+  const company=coLink||lgCompanyOf(head,rest)||(sum?sum.company:"");
+  const title=sum&&!/\s(at|@)\s/i.test(head)?sum.role:head;
+  return {id:li||(name+"|"+head).toLowerCase(),name,title,company,loc,li,head};}
 function lgParse(html,text){const out=[],seen=new Set();
-  if(html){const doc=new DOMParser().parseFromString(html,"text/html");const by={};
-    doc.querySelectorAll('a[href]').forEach(a=>{const li=lgLink(a.getAttribute("href"));if(li)(by[li]=by[li]||[]).push(a);});
-    Object.keys(by).forEach(li=>{const as=by[li];
-      const name=lgName(as.map(a=>lgLines(a).find(x=>!LG_JUNK.test(x))||"").find(Boolean));if(!name||/^linkedin member$/i.test(name)||seen.has(li))return;
-      let box=as[0];while(box.parentElement&&box.parentElement!==doc.body){const links=new Set([...box.parentElement.querySelectorAll('a[href]')].map(a=>lgLink(a.getAttribute("href"))).filter(Boolean));if(links.size>1)break;box=box.parentElement;}
-      const co=box.querySelector('a[href*="/company/"]');const coLink=co?lgLines(co).find(x=>!LG_JUNK.test(x))||"":"";
-      const rest=lgLines(box).map(lgName).filter(x=>x&&x!==name&&!LG_JUNK.test(x)&&!x.toLowerCase().startsWith(name.toLowerCase()+" ")&&x!==coLink);
+  if(html){const doc=new DOMParser().parseFromString(html,"text/html");const isP=a=>!!lgLink(a.getAttribute("href"));
+    /* one result card = its list item; newer cards also link the mutual connections, so only the card's first profile link is the person */
+    const cards=[];doc.querySelectorAll('a[href]').forEach(a=>{if(!isP(a))return;
+      let c=a.closest('li,[data-view-name="search-entity-result-universal-template"],[data-x-search-result]');
+      if(!c){c=a;while(c.parentElement&&c.parentElement!==doc.body){const n=new Set([...c.parentElement.querySelectorAll('a[href]')].map(x=>lgLink(x.getAttribute("href"))).filter(Boolean));if(n.size>1)break;c=c.parentElement;}}
+      if(!cards.includes(c))cards.push(c);});
+    cards.forEach(c=>{const as=(c.matches('a[href]')?[c]:[]).concat([...c.querySelectorAll('a[href]')]).filter(isP);if(!as.length)return;
+      const li=lgLink(as[0].getAttribute("href"));if(seen.has(li))return;
+      const name=lgName(as.filter(a=>lgLink(a.getAttribute("href"))===li).map(a=>lgLines(a).find(x=>!LG_JUNK.test(x))||"").find(Boolean));
+      if(!name||/^linkedin member$/i.test(name)||name.split(" ").length<2)return;
+      const other=new Set(as.filter(a=>lgLink(a.getAttribute("href"))!==li).flatMap(a=>lgLines(a)));
+      const co=c.querySelector('a[href*="/company/"]');const coLink=co?lgLines(co).find(x=>!LG_JUNK.test(x))||"":"";
+      const rest=lgLines(c).filter(x=>!other.has(x)&&!/^[,&]/.test(x)).map(lgClean).filter(x=>x&&lgName(x)!==name&&!LG_JUNK.test(x)&&!x.toLowerCase().startsWith(name.toLowerCase()+" ")&&x!==coLink);
       seen.add(li);out.push(lgRow(name,rest,li,coLink));});}
   if(!out.length&&text){const L=String(text).split(/\r?\n/).map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean);
     for(let i=0;i<L.length;i++){const m=L[i].match(/^View (.+?)[’']s? profile$/i);if(!m)continue;const name=lgName(m[1]),rest=[];
-      for(let j=i+1;j<L.length&&rest.length<4&&!/^View .+ profile$/i.test(L[j]);j++){const x=lgName(L[j]);if(x&&x!==name&&!LG_JUNK.test(x))rest.push(x);}
+      for(let j=i+1;j<L.length&&rest.length<4&&!/^View .+ profile$/i.test(L[j]);j++){const x=lgClean(L[j]);if(x&&lgName(x)!==name&&!LG_JUNK.test(x))rest.push(x);}
       const r=lgRow(name,rest,"","");if(!seen.has(r.id)){seen.add(r.id);out.push(r);}}}
   return out;}
 function lgNorm(x){return String(x||"").toLowerCase().replace(/\b(inc|llc|ltd|corp|corporation|company|co|the|of|na|usa|america|americas|north)\b/g," ").replace(/[^a-z0-9]+/g,"");}
