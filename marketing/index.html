@@ -2305,7 +2305,7 @@ function lgMatch(company){const c=lgNorm(company);if(c.length<3)return "";const 
    {company}), Open profile + copy message, Copy subject, then Sent / Skip / Replied. The message lives on the list record
    (`msg:{subject,body}`), editable here; the default is Max's wording, sent from Hannah's LinkedIn and signed by her. Shown in
    LinkedIn › Messenger. */
-const LG_MSG_DEFAULT={subject:"Can you stop my bleed?",body:"Hi {first},\n\nIf I asked you to stop my bleed right now, where would your closest tourniquet be? Are you confident that the person closest to that tourniquet right now could come and help me?\n\nIf not, I'd love to show you a device I've developed over the past 5 years. Check out an interactive demo here: https://theautotq.com/shop#components and then let me know if you're interested!\n\nHannah\nInventor of AutoTQ"};
+const LG_MSG_DEFAULT={subject:"Can you stop my bleed?",body:"Hi {first},\n\nIf you had to point to the closest tourniquet on your site right now, would you be confident that the person standing closest to it could stop your bleed?\n\nIf not, I'd love to show you a device I've developed over the past 5 years. Check out an interactive demo here: https://theautotq.com/shop#components and then let me know if you're interested!\n\nHannah\nInventor of AutoTQ"};
 let lgMsgOpen=false;
 function lgMsg(list){return Object.assign({},LG_MSG_DEFAULT,(list&&list.msg)||{});}
 function lgFill(text,r){const f=prosNameWords(r&&r.name)[0]||"";
