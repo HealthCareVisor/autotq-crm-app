@@ -819,7 +819,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","checkins"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1430,15 +1430,17 @@ function render(){
   const me=teamById(USER);
   if(!logState.landed){logState.landed=true;if(view==="today")applyRoleDefaults();} /* admins land on Team (Max, 2026-10-16) */
   if(view==="invoicing"&&!invAccess())view="today";
+  if(view==="checkins"&&!checkinAccess())view="today";
   if(view==="team"&&!teamPageFor(USER))view="today";
   if(ownOnly()&&TEAM_VIEWS.includes(view))view="today";
   if(ownOnly()&&view==="fcast"){view="opps";oppView="fcast";}
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",activity:"Activity",team:(ownOnly()?"My KPIs":"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",checkins:"Demo check-ins",activity:"Activity",team:(ownOnly()?"My KPIs":"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
+    checkins:(function(){if(view!=="checkins")return "";const n=checkinSummary();return n.due+" due · "+n.waiting+" waiting · "+n.done+" checked this round — Wednesdays";})(),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
     team:(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
     teammate:(curRep?"Everything they've logged, and their time in the CRM":""),
@@ -1491,6 +1493,7 @@ function render(){
   else if(view==="invoicing")body=invAccess()?viewInvoicing():viewToday();
   else if(view==="shipping")body=shipAccess()?viewShipping():viewToday();
   else if(view==="quotes")body=viewQuotes();
+  else if(view==="checkins")body=checkinAccess()?viewCheckins():viewToday();
   else body=viewToday();
   const NU=(admin()&&VIEWAS)?VIEWAS:USER; /* rail preview: admin sees another seat's left nav */
   if(view==="person"&&pn)recentPush("p",pn.id);if(view==="roster"&&cc)recentPush("c",cc.id);
@@ -1795,14 +1798,14 @@ function railGroups(u){
   if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt","My KPIs"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
     ["Field",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
-  if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
+  if(p==="outreach")return [["Outreach",[["today","home","Home"],["checkins","box","Demo check-ins"],["leads","spark","Leads"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["map","pin","Field Map"]]],
     ["Manage",[["team","users","Team"]]]];
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
   const g=[];
   const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(mg.length)g.push(["Manage",mg]); /* Campaigns tab removed 2026-10-16 — handled outside the CRM */
   g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]]],
-    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["export","dl","Lists"]]],
+    ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["export","dl","Lists"],["checkins","box","Demo check-ins"]]],
     ["Insight",[["insight","spark","Insight"],["map","pin","Field Map"],["conf","cal","Conferences"]]]);
   return g;
 }
@@ -2071,8 +2074,14 @@ function viewToday(){
   }
   const sec=(id,x)=>x?'<section class="hsec" id="'+id+'">'+x+'</section>':'';
   h+=sec("hs-day",day);
+  let chk="";
+  if(P==="outreach"){const n=checkinSummary(),wed=new Date().getDay()===3;
+    chk='<button class="card" data-act="nav" data-view="checkins" style="'+(wed?'border-color:rgba(216,90,48,.45);background:var(--coral-t)':'')+'"><div class="row"><span class="ic coral">'+svg("box")+'</span>'+
+      '<div class="grow"><p class="t1">'+(wed?"It's Wednesday — demo check-ins":"Demo check-ins · Wednesdays")+'</p><p class="t2">'+n.due+' due · '+n.waiting+' waiting on a reply · '+n.done+' checked this round</p></div>'+
+      (wed?'<span class="btn sm coral" style="flex:none">Start</span>':chev())+'</div></button>';
+    if(wed){lds=chk+lds;chk="";}}
   h+='<div class="homegrid"><div class="hcol">'+sec("hs-attn",attn)+sec("hs-fu",fu)+sec("hs-leads",lds)+'</div>'+
-     '<div class="hcol">'+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
+     '<div class="hcol">'+sec("hs-checkin",chk)+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
   return h;
 }
 /* a teammate's page (admins): everything they've logged, their week, and their time in the CRM */
@@ -2162,6 +2171,7 @@ function viewPerson(id){
    '<div><b>Email</b><span>'+(p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--info-t)">'+esc(p.email)+'</a>':"—")+'</span></div>'+
    '<div><b>Phone</b><span>'+(p.phone?'<a href="tel:'+esc(p.phone.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.phone)+'</a>':"—")+'</span></div>'+
    (p.mobile?'<div><b>Mobile</b><span><a href="tel:'+esc(p.mobile.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.mobile)+'</a></span></div>':'')+
+   (p.trainSelf?'<div><b>Training (check-in)</b><span>'+(p.trainSelf.v==="yes"?"Completed":"Not yet")+' · '+esc(fmtDay(p.trainSelf.at))+'</span></div>':'')+
    '<div><b>Location</b><span>'+esc([p.city,personStates(p)[0]].filter(Boolean).join(", ")||"—")+'</span></div>'+
    '<div><b>Mailing address</b><span>'+esc(p.address||"—")+'</span></div>'+
    '<div><b>Territory</b><span>'+(personStates(p).length?esc(personStates(p).join(", ")):"—")+'</span></div>'+
@@ -2562,6 +2572,145 @@ function demoEngageHTML(){
   return h;
 }
 FLT_RESET.map=()=>{mapSellers=true;};
+/* ---------- DEMO CHECK-INS (Max, 2026-10-26) ----------
+   Kellan's Wednesday job: everyone holding an AutoTQ demo unit — and the man-reps who show it — gets a check-in call or
+   email from her, CC Max. Three questions: who have you shown it to (end users), have you completed the training (yes /
+   no), can we help with anything on our end. Each answer is a synced `checkins` record
+   {id,key,pid,demoIds,by,at,method call|vm|reply|emailed,shown,trained yes|no,help,note} and a logged call/email on the
+   contact. One round a month (CHECKIN_DAYS): Due = nothing in the last 30 days; Waiting = emailed / left a voicemail, no
+   answer yet; Checked = answered. Email opens Outlook on the web as the signed-in teammate (it comes from her mailbox). */
+const CHECKIN_DAYS=30, CHECKIN_CC="max@goldenhourmedical.com", TRAINING_URL="https://autotq-sales-training.netlify.app/";
+let checkinSeg="demo", checkinF="due", CH_CACHE={sig:"",demo:[],manrep:[]};
+function checkinAccess(){const p=profile();return p==="outreach"||p==="admin";}
+function ensureCheckins(){DB.checkins=DB.checkins||[];}
+function checkinHolders(seg){
+  const sig=(DB.demos||[]).length+"|"+DB.people.length+"|"+DB.companies.length+"|"+SYNC.lastPull;
+  if(CH_CACHE.sig!==sig){
+    const demo=[],man=[],byD={},byM={};
+    demoEngageList().forEach(d=>{const p=demoPerson(d),k=p?"p:"+p.id:"d:"+d.id;
+      if(!byD[k]){byD[k]={key:k,p:p,demos:[]};demo.push(byD[k]);}byD[k].demos.push(d);});
+    DB.people.filter(p=>contactType(p)==="manrep"&&!isSellerTier(p)).forEach(p=>{const k="p:"+p.id;
+      if(!byM[k]){byM[k]={key:k,p:p,demos:byD[k]?byD[k].demos:[]};man.push(byM[k]);}});
+    CH_CACHE={sig:sig,demo:demo,manrep:man};
+  }
+  return seg==="manrep"?CH_CACHE.manrep:CH_CACHE.demo;
+}
+function chHolder(key){return CH_CACHE.demo.find(h=>h.key===key)||CH_CACHE.manrep.find(h=>h.key===key)||null;}
+function chName(h){if(h.p)return h.p.name;const d=h.demos[0]||{},x=splitHolder(d);return x.person||x.company||d.holder||"—";}
+function chCompany(h){if(h.p)return (company(h.p.cid)||{}).name||h.p.branch||"";const d=h.demos[0]||{},x=splitHolder(d);
+  const co=x.person?(x.company||d.company||""):(d.company&&d.company!==d.holder?d.company:"");
+  return /^(gmail|yahoo|mac|me|icloud|hotmail|outlook|aol|live|msn)\.com$/i.test(co)?"":co;} /* a personal email domain isn't a company */
+function chEmail(h){return (h.p&&h.p.email)||((h.demos.find(d=>d.email)||{}).email)||"";}
+function chPhone(h){return (h.p&&(h.p.phone||h.p.mobile))||((h.demos.find(d=>d.phone)||{}).phone)||"";}
+function checkinsOf(h){ensureCheckins();const ids=new Set(h.demos.map(d=>d.id));
+  return DB.checkins.filter(c=>c.key===h.key||(h.p&&c.pid===h.p.id)||(c.demoIds||[]).some(i=>ids.has(i))).sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
+function chAnswered(c){return c.method==="call"||c.method==="reply";}
+function checkinState(h){
+  const cs=checkinsOf(h),since=new Date(Date.now()-CHECKIN_DAYS*86400000).toISOString();
+  const recent=cs.filter(c=>String(c.at)>=since),ans=cs.find(chAnswered);
+  if(recent.some(chAnswered))return {st:"done",last:recent.find(chAnswered),ans:ans,all:cs};
+  if(recent.length)return {st:"waiting",last:recent[0],ans:ans,all:cs};
+  return {st:"due",last:cs[0]||null,ans:ans,all:cs};
+}
+function checkinEmailUrl(h){
+  const me=teamById(USER).name.split(" ")[0],first=String(chName(h)).split(/\s+/)[0];
+  const body="Hi "+first+",\n\nHope all is well! I'm checking in on the AutoTQ demo unit you have — three quick questions:\n\n"+
+    "1. Have you shown it to any end users or customers? Who has seen it?\n"+
+    "2. Have you completed the AutoTQ training? If not, here's the link: "+TRAINING_URL+"\n"+
+    "3. Is there anything we can help with on our end — materials, pricing, a joint call or a demo?\n\n"+
+    "Thanks,\n"+me+"\nGolden Hour Medical · AutoTQ";
+  const cc=userEmail(USER)===CHECKIN_CC?"":CHECKIN_CC,e=encodeURIComponent;
+  return "https://outlook.office.com/mail/deeplink/compose?to="+e(chEmail(h))+(cc?"&cc="+e(cc):"")+"&subject="+e("Checking in on your AutoTQ demo unit")+"&body="+e(body);
+}
+function checkinStamp(c){if(!c)return "";const m={call:"Talked",reply:"Replied",vm:"Left voicemail",emailed:"Emailed"}[c.method]||"Checked";
+  return m+" "+fmtDay(c.at)+(c.by?" · "+shortName(c.by):"");}
+function checkinRow(h){
+  const S=checkinState(h),em=chEmail(h),ph=chPhone(h),co=chCompany(h),d0=h.demos[0],a=S.ans;
+  const role=h.p?(h.p.role||""):"",st=(h.p&&personStates(h.p)[0])||(d0&&d0.state)||"";
+  const drafted=(logState.chDrafted||{})[h.key];
+  const answers=a?'<p class="t2" style="white-space:normal">'+
+      '<b style="font-weight:600;color:var(--ink-2)">Training:</b> '+(a.trained==="yes"?'<span class="pill ok" style="font-size:10.5px">Yes</span>':a.trained==="no"?'<span class="pill warn" style="font-size:10.5px">No</span>':'—')+
+      (a.shown?' · <b style="font-weight:600;color:var(--ink-2)">Shown to:</b> '+esc(a.shown):'')+
+      (a.help?' · <b style="font-weight:600;color:var(--ink-2)">Help:</b> '+esc(a.help):'')+'</p>':'';
+  return '<div class="card" style="padding:12px 14px"><div class="row" style="align-items:flex-start;flex-wrap:wrap;row-gap:10px">'+
+   '<span class="ic '+(S.st==="done"?"ok":S.st==="waiting"?"info":"coral")+'">'+svg("box")+'</span>'+
+   '<div class="grow" style="min-width:210px"><p class="t1" style="white-space:normal">'+(h.p?'<button class="lnk" data-act="person" data-id="'+esc(h.p.id)+'">'+esc(chName(h))+'</button>':esc(chName(h))+' <span class="pill gray" style="font-size:10px">not in Contacts</span>')+'</p>'+
+    '<p class="t2" style="white-space:normal">'+esc([role,co,st].filter(Boolean).join(" · ")||"—")+(h.demos.length?' · demo unit'+(h.demos.length>1?'s ×'+h.demos.length:'')+(d0&&d0.date?' since '+esc(fmtDay(d0.date)):''):' · no demo unit on record')+'</p>'+
+    '<p class="t2" style="white-space:normal">'+(S.last?esc(checkinStamp(S.last)):'Never checked in')+(ph?' · <a href="tel:'+esc(ph.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(ph)+'</a>':'')+(em?' · <a href="mailto:'+esc(em)+'" style="color:var(--info-t)">'+esc(em)+'</a>':'')+'</p>'+answers+'</div>'+
+   '<div class="qa" style="flex:none;flex-wrap:wrap;justify-content:flex-end">'+
+    (ph?'<a class="btn sm" href="tel:'+esc(ph.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
+    (em?(drafted?'<button class="btn sm" data-act="chsent" data-key="'+esc(h.key)+'" title="You sent the email from Outlook — log it">'+svg("check")+' Mark sent</button>'
+       :'<a class="btn sm" href="'+esc(checkinEmailUrl(h))+'" target="_blank" rel="noopener" data-act="chemail" data-key="'+esc(h.key)+'" title="Opens the email in your Outlook, CC Max">'+svg("mail")+' Email</a>'):'')+
+    '<button class="btn sm coral" data-act="chlog" data-key="'+esc(h.key)+'">'+svg("check")+' Log check-in</button></div></div></div>';
+}
+function checkinSummary(){const all=checkinHolders("demo"),n={due:0,waiting:0,done:0};all.forEach(h=>n[checkinState(h).st]++);n.total=all.length;return n;}
+function viewCheckins(){
+  ensureCheckins();
+  const list=checkinHolders(checkinSeg),states=list.map(h=>({h:h,S:checkinState(h)}));
+  const cnt={due:0,waiting:0,done:0};states.forEach(x=>cnt[x.S.st]++);
+  const since=new Date(Date.now()-CHECKIN_DAYS*86400000).toISOString();
+  const recentAns=DB.checkins.filter(c=>chAnswered(c)&&String(c.at)>=since);
+  let h=kpiRow([["Due",cnt.due,"nothing in "+CHECKIN_DAYS+" days",cnt.due?"warn":""],["Waiting on a reply",cnt.waiting,"emailed or left a voicemail"],
+    ["Checked in",cnt.done,"answered this round"],["Trained",recentAns.filter(c=>c.trained==="yes").length+" / "+recentAns.filter(c=>c.trained).length,"said yes / asked"],
+    ["Asked for help",recentAns.filter(c=>c.help).length,"last "+CHECKIN_DAYS+" days",recentAns.some(c=>c.help)?"warn":""]]);
+  h+='<div class="lvhead"><div class="seg" style="max-width:360px;margin:0"><button class="'+(checkinSeg==="demo"?"on":"")+'" data-act="chseg" data-v="demo">Demo units ('+checkinHolders("demo").length+')</button>'+
+     '<button class="'+(checkinSeg==="manrep"?"on":"")+'" data-act="chseg" data-v="manrep">Man-reps ('+checkinHolders("manrep").length+')</button></div>'+
+     '<div class="qa-types">'+[["due","Due",cnt.due],["waiting","Waiting",cnt.waiting],["done","Checked",cnt.done],["all","All",list.length]].map(f=>'<button class="qchip'+(checkinF===f[0]?" on":"")+'" data-act="chfilter" data-v="'+f[0]+'">'+f[1]+' ('+f[2]+')</button>').join("")+'</div>'+
+     '<div class="lvsearch" style="margin-left:auto"><input id="lvsearch" placeholder="Search name or company…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
+  if(new Date().getDay()===3&&profile()==="outreach")h+='<div class="banner" style="white-space:normal">'+svg("cal")+'<span>It\'s Wednesday — work the Due list top to bottom. Call first; if they don\'t pick up, leave a voicemail and send the email (you\'ll be CC\'ing Max).</span></div>';
+  const q=listQ.trim().toLowerCase();
+  let rows=states.filter(x=>checkinF==="all"||x.S.st===checkinF);
+  if(q)rows=rows.filter(x=>(chName(x.h)+" "+chCompany(x.h)+" "+chEmail(x.h)).toLowerCase().includes(q));
+  rows.sort((a,b)=>String((a.S.last||{}).at||"").localeCompare(String((b.S.last||{}).at||""))||chName(a.h).localeCompare(chName(b.h))); // never-checked first, then the longest ago
+  const help=admin()?DB.checkins.filter(c=>c.help&&String(c.at)>=since).sort((a,b)=>String(b.at).localeCompare(String(a.at))):[];
+  if(help.length&&checkinF!=="due")h+='<div class="sectlabel" style="margin-top:6px">Asked for help — '+help.length+'</div><div class="list">'+help.slice(0,8).map(c=>{const p=c.pid?person(c.pid):null;
+    return '<div class="tk" style="align-items:flex-start"><span class="ic warn" style="width:30px;height:30px">'+svg("alert")+'</span><div class="grow"><p class="t1" style="font-size:13.5px;white-space:normal">'+(p?esc(p.name)+' <span class="muted" style="font-weight:500">· '+esc((company(p.cid)||{}).name||p.branch||"")+'</span>':'—')+'</p><p class="t2" style="white-space:normal">'+esc(c.help)+' · '+esc(fmtDay(c.at))+' · '+esc(shortName(c.by))+'</p></div></div>';}).join("")+'</div>';
+  if(!rows.length)return h+'<div class="empty">'+(list.length?(checkinF==="due"?'Nobody is due — everyone has been reached in the last '+CHECKIN_DAYS+' days.':'Nothing in this view.'):'No '+(checkinSeg==="manrep"?'man-reps':'demo holders')+' in the CRM yet.')+'</div>';
+  return h+'<div class="list">'+rows.slice(0,200).map(x=>checkinRow(x.h)).join("")+'</div>'+(rows.length>200?'<p class="t2" style="text-align:center">Showing 200 of '+rows.length+' — search to narrow.</p>':'');
+}
+function formCheckin(key){
+  const h=chHolder(key);if(!h)return;
+  logState.ch={key:key,method:"call",trained:""};
+  const S=checkinState(h),a=S.ans;
+  openSheet('<h2>Check-in — '+esc(chName(h))+'</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+esc([chCompany(h),S.last?checkinStamp(S.last):"Never checked in"].filter(Boolean).join(" · "))+'</p>'+
+   '<label class="fl">How did you reach them?</label><div class="chips" id="chMethod">'+[["call","Talked on the phone"],["vm","Left a voicemail"],["reply","They replied to the email"]].map(m=>'<span class="chip'+(m[0]==="call"?" on":"")+'" data-act="chmethod" data-v="'+m[0]+'">'+m[1]+'</span>').join("")+'</div>'+
+   '<div id="chQs">'+
+    '<label class="fl">1 · End users or people they\'ve shown it to</label><textarea class="f" id="chShown" rows="2" placeholder="e.g. Acme Steel safety manager; two Fastenal branches — or “nobody yet”"></textarea>'+
+    '<label class="fl">2 · Completed the training?</label><div class="chips" id="chTrained">'+[["yes","Yes"],["no","No"]].map(t=>'<span class="chip" data-act="chtrained" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+
+     (a&&a.trained?'<span class="t2" style="align-self:center;margin-left:6px">last time: '+(a.trained==="yes"?"Yes":"No")+'</span>':'')+'</div>'+
+    '<label class="fl">3 · Can we help with anything on our end?</label><textarea class="f" id="chHelp" rows="2" placeholder="Materials, pricing, a joint call, another demo… — blank if nothing"></textarea>'+
+   '</div>'+
+   '<label class="fl">Note <span style="font-weight:400;color:var(--hint)">(optional)</span></label><input class="f" id="chNote" autocomplete="off">'+
+   '<button class="btn coral block" data-act="chsave" style="margin-top:18px">Save check-in</button>');
+}
+/* a holder that isn't a contact yet gets one on the first check-in (Max: profiles for every activity), id from the demo */
+function chEnsurePerson(h){
+  if(h.p)return h.p;const d=h.demos[0];if(!d)return null;
+  let p=person("chp_"+d.id);
+  if(!p){const coName=chCompany(h),c=coName?bcMatchCompany(coName):(d.cid?company(d.cid):null);
+    p={id:"chp_"+d.id,name:chName(h),cid:c?c.id:(d.cid&&company(d.cid)?d.cid:null),branch:c?c.name:coName,role:"Contact",email:d.email||"",phone:d.phone||"",
+      city:d.city||"",state:String(d.state||"").toUpperCase().slice(0,2),units:0,pos:0,last:null,source:"Demo check-in",createdAt:new Date().toISOString()};
+    DB.people.unshift(p);}
+  return p;
+}
+function checkinRecord(h,method,ans){
+  ensureCheckins();const p=chEnsurePerson(h),now=new Date().toISOString();
+  const c=Object.assign({id:uid(),key:h.key,pid:p?p.id:null,demoIds:h.demos.map(d=>d.id),by:USER,at:now,method:method},ans||{});
+  const bits=[ans&&ans.shown?"Shown to: "+ans.shown:"",ans&&ans.trained?"Training: "+(ans.trained==="yes"?"Yes":"No"):"",ans&&ans.help?"Help: "+ans.help:"",ans&&ans.note?ans.note:""].filter(Boolean);
+  const note=method==="emailed"?"Demo check-in email sent"+(userEmail(USER)===CHECKIN_CC?"":" (CC Max)"):method==="vm"?"Demo check-in — left a voicemail"+(bits.length?" · "+bits.join(" · "):""):"Demo check-in"+(method==="reply"?" (email reply)":"")+(bits.length?" — "+bits.join(" · "):"");
+  const a={id:uid(),type:(method==="emailed"||method==="reply")?"email":"call",pid:p?p.id:null,cid:p?p.cid||null:null,note:note,date:now,by:USER,norm:2,checkin:c.id};
+  if(method==="vm")a.vm=true;
+  DB.activities.unshift(a);c.actId=a.id;DB.checkins.unshift(c);
+  if(p){if(!p.last||now>p.last)p.last=now;if(ans&&ans.trained)p.trainSelf={v:ans.trained,at:now,by:USER};}
+  CH_CACHE.sig="";save();return c;
+}
+function saveCheckin(){
+  const S=logState.ch,h=S&&chHolder(S.key);if(!h)return;
+  const ans={shown:val("chShown"),trained:S.trained||"",help:val("chHelp"),note:val("chNote")};
+  if(S.method!=="vm"&&!ans.shown&&!ans.trained&&!ans.help){toast("Add at least one answer — or pick “Left a voicemail”");return;}
+  checkinRecord(h,S.method,ans);closeSheet();render();toast(chName(h)+(S.method==="vm"?" — voicemail logged":" — check-in saved"));
+}
+
 function viewMap(){
   var byState={};
   if(mapMode==="reps"){
@@ -5315,6 +5464,7 @@ function helpSheet(){
    ["Activity","The top of the funnel. Everything you log lands here: follow it up with one tap (it becomes a to-do), mark it done, or turn it into a lead or an opportunity. Week view shows who did what, day by day."],
    ["Accounts","Distributors, end-users and man-rep groups. Open one for its contacts, deals, demos and activity."],
    ["Contacts","The channel reps we enable. Tap-to-call/email; log every touch."],
+   ["Demo check-ins","Wednesdays (Kellan): everyone holding a demo unit, plus the man-reps, gets a call or an email from you with Max on CC — who have you shown it to, have you done the training (yes/no), can we help with anything. Log check-in saves the answers on their contact; Due is anyone not reached in 30 days."],
    ["Leads","The working list between conference lists and the CRM — push promising people here, log every touch, promote when they get real."],
    ["Lists","Pick who (distributor reps, end-users, man-reps), a distributor and a state — the call list builds itself. Check names off as you call."],
    ["Insight","Dashboard, the 10 reports (sort, export CSV) and distributor volume, in one place."],
@@ -5377,6 +5527,7 @@ function personSheetHTML(pid){
    '<div><b>Email</b><span>'+(p.email?'<a href="mailto:'+esc(p.email)+'" style="color:var(--info-t)">'+esc(p.email)+'</a>':"—")+'</span></div>'+
    '<div><b>Phone</b><span>'+(p.phone?'<a href="tel:'+esc(p.phone.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.phone)+'</a>':"—")+'</span></div>'+
    (p.mobile?'<div><b>Mobile</b><span><a href="tel:'+esc(p.mobile.replace(/[^\d+]/g,""))+'" style="color:var(--info-t)">'+esc(p.mobile)+'</a></span></div>':'')+
+   (p.trainSelf?'<div><b>Training (check-in)</b><span>'+(p.trainSelf.v==="yes"?"Completed":"Not yet")+' · '+esc(fmtDay(p.trainSelf.at))+'</span></div>':'')+
    '<div><b>Location</b><span>'+esc([p.city,personStates(p)[0]].filter(Boolean).join(", ")||"—")+'</span></div>'+
    '<div><b>Territory</b><span>'+(personStates(p).length?esc(personStates(p).join(", ")):"—")+'</span></div>'+
    '<div><b>Last contact</b><span>'+ago(p.last)+'</span></div>'+
@@ -7527,6 +7678,14 @@ document.addEventListener("click",e=>{
       c.pnRows=c.pnRows.filter(x=>x.id!==row);delete c.pnData[row];
       save();render();}
     return;}
+  if(a==="chseg"){checkinSeg=t.dataset.v;listQ="";render();return;}
+  if(a==="chfilter"){checkinF=t.dataset.v;render();return;}
+  if(a==="chlog"){formCheckin(t.dataset.key);return;}
+  if(a==="chemail"){logState.chDrafted=logState.chDrafted||{};logState.chDrafted[t.dataset.key]=true;setTimeout(render,400);return;} /* the link opens Outlook; the row then offers Mark sent */
+  if(a==="chsent"){const h=chHolder(t.dataset.key);if(h){checkinRecord(h,"emailed");delete logState.chDrafted[t.dataset.key];render();toast("Email logged for "+chName(h));}return;}
+  if(a==="chmethod"){logState.ch.method=t.dataset.v;document.querySelectorAll("#chMethod .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="chtrained"){logState.ch.trained=logState.ch.trained===t.dataset.v?"":t.dataset.v;document.querySelectorAll("#chTrained .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.ch.trained));return;}
+  if(a==="chsave"){saveCheckin();return;}
   if(a==="mapmode"){mapMode=t.dataset.v;mapState=null;render();return;}
   if(a==="mapsellers"){mapSellers=t.dataset.v!=null?t.dataset.v==="1":!mapSellers;render();return;}
   if(a==="impsellers"){closeSheet();formImpSellers();return;}
