@@ -626,6 +626,8 @@ svg.usmap .dots{stroke:var(--dots)}
 .lgqsubj{margin:10px 0 4px;font-weight:600}.lgqsubj small{display:block;font-weight:600;font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3)}
 .lgqbody{margin:0;white-space:pre-line;font-size:13.5px;line-height:1.55;background:var(--rule-2);border-radius:var(--r);padding:10px 12px}
 .lgqbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lgqmode{display:inline-flex;gap:6px}.lgqmode .chip{min-height:26px;padding:0 10px}
+.lgqlink{display:block;margin-top:3px;font-size:12px;color:var(--ink-3);text-decoration:none;word-break:break-all}.lgqlink:hover{color:var(--ink);text-decoration:underline}
 .pstep{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--ok-wash);color:var(--ok);font:inherit;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer}
 .pstep .i{width:12px;height:12px}
 @media (max-width:900px){.pmsgs{grid-template-columns:1fr}}
@@ -2300,44 +2302,71 @@ function lgNorm(x){return String(x||"").toLowerCase().replace(/\b(inc|llc|ltd|co
 function lgMatch(company){const c=lgNorm(company);if(c.length<3)return "";const k=prosCur();
   const hits=prospects().filter(r=>{const n=lgNorm(r.company);return n.length>=3&&(n.includes(c)||c.includes(n));});
   const h=hits.find(r=>(r.list||"other")===k)||hits[0];return h?h.id:"";}
-/* InMail queue (Max, 2026-10-26: "make it so stupid simple with the messages"). LinkedIn has no InMail API and automated sending
-   breaks its terms, so the hub does everything except press Send: one person at a time, the message filled in ({first},
-   {company}), Open profile + copy message, Copy subject, then Sent / Skip / Replied. The message lives on the list record
-   (`msg:{subject,body}`), editable here; the default is Max's wording, sent from Hannah's LinkedIn and signed by her. Shown in
-   LinkedIn › Messenger. */
+/* InMail / connect queue (Max, 2026-10-26: "make it so stupid simple with the messages"). One person at a time from the picked
+   list with the words already filled in ({first}, {company}). Two ways to send, per list (`list.mode`):
+   - "connect" (default): a connection request with a note — on their profile More → Connect → Add a note → paste → Send.
+     The note (`list.note`, ≤300 characters, LinkedIn's Premium limit) is Max's wording signed by Hannah.
+   - "inmail": subject + message (`list.msg={subject,body}`).
+   Buttons: Open profile + copy, Sent, Skip; rows show invited/sent/skipped/replied. The Claude skill `linkedin-connect-notes`
+   works this same card in Max's Chrome in batches he approves (reads #lgqNote / #lgqLink, taps Sent or Skip) — keep those
+   ids and the button labels stable. Shown in LinkedIn › Messenger. */
 const LG_MSG_DEFAULT={subject:"Can you stop my bleed?",body:"Hi {first},\n\nIf you had to point to the closest tourniquet on your site right now, would you be confident that the person standing closest to it could stop your bleed?\n\nIf not, I'd love to show you a device I've developed over the past 5 years. Check out an interactive demo here: https://theautotq.com/shop#components and then let me know if you're interested!\n\nHannah\nInventor of AutoTQ"};
+const LG_NOTE_DEFAULT="Hi {first}, if you had to point to the closest tourniquet on your site, would you be confident the person standing closest to it could stop your bleed? If not, I'd love to show you a device I've spent 5 years developing: theautotq.com/shop#components\n– Hannah, inventor of AutoTQ";
+const LG_NOTE_MAX=300;
 let lgMsgOpen=false;
 function lgMsg(list){return Object.assign({},LG_MSG_DEFAULT,(list&&list.msg)||{});}
+function lgMode(list){return (list&&list.mode)||"connect";}
 function lgFill(text,r){const f=prosNameWords(r&&r.name)[0]||"";
   return String(text||"").replace(/\{first\}/g,f?f.charAt(0).toUpperCase()+f.slice(1):"there").replace(/\{company\}/g,prosShortCo(r&&r.company)||"your team");}
+/* the note for one person; a very long name or company that pushes it past the limit falls back to the generic fill */
+function lgNote(list,r){const t=(list&&list.note)||LG_NOTE_DEFAULT,n=lgFill(t,r);return n.length<=LG_NOTE_MAX?n:lgFill(t,{});}
 function lgLeft(R){return R.filter(r=>!r.status||r.status==="new");}
-function lgQueueHTML(list,R){if(!list||!R.length||view!=="limsg")return "";const m=lgMsg(list),left=lgLeft(R),nx=left[0];
-  const c=s=>R.filter(r=>r.status===s).length;
-  let h='<div class="lgq"><div class="lgqhd"><b>InMail queue</b><span class="t2">'+c("sent")+' sent · '+left.length+' to go · '+c("replied")+' replied'+(c("skipped")?' · '+c("skipped")+' skipped':'')+'</span>'+
-    '<button class="btn sm ghost" data-act="proslgmsgedit">'+(lgMsgOpen?'Done editing':'Edit the message')+'</button></div>';
-  if(lgMsgOpen)h+='<div class="lgqedit"><label class="fl" for="lgMsgSubj">Subject</label><input class="f" id="lgMsgSubj" value="'+esc(m.subject)+'">'+
-    '<label class="fl" for="lgMsgBody">Message <span class="t2">· {first} and {company} fill in for each person</span></label><textarea class="f" id="lgMsgBody" rows="9">'+esc(m.body)+'</textarea>'+
-    '<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm coral" data-act="proslgmsgsave">Save the message</button><button class="btn sm ghost" data-act="proslgmsgreset">Back to the default</button></div></div>';
+function lgToday(R){const d=todayStr(),loc=x=>{const t=new Date(x);return t.getFullYear()+"-"+pad2(t.getMonth()+1)+"-"+pad2(t.getDate());};return R.filter(r=>r.status!=="new"&&r.sentAt&&loc(r.sentAt)===d).length;}
+function lgQueueHTML(list,R){if(!list||!R.length||view!=="limsg")return "";const m=lgMsg(list),mode=lgMode(list),left=lgLeft(R),nx=left[0];
+  const c=s=>R.filter(r=>r.status===s).length,cn=mode==="connect";
+  let h='<div class="lgq"><div class="lgqhd"><b>'+(cn?'Connect queue':'InMail queue')+'</b><span class="t2">'+c("sent")+' sent · '+lgToday(R)+' today · '+left.length+' to go · '+c("replied")+' replied'+(c("skipped")?' · '+c("skipped")+' skipped':'')+'</span>'+
+    '<span class="lgqmode" role="group" aria-label="Send as">'+[["connect","Connect + note"],["inmail","InMail"]].map(([k,l])=>'<button class="chip'+(mode===k?' on':'')+'" data-act="proslgmode" data-mode="'+k+'" aria-pressed="'+(mode===k)+'">'+l+'</button>').join("")+'</span>'+
+    '<button class="btn sm ghost" data-act="proslgmsgedit">'+(lgMsgOpen?'Done editing':cn?'Edit the note':'Edit the message')+'</button></div>';
+  if(lgMsgOpen)h+='<div class="lgqedit">'+(cn
+    ?'<label class="fl" for="lgNoteBody">Connection note <span class="t2">· {first} and {company} fill in for each person · <span id="lgNoteCount"></span></span></label><textarea class="f" id="lgNoteBody" rows="5">'+esc(list.note||LG_NOTE_DEFAULT)+'</textarea>'
+    :'<label class="fl" for="lgMsgSubj">Subject</label><input class="f" id="lgMsgSubj" value="'+esc(m.subject)+'">'+
+     '<label class="fl" for="lgMsgBody">Message <span class="t2">· {first} and {company} fill in for each person</span></label><textarea class="f" id="lgMsgBody" rows="9">'+esc(m.body)+'</textarea>')+
+    '<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm coral" data-act="proslgmsgsave">'+(cn?'Save the note':'Save the message')+'</button><button class="btn sm ghost" data-act="proslgmsgreset">Back to the default</button></div></div>';
   if(!nx)return h+'<p class="t2" style="margin:10px 0 0">Everyone on this list has been sent or skipped.</p></div>';
-  const body=lgFill(m.body,nx);
-  h+='<div class="lgqcard"><div class="lgqwho"><b>'+esc(nx.name)+'</b><small>'+esc([nx.title,nx.company].filter(Boolean).join(" · "))+(nx.loc?' · '+esc(nx.loc):'')+'</small></div>'+
-    '<p class="lgqsubj"><small>Subject</small>'+esc(lgFill(m.subject,nx))+'</p><p class="lgqbody">'+esc(body)+'</p>'+
-    '<div class="lgqbtns"><button class="btn coral" data-act="proslggo" data-id="'+esc(nx.id)+'"'+(nx.li?'':' disabled title="No profile link"')+'>'+svg("ext")+'1 · Open profile + copy message</button>'+
+  h+='<div class="lgqcard" data-id="'+esc(nx.id)+'"><div class="lgqwho"><b>'+esc(nx.name)+'</b><small>'+esc([nx.title,nx.company].filter(Boolean).join(" · "))+(nx.loc?' · '+esc(nx.loc):'')+'</small>'+
+    (nx.li?'<a class="lgqlink" id="lgqLink" href="'+esc(nx.li)+'" target="_blank" rel="noopener">'+esc(nx.li.replace(/^https?:\/\/(www\.)?/,""))+'</a>':'<span class="pill warn">no profile link</span>')+'</div>';
+  if(cn){const note=lgNote(list,nx);
+    h+='<p class="lgqsubj"><small>Connection note · '+note.length+'/'+LG_NOTE_MAX+'</small></p><p class="lgqbody" id="lgqNote">'+esc(note)+'</p>'+
+      '<div class="lgqbtns"><button class="btn coral" data-act="proslggo" data-id="'+esc(nx.id)+'"'+(nx.li?'':' disabled')+'>'+svg("ext")+'1 · Open profile + copy note</button>'+
+        '<button class="btn coral" data-act="proslgsent" data-id="'+esc(nx.id)+'">'+svg("check")+'2 · Sent</button>'+
+        '<button class="btn ghost" data-act="proslgskip" data-id="'+esc(nx.id)+'">Skip</button></div>'+
+      '<p class="t2" style="margin:8px 0 0;white-space:normal">On their profile: <b>More</b> → <b>Connect</b> → <b>Add a note</b> → paste (Ctrl+V) → <b>Send</b>. Then tap <b>Sent</b> and the next person comes up. Already connected or already pending? Tap <b>Skip</b>.</p></div>';}
+  else h+='<p class="lgqsubj"><small>Subject</small>'+esc(lgFill(m.subject,nx))+'</p><p class="lgqbody" id="lgqNote">'+esc(lgFill(m.body,nx))+'</p>'+
+    '<div class="lgqbtns"><button class="btn coral" data-act="proslggo" data-id="'+esc(nx.id)+'"'+(nx.li?'':' disabled')+'>'+svg("ext")+'1 · Open profile + copy message</button>'+
       '<button class="btn" data-act="proslgsubj" data-id="'+esc(nx.id)+'">2 · Copy subject</button>'+
       '<button class="btn coral" data-act="proslgsent" data-id="'+esc(nx.id)+'">'+svg("check")+'3 · Sent</button>'+
       '<button class="btn ghost" data-act="proslgskip" data-id="'+esc(nx.id)+'">Skip</button></div>'+
     '<p class="t2" style="margin:8px 0 0;white-space:normal">On their profile: <b>Message</b> → paste the message (Ctrl+V), copy the subject here and paste it in → Send. Then tap <b>Sent</b> and the next person comes up.</p></div>';
   return h+'</div>';}
+function lgNoteCount(){const el=document.getElementById("lgNoteBody"),o=document.getElementById("lgNoteCount");if(!el||!o)return;
+  const n=lgFill(el.value,{name:"Christopher",company:"Lockheed Martin"}).length;o.textContent=n+"/"+LG_NOTE_MAX+" with a long first name";o.style.color=n>LG_NOTE_MAX?"var(--bad)":"";}
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="lgNoteBody")lgNoteCount();});
 function lgQueueHandle(a,t){const r=(DB.prospects||[]).find(x=>x.id===t.dataset.id),list=lgList();
-  if(a==="proslgmsgedit"){lgMsgOpen=!lgMsgOpen;render();return true;}
-  if(a==="proslgmsgsave"){if(!list)return true;const s=(document.getElementById("lgMsgSubj")||{}).value||"",b=(document.getElementById("lgMsgBody")||{}).value||"";
-    list.msg={subject:s.trim()||LG_MSG_DEFAULT.subject,body:b.trim()||LG_MSG_DEFAULT.body};put("prospects",list);lgMsgOpen=false;render();toast("Message saved for "+list.name);return true;}
-  if(a==="proslgmsgreset"){if(!list)return true;delete list.msg;put("prospects",list);lgMsgOpen=false;render();toast("Back to the default message");return true;}
-  if(!r)return true;const m=lgMsg(list);
-  if(a==="proslggo"){prosClip(lgFill(m.body,r),"Message copied — paste it on their profile");if(r.li)window.open(r.li,"_blank","noopener");return true;}
+  if(a==="proslgmode"){if(!list)return true;list.mode=t.dataset.mode;put("prospects",list);lgMsgOpen=false;render();return true;}
+  if(a==="proslgmsgedit"){lgMsgOpen=!lgMsgOpen;render();if(lgMsgOpen)lgNoteCount();return true;}
+  if(a==="proslgmsgsave"){if(!list)return true;
+    if(lgMode(list)==="connect"){const b=((document.getElementById("lgNoteBody")||{}).value||"").trim();
+      if(lgFill(b,{name:"Abhinav",company:"Bayer"}).length>LG_NOTE_MAX){toast("Too long — LinkedIn notes stop at "+LG_NOTE_MAX+" characters");return true;}
+      if(b&&b!==LG_NOTE_DEFAULT)list.note=b;else delete list.note;}
+    else{const s=(document.getElementById("lgMsgSubj")||{}).value||"",b=(document.getElementById("lgMsgBody")||{}).value||"";
+      list.msg={subject:s.trim()||LG_MSG_DEFAULT.subject,body:b.trim()||LG_MSG_DEFAULT.body};}
+    put("prospects",list);lgMsgOpen=false;render();toast("Saved for "+list.name);return true;}
+  if(a==="proslgmsgreset"){if(!list)return true;if(lgMode(list)==="connect")delete list.note;else delete list.msg;put("prospects",list);lgMsgOpen=false;render();toast("Back to the default");return true;}
+  if(!r)return true;const m=lgMsg(list),cn=lgMode(list)==="connect";
+  if(a==="proslggo"){prosClip(cn?lgNote(list,r):lgFill(m.body,r),(cn?"Note":"Message")+" copied — paste it on their profile");if(r.li)window.open(r.li,"_blank","noopener");return true;}
   if(a==="proslgsubj"){prosClip(lgFill(m.subject,r),"Subject copied");return true;}
   if(a==="proslgsent"||a==="proslgskip"||a==="proslgreplied"||a==="proslgundo1"){const now=new Date().toISOString();
-    if(a==="proslgsent"){r.status="sent";r.sentAt=now;r.sentBy=USER;}else if(a==="proslgskip"){r.status="skipped";r.skippedAt=now;}else if(a==="proslgreplied"){r.status="replied";r.repliedAt=now;}else{r.status="new";delete r.sentAt;delete r.skippedAt;delete r.repliedAt;}
+    if(a==="proslgsent"){r.status="sent";r.sentAt=now;r.sentBy=USER;r.via=cn?"connect":"inmail";}else if(a==="proslgskip"){r.status="skipped";r.skippedAt=now;}else if(a==="proslgreplied"){r.status="replied";r.repliedAt=now;}else{r.status="new";delete r.sentAt;delete r.skippedAt;delete r.repliedAt;delete r.via;}
     put("prospects",r);render();return true;}
   return false;}
 function lgHTML(){const list=lgList(),R=list?lgPeople(list.key):[],L=lgLists();if(lgOpen==null)lgOpen=!!R.length||view==="limsg";const k=prosCur();
@@ -2352,7 +2381,7 @@ function lgHTML(){const list=lgList(),R=list?lgPeople(list.key):[],L=lgLists();i
       (R.length?'<button class="btn sm ghost" data-act="proslgclear">Clear list</button>':'')+(lgUndo?'<button class="btn sm" data-act="proslgundo">Undo clear ('+lgUndo.rows.length+')</button>':'')+'</div>'+
     lgQueueHTML(list,R)+'<textarea class="f lgpaste" id="lgPaste" rows="2" placeholder="On a LinkedIn results page press Ctrl+A, then Ctrl+C. Click here and press Ctrl+V. Everyone goes straight into this InMail list. Next page, repeat."></textarea>';
   if(R.length)h+='<div class="tablewrap" style="max-height:420px"><table class="lv lgt"><thead><tr><th>Name</th><th>Add to</th><th>Title</th><th>Company</th><th>Location</th><th></th></tr></thead><tbody>'+
-    R.map(r=>'<tr><td class="nm">'+(r.li?'<a href="'+esc(r.li)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+(r.status&&r.status!=="new"?' <span class="pill '+(r.status==="replied"?"ok":r.status==="sent"?"info":"")+'">'+esc(r.status)+'</span>'+(r.status==="sent"&&view==="limsg"?' <button class="btn sm ghost" data-act="proslgreplied" data-id="'+esc(r.id)+'">Replied</button>':'')+(view==="limsg"?' <button class="btn sm ghost" data-act="proslgundo1" data-id="'+esc(r.id)+'" title="Back in the queue">↺</button>':''):'')+'</td>'+
+    R.map(r=>'<tr><td class="nm">'+(r.li?'<a href="'+esc(r.li)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+(r.status&&r.status!=="new"?' <span class="pill '+(r.status==="replied"?"ok":r.status==="sent"?"info":"")+'">'+esc(r.status==="sent"&&r.via==="connect"?"invited":r.status)+'</span>'+(r.status==="sent"&&view==="limsg"?' <button class="btn sm ghost" data-act="proslgreplied" data-id="'+esc(r.id)+'">Replied</button>':'')+(view==="limsg"?' <button class="btn sm ghost" data-act="proslgundo1" data-id="'+esc(r.id)+'" title="Back in the queue">↺</button>':''):'')+'</td>'+
       '<td>'+(r.added?'<span class="pill ok">added · '+esc(r.added)+'</span>':'<select class="sel lgsel" data-id="'+esc(r.id)+'" aria-label="Add '+esc(r.name)+' to">'+opts(r.target)+'</select>')+'</td>'+
       '<td>'+esc(r.title)+'</td><td>'+esc(r.company)+'</td><td>'+esc(r.loc)+'</td>'+
       '<td><button class="ibtn" data-act="proslgdel" data-id="'+esc(r.id)+'" aria-label="Remove '+esc(r.name)+'">'+svg("x")+'</button></td></tr>').join("")+'</tbody></table></div>'+
