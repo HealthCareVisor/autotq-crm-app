@@ -2348,7 +2348,7 @@ function lgQueueHTML(list,R){if(!list||!R.length||view!=="limsg")return "";const
         '<button class="btn ghost" data-act="proslgskip" data-id="'+esc(nx.id)+'">Skip</button>'+
         '<button class="btn ghost" data-act="proslgsent" data-id="'+esc(nx.id)+'">Mark sent</button></div>'+
       lgPrevHTML(R)+
-      '<p class="t2" style="margin:8px 0 0;white-space:normal">One click: their profile opens, the note is copied, they're saved as invited (progress saves with every click) and the next person is ready here. On LinkedIn: <b>More</b> → <b>Connect</b> → <b>Add a note</b> → <b>Ctrl+V</b> → <b>Send</b>. Then come back to this tab and click again.</p></div>';}
+      '<p class="t2" style="margin:8px 0 0;white-space:normal">One click: their profile opens, the note is copied, the person is saved as invited (progress saves with every click) and the next person is ready here. On LinkedIn: <b>More</b> → <b>Connect</b> → <b>Add a note</b> → <b>Ctrl+V</b> → <b>Send</b>. Then come back to this tab and click again.</p></div>';}
   else h+='<p class="lgqsubj"><small>Subject</small>'+esc(lgFill(m.subject,nx))+'</p><p class="lgqbody" id="lgqNote">'+esc(lgFill(m.body,nx))+'</p>'+
     '<div class="lgqbtns"><button class="btn coral" data-act="proslggo" data-id="'+esc(nx.id)+'"'+(nx.li?'':' disabled')+'>'+svg("ext")+'1 · Open profile + copy message</button>'+
       '<button class="btn" data-act="proslgsubj" data-id="'+esc(nx.id)+'">2 · Copy subject</button>'+
