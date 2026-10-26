@@ -106,7 +106,29 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .card.block{display:block}
 .list{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden;margin-bottom:14px}
 .list>.card{margin:0;border:0;border-radius:0;border-top:1px solid var(--rule-2)}.list>:first-child{border-top:0}.list>button.card:hover{background:var(--panel);box-shadow:none}
+.callhead{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+@media (max-width:900px){.callhead{grid-template-columns:1fr}}
+.callgoal{padding:16px 18px}.cg-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.cg-top small{color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.cg-top b.num{display:block;font-size:44px;font-weight:300;line-height:1.05}.cg-top b.num span{font-size:20px;color:var(--ink-3);margin-left:2px}
+.cg-goal{text-align:right}.cg-goal .chips{justify-content:flex-end;margin-top:6px}
+.cg-bar{height:8px;border-radius:99px;background:var(--rule-2);margin:14px 0 12px;overflow:hidden}.cg-bar i{display:block;height:100%;background:var(--coral);border-radius:99px}
+.cg-days{position:relative;display:flex;gap:6px;align-items:flex-end;height:74px}.cg-days>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.cg-days i{display:block;width:100%;max-width:26px;min-height:2px;background:var(--ink-4);border-radius:4px 4px 0 0}.cg-days i.hit{background:var(--coral)}.cg-days .td i{outline:1px solid var(--ink-2)}
+.cg-days small{font-size:10.5px;color:var(--ink-3);margin-top:4px}.goalline{position:absolute;left:0;right:0;border-top:1px dashed var(--ink-3);opacity:.6}
+.callconfs .ccrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border:0;border-top:1px solid var(--rule-2);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.ccrow .ck{width:18px;height:18px;border:1.5px solid var(--ink-3);border-radius:5px;display:grid;place-items:center;flex:none}.ccrow .ck .i{width:13px;height:13px}.ccrow.off{opacity:.5}
+.ccrow .grow{display:flex;flex-direction:column;min-width:0}.ccrow small{color:var(--ink-3);font-size:12px}.cbar{display:block;height:4px;border-radius:9px;background:var(--rule-2);margin-top:6px;overflow:hidden}.cbar i{display:block;height:100%;background:var(--ink-2)}
+.phoneonly{display:none}@media (max-width:900px){.deskonly{display:none}.phoneonly{display:block;margin-top:14px}.cg-days{display:none}.callgoal p.t2:last-child{display:none}}
+.callgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:start}@media (max-width:900px){.callgrid{grid-template-columns:1fr}}
+.callcard{padding:18px 20px}.cc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.cc-name{font-size:28px;font-weight:600;margin:12px 0 2px;letter-spacing:-.01em}.cc-sub{margin:0;color:var(--ink-2);font-size:15px}
+.callbtn{font-size:16px;padding:10px 16px;text-decoration:none}.cc-ctx{margin-top:14px;padding:10px 12px;border:1px solid var(--rule-2);border-radius:10px;background:var(--panel-2,transparent)}.cc-ctx p{margin:3px 0;font-size:13.5px}.cc-ctx b{color:var(--ink-3);font-weight:600;margin-right:6px}
+.cc-hist{margin-top:10px}.cc-hist p{margin:4px 0}.callouts .chip{min-height:38px;padding:0 14px}
+.callnext .ibx.on{background:var(--rule-2)}
 .reccard{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);padding:16px 18px}
+.lists{display:flex;flex-direction:column;margin-top:6px}.lrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--rule-2)}.lrow:first-child{border-top:0}
+.lrow .grow{display:flex;flex-direction:column;min-width:0}.lrow b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lrow small{color:var(--ink-3);font-size:12.5px;margin-top:2px}
+.ldot{display:inline-block;width:10px;height:10px;border-radius:50%;flex:none;vertical-align:middle;margin-right:3px}
+.perfrow .ldot{margin:0 4px 0 2px}
 .sech{font-size:15px;font-weight:650;letter-spacing:-.012em;margin:24px 0 10px}
 .sectlabel{font-size:13.5px;font-weight:600;letter-spacing:-.006em;color:var(--ink);margin:0 0 8px}
 .empty{text-align:center;color:var(--ink-3);padding:40px 20px;line-height:1.55}
@@ -711,7 +733,7 @@ const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (s
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
 const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",california:"CA",colorado:"CO",connecticut:"CT",delaware:"DE",florida:"FL",georgia:"GA",hawaii:"HI",idaho:"ID",illinois:"IL",indiana:"IN",iowa:"IA",kansas:"KS",kentucky:"KY",louisiana:"LA",maine:"ME",maryland:"MD",massachusetts:"MA",michigan:"MI",minnesota:"MN",mississippi:"MS",missouri:"MO",montana:"MT",nebraska:"NE",nevada:"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND",ohio:"OH",oklahoma:"OK",oregon:"OR",pennsylvania:"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD",tennessee:"TN",texas:"TX",utah:"UT",vermont:"VT",virginia:"VA",washington:"WA","west virginia":"WV",wisconsin:"WI",wyoming:"WY"};
-const SVG={arrow:'<line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>',chevU:'<polyline points="6 14.5 12 8.5 18 14.5"/>',search:'<circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/>',globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.7 3.9 5.5 3.9 8.5s-1.3 5.8-3.9 8.5c-2.6-2.7-3.9-5.5-3.9-8.5s1.3-5.8 3.9-8.5z"/>',chart:'<polyline points="4 17 9.5 11 13.5 14.5 20 7"/><polyline points="15 7 20 7 20 12"/>',inbox:'<path d="M4 13l2.2-7.2A1 1 0 017.2 5h9.6a1 1 0 011 .8L20 13v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5z"/><path d="M4 13h4.5l1.2 2.4h4.6L15.5 13H20"/>',bolt:'<path d="M13 2.5L5 13.5h6l-1 8 8-11h-6l1-8z"/>',ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 13.5V19a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h5.5"/>',menu:'<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>',eye:'<path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',alert:'<path d="M12 3.5l9 16H3l9-16z"/><line x1="12" y1="10" x2="12" y2="13.5"/><circle cx="12" cy="16.5" r=".6"/>',plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',check:'<polyline points="5 12 10 17 19 7"/>',back:'<polyline points="15 6 9 12 15 18"/>',
+const SVG={phone:'<path d="M5 4h3.5l1.6 4.2-2.2 1.4a12 12 0 006.5 6.5l1.4-2.2L20 15.5V19a1.5 1.5 0 01-1.6 1.5C10.6 20 4 13.4 3.5 5.6A1.5 1.5 0 015 4z"/>',arrow:'<line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>',chevU:'<polyline points="6 14.5 12 8.5 18 14.5"/>',search:'<circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/>',globe:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.7 3.9 5.5 3.9 8.5s-1.3 5.8-3.9 8.5c-2.6-2.7-3.9-5.5-3.9-8.5s1.3-5.8 3.9-8.5z"/>',chart:'<polyline points="4 17 9.5 11 13.5 14.5 20 7"/><polyline points="15 7 20 7 20 12"/>',inbox:'<path d="M4 13l2.2-7.2A1 1 0 017.2 5h9.6a1 1 0 011 .8L20 13v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5z"/><path d="M4 13h4.5l1.2 2.4h4.6L15.5 13H20"/>',bolt:'<path d="M13 2.5L5 13.5h6l-1 8 8-11h-6l1-8z"/>',ext:'<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 13.5V19a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h5.5"/>',menu:'<line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/>',eye:'<path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',alert:'<path d="M12 3.5l9 16H3l9-16z"/><line x1="12" y1="10" x2="12" y2="13.5"/><circle cx="12" cy="16.5" r=".6"/>',plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',check:'<polyline points="5 12 10 17 19 7"/>',back:'<polyline points="15 6 9 12 15 18"/>',
  plane:'<path d="M10 16l-6 2 1-4-3-6 3 1 5-5a2 2 0 013 3l-5 5 1 5-2 1-2-5z"/>',chevR:'<polyline points="9.5 6 15.5 12 9.5 18"/>',x:'<line x1="6.5" y1="6.5" x2="17.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="6.5" y2="17.5"/>',
  cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>',dl:'<path d="M12 4v11"/><polyline points="8 11 12 15 16 11"/><line x1="5" y1="20" x2="19" y2="20"/>',
  home:'<path d="M4 11l8-7 8 7v9a1 1 0 01-1 1h-5v-6h-4v6H5a1 1 0 01-1-1z"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',file:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
@@ -916,7 +938,7 @@ function campFlagNow(l){if(l.flag!=="ok")return l.flag;const h=buyerHit(l);retur
 function campFlagTag(f,l){if(f==="engaged")return '<span class="pill info">Clicked</span>';if(f==="replied")return '<span class="pill ok">Replied</span>';if(f==="handed")return '<span class="pill info">With '+esc(repShort(l&&l.handedTo))+'</span>';const h=f==="bought"?((l&&l.bought)||buyerHit(l)||{how:"",why:""}):f==="ok"?buyerHit(l):null;
   if(h&&(f==="bought"||h.skip))return '<span class="pill dang" title="'+esc(h.how)+'">'+(h.how==="our team"?"Our team":"Already a customer")+'</span><div class="t2" style="margin:3px 0 0;font-size:11.5px">'+esc(h.why)+'</div>';
   return campFlagTagBase(f,l)+(h?' <span class="pill warn" title="'+esc("Same email domain as "+h.why+" — a big org; check before sending")+'">Check · '+esc(h.how.replace(/^review: shares /,""))+'</span>':"");}
-function campFlagTagBase(f,l){return f==="suppressed"?'<span class="pill dang">Unsubscribed</span>':f==="touched"?'<span class="pill warn" title="'+esc(l&&l.touched?l.touched.how+" "+l.touched.at:"")+'">Touched '+esc(l&&l.touched?l.touched.at.slice(5):"")+'</span>':f==="enrolled"?'<span class="pill info">In: '+esc((l&&l.enrolledIn||"").slice(0,18))+'</span>':f==="invalid"?'<span class="pill dang">Undeliverable</span>':f==="ok"?(l&&l.risky?'<span class="pill warn">Ready · guessed</span>':l&&l.vstatus?'<span class="pill ok">Ready · verified</span>':'<span class="pill ok">Ready</span>'):f==="missing"?'<span class="pill">No email</span>':f==="dupe"?'<span class="pill warn">Duplicate</span>':f==="verify"?'<span class="pill warn">Verify email</span>':'<span class="pill dang">Bad email</span>';}
+function campFlagTagBase(f,l){return f==="dropped"?'<span class="pill" title="Their list was taken out of this campaign after they were emailed">List removed</span>':f==="suppressed"?'<span class="pill dang">Unsubscribed</span>':f==="touched"?'<span class="pill warn" title="'+esc(l&&l.touched?l.touched.how+" "+l.touched.at:"")+'">Touched '+esc(l&&l.touched?l.touched.at.slice(5):"")+'</span>':f==="enrolled"?'<span class="pill info">In: '+esc((l&&l.enrolledIn||"").slice(0,18))+'</span>':f==="invalid"?'<span class="pill dang">Undeliverable</span>':f==="ok"?(l&&l.risky?'<span class="pill warn">Ready · guessed</span>':l&&l.vstatus?'<span class="pill ok">Ready · verified</span>':'<span class="pill ok">Ready</span>'):f==="missing"?'<span class="pill">No email</span>':f==="dupe"?'<span class="pill warn">Duplicate</span>':f==="verify"?'<span class="pill warn">Verify email</span>':'<span class="pill dang">Bad email</span>';}
 function campOk(c){return (c.leads||[]).filter(l=>l.flag==="ok");}
 function campReady(c,step){if(step===1)return campOk(c).length>0;if(step===2)return (c.steps||[]).some(s=>(s.subject||"").trim()&&(s.body||"").trim());return ["approved","active","done"].includes(c.status);}
 function campNextStep(c){return !campReady(c,1)?1:!campReady(c,2)?2:3;}
@@ -958,7 +980,7 @@ function campVariantStat(c,i,v){const ls=(c.leads||[]).filter(l=>l.sent&&l.sent[
 function campFill(t,l,c,s){const g=indGroup(l.ind||indGroupFor(l));const me=s?{name:s.name||teamById(s.owner||USER).name}:teamById(USER);
   return String(t||"").replace(/\{\{\s*first_name\s*\}\}/g,l.first||"there").replace(/\{\{\s*last_name\s*\}\}/g,l.last||"").replace(/\{\{\s*company\s*\}\}/g,l.company||"your team").replace(/\{\{\s*title\s*\}\}/g,l.title||"")
    .replace(/\{\{\s*city\s*\}\}/g,l.city||"you").replace(/\{\{\s*industry\s*\}\}/g,g[1].toLowerCase()).replace(/\{\{\s*industry_page\s*\}\}/g,SITE_URL+g[2]).replace(/\{\{\s*industry_stat\s*\}\}/g,g[3])
-   .replace(/\{\{\s*conference\s*\}\}/g,(c&&c.aud&&c.aud.conf)||l.conf||"the show").replace(/\{\{\s*rep\s*\}\}/g,me.name||"").replace(/\{\{\s*video\s*\}\}/g,m=>VIDEO_URL||m);}
+   .replace(/\{\{\s*conference\s*\}\}/g,l.conf||(c&&c.aud&&c.aud.conf)||"the show").replace(/\{\{\s*rep\s*\}\}/g,me.name||"").replace(/\{\{\s*video\s*\}\}/g,m=>VIDEO_URL||m);}
 function saveCamp(c){c.updatedAt=new Date().toISOString();put("campaigns",c);}
 function newCampaign(aud,name){const c={id:uid(),name:(name||"New campaign")+" · "+todayStr(),createdAt:new Date().toISOString(),by:USER,status:"draft",leads:[],aud:aud||{src:"conf"},template:"enduser",steps:campDefaultSteps("enduser"),review:[],approvals:{},channel:"ses",from:"",fromName:"",replyTo:REPLY_TO,dailyCap:50,basis:(aud&&aud.src==="conf"&&aud.conf)?"Met us at "+aud.conf:""};
   if(aud&&aud.src&&aud.src!=="file")campBuildAudience(c);saveCamp(c);curCampaign=c.id;campStep=1;view="camp";render();window.scrollTo(0,0);if(c.leads.length)toast(campOk(c).length+" people will be emailed");return c;}
@@ -986,18 +1008,61 @@ function contactsFor(f){let ps=(DB.people||[]).slice();
   if(f.region)ps=ps.filter(p=>personStates(p).some(x=>regionFromState(x)===f.region));
   if(f.q)ps=ps.filter(p=>((p.name||"")+" "+(p.role||"")+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(f.q));
   return ps.sort((a,b)=>(a.name||"").localeCompare(b.name||""));}
-function campBuildAudience(c){const a=c.aud||{};let leads=[];
-  if(a.src==="conf"){let ls=(DB.confLeads||[]).filter(x=>x.conf===a.conf&&x.segment!=="Set Aside");
-    if(a.segments&&a.segments.length)ls=ls.filter(x=>a.segments.includes(x.segment||"End User"));if(a.regions&&a.regions.length)ls=ls.filter(x=>!x.region||a.regions.includes(x.region));
-    if(a.fresh)ls=ls.filter(x=>!x.contacted&&!x.lastEmail);leads=ls.map(campLeadFromConf);if(a.inds&&a.inds.length)leads=leads.filter(l=>a.inds.includes(l.ind));}
-  else if(a.src==="list"){const L=myLists().find(x=>x.id===a.listId);leads=L?(L.items||[]).map(it=>{const p=it.pid?person(it.pid):null;return p?campLeadFromPerson(p,"list"):null;}).filter(Boolean):[];}
-  else if(a.src==="contacts"){leads=contactsFor(parseListQuery(a.query||"")).map(p=>campLeadFromPerson(p,"contacts"));}
-  else return;
-  if(a.inds&&a.inds.length&&a.src!=="conf")leads=leads.filter(l=>a.inds.includes(l.ind));
-  c.leads=campFlagLeads(leads);campApplyGuards(c);c.listName=campAudienceLabel(c);}
-function campAudienceLabel(c){const a=c.aud||{};
-  if(a.src==="conf")return (a.conf||"Conference")+(a.segments&&a.segments.length?" · "+a.segments.join("/"):"")+(a.inds&&a.inds.length?" · "+a.inds.map(k=>indGroup(k)[1]).join(", "):"")+(a.regions&&a.regions.length?" · "+a.regions.join("/"):"");
-  if(a.src==="list"){const L=myLists().find(x=>x.id===a.listId);return "Call list: "+(L?L.name:"—");}if(a.src==="contacts")return 'Contacts: "'+(a.query||"")+'"';return c.listName||"Uploaded file";}
+/* ---------- audiences: one campaign can engage several lists at once (2026-10-26, Max: "engage multiple lists at a time")
+   c.auds = [{key,src,conf,segments,inds,regions,fresh,listId,query,label,stored,at}] — conf / list / contacts are live (Refresh pulls
+   new people); file / apollo / older single-list campaigns are stored snapshots (their people live in c.leads, tagged by l.lists).
+   A person on two lists is one lead with lists:[a,b] and gets one sequence. c.audEdit = the "Add a list" editor; c.aud = a summary
+   the servers read (src "apollo" when any Apollo list is in, conf only when every list is the same show). ---------- */
+const AUD_LIVE=["conf","list","contacts"];
+const LIST_COLORS=["#E8673B","#5B8DEF","#3DBE8B","#C77DFF","#F2B94B","#4CC3D9","#E85D8A","#9AA3AD"];
+function audClone(a){return JSON.parse(JSON.stringify(a||{}));}
+function campAuds(c){if(c.auds)return c.auds;if((c.leads||[]).length&&c.aud&&c.aud.src)return [Object.assign(audClone(c.aud),{key:"l0",stored:true,label:c.listName||campSpecLabel(c.aud)})];return [];}
+function campEnsureAuds(c){if(c.auds)return c.auds;c.auds=campAuds(c).map(audClone);if(c.auds.length){(c.leads||[]).forEach(l=>{if(!l.lists)l.lists=["l0"];});c.audEdit={src:(c.aud&&c.aud.src&&c.aud.src!=="file")?c.aud.src:"conf"};c.aud=campSummaryAud(c);}return c.auds;}
+function campEd(c){if(c.auds&&c.auds.length)return c.audEdit||(c.audEdit={src:"conf"});return c.aud||(c.aud={src:"conf"});}
+function campSummaryAud(c){const A=c.auds||[];if(!A.length)return c.audEdit||c.aud||{src:"conf"};
+  if(A.length===1&&!A[0].stored){const o=audClone(A[0]);delete o.key;delete o.label;delete o.at;return o;}
+  const confs=[...new Set(A.filter(x=>x.src==="conf").map(x=>x.conf))];
+  if(confs.length===1&&A.every(x=>x.src==="conf"))return {src:"conf",conf:confs[0],multi:true};
+  return {src:A.some(x=>x.src==="apollo")?"apollo":"multi"};}
+function campListIndex(c,key){const A=campAuds(c);const i=A.findIndex(x=>x.key===key);return i<0?LIST_COLORS.length-1:i%LIST_COLORS.length;}
+function campListColor(c,key){return LIST_COLORS[campListIndex(c,key)];}
+function leadLists(l){return l.lists||["l0"];}
+function campLeadKey(l){const e=String(l.email||"").trim().toLowerCase();return e?"e:"+e:l.apolloId?"a:"+l.apolloId:l.refId?"r:"+l.refId:l.pid?"p:"+l.pid:"i:"+(l.id||(l.id=uid()));}
+function campSpecLeads(s,c){
+  if(s.stored||!AUD_LIVE.includes(s.src))return (c.leads||[]).filter(l=>leadLists(l).includes(s.key)).map(l=>Object.assign({},l));
+  let leads=[];
+  if(s.src==="conf"){let ls=(DB.confLeads||[]).filter(x=>x.conf===s.conf&&x.segment!=="Set Aside");
+    if(s.segments&&s.segments.length)ls=ls.filter(x=>s.segments.includes(x.segment||"End User"));if(s.regions&&s.regions.length)ls=ls.filter(x=>!x.region||s.regions.includes(x.region));
+    if(s.fresh)ls=ls.filter(x=>!x.contacted&&!x.lastEmail);leads=ls.map(campLeadFromConf);}
+  else if(s.src==="list"){const L=myLists().find(x=>x.id===s.listId);leads=L?(L.items||[]).map(it=>{const p=it.pid?person(it.pid):null;return p?campLeadFromPerson(p,"list"):null;}).filter(Boolean):[];}
+  else if(s.src==="contacts"){leads=contactsFor(parseListQuery(s.query||"")).map(p=>campLeadFromPerson(p,"contacts"));}
+  if(s.inds&&s.inds.length)leads=leads.filter(l=>s.inds.includes(l.ind));
+  return leads;}
+const LEAD_KEEP_FLAGS=["invalid","replied","engaged","handed"]; // set by Apollo checks / the reply sync — a rebuild never clears them
+function campBuildAudience(c){
+  if(!c.auds&&!campAuds(c).length){c.leads=[];c.listName="";return {added:0,overlap:0};}
+  campEnsureAuds(c);
+  const prev=new Map();(c.leads||[]).forEach(l=>{const k=campLeadKey(l);if(!prev.has(k))prev.set(k,l);});
+  const out=[],idx=new Map();let overlap=0;
+  c.auds.forEach(s=>campSpecLeads(s,c).forEach(nl=>{const k=campLeadKey(nl);const x=idx.get(k);
+    if(x){if(!x.lists.includes(s.key)){x.lists.push(s.key);overlap++;}return;}
+    const old=prev.get(k);const l=old?Object.assign({},old,nl):nl;l.lists=[s.key];delete l.dropped;idx.set(k,l);out.push(l);}));
+  prev.forEach((old,k)=>{if(!idx.has(k)&&old.sent&&Object.keys(old.sent).length)out.push(Object.assign({},old,{lists:[],dropped:true}));}); // emailed people stay in the history, get nothing more
+  const kept={};out.forEach(l=>{const o=prev.get(campLeadKey(l));if(o&&LEAD_KEEP_FLAGS.includes(o.flag))kept[campLeadKey(l)]=o.flag;});
+  campFlagLeads(out);
+  out.forEach(l=>{const k=campLeadKey(l);if(l.dropped)l.flag="dropped";else if(kept[k])l.flag=kept[k];else if(l.apolloId&&!l.email)l.flag="verify";});
+  c.leads=out;campApplyGuards(c);c.aud=campSummaryAud(c);if(!c.auds.length&&c.audEdit){c.aud=c.audEdit;delete c.audEdit;}c.listName=campAudienceLabel(c);
+  return {added:out.filter(l=>!prev.has(campLeadKey(l))).length,overlap};}
+function campBasisFromLists(c){const A=c.auds||[];if(c.basis&&!/^Met us at /.test(c.basis))return;const confs=[...new Set(A.filter(x=>x.src==="conf").map(x=>x.conf))];
+  if(confs.length&&A.every(x=>x.src==="conf"))c.basis="Met us at "+(confs.length>1?confs.slice(0,-1).join(", ")+" and "+confs[confs.length-1]:confs[0]);}
+function campSpecLabel(a){a=a||{};
+  if(a.label&&a.stored)return a.label;
+  if(a.src==="conf")return (a.conf||"Conference")+(a.segments&&a.segments.length?" · "+a.segments.join("/"):"")+(a.inds&&a.inds.length?" · "+a.inds.map(k=>indGroup(k)[1]).join(", "):"")+(a.regions&&a.regions.length?" · "+a.regions.join("/"):"")+(a.fresh?" · never touched":"");
+  if(a.src==="list"){const L=myLists().find(x=>x.id===a.listId);return "Call list: "+(L?L.name:"—");}if(a.src==="contacts")return 'Contacts: "'+(a.query||"")+'"';
+  if(a.src==="apollo")return a.label||"Apollo search";return a.label||"Uploaded file";}
+function campAudienceLabel(c){const A=campAuds(c);
+  if(A.length>2)return A[0].label+" + "+(A.length-1)+" more lists";if(A.length)return A.map(x=>x.label||campSpecLabel(x)).join(" + ");
+  return c.listName||campSpecLabel(c.aud||{});}
 function campIndCounts(leads){const n={};leads.forEach(l=>{n[l.ind]=(n[l.ind]||0)+1;});return n;}
 /* file upload (CSV only here — Excel exports as CSV in one click) */
 function csvRows(text){const rows=[];let row=[],cell="",q=false;for(let i=0;i<text.length;i++){const ch=text[i];
@@ -1011,7 +1076,9 @@ function campHandleFile(f){if(!f)return;const c=campaignById(curCampaign);if(!c)
     if(iE<0)throw new Error("No Email column found");
     const leads=rows.slice(1).map(r=>{let first=iF>-1?String(r[iF]||"").trim():"",last=iL>-1?String(r[iL]||"").trim():"";if(!first&&iN>-1){const p=String(r[iN]||"").trim().split(/\s+/);first=p[0]||"";last=p.slice(1).join(" ");}
       const l={first,last,company:iC>-1?String(r[iC]||"").trim():"",title:iT>-1?String(r[iT]||"").trim():"",email:String(r[iE]||"").trim(),city:iCity>-1?String(r[iCity]||"").trim():"",industryRaw:iI>-1?String(r[iI]||"").trim():"",src:"file"};l.ind=indGroupFor(l);return l;}).filter(l=>l.first||l.email||l.company);
-    c.leads=campFlagLeads(leads);campApplyGuards(c);c.listName=f.name;c.aud={src:"file"};saveCamp(c);render();toast(campOk(c).length+" people will be emailed");}).catch(e=>toast(e.message||"Couldn't read that file"));}
+    campEnsureAuds(c);const spec={key:uid(),src:"file",stored:true,label:f.name,at:new Date().toISOString()};leads.forEach(l=>{l.lists=[spec.key];});
+    c.leads=(c.leads||[]).concat(leads);c.auds.push(spec);const r=campBuildAudience(c);c.audEdit={src:"conf"};campTouched(c);saveCamp(c);render();
+    toast(f.name+": "+leads.length+" people"+(r.overlap?" · "+r.overlap+" already on another list (merged)":"")+" · "+campOk(c).length+" ready in total");}).catch(e=>toast(e.message||"Couldn't read that file"));}
 /* outbound through SES: status, suppression, delivery events */
 let MAILOUT_STATUS=null, MAILOUT_AT=0;
 async function mailOutStatus(force){ if(MAILOUT_STATUS&&!force&&Date.now()-MAILOUT_AT<60000)return MAILOUT_STATUS;
@@ -1156,20 +1223,22 @@ function campApolloQuery(c,a){const split=v=>String(v||"").split(/[,;\n]/).map(x
   if(tEl)a.titlesText=tEl.value;if(lEl)a.locText=lEl.value;if(kEl)a.kwText=kEl.value;
   const locs=split(a.locText).map(x=>/,|united states|usa?$/i.test(x)?x:x+", US");
   return {titles:[...new Set(a.titles.concat(split(a.titlesText)))],locations:locs.length?locs:["United States"],keywords:[...new Set(a.kw.concat(split(a.kwText)))],sizes:a.sizes.slice()};}
-async function campApolloSearch(c){const a=c.aud;const q=campApolloQuery(c,a);if(!q.titles.length&&!q.keywords.length){toast("Pick a title or an industry first");return;}saveCamp(c);toast("Searching Apollo…");
+async function campApolloSearch(c){const a=campEd(c);const q=campApolloQuery(c,a);if(!q.titles.length&&!q.keywords.length){toast("Pick a title or an industry first");return;}saveCamp(c);toast("Searching Apollo…");
   try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify(Object.assign({action:"source",page:1,per_page:25},q))});const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
     logState.ap={campId:c.id,total:b.total||0,pages:b.pages||1,people:b.people||[],q};render();toast(b.total?b.total.toLocaleString()+" people match":"Nobody matches — loosen the filters");}
   catch(e){toast("Apollo: "+e.message);}}
 function crmNameSet(){const k=new Set();const add=(nm,co)=>{nm=String(nm||"").trim().toLowerCase();co=String(co||"").trim().toLowerCase();if(nm)k.add(nm+"|"+co);};(DB.people||[]).forEach(p=>add(p.name,(company(p.cid)||{}).name||p.branch));(DB.confLeads||[]).forEach(l=>add(l.name,l.company));return k;}
-async function campApolloAdd(c,want){const a=c.aud;const ap=logState.ap;if(!ap||ap.campId!==c.id){toast("Search first");return;}
+async function campApolloAdd(c,want){const ap=logState.ap;if(!ap||ap.campId!==c.id){toast("Search first");return;}
+  campEnsureAuds(c);const apKey=JSON.stringify(ap.q);let spec=c.auds.find(x=>x.src==="apollo"&&x.apKey===apKey);
+  if(!spec){spec={key:uid(),src:"apollo",stored:true,apKey,label:"Apollo: "+((ap.q.titles||[]).slice(0,2).join(", ")||(ap.q.keywords||[]).slice(0,2).join(", ")||"search"),at:new Date().toISOString()};c.auds.push(spec);}
   const known=crmNameSet();const have=new Set((c.leads||[]).map(l=>l.apolloId).filter(Boolean));let added=0,skipped=0,page=1;const per=100;toast("Pulling "+want+" from Apollo…");
   try{while(added<want&&page<=Math.min(ap.pages||1,10)){const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify(Object.assign({action:"source",page,per_page:per},ap.q))});const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
       for(const x of (b.people||[])){if(added>=want)break;if(have.has(x.id)){continue;}const key=((x.first+" "+x.last).trim()+"|"+(x.company||"")).toLowerCase();if(known.has(key)){skipped++;continue;}
-        const l={id:uid(),first:x.first,last:x.last,company:x.company,title:x.title,email:"",city:x.city,state:(x.state||"").length===2?x.state:(US_STATE_CODE[x.state]||x.state||""),industryRaw:x.industry,apolloId:x.id,apolloStatus:x.emailStatus,domain:x.domain,src:"apollo",flag:"verify"};l.ind=indGroupFor(l);c.leads.push(l);have.add(x.id);added++;}
+        const l={id:uid(),first:x.first,last:x.last,company:x.company,title:x.title,email:"",city:x.city,state:(x.state||"").length===2?x.state:(US_STATE_CODE[x.state]||x.state||""),industryRaw:x.industry,apolloId:x.id,apolloStatus:x.emailStatus,domain:x.domain,src:"apollo",flag:"verify"};l.ind=indGroupFor(l);l.lists=[spec.key];c.leads.push(l);have.add(x.id);added++;}
       if(!(b.people||[]).length)break;page++;}
-    c.listName="Apollo: "+(ap.q.titles.slice(0,2).join(", ")||ap.q.keywords.slice(0,2).join(", "));if(!c.basis)c.basis="Cold — found on Apollo by title and industry";if((c.channel||"ses")==="ses")c.channel="mailbox";saveCamp(c);render();
+    if(!c.leads.some(l=>leadLists(l).includes(spec.key)))c.auds=c.auds.filter(x=>x!==spec);campBuildAudience(c);if(!c.basis||/^Met us at /.test(c.basis))c.basis="Cold — found on Apollo by title and industry";if((c.channel||"ses")==="ses")c.channel="mailbox";saveCamp(c);render();
     toast(added+" added"+(skipped?" · "+skipped+" already in the CRM, skipped":"")+" — now reveal their emails");}
-  catch(e){toast("Apollo: "+e.message);saveCamp(c);render();}}
+  catch(e){toast("Apollo: "+e.message);if(!c.leads.some(l=>leadLists(l).includes(spec.key)))c.auds=c.auds.filter(x=>x!==spec);campBuildAudience(c);saveCamp(c);render();}}
 const US_STATE_CODE=Object.fromEntries(Object.entries(STATE_NAMES).map(([k,v])=>[v,k]));
 function campClean(c){const before=c.leads.length;const seen=new Set();let dropped={invalid:0,bad:0,dupe:0,missing:0};
   c.leads=c.leads.filter(l=>{if(l.flag==="invalid"){dropped.invalid++;return false;}if(l.flag==="bad"){dropped.bad++;return false;}if(l.flag==="missing"&&!l.apolloId){dropped.missing++;return false;}
@@ -1416,7 +1485,7 @@ function sideMini(){return !!SIDE.mini&&!sideDrawer();}
 const IS_MAC=/Mac|iPhone|iPad/.test(navigator.platform||"");
 const KEY_K=IS_MAC?"⌘K":"Ctrl K";
 /* the tabs: [view, icon, label] — Email Campaigns carries Conferences on a guide line */
-const SIDE_TABS=[["start","home","Home"],["over","mail","Email Campaigns"],["li","file","LinkedIn"]];
+const SIDE_TABS=[["start","home","Home"],["over","mail","Email Campaigns"],["calls","phone","Calls"],["li","file","LinkedIn"]];
 const SIDE_SUBS={over:[["Conferences",()=>EMAIL_VIEWS.includes(view),"over"]],li:[["Post",()=>view==="li","li"],["Messenger",()=>view==="limsg","limsg"]]};
 function sideOn(v){return v==="over"?EMAIL_VIEWS.includes(view):v==="li"?(view==="li"||view==="limsg"):view===v;}
 function sideItem(t,n){
@@ -1557,15 +1626,15 @@ function render(){
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
-  const titles={start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():viewPlaybook();
-  const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const titles={calls:"Calls",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
+  const subs={calls:"Every conference lead with a phone number, one at a time — callbacks first, then warm leads, then everyone never called. Each call is logged on the lead for the whole team.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
+  const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="calls"?["Calls"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right">'+(APP==="catalog"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">Search products</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   (APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_PH.map(p=>[p[0],p[1]])).map(([k,lb])=>'<button class="'+(!catSel&&catPhaseF===k?"on":"")+'" data-act="catph" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'</nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>')+
-   '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   (APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_PH.map(p=>[p[0],p[1]])).map(([k,lb])=>'<button class="'+(!catSel&&catPhaseF===k?"on":"")+'" data-act="catph" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'</nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button><button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button></nav>')+
+   '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"||view==="calls"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
   mktHydrate();liHydrate();
@@ -2348,6 +2417,12 @@ async function perfTest(cid,k){const c=campaignById(cid);if(!c)return;const ppl=
   try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",via:isMailbox(senders().find(x=>x.email===snd.email))?"m365":"ses",from:snd.email,fromName:snd.name,replyTo:REPLY_TO,campaign:"test",items:[{to,subject,html:campTextHTML(body),text:body}]})});
     const b=await r.json().catch(()=>({}));const res=(b.results||[])[0]||{};if(!r.ok||!b.ok||!res.msgId)throw new Error(b.error||res.skipped||res.error||("HTTP "+r.status));
     toast("Sent — check "+to+" in a minute (it looks exactly like this)");}catch(e){toast("The test didn't send: "+e.message);}}
+function campByListStats(c,ev){ // per list: people, emailed, opened, clicked, replied — so a mixed campaign shows which list is working
+  const A=campAuds(c);const opened=new Set(),clicked=new Set();(ev||[]).forEach(e=>{if(e.type==="open")opened.add(e.msgId);else if(e.type==="click"&&!/action=unsub/.test(e.detail||""))clicked.add(e.msgId);});
+  return A.map(s=>{const mine=(c.leads||[]).filter(l=>leadLists(l).includes(s.key));const sent=mine.filter(l=>l.sent&&Object.keys(l.sent).length);
+    const ids=l=>Object.values(l.msg||{});return {s,people:mine.length,ready:mine.filter(l=>campFlagNow(l)==="ok").length,sent:sent.length,opened:sent.filter(l=>ids(l).some(id=>opened.has(id))).length,clicked:sent.filter(l=>ids(l).some(id=>clicked.has(id))).length,replied:mine.filter(l=>(l.outcome&&l.outcome!=="no")||["replied","handed"].includes(l.flag)).length};});}
+function campByListHTML(c,ev){const A=campAuds(c);if(A.length<2)return "";const rows=campByListStats(c,ev);
+  return '<div class="ph2" style="border-top:1px solid var(--rule-2)">'+svg("users")+'By list<span class="t2" style="margin-left:4px">· '+A.length+' lists</span></div>'+rows.map(r=>'<div class="perfrow"><span class="ldot" style="background:'+campListColor(c,r.s.key)+'"></span><span class="grow"><span class="t1">'+esc(r.s.label||campSpecLabel(r.s))+'</span><small>'+r.people+' people · '+r.sent+' emailed'+(r.ready>r.sent?' · '+(r.ready-r.sent)+' still to go':'')+'</small></span><span class="perf num">'+(r.sent?'<span>'+fmtPct(pct(r.opened,r.sent))+'<small>opened</small></span><span>'+r.clicked+'<small>clicked</small></span><span>'+r.replied+'<small>replied</small></span>':'<span class="t2" style="margin:0">not started</span>')+'</span></div>').join("");}
 function campPerfPanel(c){const op=PERF_OPEN[c.id]||(PERF_OPEN[c.id]=new Set([0]));const ppl=(c.leads||[]).filter(l=>["ok","handed","replied","engaged"].includes(l.flag));const steps=c.steps||[];const ev=(DB.mailEvents||[]).filter(HOME_HARD);
   const rows=steps.map((s,k)=>{const ids=new Set(ppl.map(l=>(l.msg||{})[k]).filter(Boolean));const n={delivery:new Set(),open:new Set(),click:new Set(),bounce:new Set()};
     ev.forEach(e=>{if(!ids.has(e.msgId)||!n[e.type])return;if(e.type==="click"&&/action=unsub/.test(e.detail||""))return;n[e.type].add(e.msgId);});
@@ -2358,7 +2433,7 @@ function campPerfPanel(c){const op=PERF_OPEN[c.id]||(PERF_OPEN[c.id]=new Set([0]
   const unsubs=new Set((DB.suppress||[]).filter(s=>s.reason==="unsubscribe").map(s=>String(s.email||s.id).toLowerCase()));
   const replied=ppl.filter(l=>l.outcome&&l.outcome!=="no").length,handed=ppl.filter(l=>l.handedTo).length,un=ppl.filter(l=>unsubs.has(String(l.email||"").toLowerCase())).length;
   const items=actItems().filter(x=>x.c.id===c.id);
-  return '<div class="pan"><div class="ph2">'+svg("chart")+'Performance<span class="t2" style="margin-left:4px">· '+ppl.length+' people · '+replied+' replied · '+handed+' with reps · '+un+' unsubscribed</span><span class="meta"><button class="btn sm ghost" data-act="campopen" data-id="'+c.id+'">Open campaign</button></span></div>'+rows+
+  return '<div class="pan"><div class="ph2">'+svg("chart")+'Performance<span class="t2" style="margin-left:4px">· '+ppl.length+' people · '+replied+' replied · '+handed+' with reps · '+un+' unsubscribed</span><span class="meta"><button class="btn sm ghost" data-act="campopen" data-id="'+c.id+'">Open campaign</button></span></div>'+rows+campByListHTML(c,ev)+
     (items.length?'<div class="ph2" style="border-top:1px solid var(--rule-2)">'+svg("bolt")+'Act on these<span class="t2" style="margin-left:4px">· '+items.length+'</span></div>'+items.map(actRowHTML).join(""):'')+'</div>';}
 
 function ovMapPanel(st,cs){const by={};st.sends.forEach(x=>{const k=String(x.l.state||"").toUpperCase().slice(0,2);if(!US_CENT[k])return;const o=by[k]=by[k]||{sent:0,opened:new Set(),bounced:new Set()};o.sent++;(o.ppl=o.ppl||new Set()).add(String(x.l.email||"").toLowerCase());});
@@ -2458,9 +2533,22 @@ function campWizard(c){
   h+='<div class="wiz">'+steps.map(s=>'<button class="'+(campStep===s[0]?"on":(campReady(c,s[0])?"done":""))+'" data-act="campstep" data-v="'+s[0]+'">'+(campReady(c,s[0])?svg("check")+" ":"")+s[0]+'. '+s[1]+'</button>').join("")+'</div>';
   return h+(campStep===1?campLeadsUI(c):campStep===2?campEmailsUI(c):campReviewUI(c)+(admin()?campSendUI(c):''));
 }
+function campListDots(c,l){const L=leadLists(l);if(!L.length)return '<span class="t2" style="margin:0">removed</span>';const A=campAuds(c);
+  return L.map(k=>{const s=A.find(x=>x.key===k);return '<span class="ldot" title="'+esc(s?(s.label||campSpecLabel(s)):"")+'" style="background:'+campListColor(c,k)+'"></span>';}).join("")+(L.length>1?' <span class="t2" style="margin:0">'+L.length+' lists</span>':'');}
+function campSpecPreview(c,a){ // how many people this list would add, before it is added
+  if((a.src==="conf"&&!a.conf)||(a.src==="list"&&!a.listId)||(a.src==="contacts"&&!(a.query||"").trim()))return "";
+  const ls=campSpecLeads(Object.assign({},a,{key:"_preview",stored:false}),c);const have=new Set((c.leads||[]).map(campLeadKey));const fresh=ls.filter(l=>!have.has(campLeadKey(l))).length;
+  return '<b>'+ls.length+'</b> on this list'+((c.leads||[]).length?' · <b>'+fresh+'</b> new to this campaign'+(ls.length-fresh?' · '+(ls.length-fresh)+' already in it':''):'');}
+function campListsCard(c,A,leads){
+  const uniq=leads.filter(l=>l.flag!=="dropped").length,multi=leads.filter(l=>leadLists(l).length>1).length;
+  return '<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Lists in this campaign · '+A.length+'</div><div class="lists">'+A.map(s=>{const mine=leads.filter(l=>leadLists(l).includes(s.key));const ok=mine.filter(l=>campFlagNow(l)==="ok").length;
+      const sent=mine.filter(l=>l.sent&&Object.keys(l.sent).length).length,shared=mine.filter(l=>leadLists(l).length>1).length;
+      return '<div class="lrow"><span class="ldot" style="background:'+campListColor(c,s.key)+'"></span><span class="grow"><b>'+esc(s.label||campSpecLabel(s))+'</b><small>'+mine.length+' people · '+ok+' ready'+(sent?' · '+sent+' emailed':'')+(shared?' · '+shared+' also on another list':'')+' · '+(s.stored?(s.src==="apollo"?"from Apollo":"fixed list"):"live, Refresh pulls anyone new")+'</small></span><button class="btn sm ghost" data-act="camprmlist" data-v="'+esc(s.key)+'">Remove</button></div>';}).join("")+'</div>'+
+    '<div class="row" style="gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">'+(A.some(s=>!s.stored)?'<button class="btn sm" data-act="camprefresh">Refresh lists</button>':'')+'<span class="t2" style="margin:0"><b>'+uniq+'</b> people across '+A.length+' list'+(A.length>1?'s':'')+(multi?' · '+multi+' were on more than one and get one sequence':'')+'</span></div></div>';}
 function campLeadsUI(c){
-  const a=c.aud||(c.aud={src:""});const leads=c.leads||[];const chip=(on,act,v,label)=>'<span class="chip'+(on?" on":"")+'" data-act="'+act+'" data-v="'+esc(v)+'">'+label+'</span>';
-  let h='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Where the people come from</div><div class="chips">'+[["conf","Conference leads"],["list","Call list"],["contacts","Contacts"],["apollo","Find new people"],["file","Upload a CSV"]].map(s=>chip(a.src===s[0],"campsrc",s[0],s[1])).join("")+'</div>';
+  const a=campEd(c);const leads=c.leads||[];const A=campAuds(c);const chip=(on,act,v,label)=>'<span class="chip'+(on?" on":"")+'" data-act="'+act+'" data-v="'+esc(v)+'">'+label+'</span>';
+  let h=A.length?campListsCard(c,A,leads):'';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">'+(A.length?'Add another list <span style="font-weight:400;text-transform:none;letter-spacing:0">— anyone already on a list here is merged, never emailed twice</span>':'Where the people come from')+'</div><div class="chips">'+[["conf","Conference leads"],["list","Call list"],["contacts","Contacts"],["apollo","Find new people"],["file","Upload a CSV"]].map(s=>chip(a.src===s[0],"campsrc",s[0],s[1])).join("")+'</div>';
   if(a.src==="conf"){h+='<div class="sectlabel" style="margin-top:14px">Show</div><div class="chips">'+confLeadLists().map(x=>chip(a.conf===x.conf,"campaud:conf",x.conf,esc(x.conf))).join("")+'</div>';
     if(a.conf){const ls=(DB.confLeads||[]).filter(x=>x.conf===a.conf&&x.segment!=="Set Aside");const segs=["End User","Distributor/Rep"],regs=["East","Central","West","International"];
       h+='<div class="sectlabel" style="margin-top:14px">Who</div><div class="chips">'+segs.map(s=>chip((a.segments||[]).includes(s),"campaud:segments",s,s+" "+ls.filter(x=>(x.segment||"End User")===s).length)).join("")+'</div>';
@@ -2469,12 +2557,12 @@ function campLeadsUI(c){
   else if(a.src==="list")h+='<div class="sectlabel" style="margin-top:14px">Saved call list</div><div class="chips">'+myLists().map(L=>chip(a.listId===L.id,"campaud:listId",L.id,esc(L.name)+" "+(L.items||[]).length)).join("")+'</div>';
   else if(a.src==="contacts")h+='<div class="sectlabel" style="margin-top:14px">Describe the list</div><input class="f" id="campAudQ" value="'+esc(a.query||"")+'" placeholder="All end-users in Florida · Grainger reps TX · potential distributors">';
   else if(a.src==="apollo")h+=campApolloUI(c,a);
-  else if(a.src==="file")h+='<div class="dropzone" data-act="camppick" style="margin-top:12px">'+svg("dl")+'<p style="margin:8px 0 2px;font-weight:600;color:var(--ink)">'+(leads.length?'Swap the list — drop a new CSV here':'Drop a CSV, or tap to choose')+'</p><p style="margin:0;font-size:12.5px">Needs an Email column. Name, Company, Title, City and Industry make the personalization work.</p></div><input type="file" id="campFile" accept=".csv,text/csv" style="display:none">';
-  if(a.src&&a.src!=="file"&&a.src!=="apollo")h+='<button class="btn coral" data-act="campbuild" style="margin-top:14px">'+(leads.length?"Rebuild audience":"Build audience")+'</button>';
+  else if(a.src==="file")h+='<div class="dropzone" data-act="camppick" style="margin-top:12px">'+svg("dl")+'<p style="margin:8px 0 2px;font-weight:600;color:var(--ink)">'+(A.length?'Drop a CSV to add it as another list':'Drop a CSV, or tap to choose')+'</p><p style="margin:0;font-size:12.5px">Needs an Email column. Name, Company, Title, City and Industry make the personalization work.</p></div><input type="file" id="campFile" accept=".csv,text/csv" style="display:none">';
+  if(a.src&&a.src!=="file"&&a.src!=="apollo"){const pv=campSpecPreview(c,a);h+='<div class="row" style="gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center"><button class="btn coral" data-act="campaddlist">'+svg("plus")+' Add this list</button>'+(pv?'<span class="t2" style="margin:0">'+pv+'</span>':'')+'</div>';}
   h+='</div>';
   h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">How these people know us <span style="font-weight:400;text-transform:none;letter-spacing:0">— AWS and the inbox providers both ask; it goes in the campaign record</span></div><div class="chips">'+BASIS_OPTS.map(o=>chip((c.basis||"").startsWith(o.split(" —")[0]),"campbasis",o,esc(o))).join("")+'</div><input class="f" id="campBasis" value="'+esc(c.basis||"")+'" placeholder="e.g. Met us at NSC 2026 · Grainger sellers we trained · asked for a quote on theautotq.com" style="margin-top:10px"></div>';
   if(leads.length){const ok=campOk(c).length,out=leads.length-ok;const cnt=campIndCounts(campOk(c));
-    const held={};leads.forEach(l=>{const f=campFlagNow(l);if(f!=="ok")held[f]=(held[f]||0)+1;});const heldTxt=Object.keys(held).map(k=>({missing:"no email",bad:"bad email",dupe:"duplicate",verify:"verify first",touched:"touched in "+TOUCH_DAYS+" days",enrolled:"in another campaign",suppressed:"unsubscribed",invalid:"undeliverable",bought:"already a customer"}[k]||k)+" "+held[k]).join(" · ");
+    const held={};leads.forEach(l=>{const f=campFlagNow(l);if(f!=="ok")held[f]=(held[f]||0)+1;});const heldTxt=Object.keys(held).map(k=>({missing:"no email",bad:"bad email",dupe:"duplicate",verify:"verify first",touched:"touched in "+TOUCH_DAYS+" days",enrolled:"in another campaign",suppressed:"unsubscribed",invalid:"undeliverable",bought:"already a customer",dropped:"list removed",replied:"replied",engaged:"clicked",handed:"with a rep"}[k]||k)+" "+held[k]).join(" · ");
     const unv=campOk(c).filter(l=>!l.vstatus).length;const nl=newsletterSet();const onNl=nl.size?campOk(c).filter(l=>nl.has(String(l.email||"").toLowerCase())).length:0;
     const bRev=campOk(c).filter(l=>buyerHit(l)).length;
     if(held.bought)h+='<p class="t2" style="margin:0 0 8px"><b>'+held.bought+' already '+(held.bought>1?"customers":"a customer")+'</b> — their organization has bought AutoTQ (or it\'s our own team), so they\'re left out. The reason is on each row.</p>';
@@ -2484,7 +2572,7 @@ function campLeadsUI(c){
     h+='<div class="row" style="gap:8px;margin:4px 0 8px;flex-wrap:wrap"><button class="btn" data-act="campverify">'+svg("check")+' '+(reveal?'Reveal '+reveal+' emails'+(unv?' · check '+unv:''):'Check '+unv+' emails')+' with Apollo</button><button class="btn" data-act="campclean">Clean the list</button><span class="t2">1 credit per match · Clean drops undeliverable, bad and duplicate rows</span></div>';
     h+='<p style="margin:6px 0 10px"><b>'+ok+' will be emailed</b> · '+esc(c.listName||"")+(out?' · <b>'+out+' held back</b> ('+esc(heldTxt)+')':'')+' · '+Object.keys(cnt).sort((x,y)=>cnt[y]-cnt[x]).slice(0,3).map(k=>indGroup(k)[1]+" "+cnt[k]).join(", ")+'</p>';
     const anySent=leads.some(l=>l.sent&&Object.keys(l.sent).length);
-    h+='<div class="tablewrap" style="margin-top:6px;max-height:520px"><table class="lv"><thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Industry page</th><th>Email</th><th></th>'+(anySent?'<th>Outcome</th>':'')+'</tr></thead><tbody>'+leads.slice(0,500).map((l,i)=>'<tr'+(campFlagNow(l)!=="ok"?' style="opacity:.45"':'')+'><td class="lvname">'+esc((l.first+" "+l.last).trim()||"—")+'</td><td>'+esc(l.company||"—")+'</td><td>'+esc(l.title||"—")+'</td><td>'+esc(indGroup(l.ind)[1])+'</td><td>'+esc(l.email||"—")+'</td><td>'+campFlagTag(campFlagNow(l),l)+'</td>'+(anySent?'<td>'+(l.sent&&Object.keys(l.sent).length?['replied','meeting','quote','no'].map(o=>'<span class="chip'+(l.outcome===o?" on":"")+'" style="min-height:24px;padding:0 8px;font-size:11.5px" data-act="leadout" data-v="'+i+'" data-o="'+o+'">'+o+'</span>').join(" "):'')+'</td>':'')+'</tr>').join("")+'</tbody></table></div>'+(leads.length>500?'<p class="t2" style="text-align:center;margin-top:6px">Showing the first 500 of '+leads.length+'.</p>':'');
+    h+='<div class="tablewrap" style="margin-top:6px;max-height:520px"><table class="lv"><thead><tr><th>Name</th><th>Company</th>'+(A.length>1?'<th>List</th>':'')+'<th>Title</th><th>Industry page</th><th>Email</th><th></th>'+(anySent?'<th>Outcome</th>':'')+'</tr></thead><tbody>'+leads.slice(0,500).map((l,i)=>'<tr'+(campFlagNow(l)!=="ok"?' style="opacity:.45"':'')+'><td class="lvname">'+esc((l.first+" "+l.last).trim()||"—")+'</td><td>'+esc(l.company||"—")+'</td>'+(A.length>1?'<td>'+campListDots(c,l)+'</td>':'')+'<td>'+esc(l.title||"—")+'</td><td>'+esc(indGroup(l.ind)[1])+'</td><td>'+esc(l.email||"—")+'</td><td>'+campFlagTag(campFlagNow(l),l)+'</td>'+(anySent?'<td>'+(l.sent&&Object.keys(l.sent).length?['replied','meeting','quote','no'].map(o=>'<span class="chip'+(l.outcome===o?" on":"")+'" style="min-height:24px;padding:0 8px;font-size:11.5px" data-act="leadout" data-v="'+i+'" data-o="'+o+'">'+o+'</span>').join(" "):'')+'</td>':'')+'</tr>').join("")+'</tbody></table></div>'+(leads.length>500?'<p class="t2" style="text-align:center;margin-top:6px">Showing the first 500 of '+leads.length+'.</p>':'');
     if(ok)h+='<button class="btn coral block" data-act="campstep" data-v="2" style="margin-top:14px">Looks right — write the emails '+svg("chevR")+'</button>';}
   return h;
 }
@@ -2547,6 +2635,106 @@ function repliedSectionHTML(){const ps=repliedPeople();if(!ps.length)return "";
   return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("mail")+'Engaged<span class="t2" style="margin-left:4px">· '+ps.length+' replied or clicked · off the campaigns, working leads now</span></div>'+ps.map(p=>{const l=p.l,r=ACT_REP[regionFromState(l.state)]||"";
     return '<div class="actrow"><i class="actdot done" style="background:#3FB950"></i><span class="nm"><b>'+esc(((l.first||"")+" "+(l.last||"")).trim()||l.email)+'</b><small>'+esc([l.title,l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))+' · '+esc(p.c.name.replace(/ — .*/,""))+(p.at?' · '+esc(actDay(p.at)):'')+'</small><small class="what">'+(p.reply&&p.reply.text?'Replied: “'+esc(p.reply.text.replace(/\s+/g," ").slice(0,160))+(p.reply.text.length>160?'…':'')+'”':(l.outcome||l.flag==="replied")?'Replied — message not saved yet':p.click?'Clicked '+esc(actPage(p.click.url))+' · '+esc(actAgo(p.click.at)):'')+'</small></span><span class="row" style="gap:6px">'+
       (l.handedTo?'<span class="pill info">With '+esc(repShort(l.handedTo))+'</span>':(r?'<button class="btn sm coral" data-act="actpush" data-v="'+esc(p.key)+'" data-r="'+r+'">To '+repShort(r)+'</button>':''))+'<button class="btn sm" data-act="actreply" data-v="'+esc(p.key)+'">Read & reply</button></span></div>';}).join("")+'</div>';}
+/* ---------- Calls (2026-10-26, Max: "a call list where I'm forced to do 50 calls a day… get through all of the conference lists")
+   A personal power dialer over the conference leads. Every call is stored on the lead (confLeads.calls[{at,by,out,note,cb}]) plus
+   lastCall / contacted / status / next / temp, so the CRM's Conferences tab and the no-double-touch guard see it; one `activities`
+   row (type "call") per call for the team timeline. Daily goal per person in localStorage (default 50). ---------- */
+const CALL_OUTS=[["noanswer","No answer",0],["vm","Voicemail",0],["talked","Talked",1],["interested","Interested",1],["demo","Demo / quote",1],["callback","Call back",1],["notint","Not interested",1],["wrong","Wrong number",0]];
+const CALL_DONE_OUTS=["notint","wrong","demo"]; // off the queue (demo/quote goes to the pipeline; a callback date brings anyone back)
+const TZ_OFF={Eastern:-4,Central:-5,Mountain:-6,Pacific:-7,Alaska:-8,Hawaii:-10};
+let callConfs=null, callSkip=new Set(), callCur=null, callOutSel="", callTab="queue";
+function callGoal(){try{return +localStorage.getItem("autotq_call_goal_"+USER)||50;}catch(e){return 50;}}
+function callGoalSet(n){try{localStorage.setItem("autotq_call_goal_"+USER,String(n));}catch(e){}}
+function callDigits(p){return String(p||"").replace(/\D/g,"").replace(/^1(?=\d{10}$)/,"");}
+function callPhones(l){const ps=String(l.phone||"").split(/[;\/|]|\bor\b|,/).map(x=>x.trim()).filter(x=>callDigits(x).length>=10);return ps;}
+function callTz(l){if(l.tz&&TZ_OFF[l.tz]!=null)return l.tz;const st=String(l.state||"").toUpperCase().slice(0,2);
+  if(/^(CA|NV|OR|WA)$/.test(st))return "Pacific";if(/^(AZ|CO|ID|MT|NM|UT|WY)$/.test(st))return "Mountain";if(/^(AL|AR|IL|IA|KS|LA|MN|MO|MS|ND|NE|OK|SD|TN|TX|WI)$/.test(st))return "Central";if(st==="AK")return "Alaska";if(st==="HI")return "Hawaii";return "Eastern";}
+function callLocalHour(l){const now=new Date();const utc=now.getUTCHours()+now.getUTCMinutes()/60;const dst=callIsDst(now);return (utc+TZ_OFF[callTz(l)]+(dst?0:-1)+48)%24;}
+function callIsDst(d){const y=d.getUTCFullYear();const mar=new Date(Date.UTC(y,2,8+(7-new Date(Date.UTC(y,2,8)).getUTCDay())%7,7)),nov=new Date(Date.UTC(y,10,1+(7-new Date(Date.UTC(y,10,1)).getUTCDay())%7,6));return d>=mar&&d<nov;}
+function callLocalTime(l){const h=callLocalHour(l);const hh=Math.floor(h),mm=Math.round((h-hh)*60);const d=new Date(2000,0,1,hh,mm);return d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});}
+function callGoodHour(l){const h=callLocalHour(l);return h>=8.5&&h<17;}
+function callsOf(l){return Array.isArray(l.calls)?l.calls:[];}
+function callLast(l){const c=callsOf(l);return c.length?c[c.length-1]:null;}
+function callDayKey(iso){const d=new Date(iso);return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
+function callPool(){return (DB.confLeads||[]).filter(l=>l.segment!=="Set Aside"&&callPhones(l).length);}
+function callIsDone(l){const last=callLast(l);if(last&&CALL_DONE_OUTS.includes(last.out)&&!(last.cb&&last.cb>todayStr()))return !(l.cb&&l.cb<=todayStr());
+  if(!callsOf(l).length&&/not interested|do not call|wrong number|no longer|retired|left the company/i.test(l.status||""))return true;return false;}
+function callBucket(l){ // 0 callback due · 1 warm/hot · 2 never called · 3 retry (no answer / voicemail) · 9 not now
+  const today=todayStr(),last=callLast(l),n=callsOf(l).length;
+  if(l.cb&&l.cb<=today)return 0;if(l.cb&&l.cb>today)return 9;
+  const daysSince=last?Math.floor((Date.now()-new Date(last.at).getTime())/86400000):999;
+  const warm=/hot|warm/i.test(l.temp||"")||/interest|demo|hot|callback|call back/i.test(l.status||"");
+  if(warm&&daysSince>=5)return 1;
+  if(!n&&!l.contacted)return 2;
+  if(last&&["noanswer","vm"].includes(last.out)&&daysSince>=3&&n<5)return 3;
+  if(!n&&l.contacted&&!/not interested/i.test(l.status||""))return 3; // reached before this tool (status only)
+  return 9;}
+function callQueue(){const today=todayStr();const on=callConfs;
+  return callPool().filter(l=>(!on||!on.size||on.has(l.conf))&&!callIsDone(l)&&!callsOf(l).some(c=>callDayKey(c.at)===today)&&!callSkip.has(l.id)).map(l=>({l,b:callBucket(l),good:callGoodHour(l)})).filter(x=>x.b<9)
+    .sort((a,b)=>a.b-b.b||(b.good?1:0)-(a.good?1:0)||(TZ_OFF[callTz(b.l)]-TZ_OFF[callTz(a.l)])||String(a.l.cb||"").localeCompare(String(b.l.cb||""))||String(a.l.conf).localeCompare(String(b.l.conf))||String(a.l.company||"").localeCompare(String(b.l.company||"")));}
+function callMine(){const out=[];(DB.confLeads||[]).forEach(l=>callsOf(l).forEach(c=>{if(c.by===USER)out.push({l,c});}));return out.sort((a,b)=>String(b.c.at).localeCompare(String(a.c.at)));}
+function callStats(){const mine=callMine();const today=todayStr();const byDay={};mine.forEach(x=>{const k=callDayKey(x.c.at);const o=byDay[k]=byDay[k]||{dials:0,connects:0};o.dials++;if((CALL_OUTS.find(z=>z[0]===x.c.out)||[])[2])o.connects++;});
+  const t=byDay[today]||{dials:0,connects:0};let streak=0;const g=callGoal();for(let i=0;i<120;i++){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const v=(byDay[callDayKey(d.toISOString())]||{}).dials||0;if(v>=g)streak++;else if(i===0)continue;else break;}
+  return {today:t,byDay,mine,streak};}
+function callLog(l,out,note,cb){const now=new Date().toISOString();const rec={at:now,by:USER,out,note:note||""};if(cb)rec.cb=cb;
+  l.calls=callsOf(l).concat([rec]);l.lastCall=now;const lbl=(CALL_OUTS.find(z=>z[0]===out)||[out,out])[1];const talked=(CALL_OUTS.find(z=>z[0]===out)||[])[2];
+  if(talked){l.contacted=true;l.contactedAt=now;}
+  l.status=lbl+" — "+shortName(USER)+" "+now.slice(5,10).replace("-","/")+(note?": "+note.slice(0,120):"");
+  if(out==="interested"&&!/hot/i.test(l.temp||""))l.temp="Warm";if(out==="demo")l.temp="Hot";if(out==="notint")l.temp="Cold";
+  if(cb){l.cb=cb;l.next="Call back "+cb.slice(5).replace("-","/")+(note?" · "+note.slice(0,60):"");}else{delete l.cb;if(out==="demo")l.next="Demo / quote — "+(note||"set it up");}
+  if(!l.owner)l.owner=USER;put("confLeads",l);
+  put("activities",{id:uid(),type:"call",by:USER,date:now,note:lbl+(note?" · "+note:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null,out});
+  callSkip.delete(l.id);}
+function callConfList(){const m={};callPool().forEach(l=>{const o=m[l.conf]=m[l.conf]||{conf:l.conf,total:0,called:0,left:0};o.total++;if(callsOf(l).length||l.contacted)o.called++;if(!callIsDone(l)&&callBucket(l)<9)o.left++;});return Object.values(m).sort((a,b)=>a.conf.localeCompare(b.conf));}
+function viewCalls(){
+  const st=callStats(),g=callGoal(),t=st.today,q=callQueue();if(!callCur||!q.some(x=>x.l.id===callCur))callCur=q.length?q[0].l.id:null;
+  const pctDone=Math.min(100,Math.round(t.dials/g*100));const left=Math.max(0,g-t.dials);
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const k=callDayKey(d.toISOString());days.push({k,lb:d.toLocaleDateString([], {weekday:"narrow"}),v:(st.byDay[k]||{}).dials||0,c:(st.byDay[k]||{}).connects||0});}
+  const maxV=Math.max(g,...days.map(x=>x.v));
+  let h='<div class="callhead">'+
+    '<div class="pan callgoal"><div class="cg-top"><div><small>Today</small><b class="num">'+t.dials+'<span>/'+g+'</span></b><p class="t2" style="margin:2px 0 0">'+(left?left+' to go':'Goal hit — every call now is extra')+' · '+t.connects+' conversation'+(t.connects===1?'':'s')+'</p></div>'+
+      '<div class="cg-goal"><small>Daily goal</small><div class="chips">'+[30,50,75,100].map(n=>'<span class="chip'+(g===n?" on":"")+'" data-act="callgoal" data-v="'+n+'">'+n+'</span>').join("")+'</div></div></div>'+
+      '<div class="cg-bar"><i style="width:'+pctDone+'%"></i></div>'+
+      '<div class="cg-days">'+days.map(d=>'<div class="'+(d.k===todayStr()?"td":"")+'" title="'+d.k+': '+d.v+' calls, '+d.c+' conversations"><i style="height:'+Math.round(d.v/maxV*100)+'%" class="'+(d.v>=g?"hit":"")+'"></i><small>'+d.lb+'</small></div>').join("")+'<span class="goalline" style="bottom:'+(16+Math.round(g/maxV*54))+'px"></span></div>'+
+      '<p class="t2" style="margin:8px 0 0">'+(st.streak?'<b>'+st.streak+'-day streak</b> at goal · ':'')+st.mine.length+' calls logged all time · '+q.length+' in the queue</p></div>'+
+    callConfsHTML("deskonly")+'</div>';
+  h+='<div class="chips" style="margin:14px 0 12px">'+[["queue","Up next"],["log","Today’s calls "+t.dials],["cb","Callbacks"]].map(x=>'<span class="chip'+(callTab===x[0]?" on":"")+'" data-act="calltab" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
+    if(callTab==="log"){const rows=st.mine.filter(x=>callDayKey(x.c.at)===todayStr());
+    h+=rows.length?'<div class="tablewrap"><table class="lv"><thead><tr><th>Time</th><th>Who</th><th>Company</th><th>Where</th><th>Show</th><th>Outcome</th><th>Note</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+new Date(x.c.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+'</td><td class="lvname">'+esc(x.l.name||"")+'</td><td>'+esc(x.l.company||"")+'</td><td>'+esc([x.l.city,x.l.state].filter(Boolean).join(", "))+'</td><td>'+esc(x.l.conf||"")+'</td><td>'+callOutPill(x.c.out)+(x.c.cb?' <span class="t2">→ '+esc(x.c.cb.slice(5))+'</span>':'')+'</td><td class="wrap">'+esc(x.c.note||"")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">No calls logged today yet.</div>';
+    return h;}
+  if(callTab==="cb"){const cbs=(DB.confLeads||[]).filter(l=>l.cb).sort((a,b)=>String(a.cb).localeCompare(b.cb));
+    h+=cbs.length?'<div class="pan">'+cbs.map(l=>'<button class="ibx" data-act="callpick" data-id="'+esc(l.id)+'"><span class="tag'+(l.cb<=todayStr()?" hot":"")+'">'+esc(l.cb.slice(5).replace("-","/"))+'</span><span class="nm"><b>'+esc(l.name||"")+'</b><small>'+esc([l.company,l.city&&l.state?l.city+", "+l.state:l.state,l.conf].filter(Boolean).join(" · "))+'</small></span><span class="t2" style="margin:0;max-width:40%;text-align:right">'+esc(l.next||"")+'</span></button>').join("")+'</div>':'<div class="empty">No callbacks scheduled.</div>';
+    return h;}
+  if(!q.length)return h+'<div class="empty">Nobody left to call with these lists'+(callConfs&&callConfs.size?' — turn on more lists above':'')+'. Callbacks come back on their day.</div>';
+  const cur=(q.find(x=>x.l.id===callCur)||q[0]);h+='<div class="callgrid">'+callCardHTML(cur.l,cur.b)+'<div class="pan callnext"><div class="ph2">'+svg("users")+'Next up<span class="t2" style="margin-left:4px">· '+q.length+'</span></div>'+q.slice(0,12).map(x=>'<button class="ibx'+(x.l.id===cur.l.id?" on":"")+'" data-act="callpick" data-id="'+esc(x.l.id)+'"><span class="tag'+(x.b===0||x.b===1?" hot":"")+'">'+["Call back","Warm","New","Retry"][x.b]+'</span><span class="nm"><b>'+esc(x.l.name||"")+'</b><small>'+esc((x.l.company||"")+" · "+(x.l.state||"")+" · "+callLocalTime(x.l))+'</small></span>'+(x.good?'':'<span class="t2" style="margin:0" title="Outside 8:30–5 their time">late</span>')+'</button>').join("")+'</div></div>'+callConfsHTML("phoneonly");
+  return h;}
+function callConfsHTML(cls){return '<div class="pan callconfs '+cls+'"><div class="ph2">'+svg("chart")+'Getting through the lists</div>'+callConfList().map(o=>{const on=!callConfs||!callConfs.size||callConfs.has(o.conf);const p=o.total?Math.round(o.called/o.total*100):0;
+      return '<button class="ccrow'+(on?"":" off")+'" data-act="callconf" data-v="'+esc(o.conf)+'"><span class="ck">'+(on?svg("check"):"")+'</span><span class="grow"><b>'+esc(o.conf)+'</b><small>'+o.called+' of '+o.total+' reached at least once · '+o.left+' left to call</small><span class="cbar"><i style="width:'+p+'%"></i></span></span><span class="num">'+p+'%</span></button>';}).join("")+'</div>';}
+function callOutPill(o){const x=CALL_OUTS.find(z=>z[0]===o)||[o,o,0];const cls=o==="demo"||o==="interested"?"ok":o==="callback"||o==="talked"?"info":o==="notint"||o==="wrong"?"dang":"";return '<span class="pill '+cls+'">'+esc(x[1])+'</span>';}
+function callCardHTML(l,b){const phones=callPhones(l);const hist=callsOf(l);const lastEmail=l.lastEmail?'Emailed '+esc(l.lastEmail):'';
+  const inCamp=campaigns().filter(c=>(c.leads||[]).some(x=>x.refId===l.id&&x.sent&&Object.keys(x.sent).length)).map(c=>c.name);
+  return '<div class="pan callcard"><div class="cc-top"><span class="pill '+(b===0?"dang":b===1?"warn":"")+'">'+["Callback due","Warm lead","Never called","Retry"][b]+'</span><span class="t2" style="margin:0">'+esc(l.conf||"")+' · '+esc(l.segment||"")+'</span><span class="t2" style="margin:0 0 0 auto">'+callLocalTime(l)+' their time'+(callGoodHour(l)?'':' · outside office hours')+'</span></div>'+
+    '<h2 class="cc-name">'+esc(l.name||"—")+'</h2><p class="cc-sub">'+esc([l.title,l.company].filter(Boolean).join(" · "))+'</p><p class="t2" style="margin:2px 0 12px">'+esc([l.city,l.state].filter(Boolean).join(", "))+(l.email?' · <a href="mailto:'+esc(l.email)+'">'+esc(l.email)+'</a>':'')+'</p>'+
+    '<div class="row" style="gap:8px;flex-wrap:wrap">'+phones.map((p,i)=>'<a class="btn '+(i?"":"coral ")+'callbtn" href="tel:+1'+callDigits(p)+'">'+svg("phone")+' '+esc(p)+'</a>').join("")+'</div>'+
+    ((l.status&&!/^not contacted$/i.test(l.status))||l.next||l.notes||lastEmail||inCamp.length?'<div class="cc-ctx">'+(l.status&&!/^not contacted$/i.test(l.status)?'<p><b>Last status</b> '+esc(l.status)+'</p>':'')+(l.next?'<p><b>Next</b> '+esc(l.next)+'</p>':'')+(lastEmail||inCamp.length?'<p><b>Email</b> '+[lastEmail].concat(inCamp.map(n=>"in "+esc(n))).filter(Boolean).join(" · ")+'</p>':'')+(l.notes?'<p><b>Notes</b> '+esc(String(l.notes).slice(0,240))+'</p>':'')+'</div>':'')+
+    (hist.length?'<div class="cc-hist">'+hist.slice(-4).reverse().map(c=>'<p>'+callOutPill(c.out)+' <span class="t2" style="margin:0">'+new Date(c.at).toLocaleDateString([], {month:"short",day:"numeric"})+' · '+esc(shortName(c.by||""))+(c.note?' · '+esc(c.note):'')+'</span></p>').join("")+'</div>':'')+
+    '<div class="sectlabel" style="margin-top:16px">How did it go?</div><div class="chips callouts">'+CALL_OUTS.map(o=>'<span class="chip'+(callOutSel===o[0]?" on":"")+'" data-act="callout" data-v="'+o[0]+'">'+o[1]+'</span>').join("")+'</div>'+
+    (callOutSel==="callback"||callOutSel==="interested"||callOutSel==="demo"?'<div class="row" style="gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap"><span class="t2" style="margin:0">Call back on</span><input class="f" type="date" id="callCb" value="'+callDefaultCb(callOutSel)+'" style="max-width:180px"></div>':'')+
+    '<textarea class="f" id="callNote" rows="2" placeholder="Notes — who you spoke to, what they need, the distributor they buy from" style="margin-top:10px"></textarea>'+
+    '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn coral" data-act="callsave" data-id="'+esc(l.id)+'"'+(callOutSel?'':' disabled')+'>Log it · next call '+svg("chevR")+'</button><button class="btn ghost" data-act="callskip" data-id="'+esc(l.id)+'">Skip for today</button></div></div>';}
+function callDefaultCb(o){const d=new Date();d.setDate(d.getDate()+(o==="callback"?2:o==="interested"?5:7));while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return callDayKey(d.toISOString());}
+function callHandle(a,t){
+  if(a==="callgoal"){callGoalSet(+t.dataset.v);render();return true;}
+  if(a==="calltab"){callTab=t.dataset.v;render();return true;}
+  if(a==="callconf"){const all=callConfList().map(o=>o.conf);if(!callConfs)callConfs=new Set(all);const v=t.dataset.v;if(callConfs.has(v))callConfs.delete(v);else callConfs.add(v);if(callConfs.size===all.length)callConfs=null;callCur=null;render();return true;}
+  if(a==="callpick"){callCur=t.dataset.id;callTab="queue";callOutSel="";render();window.scrollTo(0,0);return true;}
+  if(a==="callout"){const n=document.getElementById("callNote");const keep=n?n.value:"";callOutSel=t.dataset.v;render();const n2=document.getElementById("callNote");if(n2)n2.value=keep;return true;}
+  if(a==="callskip"){callSkip.add(t.dataset.id);callCur=null;callOutSel="";render();return true;}
+  if(a==="callsave"){const l=(DB.confLeads||[]).find(x=>x.id===t.dataset.id);if(!l||!callOutSel)return true;const note=((document.getElementById("callNote")||{}).value||"").trim();
+    const cbEl=document.getElementById("callCb");const cb=cbEl&&cbEl.value?cbEl.value:(callOutSel==="callback"?callDefaultCb("callback"):"");
+    callLog(l,callOutSel,note,cb);const s=callStats();callOutSel="";callCur=null;render();window.scrollTo(0,0);
+    const g=callGoal();toast(s.today.dials===g?"That's "+g+" — goal hit for today":"Logged · "+s.today.dials+"/"+g+" today");return true;}
+  return false;}
 function viewLeads(){
   const confs=confLeadLists();let ls=(DB.confLeads||[]);if(leadsConf)ls=ls.filter(l=>l.conf===leadsConf);
   const q=leadsQ.trim().toLowerCase();if(q)ls=ls.filter(l=>[l.name,l.company,l.title,l.email,l.city,l.state,l.notes].join(" ").toLowerCase().includes(q));
@@ -2623,6 +2811,7 @@ document.addEventListener("click",e=>{
   if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
   if(a.indexOf("cat")===0&&catHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
+  if(a.indexOf("call")===0&&callHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
   if(a.indexOf("act")===0&&actHandle(a,t))return;
@@ -2636,9 +2825,18 @@ document.addEventListener("click",e=>{
   if(a==="campdel"){const c=campaignById(id);if(c&&confirm('Delete "'+c.name+'"? Comments and the send log go with it.')){del("campaigns",c.id);curCampaign=null;closeInsp();render();toast("Deleted");}return;}
   if(a==="camppause"){const c=campaignById(id);if(c){c.paused=!c.paused;c.pausedBy=USER;saveCamp(c);closeInsp();render();toast(c.paused?"Paused — off the map until you resume it":"Resumed");}return;}
   const c=curCampaign?campaignById(curCampaign):null;
-  if(a==="campsrc"&&c){c.aud={src:t.dataset.v};if(t.dataset.v!=="file"){c.leads=[];c.listName="";}saveCamp(c);render();return;}
-  if(a.startsWith("campaud:")&&c){const k=a.slice(8),v=t.dataset.v;c.aud=c.aud||{};if(k==="titles"||k==="kw"||k==="sizes"){const arr=c.aud[k]=c.aud[k]||[];const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);saveCamp(c);render();return;}if(k==="conf"||k==="listId"){c.aud[k]=v;if(k==="conf"){c.aud.segments=["End User"];c.aud.inds=[];c.aud.regions=[];c.basis="Met us at "+v;}}else if(k==="fresh")c.aud.fresh=!c.aud.fresh;else{const arr=c.aud[k]=c.aud[k]||[];const i=arr.indexOf(v);if(i>-1)arr.splice(i,1);else arr.push(v);}saveCamp(c);render();return;}
-  if(a==="campbuild"&&c){if(c.aud&&c.aud.src==="contacts"){const q=document.getElementById("campAudQ");if(q)c.aud.query=q.value;}campBuildAudience(c);campTouched(c);saveCamp(c);render();toast(campOk(c).length+" people will be emailed");return;}
+  if(a==="campsrc"&&c){if((c.leads||[]).length)campEnsureAuds(c);const v=t.dataset.v;if(c.auds&&c.auds.length)c.audEdit={src:v};else c.aud={src:v};saveCamp(c);render();return;} /* the source picker only edits the next list; it never clears the people already in */
+  if(a.startsWith("campaud:")&&c){if((c.leads||[]).length)campEnsureAuds(c);const ed=campEd(c);const k=a.slice(8),v=t.dataset.v;if(k==="titles"||k==="kw"||k==="sizes"){const arr=ed[k]=ed[k]||[];const i=arr.indexOf(v);if(i>=0)arr.splice(i,1);else arr.push(v);saveCamp(c);render();return;}if(k==="conf"||k==="listId"){ed[k]=v;if(k==="conf"){ed.segments=["End User"];ed.inds=[];ed.regions=[];if(!(c.auds&&c.auds.length))c.basis="Met us at "+v;}}else if(k==="fresh")ed.fresh=!ed.fresh;else{const arr=ed[k]=ed[k]||[];const i=arr.indexOf(v);if(i>-1)arr.splice(i,1);else arr.push(v);}saveCamp(c);render();return;}
+  if((a==="campaddlist"||a==="campbuild")&&c){campEnsureAuds(c);const ed=campEd(c);if(ed.src==="contacts"){const q=document.getElementById("campAudQ");if(q)ed.query=q.value;}
+    if(ed.src==="conf"&&!ed.conf){toast("Pick a show first");return;}if(ed.src==="list"&&!ed.listId){toast("Pick a call list first");return;}if(ed.src==="contacts"&&!(ed.query||"").trim()){toast("Describe the list first");return;}
+    const spec=Object.assign(audClone(ed),{key:uid(),at:new Date().toISOString()});delete spec.stored;spec.label=campSpecLabel(spec);
+    if(c.auds.some(x=>!x.stored&&x.label===spec.label)){toast("That list is already in this campaign");return;}
+    c.auds.push(spec);const r=campBuildAudience(c);campBasisFromLists(c);c.audEdit={src:spec.src};campTouched(c);saveCamp(c);render();
+    const n=(c.leads||[]).filter(l=>leadLists(l).includes(spec.key)).length;toast(spec.label+": "+n+" people"+(r.overlap?" · "+r.overlap+" already on another list (merged)":"")+" · "+campOk(c).length+" ready in total");return;}
+  if(a==="camprmlist"&&c){campEnsureAuds(c);const s=c.auds.find(x=>x.key===t.dataset.v);if(!s)return;const sent=(c.leads||[]).filter(l=>leadLists(l).includes(s.key)&&leadLists(l).length===1&&l.sent&&Object.keys(l.sent).length).length;
+    if(!confirm('Take "'+(s.label||campSpecLabel(s))+'" out of this campaign?'+(sent?" "+sent+" of them already got an email: they stay in the history and get nothing more.":"")))return;
+    c.auds=c.auds.filter(x=>x!==s);campBuildAudience(c);campTouched(c);saveCamp(c);render();toast("List removed · "+campOk(c).length+" ready");return;}
+  if(a==="camprefresh"&&c){const before=campOk(c).length;const r=campBuildAudience(c);campTouched(c);saveCamp(c);render();toast((r.added?r.added+" new people pulled in · ":"No one new · ")+campOk(c).length+" ready (was "+before+")");return;}
   if(a==="camptpl"&&c){const k=t.dataset.v;if(k===c.template)return;if((c.leads||[]).some(l=>l.sent&&Object.keys(l.sent).length)){toast("Emails have already gone out on this sequence — start a new campaign for a different one");return;}
     if(campStepsEdited(c)&&!confirm("Replace the emails you wrote with the \""+(CAMP_TEMPLATES[k]||{}).name+"\" sequence? Your audience, basis and settings stay."))return;c.template=k;c.steps=campDefaultSteps(k);emailOpen=0;campTouched(c);saveCamp(c);render();toast((CAMP_TEMPLATES[k]||{}).name+" — "+campOk(c).length+" people kept");return;}
   if(a==="campaddstep"&&c){emailOpen=c.steps.length;const lastDay=Math.max.apply(null,c.steps.map(s=>s.day||1));c.steps.push({day:lastDay+4,subject:"",body:""});campTouched(c);saveCamp(c);render();return;}
@@ -2667,7 +2865,7 @@ document.addEventListener("input",e=>{
   if(el.id==="campFrom"){c.from=el.value.trim();saveCamp(c);return;}
   if(el.id==="campFromName"){c.fromName=el.value;saveCamp(c);return;}
   if(el.id==="campReplyTo"){c.replyTo=el.value.trim();saveCamp(c);return;}
-  if(el.id==="campAudQ"){c.aud=c.aud||{};c.aud.query=el.value;saveCamp(c);return;}
+  if(el.id==="campAudQ"){campEd(c).query=el.value;saveCamp(c);return;}
   if(el.id==="campBasis"){c.basis=el.value;clearTimeout(window.__cb);window.__cb=setTimeout(()=>{campTouched(c);saveCamp(c);},500);return;}
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
