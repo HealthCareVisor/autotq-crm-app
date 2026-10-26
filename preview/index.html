@@ -3559,7 +3559,7 @@ function formNewLead(fresh){
    '<div class="seg" style="margin:2px 0 12px"><button class="'+(k==="enduser"?"on":"")+'" data-act="nlkind" data-v="enduser">End-user</button>'+
    '<button class="'+(k==="distributor"?"on":"")+'" data-act="nlkind" data-v="distributor">Distributor</button></div>'+
    '<label class="fl">Contact name</label><input class="f" id="nlName" value="'+v("nlName")+'" placeholder="e.g. Chris Walker">'+
-   '<label class="fl">Company</label><input class="f" id="nlCo" value="'+v("nlCo")+'">'+
+   '<label class="fl">Company</label>'+comboField("nlCo","Type the company — your accounts pop up",logState.nlCo||"")+
    (k==="enduser"
     ?'<label class="fl">Distributor they buy through <span style="font-weight:400;color:var(--hint)">(if applicable)</span></label>'+comboField("nlBuyQ","Type — ours pop up, free text ok",logState.nlBuyQ||"")
     :'<label class="fl">Where are they with us?</label><div class="qa-types" style="margin-bottom:4px">'+["Potential","Set up","Stocking"].map(x=>'<span class="qchip'+(logState.nlDstStage===x?" on":"")+'" data-act="nldst" data-v="'+x+'">'+x+'</span>').join("")+'</div>')+
@@ -3571,6 +3571,10 @@ function formNewLead(fresh){
 function saveNewLead(){
   const nm=val("nlName");if(!nm){toast("Give the lead a name");return;}
   ensureLeads();
+  /* same email, or same name at the same company, is already a lead — say so instead of adding it twice */
+  const em=val("nlEmail").toLowerCase(),co=val("nlCo").toLowerCase();
+  const dup=DB.leads.find(l=>(em&&(l.email||"").toLowerCase()===em)||((l.name||"").toLowerCase()===nm.toLowerCase()&&(l.company||"").toLowerCase()===co));
+  if(dup){toast(dup.name+" is already in Leads"+(dup.company?" ("+dup.company+")":""));return;}
   const kind=logState.nlKind||"enduser";
   const buyTxt=(document.getElementById("nlBuyQ")||{value:""}).value.trim();
   const buyC=logState.nlBuyCid?company(logState.nlBuyCid):(buyTxt?DB.companies.find(c=>c.type==="distributor"&&c.name.toLowerCase()===buyTxt.toLowerCase()):null);
@@ -4542,7 +4546,7 @@ function renderFill(name){
   if(!name.trim()){box.innerHTML="";logState.dist=null;return;}
   const info=lookup(name);logState.dist=info;
   box.innerHTML='<div class="fill"><div class="row"><span class="ic info" style="border-radius:9px">'+esc(initials(info.name))+'</span>'+
-   '<div class="grow"><p class="t1">'+esc(info.name)+'</p><p class="t2" style="color:var(--info-t)">'+esc(info.website)+'</p></div>'+
+   '<div class="grow"><p class="t1">'+esc(info.name)+'</p>'+(info.guessed?'':'<p class="t2" style="color:var(--info-t)">'+esc(info.website)+'</p>')+'</div>'+
    (info.guessed?'<span class="pill gray">New</span>':'<span class="pill ok">'+svg("check")+' Found</span>')+'</div>'+
    '<div class="facts"><div><b>Industry</b><span>'+esc(info.industry)+'</span></div><div><b>HQ</b><span>'+esc((info.city?info.city+", ":"")+(info.state||"—"))+'</span></div>'+
    '<div><b>Type</b><span>'+esc(info.kind)+'</span></div><div><b>Owner</b><span>'+teamById(USER).name.split(" ")[0]+'</span></div></div>'+
@@ -4557,7 +4561,7 @@ function formAccount(kind,keep){
   const k=logState.acctKind,name=keep?((document.getElementById("dName")||{}).value||""):"";
   openSheet('<h2>New account</h2>'+
    '<div class="seg" style="margin:2px 0 12px"><button class="'+(k==="enduser"?"on":"")+'" data-act="acctkind" data-v="enduser">End-user</button><button class="'+(k==="distributor"?"on":"")+'" data-act="acctkind" data-v="distributor">Distributor</button></div>'+
-   '<label class="fl">Company name</label><input class="f" id="dName" value="'+esc(name)+'" placeholder="Start typing — known companies fill themselves in" autocomplete="off"><div id="dFill"></div>'+
+   '<label class="fl">Company name</label>'+comboField("dName","Start typing — accounts already in the CRM pop up",name)+'<div id="dFill"></div>'+
    (k==="distributor"?'<label class="fl">Where are they with us?</label><div class="qa-types" id="acctStage">'+[["potential","Potential"],["setup","Set up"],["stocking","Stocking"]].map(x=>'<span class="qchip'+(logState.acctStage===x[0]?" on":"")+'" data-act="acctstage" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>':'')+
    '<button class="btn coral block" data-act="saveNewAcct" style="margin-top:18px">Add '+(k==="distributor"?"distributor":"end-user")+'</button>');
   if(name)renderFill(name);
@@ -4569,7 +4573,8 @@ function saveAccount(){
   const dup=DB.companies.find(c=>c.name.toLowerCase()===info.name.toLowerCase());
   if(dup){toast(dup.name+" is already in Accounts");closeSheet();pushNav();curCompany=dup.id;view="roster";render();return;}
   const k=logState.acctKind||"enduser";
-  const rec={id:uid(),name:info.name,type:k,city:info.city||"",state:info.state||"",industry:info.industry||"",website:info.website||"",territory:regionFromState(info.state),owner:USER,sourcedBy:""};
+  /* an unknown company's lookup is a guess (name + ".com", industry "—") — don't save the guess as fact */
+  const rec={id:uid(),name:info.name,type:k,city:info.city||"",state:info.state||"",industry:(info.guessed||info.industry==="—")?"":(info.industry||""),website:info.guessed?"":(info.website||""),territory:regionFromState(info.state),owner:USER,sourcedBy:""};
   if(k==="distributor"){rec.dstatus=logState.acctStage==="stocking"?"setup":(logState.acctStage||"potential");if(logState.acctStage==="stocking")rec.stage="Stocking";}
   DB.companies.unshift(rec);save();logState.dist=null;closeSheet();pushNav();curCompany=rec.id;view="roster";render();window.scrollTo(0,0);toast(rec.name+" added");
 }
@@ -4856,7 +4861,7 @@ function saveFollowup(){
    links that person instead of making a duplicate. The contact side gets a "Works at" type-ahead (acctLinkFieldHTML). */
 function ncSugItems(q,cid){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
   const co=p=>(company(p.cid)||{}).name||"";
-  return DB.people.filter(p=>p.cid!==cid&&[p.name,p.email,co(p),p.branch].some(x=>String(x||"").toLowerCase().includes(q)))
+  return DB.people.filter(p=>(!cid||p.cid!==cid)&&[p.name,p.email,co(p),p.branch].some(x=>String(x||"").toLowerCase().includes(q)))
    .sort((a,b)=>(String(b.name||"").toLowerCase().startsWith(q)?1:0)-(String(a.name||"").toLowerCase().startsWith(q)?1:0)||String(a.name).localeCompare(String(b.name)))
    .slice(0,8).map(p=>'<button type="button" data-act="pickNcPerson" data-id="'+p.id+'">'+esc(p.name)+' <span style="color:var(--hint)">— '+
      esc(co(p)||p.branch||"no account yet")+(p.role&&p.role!=="Contact"?' · '+esc(p.role):'')+(p.email?' · '+esc(p.email):'')+'</span></button>');}
@@ -4946,7 +4951,7 @@ function formCard(){
   openSheet('<h2>New contact</h2><p style="color:var(--muted);font-size:14px;margin:0 0 10px">Type what you know — or snap their business card and it fills itself in.</p>'+
    '<label class="btn block" for="bcFile" style="cursor:pointer;margin-bottom:4px">'+svg("camera")+' Snap or upload their card</label>'+
    '<input type="file" id="bcFile" accept="image/*,application/pdf,.pdf" style="display:none"><div id="bcPrev"></div>'+
-   '<label class="fl">Name</label><input class="f" id="bcName" placeholder="Full name" autocomplete="off">'+
+   '<label class="fl">Name</label>'+comboField("bcName","Full name — people already in the CRM pop up","")+'<div id="bcLink"></div>'+
    '<label class="fl">Title</label><input class="f" id="bcTitle" placeholder="e.g. Safety Manager" autocomplete="off">'+
    '<label class="fl">Company</label>'+comboField("bcCoQ","Type the company — matches your accounts","")+
    '<div id="bcKindWrap" style="display:none"><label class="fl">New to the CRM — add it as</label><div class="chips" id="bcKind">'+
@@ -4957,7 +4962,7 @@ function formCard(){
    '<div style="display:flex;gap:10px"><div style="flex:2"><label class="fl">City</label><input class="f" id="bcCity" autocomplete="off"></div>'+
     '<div style="flex:1"><label class="fl">State</label><input class="f" id="bcState" maxlength="2" placeholder="FL" autocomplete="off"></div></div>'+
    '<label class="fl">Date you met</label><input class="f" id="bcDate" type="date" value="'+todayStr()+'">'+
-   '<label class="fl">Note</label><textarea class="f" id="bcNote" rows="3" placeholder="What did you do, and how did the meeting go?"></textarea>'+
+   '<label class="fl">Note <span style="font-weight:400;color:var(--hint)">(optional — with a note or a card, the meeting is logged)</span></label><textarea class="f" id="bcNote" rows="3" placeholder="What did you do, and how did the meeting go?"></textarea>'+
    '<button class="btn coral block" data-act="saveCard" style="margin-top:18px">Save contact + note</button>');
 }
 function bcStatus(html){const el=document.getElementById("bcPrev");if(el)el.innerHTML=html;}
@@ -5024,15 +5029,22 @@ function saveCard(){
     if(b.kind==="distributor"){c.territory=regionFromState(st);c.dstatus="potential";}
     DB.companies.unshift(c);newCo=true;}
   const addr=[card.street,[city||card.city,[st||String(card.state||"").toUpperCase(),card.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(", ");
-  let p=(email&&DB.people.find(x=>(x.email||"").toLowerCase()===email))||DB.people.find(x=>(x.name||"").toLowerCase()===name.toLowerCase()&&(c?x.cid===c.id:!x.cid)),isNew=!p;
+  const picked=b.pid?person(b.pid):null; // chosen from the name list: this is who they are
+  let p=picked||(email&&DB.people.find(x=>(x.email||"").toLowerCase()===email))||DB.people.find(x=>(x.name||"").toLowerCase()===name.toLowerCase()&&(c?x.cid===c.id:!x.cid)),isNew=!p;
   if(isNew){p={id:uid(),name:name,cid:c?c.id:null,branch:c?c.name+(city?" — "+city:""):"",role:title||"Contact",email:email,phone:phone,city:city,state:st,units:0,pos:0,last:null,source:"Business card"};
     if(mobile)p.mobile=mobile;if(card.street&&addr)p.address=addr;DB.people.unshift(p);}
-  else{ // already in the CRM — only fill what's blank
-    [["role",title],["email",email],["phone",phone],["mobile",mobile],["city",city],["state",st],["address",card.street?addr:""]].forEach(f=>{if(f[1]&&!p[f[0]])p[f[0]]=f[1];});
-    if(!p.cid&&c){p.cid=c.id;if(!p.branch)p.branch=c.name+(city?" — "+city:"");}}
-  const d=val("bcDate")||todayStr(),when=d===todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
-  DB.activities.unshift({id:uid(),type:"meeting",pid:p.id,cid:p.cid||null,note:val("bcNote")||"Met — business card collected",date:when,by:USER});
-  if(!p.last||new Date(when)>new Date(p.last))p.last=when;
+  else{ // already in the CRM — a matched record only gets its blanks filled; a picked one takes the form's values
+    [["role",title],["email",email],["phone",phone],["mobile",mobile],["city",city],["state",st],["address",card.street?addr:""]].forEach(f=>{if(f[1]&&(picked||!p[f[0]]))p[f[0]]=f[1];});
+    if(picked&&name)p.name=name;
+    const from=p.cid&&c&&p.cid!==c.id?company(p.cid):null;
+    if(!p.cid&&c){p.cid=c.id;if(!p.branch)p.branch=c.name+(city?" — "+city:"");}
+    else if(picked&&from&&confirm("Move "+p.name+" from "+from.name+" to "+c.name+"?\n\nA contact belongs to one account — their logged history comes with them.")){p.cid=c.id;p.branch=c.name;}}
+  /* a meeting is logged only when there is one to log — a note, or a card in hand. Typing in a name alone used to
+     log "Met — business card collected", which counted as a visit in the Team KPIs. */
+  const met=!!(val("bcNote")||b.blob||b.card);
+  if(met){const d=val("bcDate")||todayStr(),when=d===todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
+    DB.activities.unshift({id:uid(),type:"meeting",pid:p.id,cid:p.cid||null,note:val("bcNote")||"Met — business card collected",date:when,by:USER});
+    if(!p.last||new Date(when)>new Date(p.last))p.last=when;}
   save();closeSheet();pushNav();curPerson=p.id;view="person";render();window.scrollTo(0,0);
   toast(name+(isNew?" added":" updated")+(newCo?" · new account "+c.name:""));
   if(b.blob){const path="cards/"+p.id+"_"+Date.now()+(b.pdf?".pdf":".jpg"),pid=p.id;
@@ -7525,6 +7537,14 @@ document.addEventListener("click",e=>{
   if(a==="addhub"){addHub();return;}
   if(a==="saveCard"){saveCard();return;}
   if(a==="bcKind"){if(logState.bc)logState.bc.kind=t.dataset.v;document.querySelectorAll("#bcKind .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="openExistAcct"){const c=company(t.dataset.id);if(c){closeSheet();pushNav();curCompany=c.id;view="roster";render();window.scrollTo(0,0);}return;}
+  if(a==="pickBcPerson"){const p=person(t.dataset.id),b=logState.bc;if(p&&b){b.pid=p.id;sugRender("bcName",[]);
+    const set=(i,v)=>{const e=document.getElementById(i);if(e&&v)e.value=v;},co=company(p.cid);
+    set("bcName",p.name);set("bcTitle",p.role&&p.role!=="Contact"?p.role:"");set("bcEmail",p.email);set("bcPhone",p.phone);set("bcMobile",p.mobile);set("bcCity",p.city);set("bcState",personStates(p)[0]||p.state);
+    if(co){b.cid=co.id;set("bcCoQ",co.name);bcSyncCompany();}
+    const el=document.getElementById("bcLink");if(el)el.innerHTML='<div class="banner" style="margin:10px 0 0">'+svg("users")+'<span>Already in the CRM — saving updates <b>'+esc(p.name)+'</b>'+(co?' ('+esc(co.name)+')':'')+' instead of adding them again.</span></div>';}return;}
+  if(a==="pickNlCo"){const c=company(t.dataset.id);if(c){const i=document.getElementById("nlCo");if(i)i.value=c.name;logState.nlCo=c.name;sugRender("nlCo",[]);
+    const st=document.getElementById("nlState");if(st&&!st.value&&c.state)st.value=c.state;}return;}
   if(a==="pickBcCo"){const c=company(t.dataset.id);if(c&&logState.bc){logState.bc.cid=c.id;const i=document.getElementById("bcCoQ");if(i)i.value=c.name;sugRender("bcCoQ",[]);bcSyncCompany();}return;}
   if(a==="cardview"){openCardPhoto(id);return;}
   if(a==="travel"){formTravel();return;}
@@ -7731,7 +7751,9 @@ document.addEventListener("input",e=>{
     if(col==="c1"){c.partNos=c.partNos||{};if(v)c.partNos[row]=v;else delete c.partNos[row];}
     save();return; // no re-render — keep focus while typing
   }
-  if(e.target.id==="dName")renderFill(e.target.value);
+  if(e.target.id==="dName"){renderFill(e.target.value);
+    if(document.getElementById("dName_sug")){const it=acctSugItems(e.target.value,"openExistAcct");
+      sugRender("dName",it.length?['<div style="padding:6px 10px 4px;font-size:12px;color:var(--muted)">Already in the CRM — tap to open</div>'].concat(it):[]);}}
   if(e.target.id==="travelState")renderTravel();
   if(e.target.id==="gsearch"){const q=e.target.value;
     if(q.trim()){if(view!=="search")pushNav();searchQ=q;view="search";}
@@ -7752,6 +7774,9 @@ document.addEventListener("input",e=>{
   if(e.target.id==="lnkCoQ"){logState.lnkCid=null;sugRender("lnkCoQ",acctSugItems(e.target.value,"pickLnkCo"));lnkSyncKind();return;}
   if(e.target.id==="oCidQ"){logState.oppCid=null;sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct"));return;}
   if(e.target.id==="bcFile"){bcHandleFile(e.target.files&&e.target.files[0]);return;}
+  if(e.target.id==="bcName"){const b=logState.bc;if(b&&b.pid){b.pid=null;const el=document.getElementById("bcLink");if(el)el.innerHTML="";}
+    sugRender("bcName",ncSugItems(e.target.value,null).map(x=>x.replace('data-act="pickNcPerson"','data-act="pickBcPerson"')));return;}
+  if(e.target.id==="nlCo"){logState.nlCo=e.target.value;sugRender("nlCo",acctSugItems(e.target.value,"pickNlCo"));return;}
   if(e.target.id==="bcCoQ"){if(logState.bc)logState.bc.cid=null;sugRender("bcCoQ",acctSugItems(e.target.value,"pickBcCo"));bcSyncCompany();return;}
   if(e.target.id==="rCidQ"){logState.repCid=null;sugRender("rCidQ",acctSugItems(e.target.value,"pickRepCo",["distributor","manrep","partner"]));return;}
   if(e.target.id==="oDistQ"){logState.oppDistCid=null;sugRender("oDistQ",acctSugItems(e.target.value,"pickOppDist",["distributor"]));return;}
