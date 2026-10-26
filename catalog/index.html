@@ -544,7 +544,7 @@ svg.usmap .dots{stroke:var(--dots)}
 .lichecks li.ok .i{color:var(--ok)}.lichecks li.no{color:var(--warn)}.lichecks li.no .i{color:var(--warn)}.lilist a{color:var(--ink)}
 @media (max-width:900px){.liweek,.licols{grid-template-columns:1fr}}
 /* LinkedIn visuals (2026-10-25): the stat card and the product photo, side by side at the feed's 4:5 */
-.livis{display:grid;grid-template-columns:repeat(2,minmax(0,240px));gap:16px}
+.livis{display:grid;grid-template-columns:repeat(2,minmax(0,230px));gap:16px}
 .livfig{margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
 .livimg{display:block;width:100%;aspect-ratio:4/5;padding:0;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--panel);cursor:zoom-in}
 .livimg img{display:block;width:100%;height:100%;object-fit:cover}.livimg.photo{background:#fff}.livimg.photo img{object-fit:contain}
@@ -559,16 +559,6 @@ svg.usmap .dots{stroke:var(--dots)}
 .livgrid button:hover,.livgrid button:focus-visible{border-color:var(--ink-3)}.livgrid button.on{border-color:var(--coral);box-shadow:var(--ring)}
 .livgrid img{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;background:#fff;border-radius:6px}.livgrid small{font-size:11px;line-height:1.3;color:var(--ink-3)}
 @media (max-width:520px){.livis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
-.lived{display:grid;grid-template-columns:minmax(0,300px) minmax(0,460px);gap:20px;align-items:start}
-.livprev,.livframe{aspect-ratio:4/5;border:1px solid var(--rule);border-radius:var(--r);overflow:hidden;background:var(--paper)}
-.livprev canvas{display:block;width:100%;height:100%}
-.livframe{position:relative;background:#fff;cursor:grab;touch-action:none;user-select:none}.livframe:active{cursor:grabbing}
-.livframe:focus-visible{outline:none;border-color:var(--ink-3);box-shadow:var(--ring)}
-.livframe img,.livcrop img{position:absolute;max-width:none;pointer-events:none}
-.livcrop{position:relative;display:block;width:100%;height:100%;overflow:hidden}.livimg.photo .livcrop img{object-fit:fill}
-.livform{display:flex;flex-direction:column;gap:10px;min-width:0}.livform label small{display:block;font-size:12px;color:var(--ink-3);margin-bottom:4px}
-.livform input.f{width:100%}.livform input[type=range]{width:100%;accent-color:var(--coral)}.livform .lichecks{margin:0}
-@media (max-width:640px){.lived{grid-template-columns:minmax(0,1fr)}.livprev,.livframe{max-width:300px}}
 /* LinkedIn › Post (2026-10-21, Max: "show MTWTF SS… past posts and the engagement… a brief overview of our profile… a high level
    social media engine"): the profile up top, the week as seven days, then every past post with its numbers */
 .liprof .likpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-top:1px solid var(--rule)}
@@ -598,45 +588,6 @@ svg.usmap .dots{stroke:var(--dots)}
 .limetin{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:6px}.limetin label{display:flex;flex-direction:column;gap:3px;width:112px}
 .limetin small{font-size:11.5px;color:var(--ink-3)}
 .limsg{max-width:720px}
-.pros .prostools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--rule-2)}
-.pros .prostools .chips{margin:0;justify-content:flex-start}
-.pros #prosQ{max-width:300px;margin-left:auto}
-.pros select.prossel{height:40px;font-size:13.5px;font-weight:600;max-width:380px;flex:0 1 auto}
-.pcamp{border-top:1px solid var(--rule-2);border-bottom:1px solid var(--rule-2);background:var(--panel)}
-.pcamp>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:10px 16px;cursor:pointer;font-size:13.5px;flex-wrap:wrap}
-.pcamp>summary::-webkit-details-marker{display:none}.pcamp>summary .t2{white-space:normal}
-.pcamp .fchev{margin-left:auto;transition:transform .2s}.pcamp[open] .fchev{transform:rotate(180deg)}
-.pmsgs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 16px 14px}
-.pmsg{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
-.pmsg small{font-size:11.5px;font-weight:650;color:var(--ink-3);text-transform:uppercase;letter-spacing:.03em}
-.pmsg p{margin:0;font-size:13px;line-height:1.5;white-space:pre-line;overflow-wrap:anywhere;flex:1}.pmsg .btn{align-self:flex-start}
-.ptok{background:var(--coral-wash);color:var(--coral-ink);border-radius:4px;padding:0 3px;font-weight:600}
-.pcampnone{padding:10px 16px;margin:0;border-top:1px solid var(--rule-2)}
-.psteps{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
-.pstep{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--ok-wash);color:var(--ok);font:inherit;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer}
-.pstep .i{width:12px;height:12px}
-@media (max-width:900px){.pmsgs{grid-template-columns:1fr}}
-.pros .prosnote{padding:10px 16px 12px;margin:0;white-space:normal;line-height:1.5}
-.prow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1.4fr) auto;gap:6px 18px;align-items:center;padding:12px 16px;border-top:1px solid var(--rule)}
-.prow .pco b{display:block;line-height:1.35}.prow .pco a{color:var(--ink);text-decoration:none}.prow .pco a:hover{text-decoration:underline}
-.prow small{display:block;font-size:12px;color:var(--ink-3);line-height:1.4;overflow-wrap:anywhere}
-.pli{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
-.pli a{display:inline-flex;align-items:center;gap:4px;color:var(--info);text-decoration:none;font-weight:550}.pli a:hover{text-decoration:underline}.pli a.miss{color:var(--ink-3)}
-.pli .i{width:14px;height:14px;flex:none}
-.pfmt b{display:block;font-size:13px;font-weight:600;overflow-wrap:anywhere;line-height:1.4}.pfmt b.none{color:var(--ink-3);font-weight:500}.pfmt small a{color:var(--ink-3)}
-.prow>.btn{justify-self:end;flex:none}
-.ppls{grid-column:1/-1;border-left:2px solid var(--coral);margin:4px 0 0 2px;padding-left:12px;display:flex;flex-direction:column;gap:6px}
-.ppl{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}.ppl .nm{min-width:150px}.ppl .nm a{color:var(--ink)}.ppl .nm small{display:inline;margin-left:6px}
-.pem{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}.pem code{font-family:inherit;font-size:12.5px;font-weight:550;background:var(--panel);padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
-.ppl .ibtn{width:28px;height:28px}
-.lifold>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 16px;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--paper);cursor:pointer;font-size:14px;flex-wrap:wrap}
-.lifold>summary::-webkit-details-marker{display:none}.lifold>summary .t2{white-space:normal}
-.lifold .fchev{margin-left:auto;transition:transform .2s}.lifold[open] .fchev{transform:rotate(180deg)}
-.lifold[open]>summary{margin-bottom:14px}
-@media (max-width:900px){.prow{grid-template-columns:minmax(0,1fr) auto}.prow .pli,.prow .pfmt{grid-column:1/-1}.prow>.btn{grid-row:1;grid-column:2}}
-@media (max-width:640px){.pros #prosQ{max-width:none;margin-left:0}.ppl .nm{min-width:0;flex:1 1 100%}}
-.liinv .pill{flex:none}.liinv .btn{flex:none}.liinv .nm a{color:var(--ink);text-decoration:none}.liinv .nm a:hover{text-decoration:underline}
-@media (max-width:700px){.liinv{flex-wrap:wrap}.liinv .nm{flex:1 1 100%}}
 @media (max-width:1100px){.liprof .likpis{grid-template-columns:repeat(3,minmax(0,1fr))}.likpi{border-bottom:1px solid var(--rule)}.limets{gap:12px}}
 @media (max-width:900px){
   .liwk{gap:4px;padding:12px}
@@ -790,7 +741,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=APP==="catalog"?["catalogItems"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites","prospects"]; // orders: the past-buyer guard (pastBuyers); liInvites: LinkedIn › Messenger › Follow invites; prospects: › Prospects by industry
+const PULL_COLLECTIONS=APP==="catalog"?["catalogItems"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs"]; // orders: the past-buyer guard (pastBuyers)
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -947,12 +898,12 @@ function buyerHit(l){const k=(DB.orders||[]).length+"|"+(DB.companies||[]).lengt
   if(BUYERS.key!==k)BUYERS={key:k,test:pastBuyers(DB.orders,DB.companies,DB.people)};return l&&l.email?BUYERS.test(l):null;}
 const CAMP_TEMPLATES={ // sequences from AutoTQ_Outbound_Playbook.html (2026-10-17). Safe wording only: never "2x an AED", "78–84% fail", "92%", "FDA approved". {{video}} = the 90-second confidence VSL (VIDEO_URL).
  enduser:{name:"End-user · by industry",who:"Safety managers and buyers — industry page + stat, demo-unit offer",steps:[
-  {day:1,subject:"Next to the AED at {{company}}?",body:"{{first_name}} — in studies of untrained adults, fewer than one in four get a manual tourniquet on correctly. That's the design, not your team.\n\nAutoTQ is the automatic one: cuff above the bleed, press Inflate, the inflator sets the pressure and talks you through it. 36 of 36 first-time users got it on, 33 with no help.\n\nHere's how {{industry}} sites set it up: {{industry_page}}\n\nWorth a 10-minute look?\n{{rep}}"},
+  {day:1,subject:"Next to the AED at {{company}}?",body:"{{first_name}} — in studies of untrained adults, fewer than one in four get a windlass tourniquet on correctly. That's the design, not your team.\n\nAutoTQ is the automatic one: cuff above the bleed, press Inflate, the inflator sets the pressure and talks you through it. 36 of 36 first-time users got it on, 33 with no help.\n\nHere's how {{industry}} sites set it up: {{industry_page}}\n\nWorth a 10-minute look?\n{{rep}}"},
   {day:4,subject:"Re: Next to the AED at {{company}}?",body:"{{first_name}} — one number from your world: {{industry_stat}}\n\nThe Florida Panthers, FAU and Lee County put AutoTQ next to their AEDs. Each took days, not quarters.\n\nWant a demo unit sent to {{city}}? I can ship one this week.\n{{rep}}"},
   {day:10,subject:"Re: Next to the AED at {{company}}?",body:"Last note from me. If bleeding control is on the list this year, I'd rather you have the information now than after an incident.\n\nOne page: {{industry_page}}\n\nReply \"send it\" and a demo unit is on the way.\n{{rep}}"}]},
  confidence:{name:"Confidence · end-users (NSC)",who:"Playbook lane 3 — conference end-users: safety / EHS managers who saw the booth. Three subject lines as variants A/B/C; the reviewer picks or keeps the test",steps:[
   {day:1,subject:"Someone is bleeding at {{company}}",alts:[{subject:"Would your team be confident?",body:""},{subject:"Your coworker is bleeding. Then what?",body:""}],body:"{{first_name}},\n\nSomeone in your building is bleeding. A coworker. With what's on your wall right now, would your people be confident they could help? Not \"do we have a kit.\" Confident.\n\nWe met at {{conference}}. The 90-second version of what you saw at the booth, on an arm: {{video}}\n\nCuff above the bleed, press Inflate, the inflator sets the pressure and talks you through it. Nothing to judge by hand, so it works for the person who's closest, not just the two who took the class.\n\nWorth 15 minutes to put it on your arm?\n\n{{rep}}"},
-  {day:4,subject:"Re: Someone is bleeding at {{company}}",body:"{{first_name}}, one number from your industry: {{industry_stat}}\n\nAnd one about tourniquets: in studies of untrained adults, fewer than one in four get a manual tourniquet on correctly, and people who were trained lose most of it within a year. That's the design, not your team.\n\nAutoTQ makes the judgment for them. 36 of 36 first-time users got it on. Who on your team would you want to feel confident? I'll put it on their arm. {{video}}\n\n{{rep}}"},
+  {day:4,subject:"Re: Someone is bleeding at {{company}}",body:"{{first_name}}, one number from your industry: {{industry_stat}}\n\nAnd one about tourniquets: in studies of untrained adults, fewer than one in four get a windlass on correctly, and people who were trained lose most of it within a year. That's the design, not your team.\n\nAutoTQ makes the judgment for them. 36 of 36 first-time users got it on. Who on your team would you want to feel confident? I'll put it on their arm. {{video}}\n\n{{rep}}"},
   {day:10,subject:"Re: Someone is bleeding at {{company}}",body:"{{first_name}}, last note. A severe limb bleed can take a life in about five minutes; the median ambulance arrives in seven. The person who helps is whoever is closest.\n\nIt belongs beside every AED you own, for a fraction of what the AED cost. Free training for everyone, free cuff replacement, reusable inflator. If you buy safety supplies through a distributor, tell me who and we'll route it through them.\n\n15 minutes this week or next? {{video}}\n\n{{rep}}"}]},
  distrep:{name:"Distributor rep (show)",who:"Playbook lane 4 — sellers who stopped at the booth (Grainger, ESI, Colony, Ritz…). Send from Hannah's inbox",steps:[
   {day:1,subject:"The product beside the AED you already sell",body:"{{first_name}}, good to meet you at {{conference}}.\n\nSimple rule for AutoTQ: anywhere your customer has an AED on the wall, there's an AutoTQ sale next to it. You already stand in front of that buyer.\n\nIt sells the way you saw at the booth: ask if they've had a bleeding incident, then put it on their arm. 90 seconds of that, to forward to your accounts: {{video}}\n\nWe train your team free, we have a demo-unit program so you carry one, and every lead we generate in your territory goes to you. We don't sell direct.\n\n20 minutes for your team this month?\n\n{{rep}}"},
@@ -960,15 +911,15 @@ const CAMP_TEMPLATES={ // sequences from AutoTQ_Outbound_Playbook.html (2026-10-
   {day:12,subject:"Re: The product beside the AED you already sell",body:"Closing the loop. If a demo unit in your bag would help this quarter, reply \"send it\" with your address and the 20-minute training link comes with it.\n\n{{rep}}"}]},
  ems:{name:"EMS / Fire",who:"Playbook lane 5 — paramedics, training coordinators, chiefs. They are confident with a tourniquet; the angle is the bystander before they arrive",steps:[
   {day:1,subject:"The cuff rides to the hospital",body:"{{first_name}}, good to meet you at {{conference}}.\n\nYou're confident with a tourniquet. The person who finds the patient four minutes before you isn't. AutoTQ is for them: cuff above the bleed, press Inflate, the inflator sets the pressure and talks them through it.\n\nThe part crews ask about: the cuff rides to the hospital with the patient, you keep the inflator, we replace the cuff free. 90 seconds on an arm: {{video}}\n\nWant a unit to run through your protocol review? Reply \"send it\".\n\n{{rep}}"},
-  {day:6,subject:"Re: The cuff rides to the hospital",body:"{{first_name}}, the public-access angle: anywhere your district already has an AED, AutoTQ beside it gives the bystander something that works before you arrive. Fewer than one in four untrained adults get a manual tourniquet on correctly; 36 of 36 first-timers got AutoTQ on. Happy to send the one-pager for your medical director.\n\n{{rep}}"},
+  {day:6,subject:"Re: The cuff rides to the hospital",body:"{{first_name}}, the public-access angle: anywhere your district already has an AED, AutoTQ beside it gives the bystander something that works before you arrive. Fewer than one in four untrained adults get a windlass on correctly; 36 of 36 first-timers got AutoTQ on. Happy to send the one-pager for your medical director.\n\n{{rep}}"},
   {day:12,subject:"Re: The cuff rides to the hospital",body:"Last note. Training is free and open at "+SITE_URL+"training if it's useful for your community classes. One reply away if the protocol review comes up.\n\n{{rep}}"}]},
  campus:{name:"Campus police (IACLEA)",who:"Playbook lane 6 — campus chiefs, lieutenants, directors of campus safety; never met us, know FAU. Opens \"Chief {{last_name}}\" — change the rank by hand for a non-chief list. Naming FAU needs their OK",steps:[
   {day:1,subject:"FAU put one in every patrol car",body:"Chief {{last_name}},\n\nFlorida Atlantic University's police department put an AutoTQ in every patrol vehicle and beside nearly every AED on campus, 150 units. Their chief and EHS decided together.\n\nWhy a second tourniquet when officers already carry one: the person who finds the student is usually not the officer. AutoTQ is the one anyone can use. Cuff above the bleed, press Inflate, the inflator sets the pressure and talks them through it. 90 seconds: {{video}}\n\nWould 15 minutes with your EHS lead on the same call be useful? I'll put it on both your arms.\n\n{{rep}}"},
-  {day:4,subject:"Re: FAU put one in every patrol car",body:"Chief {{last_name}}, one number: in Aurora, CO, police arrived about four minutes before EMS across 43 tourniquet applications (JSOM). Those four minutes belong to whoever is on scene. In studies, fewer than one in four untrained adults get a manual tourniquet on correctly; 36 of 36 got AutoTQ on. {{video}}\n\n{{rep}}"},
+  {day:4,subject:"Re: FAU put one in every patrol car",body:"Chief {{last_name}}, one number: in Aurora, CO, police arrived about four minutes before EMS across 43 tourniquet applications (JSOM). Those four minutes belong to whoever is on scene. In studies, fewer than one in four untrained adults get a windlass on correctly; 36 of 36 got AutoTQ on. {{video}}\n\n{{rep}}"},
   {day:10,subject:"Re: FAU put one in every patrol car",body:"Last note from me. If the FAU write-up would help you make the case internally, reply \"send it\". Training is free and open for your officers and your RAs alike.\n\n{{rep}}"}]},
  inbound:{name:"Inbound website leads",who:"Playbook lane 2 — people who filled in the theautotq.com form and never got an answer. No name fields on purpose (most rows have only an email). Send from hello@",steps:[
   {day:1,subject:"You asked about AutoTQ",body:"Hi,\n\nYou reached out through theautotq.com a while back and we never gave you a proper answer. Here it is, in 90 seconds: Hannah puts AutoTQ on an arm and the device talks her through it. {{video}}\n\nThe short version: cuff above the bleed, press Inflate, the inflator sets the pressure. Nothing to judge by hand.\n\nAre you still looking at bleeding control for your site? Reply with your state and I'll have the right person put it on your arm in 15 minutes.\n\n{{rep}}"},
-  {day:4,subject:"Re: You asked about AutoTQ",body:"One number: in studies of untrained adults, fewer than one in four get a manual tourniquet on correctly. AutoTQ: 36 of 36 first-timers got it on. If the question that brought you to our site was \"could my people actually do this\", that's the answer. Want the 15 minutes? {{video}}\n\n{{rep}}"},
+  {day:4,subject:"Re: You asked about AutoTQ",body:"One number: in studies of untrained adults, fewer than one in four get a windlass tourniquet on correctly. AutoTQ: 36 of 36 first-timers got it on. If the question that brought you to our site was \"could my people actually do this\", that's the answer. Want the 15 minutes? {{video}}\n\n{{rep}}"},
   {day:10,subject:"Re: You asked about AutoTQ",body:"Last one from me. If it's not the right time, reply \"later\" and I'll check back in the spring. If you'd rather buy through a distributor you already use, tell me who; we work with most of them.\n\n{{rep}}"}]},
  demoholders:{name:"Demo holders · activation",who:"Playbook lane 7 — distributor reps and man-reps holding a free unit who never finished the 15-minute training. Send from Hannah's inbox",steps:[
   {day:1,subject:"The AutoTQ in your bag",body:"{{first_name}}, you've had an AutoTQ in your bag for a while now. Quick ask: 15 minutes at "+SITE_URL+"training, and three things switch on: your replacement cuff is free whenever you deploy one, leads we get in your territory route to you, and you can demo it on a customer's arm without a script.\n\nIf you want the fast version first, here's Hannah on an arm in 90 seconds: {{video}}\n\nWhich account are you taking it to first?\n\n{{rep}}"},
@@ -976,11 +927,11 @@ const CAMP_TEMPLATES={ // sequences from AutoTQ_Outbound_Playbook.html (2026-10-
   {day:12,subject:"Re: The AutoTQ in your bag",body:"If the unit isn't going to get used, no hard feelings: reply \"return\" and I'll send a label so it goes to a rep who will carry it. Otherwise, the training is here: "+SITE_URL+"training\n\n{{rep}}"}]},
  retouch:{name:"Re-touch · stale show leads (ASSP)",who:"Playbook lane 8 — emailed once months ago, quiet since. New news + the confidence question; emails 2 and 3 are the Confidence lane's",steps:[
   {day:1,subject:"Since {{conference}}: would your team be confident?",body:"{{first_name}}, we met at {{conference}} and I sent one note after. Since then we've put AutoTQ into an NHL arena and across a university police department, and we finally filmed the thing we kept trying to describe: Hannah putting it on an arm while the device talks her through it. 90 seconds: {{video}}\n\nThe question I should have asked then: if a coworker were bleeding at {{company}} today, would your people be confident they could help?\n\n15 minutes to put it on your arm?\n\n{{rep}}"},
-  {day:4,subject:"Re: Since {{conference}}: would your team be confident?",body:"{{first_name}}, one number from your industry: {{industry_stat}}\n\nAnd one about tourniquets: in studies of untrained adults, fewer than one in four get a manual tourniquet on correctly, and people who were trained lose most of it within a year. That's the design, not your team.\n\nAutoTQ makes the judgment for them. 36 of 36 first-time users got it on. Who on your team would you want to feel confident? I'll put it on their arm. {{video}}\n\n{{rep}}"},
+  {day:4,subject:"Re: Since {{conference}}: would your team be confident?",body:"{{first_name}}, one number from your industry: {{industry_stat}}\n\nAnd one about tourniquets: in studies of untrained adults, fewer than one in four get a windlass on correctly, and people who were trained lose most of it within a year. That's the design, not your team.\n\nAutoTQ makes the judgment for them. 36 of 36 first-time users got it on. Who on your team would you want to feel confident? I'll put it on their arm. {{video}}\n\n{{rep}}"},
   {day:10,subject:"Re: Since {{conference}}: would your team be confident?",body:"{{first_name}}, last note. A severe limb bleed can take a life in about five minutes; the median ambulance arrives in seven. The person who helps is whoever is closest.\n\nIt belongs beside every AED you own, for a fraction of what the AED cost. Free training for everyone, free cuff replacement, reusable inflator. If you buy safety supplies through a distributor, tell me who and we'll route it through them.\n\n15 minutes this week or next? {{video}}\n\n{{rep}}"}]},
  schools:{name:"School nurses (NASN)",who:"Playbook lane 9 — school nurses and district nursing directors; the angle is the coach, the custodian, the front office when the nurse is in the other building. Send from Hannah's inbox",steps:[
   {day:1,subject:"When the nurse is in the other building",body:"{{first_name}}, good to meet you at {{conference}}.\n\nYou'd be confident with a tourniquet. The question is the coach on the far field, the custodian, the front office, on the day you're at the other school. Would they be?\n\nAutoTQ is the tourniquet they can use: cuff above the bleed, press Inflate, the inflator sets the pressure and talks them through it. 90 seconds on an arm: {{video}}\n\nIf it would help, I'll send a one-page summary you can hand to the district with the AED paperwork.\n\n{{rep}}"},
-  {day:5,subject:"Re: When the nurse is in the other building",body:"{{first_name}}, a number for the district: 99,073 public schools in the U.S. and about 49 million students (NCES); more than 5 million people trained through Stop the Bleed. The kits those classes teach hold a manual tourniquet, and in studies fewer than one in four untrained adults get one on correctly. 36 of 36 first-timers got AutoTQ on. One beside every AED in the district: {{video}}\n\n{{rep}}"},
+  {day:5,subject:"Re: When the nurse is in the other building",body:"{{first_name}}, a number for the district: 99,073 public schools in the U.S. and about 49 million students (NCES); more than 5 million people trained through Stop the Bleed. The kits those classes teach hold a windlass, and in studies fewer than one in four untrained adults get one on correctly. 36 of 36 first-timers got AutoTQ on. One beside every AED in the district: {{video}}\n\n{{rep}}"},
   {day:12,subject:"Re: When the nurse is in the other building",body:"Last note. Training is free and open for your staff at "+SITE_URL+"training, even if you never buy. If the district wants to see it, I'll put it on the superintendent's arm.\n\n{{rep}}"}]},
  sellers:{name:"Distributor sellers in the CRM · gated",who:"Playbook lane 10 — one distributor at a time, only after Max or Hannah has told their manager it's coming. {{company}} is the distributor; type their part number in place of {{part_number}} (it blocks approval until you do). Send from Hannah's inbox",steps:[
   {day:1,subject:"One beside every AED you've sold",body:"{{first_name}}, AutoTQ is in {{company}}'s catalog ({{part_number}}). One rule makes it easy money: anywhere you've placed an AED, there's an AutoTQ sale beside it, at roughly a third of the AED's price.\n\nIt sells on the arm. 90 seconds of Hannah doing it, to forward to any account with an AED: {{video}}\n\nWe train you free in 15 minutes, we carry a demo-unit program, and leads we generate in your territory go to you. We don't sell direct.\n\nWhich account has AEDs on the wall and nothing for bleeding?\n\n{{rep}}"},
@@ -1691,7 +1642,7 @@ function render(){
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
   const titles={calls:"Calls",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Follow invites for your own connections are folded below.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
   const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="calls"?["Calls"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
@@ -1961,291 +1912,7 @@ function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStat
   if(sel){liSel=sel.id;h+='<div style="margin-top:14px">'+liPostHTML(sel)+'</div>';}
   return h+liPastHTML();}
 /* LinkedIn › Messenger — automated DMs, InMail and page-follow invites come here next (Max, 2026-10-21: "leave blank for now") */
-/* LinkedIn › Messenger › Follow invites (Max, 2026-10-26: "connect to LinkedIn and find potential buyers of AutoTQ; then invite
-   them to follow our Company page until you run out of invitations"). Max uploads LinkedIn's own Connections.csv export; the
-   panel ranks the buyers among his 1st-degree connections (safety / EHS, campus & school safety, public safety, venues &
-   facilities — end users only) and keeps them in the synced `liInvites` collection. He approves a batch here; Claude sends it
-   through the Page's own Invite connections window in his Chrome (the linkedin-follow-invites skill) and marks the results
-   here. Credits: a monthly pool shared by the page's admins, renewed on the 1st; an accepted invite returns its credit. */
-const LIINV_PERSONA={safety:["Safety / EHS","info"],campus:["Campus & school","ok"],public:["Public safety","warn"],venue:["Venues & facilities",""]};
-const LIINV_ST={candidate:"Ranked",approved:"Approved",invited:"Invited",notfound:"Not found",skipped:"Skipped"};
-let liInvShow=25,liInvBusy=false;
-function liInvites(){return (DB.liInvites||[]).filter(r=>r&&r.id&&r.name);}
-function liInvState(){return (DB.settings||[]).find(x=>x&&x.id==="liInviteState")||{id:"liInviteState"};}
-/* who is a buyer: title + company, end users only. Returns {persona, score, reason} or null */
-const LIINV_OUT=/golden hour medical|autotq|grainger|fastenal|msc industrial|cintas|unifirst|ritz safety|medique|henry schein|mckesson|bound tree|north american rescue|moore medical|school health corp|airgas|global industrial|zoro|uline|vallen|applied industrial|w\.?\s?w\.? grainger|safeware|ferguson|wesco|mallory/i;
-const LIINV_NOT=/\b(student|intern|retired|recruit\w*|talent acquisition|staffing|sales|account (manager|executive)|business development|territory manager|distribut\w*|reseller|wholesale|marketing|realtor|real estate agent|cyber\w*|information security|infosec|it security|network security|software|consultant)\b/i;
-function liInvRank(position,company){
-  const p=String(position||""),c=String(company||""),pc=p+" "+c;
-  if(!p.trim()||LIINV_OUT.test(c)||LIINV_NOT.test(p))return null;
-  const senior=/\b(chief|director|head|vp|vice president|president|superintendent|commander|captain|lieutenant|deputy chief|assistant chief|manager|coordinator|administrator|supervisor|officer|lead|specialist|sergeant|marshal|owner|principal)\b/i.test(p);
-  const exec=/\b(chief|director|head|vp|vice president|president|superintendent|commander|captain|deputy chief|assistant chief|owner)\b/i.test(p);
-  const school=/\b(universit|college|school|isd|usd|academy|k-?12|campus|district schools|public schools)/i.test(c)||/\bcampus\b/i.test(p);
-  const pub=/\b(police|sheriff|deputy|trooper|law enforcement|fire|firefighter|ems\b|emt\b|paramedic|rescue|emergency (management|manager|services)|911|public safety|swat|tactical|homeland security)\b/i;
-  const safe=/\b(ehs|hse|she|safety|environmental health|occupational|osha|risk manag\w*|loss prevention|industrial hygien\w*|emergency (preparedness|response|planning)|security)\b/i;
-  const ven=/\b(arena|stadium|venue|convention|amphitheat\w*|casino|resort|hotel|country club|gun club|shooting|range|athletic\w*|sports|ballpark|speedway|fairground|theme park|zoo|aquarium|museum|church|ymca)\b/i;
-  const fac=/\b(facilit\w*|property manag\w*|building (operations|manager|services)|operations manag\w*|guest services|aed)\b/i;
-  let persona=null,score=0,why="";
-  if(school&&(pub.test(p)||safe.test(p)||fac.test(p)||/\b(health services|emergency)\b/i.test(p))){persona="campus";score=6;why="runs safety, police or facilities at a school / campus";}
-  else if(pub.test(p)||(senior&&/\b(police|sheriff|fire (department|rescue|district|authority)|county|city of|state patrol|highway patrol|ems|emergency management)\b/i.test(c))){persona="public";score=5;why="public-safety leadership — first on scene";}
-  else if(safe.test(p)){persona="safety";score=5;why="safety / EHS role — owns bleeding-control readiness";}
-  else if(/\brange (master|officer|safety)/i.test(p)||(ven.test(c)&&(fac.test(p)||safe.test(p)||/\b(operations|general manager|gm)\b/i.test(p)))){persona="venue";score=4;why="runs a venue that already keeps AEDs";}
-  else if(fac.test(p)){persona="venue";score=3;why="facilities role — places AEDs and first-aid";}
-  if(!persona)return null;
-  if(exec)score+=3;else if(senior)score+=1;
-  return {persona,score,reason:(p.length>70?p.slice(0,68)+"…":p)+(c?" at "+c:"")+" — "+why};
-}
-function liInvId(row){const u=String(row.url||"").replace(/\/+$/,"").split("/").pop();return "lii-"+(u||(row.name+"-"+row.company)).toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,80);}
-function liInvUpload(f){
-  f.text().then(t=>{
-    const rows=csvRows(t),hi=rows.findIndex(r=>r.some(c=>/^first name$/i.test(String(c).trim())));
-    if(hi<0)throw new Error("That isn't LinkedIn's Connections.csv — Settings & Privacy → Data privacy → Get a copy of your data → Connections");
-    const H=rows[hi].map(c=>String(c).trim().toLowerCase()),col=n=>H.indexOf(n);
-    const iF=col("first name"),iL=col("last name"),iU=col("url"),iE=col("email address"),iC=col("company"),iP=col("position"),iO=col("connected on");
-    const now=new Date().toISOString(),have={};liInvites().forEach(r=>{have[r.id]=r;});
-    let scanned=0,buyers=0,added=0;
-    rows.slice(hi+1).forEach(r=>{const first=String(r[iF]||"").trim(),last=String(r[iL]||"").trim();if(!first&&!last)return;scanned++;
-      const row={name:(first+" "+last).trim(),first,last,url:iU>-1?String(r[iU]||"").trim():"",email:iE>-1?String(r[iE]||"").trim():"",company:iC>-1?String(r[iC]||"").trim():"",position:iP>-1?String(r[iP]||"").trim():"",connectedOn:iO>-1?String(r[iO]||"").trim():""};
-      const k=liInvRank(row.position,row.company);if(!k)return;buyers++;
-      const id=liInvId(row),old=have[id];
-      const rec=Object.assign({},old||{id,status:"candidate",importedAt:now},row,k,{seenAt:now});
-      if(!old)added++;put("liInvites",rec);});
-    const st=Object.assign(liInvState(),{exportAt:now,exportFile:f.name,scanned,buyers,by:USER});put("settings",st);
-    render();toast(scanned+" connections read · "+buyers+" likely buyers"+(added?" ("+added+" new)":""));
-  }).catch(e=>toast(e.message||"Couldn't read that file"));
-}
-function liInvRow(r,acts){const pm=LIINV_PERSONA[r.persona]||["",""];
-  return '<div class="actrow liinv"><span class="nm"><b>'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+'</b><small class="what">'+esc(r.reason||"")+'</small>'+
-   (r.invitedAt?'<small>Invited '+esc(String(r.invitedAt).slice(0,10))+'</small>':'')+'</span><span class="pill '+pm[1]+'">'+pm[0]+'</span>'+acts+'</div>';}
-function liInvHTML(){
-  const all=liInvites(),st=liInvState(),by=s=>all.filter(r=>r.status===s).sort((a,b)=>(b.score||0)-(a.score||0)||String(a.name).localeCompare(String(b.name)));
-  const appr=by("approved"),cand=by("candidate"),inv=by("invited").sort((a,b)=>String(b.invitedAt||"").localeCompare(String(a.invitedAt||""))),nf=by("notfound");
-  const month=todayStr().slice(0,7),invMonth=inv.filter(r=>String(r.invitedAt||"").slice(0,7)===month).length;
-  const age=st.exportAt?Math.floor((Date.now()-new Date(st.exportAt).getTime())/864e5):null;
-  const kp=(lab,val,sub)=>'<div class="likpi"><small>'+lab+'</small><b class="num">'+val+'</b><span>'+sub+'</span></div>';
-  let h='<div class="pan liprof" style="margin-bottom:14px"><div class="ph2">'+svg("users")+'Follow invites<span class="t2" style="margin-left:4px">· your connections most likely to buy AutoTQ, invited to follow the page</span>'+
-    '<span class="meta"><button class="btn sm ghost" data-act="liinvbal">Set credits left</button><label class="btn sm" style="cursor:pointer">Upload connections<input type="file" id="liInvFile" accept=".csv" hidden></label></span></div>'+
-   '<div class="likpis">'+kp("Likely buyers",cand.length+appr.length,"waiting to be invited")+kp("Approved",appr.length,"ready to send")+kp("Invited",inv.length,invMonth+" this month")+
-    kp("Credits left",st.balance!=null?liNum(st.balance):"—",st.balanceAt?"read "+String(st.balanceAt).slice(0,10)+" · renew on the 1st":"read when Claude sends")+
-    kp("Connections export",st.exportAt?(age===0?"Today":age+"d ago"):"—",st.exportAt?(st.scanned||0)+" read · "+(st.buyers||0)+" buyers":"upload Connections.csv")+'</div>'+
-   (!st.exportAt||age>30?'<p class="t2 linote">'+(st.exportAt?'The export is over a month old — new connections are missing. ':'')+'Get it from LinkedIn: <b>Me → Settings &amp; Privacy → Data privacy → Get a copy of your data → Connections</b> → Request archive. It arrives by email in about ten minutes; upload the <b>Connections.csv</b> inside.</p>':'')+'</div>';
-  if(appr.length)h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("check")+'Approved — ready to send<span class="t2" style="margin-left:4px">· '+appr.length+' · say “send” to Claude and it invites them in LinkedIn</span>'+
-    '<span class="meta"><button class="btn sm ghost" data-act="liinvback">Move back</button><button class="btn sm" data-act="liinvdone">Mark the rest invited</button></span></div>'+
-    appr.map(r=>liInvRow(r,'<button class="btn sm ghost" data-act="liinvnf" data-id="'+esc(r.id)+'">Not found</button>')).join("")+'</div>';
-  h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("spark")+'Next up<span class="t2" style="margin-left:4px">· best match first</span>'+
-    (cand.length?'<span class="meta">'+[10,25,50].filter((n,i)=>i===0||cand.length>[10,25,50][i-1]).map(n=>'<button class="btn sm'+(n===25?' coral':'')+'" data-act="liinvapprove" data-n="'+n+'">Approve next '+Math.min(n,cand.length)+'</button>').join("")+'</span>':'')+'</div>'+
-    (cand.length?cand.slice(0,liInvShow).map(r=>liInvRow(r,'<button class="btn sm ghost" data-act="liinvskip" data-id="'+esc(r.id)+'">Skip</button>')).join("")+
-      (cand.length>liInvShow?'<button class="ibx" data-act="liinvmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(50,cand.length-liInvShow)+' more of '+cand.length+'</button>':'')
-     :'<div class="empty" style="padding:22px 16px">'+(all.length?'Everyone ranked has been invited, approved or skipped. Upload a fresh export to find new connections.':'Upload your Connections.csv to rank the buyers among your connections.')+'</div>')+'</div>';
-  if(inv.length||nf.length)h+='<details class="pan"><summary class="ph2" style="cursor:pointer">'+svg("mail")+'Sent<span class="t2" style="margin-left:4px">· '+inv.length+' invited'+(nf.length?' · '+nf.length+' not found in LinkedIn':'')+'</span></summary>'+
-    inv.slice(0,200).map(r=>liInvRow(r,'')).join("")+nf.map(r=>liInvRow(r,'<span class="pill">Not found</span>')).join("")+'</details>';
-  h+='<p class="t2" style="margin-top:12px;white-space:normal">Invites go out under Max&#39;s own name, from the AutoTQ page&#39;s <b>Invite connections</b> window. The page shares one monthly pool of credits across its admins; it renews on the 1st, and an accepted invite returns its credit. Premium auto-invites to people who engage with posts run by themselves and use no credits.</p>';
-  return h;
-}
-/* LinkedIn › Messenger › Prospects by industry (Max, 2026-10-26: "per industry… gun manufacturers and gun ranges; list out a
-   hundred or so, tell me where to grab the LinkedIn link for their bio, and snag the email structure from any role at the
-   company so I can find the safety manager and one other person, maybe procurement"). One record per company in the synced
-   `prospects` collection, grouped by `list`. A company's email `format` counts only when Claude saw a real address there
-   (`formatExample` + `formatSource`); every address built from it is a pattern — "verify before sending".
-   Same day, later (Max: "do this every day with 100 folks in different industries and create a mini campaign"): a weekday
-   Claude run adds one industry list a day (tools/prospects_push.py, rotation in tools/prospect_rotation.json) with a list
-   record `{kind:"list", list, listName, group, angle, messages:[{step,label,text}]}` = the LinkedIn mini campaign Max sends by
-   hand: connection note → (accepted) → message 1 → message 2. People carry `steps:{connect,accepted,m1,m2,replied}` dates.
-   Email checks spend Apollo credits only on the people Max adds, one at a time, after he confirms. */
-const PROS_LISTS={"gun-makers":"Gun manufacturers","gun-ranges":"Gun ranges"};
-const PROS_GROUPS=[["ranges","Ranges, gun makers & sporting"],["venues","Arenas, stadiums & venues"],["schools","Schools & universities"],["industrial","Industrial EHS"],["other","Other lists"]];
-const PROS_FMT_OK=/^(\{(first|last|f|l)\}[._-]?)+$/;
-const PROS_TITLES=["Safety manager","EHS manager","Procurement manager","Purchasing manager","Range manager","General manager","Owner"];
-const PROS_NEXT=[["connect","Connection note","Copy connection note"],["accepted","Accepted","They accepted"],["m1","Message 1","Copy message 1"],["m2","Message 2","Copy message 2"]];
-let prosList="",prosQ="",prosShow=40,liInvOpen=false,prosCampOpen=null;
-function prospects(){return (DB.prospects||[]).filter(r=>r&&r.id&&r.company&&r.kind!=="list");}
-function prosMeta(key){return (DB.prospects||[]).find(r=>r&&r.kind==="list"&&r.list===key)||null;}
-function prosLists(){const m={};prospects().forEach(r=>{const k=r.list||"other";const x=m[k]=m[k]||{key:k,name:r.listName||PROS_LISTS[k]||k,n:0,at:""};x.n++;if(String(r.importedAt||"")>x.at)x.at=String(r.importedAt||"");});
-  Object.values(m).forEach(x=>{const mt=prosMeta(x.key);if(mt){x.name=mt.listName||x.name;x.group=mt.group;x.at=mt.createdAt||x.at;}x.group=PROS_GROUPS.some(g=>g[0]===x.group)?x.group:/gun|range|sport|hunt|ammo/.test(x.key)?"ranges":"other";});
-  return Object.values(m).sort((a,b)=>String(b.at).localeCompare(String(a.at))||a.name.localeCompare(b.name));}
-function prosById(id){return prospects().find(r=>r.id===id);}
-function prosHref(u){u=String(u||"").trim();return !u?"":/^https?:\/\//i.test(u)?u:"https://"+u.replace(/^\/+/,"");}
-function prosDomain(r){const d=String(r.domain||"").trim().toLowerCase();if(d)return d.replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\/.*$/,"");
-  const ex=String(r.formatExample||"").split("@")[1];if(ex)return ex.toLowerCase();
-  const w=prosHref(r.website);try{return w?new URL(w).hostname.replace(/^www\./,""):"";}catch(e){return "";}}
-function prosLi(r){const m=String(r.liCompany||"").match(/linkedin\.com\/company\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/company/"+m[1]+"/":"";}
-function prosPeopleUrl(r,kw){const c=prosLi(r);return c?c+"people/?keywords="+encodeURIComponent(kw):"https://www.linkedin.com/search/results/people/?keywords="+encodeURIComponent(r.company+" "+kw);}
-function prosKws(r){return r.type==="range"?[["Safety","safety"],["Manager / owner","manager OR owner"]]:[["Safety","safety OR EHS"],["Procurement","procurement OR purchasing"]];}
-/* a format is shown (and used) only with the address it was learned from and where that address was seen */
-function prosFmtOk(r){return PROS_FMT_OK.test(String(r.format||""))&&!!r.formatExample&&!!r.formatSource&&!!prosDomain(r);}
-function prosNameWords(n){return String(n||"").replace(/\([^)]*\)|"[^"]*"/g," ").split(",")[0].trim().split(/\s+/).filter(x=>x&&!/^(dr|mr|mrs|ms|jr|sr|ii|iii|iv|phd|md|csp|chst|ohst|cih|pe|mba|asp)\.?$/i.test(x));}
-function prosNameParts(n){const w=prosNameWords(String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,""));
-  const cl=x=>String(x||"").toLowerCase().replace(/[^a-z-]/g,"").replace(/^-+|-+$/g,"");
-  return {first:cl(w[0]),last:cl(w.length>1?w[w.length-1]:"")};}
-function prosEmail(fmt,domain,name){const p=prosNameParts(name);if(!PROS_FMT_OK.test(String(fmt||""))||!domain||!p.first)return "";
-  if(/\{(last|l)\}/.test(fmt)&&!p.last)return "";
-  const tok={first:p.first.replace(/-/g,""),last:p.last.replace(/-/g,""),f:p.first.charAt(0),l:p.last.charAt(0)};
-  const local=fmt.replace(/\{(first|last|f|l)\}/g,(_,k)=>tok[k]);return /^[a-z0-9][a-z0-9._-]*$/.test(local)?local+"@"+domain:"";}
-/* the format a real address follows, from the person's name (used when Apollo confirms an address at a company with none) */
-function prosDeriveFmt(name,email){const loc=String(email||"").toLowerCase().split("@")[0];if(!loc)return "";
-  return ["{first}.{last}","{f}{last}","{first}{last}","{first}","{first}_{last}","{f}.{last}","{first}{l}","{last}{f}","{last}","{first}-{last}","{last}.{first}"].find(f=>prosEmail(f,"x.x",name)===loc+"@x.x")||"";}
-function prosLiPerson(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/in/"+m[1]+"/":"";}
-function prosNameFromLi(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?#\s]+)/i);if(!m)return "";
-  let s="";try{s=decodeURIComponent(m[1]);}catch(e){s=m[1];}
-  const w=s.split("-").filter(x=>x&&!/\d/.test(x)&&!/^[a-f0-9]{6,}$/i.test(x));return w.length>=2?w.map(x=>x.charAt(0).toUpperCase()+x.slice(1).toLowerCase()).join(" "):"";}
-function prosCur(){const L=prosLists();if(!L.find(x=>x.key===prosList))prosList=L.length?L[0].key:"";return prosList;}
-function prosRows(){const k=prosCur(),q=prosQ.trim().toLowerCase();
-  return prospects().filter(r=>(r.list||"other")===k&&(!q||[r.company,r.city,r.state,r.note,r.domain].concat((r.people||[]).map(p=>p.name+" "+(p.title||""))).join(" ").toLowerCase().includes(q)))
-    .sort((a,b)=>((b.people||[]).length?1:0)-((a.people||[]).length?1:0)||String(a.company).localeCompare(String(b.company)));}
-/* the mini campaign: {first} / {company} filled per person */
-function prosShortCo(c){return String(c||"").replace(/,?\s+(inc|llc|l\.l\.c|ltd|co|corp|corporation|company|incorporated)\.?$/i,"").trim();}
-function prosFill(text,r,p){const first=prosNameWords(p&&p.name)[0]||"";
-  return String(text||"").replace(/\{first\}/g,first?first.charAt(0).toUpperCase()+first.slice(1):"there").replace(/\{company\}/g,prosShortCo(r&&r.company)||"your team");}
-function prosMsg(meta,step){return ((meta&&meta.messages)||[]).find(m=>m.step===step);}
-function prosCampHTML(meta){if(!meta||!(meta.messages||[]).length)return '<p class="t2 linote pcampnone">No campaign messages for this list yet — they come with each daily list.</p>';
-  const tk=t=>esc(t).replace(/\{(first|company)\}/g,(_,k)=>'<span class="ptok">'+(k==="first"?"first name":"company")+'</span>');
-  if(prosCampOpen==null)prosCampOpen=innerWidth>640;
-  return '<details class="pcamp" id="prosCamp"'+(prosCampOpen?' open':'')+'><summary>'+svg("spark")+'<b>Mini campaign · LinkedIn</b><span class="t2">'+esc(meta.angle||"you send each step by hand; the buttons on each person copy it with their name filled in")+'</span>'+svg("chevD","fchev")+'</summary>'+
-   '<div class="pmsgs">'+meta.messages.map(m=>{const n=m.step==="connect"?String(m.text||"").replace(/\{first\}/g,"Christopher").replace(/\{company\}/g,"Company name").length:0;
-     return '<div class="pmsg"><small>'+esc(m.label||m.step)+(n?' · '+n+' / 200 characters':'')+'</small><p>'+tk(m.text)+'</p><button class="btn sm ghost" data-act="prosmsgcopy" data-v="'+esc(m.step)+'">Copy</button></div>';}).join("")+'</div></details>';}
-function prosNextStep(p){return PROS_NEXT.find(s=>!(p.steps||{})[s[0]]);}
-function prosStepsHTML(r,p,meta){const st=p.steps||{},nx=prosNextStep(p);
-  const done=PROS_NEXT.concat([["replied","Replied"]]).filter(s=>st[s[0]]).map(s=>'<button class="pstep" data-act="prosstepundo" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" data-v="'+s[0]+'" title="Undo">'+svg("check")+s[1]+' '+esc(String(st[s[0]]).slice(5).replace("-","/"))+'</button>').join("");
-  const next=st.replied?'':nx?'<button class="btn sm'+(nx[0]==="accepted"?' ghost':' coral')+'" data-act="prosnext" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" data-v="'+nx[0]+'">'+(nx[0]!=="accepted"&&!prosMsg(meta,nx[0])?'Mark '+nx[1].toLowerCase()+' sent':nx[2])+'</button>':'';
-  const rep=st.connect&&!st.replied?'<button class="btn sm ghost" data-act="prosnext" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" data-v="replied">Replied</button>':'';
-  return '<span class="psteps">'+done+next+rep+'</span>';}
-function prosPersonHTML(r,p,meta){const vk=p.kind==="verified";
-  const tag=vk?'<span class="pill ok">verified by Apollo</span>':p.kind==="typed"?'<span class="pill">typed in</span>':'<span class="pill warn">pattern — verify before sending</span>';
-  const chk=p.email&&!vk&&prosDomain(r)&&prosNameParts(p.name).last&&!p.checkStatus?'<button class="btn sm ghost" data-act="proscheck" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'">Check email · 1 credit</button>':
-    p.checkStatus&&!vk?'<span class="pill" title="Apollo checked '+esc(String(p.checkedAt||"").slice(0,10))+'">Apollo: '+esc(p.checkStatus==="no_match"?"no match":p.checkStatus)+'</span>':'';
-  return '<div class="ppl"><span class="nm"><b>'+(p.li?'<a href="'+esc(p.li)+'" target="_blank" rel="noopener">'+esc(p.name)+'</a>':esc(p.name))+'</b>'+(p.title?'<small>'+esc(p.title)+'</small>':'')+'</span>'+
-   (p.email?'<span class="pem"><code>'+esc(p.email)+'</code>'+tag+'<button class="btn sm ghost" data-act="proscopy" data-v="'+esc(p.email)+'">Copy</button>'+chk+'</span>':'<span class="t2">no email yet</span>')+
-   prosStepsHTML(r,p,meta)+
-   '<button class="ibtn" data-act="prosdel" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" aria-label="Remove '+esc(p.name)+'">'+svg("x")+'</button></div>';}
-function prosRow(r,meta){const dom=prosDomain(r),li=prosLi(r),ok=prosFmtOk(r),loc=[r.city,r.state].filter(Boolean).join(", ");
-  const ex=ok?prosEmail(r.format,dom,"Jane Smith"):"";
-  return '<div class="prow"><div class="pco"><b>'+(r.website?'<a href="'+esc(prosHref(r.website))+'" target="_blank" rel="noopener">'+esc(r.company)+'</a>':esc(r.company))+'</b>'+
-     '<small>'+esc(loc||"—")+(r.note?' · '+esc(r.note):'')+'</small></div>'+
-   '<div class="pli">'+(li?'<a href="'+esc(li)+'" target="_blank" rel="noopener">'+svg("ext")+'Company page</a>':'<a class="miss" href="'+esc("https://www.linkedin.com/search/results/companies/?keywords="+encodeURIComponent(r.company))+'" target="_blank" rel="noopener">'+svg("search")+'Find the page</a>')+
-     prosKws(r).map(k=>'<a href="'+esc(prosPeopleUrl(r,k[1]))+'" target="_blank" rel="noopener">'+svg("users")+'People: '+k[0]+'</a>').join("")+'</div>'+
-   '<div class="pfmt">'+(ok?'<small>Email format</small><b>Jane Smith → '+esc(ex)+'</b><small>seen: '+esc(r.formatExample)+' · '+(/^https?:/i.test(r.formatSource)?'<a href="'+esc(r.formatSource)+'" target="_blank" rel="noopener">source</a>':esc(r.formatSource))+'</small>'
-     :'<small>Email format</small><b class="none">No format found</b><small>'+(r.generic?'general inbox: '+esc(r.generic):'no address published')+'</small>')+'</div>'+
-   '<button class="btn sm" data-act="prosadd" data-id="'+esc(r.id)+'">'+svg("plus")+'Add a person</button>'+
-   ((r.people||[]).length?'<div class="ppls">'+r.people.map(p=>prosPersonHTML(r,p,meta)).join("")+'</div>':'')+'</div>';}
-function prosHTML(){const L=prosLists(),k=prosCur(),meta=prosMeta(k),rows=prosRows(),inList=prospects().filter(r=>(r.list||"other")===k);
-  const ppl=inList.reduce((a,r)=>a.concat(r.people||[]),[]),nF=inList.filter(prosFmtOk).length,nL=inList.filter(r=>prosLi(r)).length;
-  const cnt=s=>ppl.filter(p=>(p.steps||{})[s]).length;
-  let h='<div class="pan pros" style="margin-bottom:14px"><div class="ph2">'+svg("globe")+'Prospects by industry'+
-    '<span class="meta"><label class="btn sm ghost" style="cursor:pointer">Import list<input type="file" id="prosFile" accept=".json,.csv" hidden></label>'+(inList.length?'<button class="btn sm" data-act="prosexport">'+svg("dl")+'Export to Excel</button>':'')+'</span></div>';
-  if(!L.length)return h+'<div class="empty" style="padding:26px 16px">No industry lists yet. Ask Claude for one (“gun manufacturers and gun ranges”): it finds the companies, their LinkedIn pages and the email format each one uses, and you import the file here.</div></div>';
-  const grp=PROS_GROUPS.filter(g=>L.some(x=>x.group===g[0]));
-  h+='<div class="prostools"><select class="sel prossel" id="prosSel" aria-label="Industry list">'+grp.map(g=>'<optgroup label="'+esc(g[1])+'">'+L.filter(x=>x.group===g[0]).map(x=>'<option value="'+esc(x.key)+'"'+(x.key===k?' selected':'')+'>'+esc(x.name)+' · '+x.n+(x.at?' · '+esc(new Date(x.at).toLocaleDateString([], {month:"short",day:"numeric"})):'')+'</option>').join("")+'</optgroup>').join("")+'</select>'+
-    '<input class="f" id="prosQ" value="'+esc(prosQ)+'" placeholder="Search company, city, state, person" aria-label="Search the list"></div>'+
-   '<p class="t2 linote prosnote"><b>'+inList.length+'</b> companies · <b>'+nF+'</b> with an email format · <b>'+nL+'</b> with a LinkedIn page · <b>'+ppl.length+'</b> '+(ppl.length===1?'person':'people')+' added'+
-    (ppl.length?' · <b>'+cnt("connect")+'</b> '+(cnt("connect")===1?'note':'notes')+' sent · <b>'+cnt("accepted")+'</b> accepted · <b>'+cnt("replied")+'</b> replied':'')+'. '+
-    'To grab someone: open <b>People: Safety</b>, click the person, copy the address bar (<b>linkedin.com/in/…</b>), then <b>Add a person</b> and paste it.</p>'+prosCampHTML(meta);
-  h+=rows.length?rows.slice(0,prosShow).map(r=>prosRow(r,meta)).join("")+(rows.length>prosShow?'<button class="ibx" data-act="prosmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(60,rows.length-prosShow)+' more of '+rows.length+'</button>':'')
-    :'<div class="empty" style="padding:22px 16px">Nothing matches “'+esc(prosQ)+'”.</div>';
-  return h+'</div>';}
-function prosAddSheet(r,keep){const dom=prosDomain(r),ok=prosFmtOk(r),v=keep||{};
-  openInsp('<h2>Add a person</h2><p class="t2">at '+esc(r.company)+(ok?' · format: Jane Smith → '+esc(prosEmail(r.format,dom,"Jane Smith")):' · no email format found yet')+'</p><div class="insp-line" style="background:var(--coral)"></div>'+
-   '<label class="fl" for="prosPLi">Their LinkedIn link</label><input class="f" id="prosPLi" value="'+esc(v.li||"")+'" placeholder="linkedin.com/in/…" autocomplete="off">'+
-   '<label class="fl" for="prosPName">Name</label><input class="f" id="prosPName" value="'+esc(v.name||"")+'" placeholder="First Last" autocomplete="off">'+
-   '<label class="fl" for="prosPTitle">Title</label><div class="chips" style="justify-content:flex-start;margin:0 0 8px">'+PROS_TITLES.filter(x=>r.type==="range"?!/procure|purchas/i.test(x):!/range/i.test(x)).map(x=>'<span class="chip" data-act="prostitle" data-v="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
-   '<input class="f" id="prosPTitle" value="'+esc(v.title||"")+'" placeholder="Safety manager" autocomplete="off">'+
-   '<label class="fl" for="prosPEmail">Email</label><input class="f" id="prosPEmail" value="'+esc(v.email||"")+'" placeholder="'+(ok?'built from the name':'type it if you found it')+'" autocomplete="off">'+
-   '<p class="t2" id="prosPWhy" style="margin:6px 0 0;white-space:normal"></p>'+
-   '<div class="row" style="gap:8px;margin-top:16px"><button class="btn coral" data-act="prossave" data-id="'+esc(r.id)+'">'+svg("plus")+'Add to '+esc(r.company)+'</button><button class="btn ghost" data-act="closesheet">Cancel</button></div>');
-  prosSheetSync();setTimeout(()=>{const f=document.getElementById("prosPLi");if(f)f.focus();},30);}
-/* the sheet's email follows the name until it's typed over */
-function prosSheetSync(){const b=document.querySelector('[data-act="prossave"]'),r=b&&prosById(b.dataset.id);if(!r)return;
-  const nm=document.getElementById("prosPName"),em=document.getElementById("prosPEmail"),why=document.getElementById("prosPWhy");
-  const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),nm.value):"";
-  if(!em.dataset.edited)em.value=built;
-  why.innerHTML=em.value&&em.value===built?'Built from '+esc(r.formatExample)+' — a pattern, <b>verify before sending</b> (Check email on their row asks Apollo, 1 credit).':em.value?'Typed in — kept as you wrote it.':prosFmtOk(r)?'Type the name and the email builds itself.':'No format for this company yet'+(r.generic?' (general inbox: '+esc(r.generic)+')':'')+'. Add their email if you found it.';}
-/* one list: the company rows + its list record (name, industry group, the LinkedIn messages). Re-import keeps people. */
-function prosImportRows(rows,list,listName,meta){const g=(o,...ks)=>{for(const k of ks){const v=o[k];if(v!=null&&String(v).trim())return String(v).trim();}return "";};
-  const have={};prospects().forEach(r=>{have[r.id]=r;});const now=new Date().toISOString();let added=0,updated=0;
-  rows.forEach(o=>{if(!o||typeof o!=="object")return;const company=g(o,"name","company","companyname");if(!company)return;
-    const rec={list,listName,company,type:g(o,"type").toLowerCase()||(/range/.test(list)?"range":/maker|manufact/.test(list)?"maker":""),city:g(o,"city"),state:g(o,"state").toUpperCase(),
-      website:g(o,"website","site","url"),domain:g(o,"domain").toLowerCase(),liCompany:g(o,"liCompany","licompany","linkedin","linkedincompany"),format:g(o,"format","emailformat"),
-      formatExample:g(o,"formatExample","formatexample","example"),formatSource:g(o,"formatSource","formatsource","source"),generic:g(o,"generic","generalinbox","info"),note:g(o,"note","notes")};
-    if(!PROS_FMT_OK.test(rec.format))rec.format="";
-    const key=(prosDomain(rec)||company).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-    const id="pros-"+list+"-"+key,old=have[id];
-    put("prospects",Object.assign({id,people:[],importedAt:now},old||{},rec,{updatedAt:now,by:USER}));have[id]=1;if(old)updated++;else added++;});
-  if(meta&&(meta.messages||meta.group||meta.angle)){const old=prosMeta(list)||{};
-    put("prospects",Object.assign({id:"proslist-"+list,kind:"list",createdAt:now},old,{list,listName,group:meta.group||old.group||"",angle:meta.angle||old.angle||"",messages:meta.messages||old.messages||[],updatedAt:now,by:USER}));}
-  return {added,updated};}
-function prosImport(f){
-  f.text().then(t=>{let rows=[],list="",listName="",meta=null;
-    if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(t)){const j=JSON.parse(t);rows=Array.isArray(j)?j:(j.rows||j.companies||[]);if(!Array.isArray(j)){list=j.list||"";listName=j.listName||"";meta=j;}}
-    else{const R=csvRows(t),H=(R[0]||[]).map(x=>String(x).trim().toLowerCase().replace(/[^a-z]/g,""));rows=R.slice(1).map(r=>{const o={};H.forEach((x,i)=>{o[x]=r[i];});return o;});}
-    list=String(list||f.name.replace(/\.[^.]+$/,"")).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"list";
-    listName=listName||PROS_LISTS[list]||list.replace(/-/g," ").replace(/^./,c=>c.toUpperCase());
-    const n=prosImportRows(rows,list,listName,meta);
-    prosList=list;prosShow=40;render();toast(listName+": "+n.added+" added"+(n.updated?" · "+n.updated+" updated":"")+" — the people you added are kept");
-  }).catch(e=>toast(e&&e.message?"Couldn't read that file — "+e.message:"Couldn't read that file"));}
-function prosExport(){const k=prosCur(),L=prosLists().find(x=>x.key===k),list=prospects().filter(r=>(r.list||"other")===k).sort((a,b)=>String(a.company).localeCompare(String(b.company)));
-  const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
-  const out=[["Company","City","State","Website","LinkedIn company page","People: safety","People: second search","Email format","Format learned from","Where it was seen","General inbox","Person","Title","Person's LinkedIn","Email","Email status","LinkedIn steps"]];
-  list.forEach(r=>{const ok=prosFmtOk(r),kw=prosKws(r),base=[r.company,r.city,r.state,prosHref(r.website),prosLi(r),prosPeopleUrl(r,kw[0][1]),prosPeopleUrl(r,kw[1][1]),
-      ok?"Jane Smith → "+prosEmail(r.format,prosDomain(r),"Jane Smith"):"No format found",ok?r.formatExample:"",ok?r.formatSource:"",r.generic||""];
-    const ps=r.people||[];if(!ps.length)out.push(base.concat(["","","","","",""]));
-    ps.forEach(p=>out.push(base.concat([p.name,p.title||"",p.li||"",p.email||"",p.email?(p.kind==="verified"?"verified by Apollo":p.kind==="typed"?"typed in":"pattern — verify before sending"):"",
-      PROS_NEXT.concat([["replied","Replied"]]).filter(s=>(p.steps||{})[s[0]]).map(s=>s[1]+" "+p.steps[s[0]]).join("; ")])));});
-  const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
-  livSave(u,(L?L.name:"Prospects")+" — prospects "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+list.length+" companies — opens in Excel");}
-function prosClip(v,msg){return (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{toast(msg||("Copied "+v));return true;},()=>{toast("Couldn't copy — select it by hand");return false;});}
-async function prosCheck(r,p){const w=prosNameWords(p.name);
-  if(!confirm("Check "+p.name+"'s email at "+r.company+" in Apollo?\n\nThis uses 1 Apollo credit (your plan has 2,500 a month)."))return;
-  toast("Asking Apollo…");
-  try{const res=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"verify",people:[{first:w[0],last:w[w.length-1],domain:prosDomain(r)}]})});const b=await res.json().catch(()=>({}));
-    if(!res.ok||!b.ok)throw new Error(b.error||("HTTP "+res.status));
-    const x=(b.results||[])[0]||{},em=String(x.apolloEmail||"").toLowerCase(),now=new Date().toISOString();
-    p.checkedAt=now;p.checkStatus=x.status||"no_match";
-    if(em&&x.status==="verified"){const was=p.email;p.email=em;p.kind="verified";
-      if(!prosFmtOk(r)){const f=prosDeriveFmt(p.name,em);if(f){r.format=f;r.formatExample=em;r.formatSource="Apollo-verified ("+todayStr()+")";r.domain=r.domain||em.split("@")[1];}}
-      toast(was&&was!==em?"Apollo found a different address: "+em:"Verified: "+em);}
-    else toast(p.checkStatus==="no_match"?"Apollo doesn't know "+p.name+" — keep the pattern, verify another way":"Apollo: "+p.checkStatus+(em?" ("+em+")":""));
-    put("prospects",r);render();
-  }catch(e){toast("Couldn't check — "+(e.message||e));}}
-function prosHandle(a,t){
-  if(a==="prosmore"){prosShow+=60;render();return true;}
-  if(a==="prosexport"){prosExport();return true;}
-  if(a==="prosadd"){const r=prosById(t.dataset.id);if(r)prosAddSheet(r);return true;}
-  if(a==="prostitle"){const f=document.getElementById("prosPTitle");if(f){f.value=t.dataset.v;}return true;}
-  if(a==="prossave"){const r=prosById(t.dataset.id);if(!r)return true;const v=id=>(document.getElementById(id)||{}).value||"";
-    const li=prosLiPerson(v("prosPLi")),name=v("prosPName").trim()||prosNameFromLi(li);if(!name){toast("Add their name");return true;}
-    const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),name):"",email=(v("prosPEmail").trim()||built).toLowerCase();
-    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("That email doesn't look right");return true;}
-    r.people=(r.people||[]).concat([{id:uid(),name,title:v("prosPTitle").trim(),li,email,kind:email&&email===built?"pattern":email?"typed":"",steps:{},addedAt:new Date().toISOString(),by:USER}]);
-    put("prospects",r);closeInsp();render();toast(name+" added to "+r.company);return true;}
-  if(a==="prosdel"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p)return true;if(!confirm("Remove "+p.name+" from "+r.company+"?"))return true;
-    r.people=r.people.filter(x=>x.id!==p.id);put("prospects",r);render();return true;}
-  if(a==="proscopy"){prosClip(t.dataset.v);return true;}
-  if(a==="prosmsgcopy"){const m=prosMsg(prosMeta(prosCur()),t.dataset.v);if(m)prosClip(m.text,"Copied — {first} and {company} still need filling in");return true;}
-  if(a==="prosnext"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p)return true;const k=t.dataset.v,m=prosMsg(prosMeta(r.list),k);
-    const stamp=()=>{p.steps=Object.assign({},p.steps||{},{[k]:todayStr()});put("prospects",r);render();};
-    if(m&&k!=="accepted"&&k!=="replied")prosClip(prosFill(m.text,r,p),k==="connect"?"Copied — on their profile: Connect → Add a note → paste":"Copied — paste it into your LinkedIn chat with "+(prosNameWords(p.name)[0]||"them")).then(okc=>{if(okc)stamp();});
-    else stamp();return true;}
-  if(a==="prosstepundo"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p||!p.steps)return true;const k=t.dataset.v,lab=(PROS_NEXT.concat([["replied","Replied"]]).find(s=>s[0]===k)||[k,k])[1];
-    if(!confirm("Undo “"+lab+"” for "+p.name+"?"))return true;const st=Object.assign({},p.steps);delete st[k];p.steps=st;put("prospects",r);render();return true;}
-  if(a==="proscheck"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(p)prosCheck(r,p);return true;}
-  return false;
-}
-function viewLinkedInMsg(){const all=liInvites(),st=liInvState(),wait=all.filter(r=>r.status==="candidate"||r.status==="approved").length;
-  return prosHTML()+'<details class="lifold" id="liInvFold"'+(liInvOpen?' open':'')+'><summary>'+svg("users")+'<b>Follow invites</b><span class="t2">· '+
-    (all.length?wait+' of your connections waiting'+(st.balance!=null?' · '+liNum(st.balance)+' credits left':''):'invite the buyers among your connections to follow the AutoTQ page')+'</span>'+svg("chevD","fchev")+'</summary>'+
-    '<div class="lifoldb">'+liInvHTML()+'</div></details>';}
-function liInvHandle(a,t){
-  if(a==="liinvapprove"){const n=+t.dataset.n||25,now=new Date().toISOString(),cand=liInvites().filter(r=>r.status==="candidate").sort((x,y)=>(y.score||0)-(x.score||0)||String(x.name).localeCompare(String(y.name))).slice(0,n);
-    cand.forEach(r=>{r.status="approved";r.batch=todayStr();r.approvedBy=USER;r.approvedAt=now;put("liInvites",r);});render();toast(cand.length+" approved — tell Claude “send” to invite them");return true;}
-  if(a==="liinvskip"){const r=liInvites().find(x=>x.id===t.dataset.id);if(r){r.status="skipped";r.skippedBy=USER;r.skippedAt=new Date().toISOString();put("liInvites",r);render();}return true;}
-  if(a==="liinvnf"){const r=liInvites().find(x=>x.id===t.dataset.id);if(r){r.status="notfound";r.notfoundAt=new Date().toISOString();put("liInvites",r);render();}return true;}
-  if(a==="liinvback"){liInvites().filter(r=>r.status==="approved").forEach(r=>{r.status="candidate";delete r.batch;put("liInvites",r);});render();return true;}
-  if(a==="liinvdone"){const ap=liInvites().filter(r=>r.status==="approved");if(!ap.length)return true;if(!confirm("Mark "+ap.length+" as invited in LinkedIn?"))return true;
-    const now=new Date().toISOString();ap.forEach(r=>{r.status="invited";r.invitedAt=now;r.invitedBy=USER;put("liInvites",r);});render();toast(ap.length+" marked invited");return true;}
-  if(a==="liinvbal"){const v=prompt("Credits left in LinkedIn's Invite connections window",liInvState().balance!=null?liInvState().balance:"");if(v===null)return true;const n=liN(v);if(n==null){toast("Type a number");return true;}
-    const st=Object.assign(liInvState(),{balance:n,balanceAt:new Date().toISOString(),by:USER});put("settings",st);render();return true;}
-  if(a==="liinvmore"){liInvShow+=50;render();return true;}
-  return false;
-}
+function viewLinkedInMsg(){return '<div class="pan limsg"><div class="empty" style="padding:34px 20px;text-align:left"><p class="t1" style="margin:0 0 6px">Nothing here yet</p><p class="t2" style="margin:0;white-space:normal">Messenger will run the automated side of LinkedIn: direct messages, InMail and invites to follow the AutoTQ page.</p></div></div>';}
 /* LinkedIn's own analytics export (the page's Analytics → Content / Followers → Export): posts' numbers and new followers */
 function liXlsx(){if(window.XLSX)return Promise.resolve(window.XLSX);return new Promise((ok,no)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";sc.onload=()=>ok(window.XLSX);sc.onerror=()=>no(new Error("Couldn't load the spreadsheet reader — save the export as CSV and import that"));document.head.appendChild(sc);});}
 function liN(v){if(v==null||v==="")return null;const n=parseFloat(String(v).replace(/[,%\s]/g,""));return isNaN(n)?null:n;}
@@ -2282,7 +1949,7 @@ async function liImportFile(f){
   }catch(e){toast(e.message||"Couldn't read that file");}
 }
 function liPostHTML(p){const res=(DB.liResearch||[]);const used=(p.researchIds||[]).map(id=>res.find(r=>r.id===id)).filter(Boolean);
-  const checks=(p.checks||[]).concat(livChecks(p)).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
+  const checks=(p.checks||[]).concat([livCheck(p)].filter(Boolean)).map(c=>'<li class="'+(c.ok?"ok":"no")+'">'+svg(c.ok?"check":"alert")+'<span>'+esc(c.text)+'</span></li>').join("");
   return '<div class="pan lipost"><div class="ph2">'+svg("file")+esc(LI_PILLAR[p.pillar]||p.pillar)+' · '+esc(liWhen(p.slotAt))+'<span class="meta">'+liStatusPill(p)+'</span></div><div class="libody">'+
     (liEdit?'<textarea class="f" id="liText" style="min-height:260px;width:100%;font:inherit;line-height:1.55">'+esc(liText(p))+'</textarea>':'<div class="litext">'+esc(liText(p))+'</div>')+
     ((p.hashtags||[]).length?'<p class="litags">'+p.hashtags.map(x=>'#'+esc(x)).join(" ")+'</p>':'')+
@@ -2315,7 +1982,7 @@ function liHandle(a,t){const id=t.dataset.v;
     if(!any){toast("Type at least one number");return true;}m.src="manual";m.at=new Date().toISOString();m.by=USER;p.metrics=m;put("liPosts",p);render();toast("Numbers saved");return true;}
   if(a==="liedit"){liEdit=!!id;render();return true;}
   if(a==="lisave"){const p=liFind(id);const v=(document.getElementById("liText")||{}).value||"";if(p&&v.trim()){p.finalText=v.trim();p.edited=true;p.editedBy=USER;p.editedAt=new Date().toISOString();put("liPosts",p);}liEdit=false;render();toast("Saved");return true;}
-  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).concat(livChecks(p)).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;livStamp(p);p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
+  if(a==="liapprove"){const p=liFind(id);if(!p)return true;if((p.checks||[]).concat([livCheck(p)].filter(Boolean)).some(c=>!c.ok)&&!confirm("Some checks need a look. Approve anyway?"))return true;livStamp(p);p.status="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();put("liPosts",p);render();toast("Approved for "+liWhen(p.slotAt)+" — post it by hand then, and Mark posted");return true;}
   if(a==="lireject"){const p=liFind(id);if(!p)return true;const why=prompt("Why reject it? (the next drafts learn from this)","");if(why===null)return true;p.status="rejected";p.rejectReason=why.trim()||"no reason given";p.rejectedBy=USER;p.rejectedAt=new Date().toISOString();put("liPosts",p);liSel="";render();toast("Rejected — Draft this week fills the empty slot");return true;}
   if(a==="lirewrite"){const p=liFind(id);if(!p)return true;const note=prompt("What should the new version do differently?","");if(note===null)return true;liCall("rewrite",{id,note}).then(()=>toast("Writing a new version…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="licopy"){const p=liFind(id);if(p){const txt=liText(p)+((p.hashtags||[]).length?"\n\n"+p.hashtags.map(x=>"#"+x).join(" "):"");try{navigator.clipboard.writeText(txt);toast(p.external?"Copied — paste it into LinkedIn":"Copied — paste it into LinkedIn, then add the card and the photo");}catch(e){}}return true;}
@@ -2335,11 +2002,11 @@ function liHandle(a,t){const id=t.dataset.v;
    The card's look is the 2026-10-12 poster set (Finance/AutoTQ_Social_Shorts/build_posters.py): 1080x1350, drawn at 2x. ---------- */
 const LI_CARDS=[
  {id:"bleed5",eyebrow:"A severe limb bleed can take a life in about",big:"5 min",head:["The median ambulance","arrives in about seven."],source:"Stop the Bleed · Mell et al., JAMA Surgery 2017",re:/\b(five|5)[ -]min(ute)?s?\b/i},
- {id:"windlass",eyebrow:"In studies of untrained adults, fewer than",big:"1 in 4",accent:" in ",head:["get a manual tourniquet","on correctly."],source:"Goralnick 2018 · Ross 2018 · Goolsby 2015, 2023",re:/\bone in four\b|\b1 in 4\b|\bwindlass/i},
+ {id:"windlass",eyebrow:"In studies of untrained adults, fewer than",big:"1 in 4",accent:" in ",head:["get a windlass tourniquet","on correctly."],source:"Goralnick 2018 · Ross 2018 · Goolsby 2015, 2023",re:/\bone in four\b|\b1 in 4\b|\bwindlass/i},
  {id:"first36",eyebrow:"First-time users in AutoTQ testing",big:"36/36",accent:"/",head:["got AutoTQ on.","33 with no help."],source:"AutoTQ testing, company-run, n = 36",re:/\b36 of 36\b|\b36\/36\b|\b33 with no help\b/i},
  {id:"occl54",eyebrow:"AutoTQ occlusion study · IRB-reviewed",big:"54/54",accent:"/",head:["applications reached arterial occlusion,","Doppler-verified."],sub:"27 adults, at about 290 mmHg.",source:"theautotq.com/occlusion",re:/\b54 (of 54|applications)\b|\b290 ?mmHg\b|\bDoppler/i},
  {id:"aurora4",eyebrow:"Aurora, CO · 43 tourniquet cases",big:"~4 min",head:["Police arrived before EMS,","on average."],source:"JSOM, 2021",re:/\bAurora\b|\bfour minutes before\b/i},
- {id:"survey98",eyebrow:"National survey",big:"98%",head:["would try to stop a family member's","severe bleeding."],sub:"Only 36% said they would use a manual tourniquet.",source:"Hartford Consensus survey, J Am Coll Surg 2016",re:/\b98%/},
+ {id:"survey98",eyebrow:"National survey",big:"98%",head:["would try to help a family member","with a bleeding leg wound."],sub:"Only 36% said they would apply a tourniquet.",source:"Hartford Consensus survey, J Am Coll Surg 2016",re:/\b98%/},
  {id:"patts88",eyebrow:"After a brief course",big:"88%",head:["applied a tourniquet correctly.","3 to 9 months later, 55% could."],sub:"16% did with no instruction.",source:"PATTS randomized trial, JAMA Surgery 2018",re:/\b88%|\b55%|\bPATTS\b/},
  {id:"kragh87",eyebrow:"Battlefield survival with a needed tourniquet",big:"87%",head:["when one was applied.","0% when it wasn't."],source:"Kragh et al., Annals of Surgery 2009",re:/\b87%/},
  {id:"kragh90",eyebrow:"Survival with a tourniquet before shock: about",big:"90%",head:["After shock,","about 10%."],source:"Kragh et al., Annals of Surgery 2009",re:/\b90%|\bbefore (the onset of )?shock\b/i},
@@ -2375,40 +2042,9 @@ function livAutoPhoto(p,memo){memo=memo||{};if(memo[p.id])return memo[p.id];cons
 function liVisual(p){const v=p.visual||{},ac=livAutoCard(p),ap=v.photo?null:livAutoPhoto(p);
   return {card:v.card||ac.id,cardFallback:!v.card&&ac.fallback,theme:v.theme||"night",photo:v.photo||(ap&&ap.id)||"",picked:{card:!!v.card,photo:!!v.photo}};}
 function livStamp(p){const v=liVisual(p);p.visual=Object.assign({},p.visual||{},{card:v.card,theme:v.theme,photo:v.photo,at:(p.visual&&p.visual.at)||new Date().toISOString()});}
-/* Max's own adjustments (2026-10-26, "edit/adjust image 1 and 2"): p.visual.cardEdit {of, eyebrow, big, head[2], sub, source}
-   rewords the picked card; p.visual.photoAdj {of, z, x, y} frames the picked photo in the card's 4:5 (z 1 = the whole photo,
-   x/y = the photo point at the frame's centre, 0–1). Each holds only for the card / photo it was made on (`of`); Change or
-   "Back to the automatic picks" drops it. livEd / livAdj are the open editor's working copy, so a sync redraw keeps what's typed. */
-let livEd=null,livAdj=null;const LIV_CARD={},LIV_A=4/5,LIV_W=["zero","one","two","three","four","five","six","seven","eight","nine","ten"];
-function livNorm(s){return String(s||"").replace(/\s+/g," ").trim().toLowerCase();}
-/* a typed number as a pattern: "97%" also finds "97 percent", "1 in 3" "one in three", "36/36" "36 of 36", "5 min" "five minutes" */
-function livNumRe(big){const s=String(big||"").replace(/^[~≈]\s*/,"").replace(/\+$/,"").trim();if(!s)return null;
-  const e=s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/(^|[^\d,.])(\d{1,2})(?![\d,.])/g,(m,a,d)=>a+(LIV_W[+d]?"(?:"+d+"|"+LIV_W[+d]+")":d))
-    .replace(/\s+/g,"[\\s-]+").replace(/\//g,"(?:/| of )").replace(/%/g,"(?:%|[\\s-]*percent)").replace(/min$/i,"min(?:ute)?s?");
-  return new RegExp("(?:^|[^\\w.,])"+e+"(?!\\w|[.,]\\d)","i");}
-function livCardWith(c,e){const big=String(e.big||"").trim();
-  return Object.assign({},c,{eyebrow:String(e.eyebrow||"").trim(),big,head:(e.head||[]).map(x=>String(x||"").trim()).filter(Boolean),sub:String(e.sub||"").trim(),source:String(e.source||"").trim(),re:livNorm(big)===livNorm(c.big)?c.re:livNumRe(big)||/$^/,edited:true});}
-/* the card as drawn: the picked one, in Max's words when he edited it */
-function livCardOf(p){const c=liCard(liVisual(p).card),e=p.visual&&p.visual.cardEdit;return e&&e.of===c.id?livCardWith(c,e):c;}
-function livCardKey(c,theme){const k=c.id+"|"+theme+(c.edited?"|"+livHash(JSON.stringify([c.eyebrow,c.big,c.head,c.sub,c.source])):"");LIV_CARD[k]=c;return k;}
-/* numbers a card may carry: the studio's verified claims (LI_CARDS restates them), the claims this post used, its cited sources */
-function livLoose(p,c){const known=LI_CARDS.map(x=>[x.eyebrow,x.big,x.head.join(" "),x.sub||"",x.source].join(" ")).concat(p.claimsUsed||[],(p.sources||[]).map(s=>s.title||"")).join(" "),
-    toks=new Set(known.match(/\d[\d,.]*\d|\d/g)||[]),k=livNorm(known),w=n=>LIV_W[+n]||n;let out=[];
-  [c.eyebrow,c.big].concat(c.head||[],[c.sub]).forEach(x=>(String(x||"").match(/\d[\d,.]*\d|\d/g)||[]).forEach(n=>{if(!toks.has(n)&&!out.includes(n))out.push(n);}));
-  const m=String(c.big||"").match(/(\d+)\s*in\s*(\d+)/i);
-  if(m&&!k.includes(m[1]+" in "+m[2])&&!k.includes(w(m[1])+" in "+w(m[2]))){out=out.filter(n=>n!==m[1]&&n!==m[2]);out.push(m[1]+" in "+m[2]);}
-  return out;}
-function livLooseText(lo){return lo.length===1?"The card's "+lo[0]+" isn't a verified or sourced number":"The card's "+lo.join(", ")+" aren't verified or sourced numbers";}
-function livPhotoAdj(p){const a=p.visual&&p.visual.photoAdj;return a&&a.of===liVisual(p).photo?a:null;}
-/* where the photo sits in the 4:5 frame, as parts of the frame: zoom 1 shows the whole photo; a photo wider (or taller) than the
-   frame can't be moved past its edges */
-function livGeo(ph,a){const R=(ph&&ph.w||4)/(ph&&ph.h||3),zFill=Math.max(R/LIV_A,LIV_A/R),zMax=Math.max(2,2*zFill),z=Math.min(zMax,Math.max(1,+(a&&a.z)||1));
-  const w=Math.min(1,R/LIV_A)*z,h=w*LIV_A/R,cl=(v,s)=>s>1.0001?Math.min(1-.5/s,Math.max(.5/s,v)):.5;
-  const x=cl(a&&a.x!=null?+a.x:.5,w),y=cl(a&&a.y!=null?+a.y:.5,h);return {x,y,z,w,h,l:.5-x*w,t:.5-y*h,zFill,zMax};}
-function livGeoCss(g){return "left:"+(g.l*100).toFixed(3)+"%;top:"+(g.t*100).toFixed(3)+"%;width:"+(g.w*100).toFixed(3)+"%;height:"+(g.h*100).toFixed(3)+"%";}
 /* drawing the card */
 const LIV_IMG={};function livImg(src){return LIV_IMG[src]||(LIV_IMG[src]=new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>{delete LIV_IMG[src];no(new Error("couldn't load "+src));};im.src=src;}));}
-async function livCardCanvas(id,theme){const c=typeof id==="object"?id:liCard(id),day=theme==="day";
+async function livCardCanvas(id,theme){const c=liCard(id),day=theme==="day";
   if(document.fonts&&document.fonts.load)await Promise.all([300,500,600].map(w=>document.fonts.load(w+' 100px "Inter"'))).catch(()=>{});
   const logo=await livImg(day?"assets/lockup_ink.png":"assets/lockup_light.png").catch(()=>null);
   const W=1080,H=1350,S=2,L=72,MW=W-2*L,cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;const g=cv.getContext("2d");g.scale(S,S);
@@ -2451,96 +2087,39 @@ async function livCardCanvas(id,theme){const c=typeof id==="object"?id:liCard(id
   set(500,26,.01);g.fillStyle=C.ink;g.textAlign="right";g.fillText("theAutoTQ.com",W-L,1266);g.textAlign="left";
   return cv;}
 function livCardBlob(id,theme){return livCardCanvas(id,theme).then(cv=>new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error("couldn't make the PNG")),"image/png")));}
-function livCardURL(id,theme){const c=typeof id==="object"?id:liCard(id),k=livCardKey(c,theme);return LIV_URL[k]||(LIV_URL[k]=livCardBlob(c,theme).then(b=>URL.createObjectURL(b)).catch(e=>{delete LIV_URL[k];throw e;}));}
-function liHydrate(){document.querySelectorAll("img[data-licard]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");const k=el.getAttribute("data-licard"),[id,th]=k.split("|");livCardURL(LIV_CARD[k]||id,th).then(u=>{el.src=u;}).catch(()=>{el.alt="Couldn't draw the card";});});livWire();}
-/* the photo as framed: the full-size JPG drawn into the card's 4:5 at the card's size, white where the photo doesn't reach */
-function livPhotoURL(p){const v=liVisual(p),a=livPhotoAdj(p)||{},k="ph|"+v.photo+"|"+[a.z,a.x,a.y].join("|");
-  return LIV_URL[k]||(LIV_URL[k]=mktBlob(LI_PHOTO_DIR+v.photo+".jpg").then(livImg).then(im=>{const g=livGeo({w:im.naturalWidth,h:im.naturalHeight},a),W=2160,H=2700,cv=document.createElement("canvas");cv.width=W;cv.height=H;
-    const x=cv.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.imageSmoothingQuality="high";x.drawImage(im,g.l*W,g.t*H,g.w*W,g.h*H);
-    return new Promise((ok,no)=>cv.toBlob(b=>b?ok(URL.createObjectURL(b)):no(new Error("couldn't make the JPG")),"image/jpeg",.92));}).catch(e=>{delete LIV_URL[k];throw e;}));}
-/* the two editors: the card redraws into its preview as Max types; the photo moves by drag, wheel, arrow keys or the zoom slider */
-let livEdSeq=0;
-function livEdDraw(){if(!livEd||!document.getElementById("livEdPrev"))return;const n=++livEdSeq,p=liFind(livEd.pid),c=livCardWith(liCard(livEd.of),livEd);
-  livCardCanvas(c,livEd.theme).then(cv=>{const el=document.getElementById("livEdPrev");if(n!==livEdSeq||!el)return;cv.setAttribute("role","img");cv.setAttribute("aria-label","Card preview");el.replaceChildren(cv);}).catch(()=>{});
-  const ck=document.getElementById("livEdChk");if(ck&&p)ck.innerHTML=livEdChkHTML(p,c);}
-function livAdjDraw(){if(!livAdj)return;const g=livGeo(liPhoto(livAdj.of),livAdj);livAdj.x=g.x;livAdj.y=g.y;livAdj.z=g.z;
-  const im=document.querySelector("#livAdjFrame img");if(im)im.setAttribute("style",livGeoCss(g));
-  const zm=document.getElementById("livAdjZoom");if(zm&&document.activeElement!==zm)zm.value=g.z.toFixed(2);
-  document.querySelectorAll('[data-act="livadjz"]').forEach(b=>b.classList.toggle("on",Math.abs(g.z-(b.dataset.v==="fill"?g.zFill:1))<.01));}
-function livWire(){const pv=document.getElementById("livEdPrev");if(pv&&!pv.dataset.on){pv.dataset.on="1";livEdDraw();}
-  document.querySelectorAll("[data-lived]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");el.addEventListener("input",()=>{if(!livEd)return;const k=el.dataset.lived;
-    if(k==="h0"||k==="h1")livEd.head[+k[1]]=el.value;else livEd[k]=el.value;clearTimeout(livWire.t);livWire.t=setTimeout(livEdDraw,150);});});
-  const zm=document.getElementById("livAdjZoom");if(zm&&!zm.dataset.on){zm.dataset.on="1";zm.addEventListener("input",()=>{if(livAdj){livAdj.z=+zm.value;livAdjDraw();}});}
-  const fr=document.getElementById("livAdjFrame");if(!fr||fr.dataset.on)return;fr.dataset.on="1";
-  fr.addEventListener("pointerdown",e=>{if(!livAdj||e.button>0)return;e.preventDefault();fr.focus();const r=fr.getBoundingClientRect(),g=livGeo(liPhoto(livAdj.of),livAdj),s={x:e.clientX,y:e.clientY,ax:g.x,ay:g.y};
-    const mv=ev=>{if(!livAdj)return;livAdj.x=s.ax-(ev.clientX-s.x)/(r.width*g.w);livAdj.y=s.ay-(ev.clientY-s.y)/(r.height*g.h);livAdjDraw();},
-      up=()=>{removeEventListener("pointermove",mv);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);};
-    addEventListener("pointermove",mv);addEventListener("pointerup",up);addEventListener("pointercancel",up);});
-  fr.addEventListener("wheel",e=>{if(!livAdj)return;e.preventDefault();livAdj.z=livGeo(liPhoto(livAdj.of),livAdj).z*Math.exp(-e.deltaY/600);livAdjDraw();},{passive:false});
-  fr.addEventListener("keydown",e=>{const d={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!d||!livAdj)return;e.preventDefault();const g=livGeo(liPhoto(livAdj.of),livAdj);
-    livAdj.x=g.x-d[0]*.03/g.w;livAdj.y=g.y-d[1]*.03/g.h;livAdjDraw();});}
-function livEdOpen(p){const v=liVisual(p),c=livCardOf(p);livEd={pid:p.id,of:v.card,eyebrow:c.eyebrow,big:c.big,head:[c.head[0]||"",c.head[1]||""],sub:c.sub||"",source:c.source,theme:v.theme};}
-function livAdjOpen(p){const v=liVisual(p),a=livPhotoAdj(p)||{};livAdj={pid:p.id,of:v.photo,z:a.z||1,x:a.x!=null?a.x:.5,y:a.y!=null?a.y:.5};}
-function livEdChkHTML(p,c){return livChecks(p,c,true).map(x=>'<li class="'+(x.ok?"ok":"no")+'">'+svg(x.ok?"check":"alert")+'<span>'+esc(x.text)+'</span></li>').join("");}
-function livEdHTML(p){const e=livEd,val=k=>k==="h0"?e.head[0]:k==="h1"?e.head[1]:e[k];
-  return '<div class="livpick"><div class="lived"><div class="livprev" id="livEdPrev"></div><div class="livform">'+
-    [["eyebrow","Top line"],["big","Number"],["h0","Line 1"],["h1","Line 2, bold"],["sub","Small line"],["source","Source"]].map(f=>'<label><small>'+f[1]+'</small><input class="f" data-lived="'+f[0]+'" value="'+esc(val(f[0])||"")+'"></label>').join("")+
-    '<div class="chips">'+[["night","Dark"],["day","Light"]].map(x=>'<button class="chip'+(e.theme===x[0]?" on":"")+'" data-act="livedtheme" data-p="'+p.id+'" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
-    '<ul class="lichecks" id="livEdChk">'+livEdChkHTML(p,livCardWith(liCard(e.of),e))+'</ul>'+
-    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm coral" data-act="livedsave" data-p="'+p.id+'">Save card</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="edit">Cancel</button><button class="btn sm ghost" data-act="livedorig" data-p="'+p.id+'">Original wording</button></div></div></div></div>';}
-function livAdjHTML(p){const ph=liPhoto(livAdj.of);if(!ph)return "";const g=livGeo(ph,livAdj);
-  return '<div class="livpick"><div class="lived"><div class="livframe" id="livAdjFrame" tabindex="0" role="img" aria-label="'+esc(ph.title)+' — drag, scroll or use the arrow keys to move it"><img alt="" draggable="false" data-mkt="'+LI_PHOTO_DIR+ph.id+'.jpg" style="'+livGeoCss(g)+'"></div><div class="livform">'+
-    '<label><small>Zoom</small><input type="range" id="livAdjZoom" min="1" max="'+g.zMax.toFixed(2)+'" step="0.01" value="'+g.z.toFixed(2)+'"></label>'+
-    '<div class="chips">'+[["1","Whole photo",1],["fill","Fill the frame",g.zFill]].map(x=>'<button class="chip'+(Math.abs(g.z-x[2])<.01?" on":"")+'" data-act="livadjz" data-p="'+p.id+'" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
-    '<p class="t2">Drag the photo to move it. The JPG downloads exactly as framed here.</p>'+
-    '<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn sm coral" data-act="livadjsave" data-p="'+p.id+'">Save photo</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="adjust">Cancel</button></div></div></div></div>';}
+function livCardURL(id,theme){const k=id+"|"+theme;return LIV_URL[k]||(LIV_URL[k]=livCardBlob(id,theme).then(b=>URL.createObjectURL(b)).catch(e=>{delete LIV_URL[k];throw e;}));}
+function liHydrate(){document.querySelectorAll("img[data-licard]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");const [id,th]=el.getAttribute("data-licard").split("|");livCardURL(id,th).then(u=>{el.src=u;}).catch(()=>{el.alt="Couldn't draw the card";});});}
 function livSave(url,name){const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();}
 function livName(p,kind,ext){return "AutoTQ_LinkedIn_"+String(p.slotAt||todayStr()).slice(0,10)+"_"+kind+"."+ext;}
 async function livDownload(p,what){const v=liVisual(p);
-  try{if(what!=="photo"){livSave(await livCardURL(livCardOf(p),v.theme),livName(p,"card-"+v.card,"png"));}
-    if(what!=="card"&&v.photo){if(what==="both")await new Promise(r=>setTimeout(r,400));livSave(await (livPhotoAdj(p)?livPhotoURL(p):mktBlob(LI_PHOTO_DIR+v.photo+".jpg")),livName(p,"photo-"+v.photo,"jpg"));}
+  try{if(what!=="photo"){livSave(await livCardURL(v.card,v.theme),livName(p,"card-"+v.card,"png"));}
+    if(what!=="card"&&v.photo){if(what==="both")await new Promise(r=>setTimeout(r,400));livSave(await mktBlob(LI_PHOTO_DIR+v.photo+".jpg"),livName(p,"photo-"+v.photo,"jpg"));}
     toast(what==="both"?"Downloaded the card and the photo":"Downloaded");}
   catch(e){toast("Couldn't download: "+(e.message||e));}}
-function livOpen(url,title,ext){let el=document.getElementById("pdfv");if(!el){el=document.createElement("div");el.id="pdfv";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el);}
-  el.innerHTML='<div class="pdfv-bar"><b>'+esc(title)+'</b><span class="grow"></span><a class="btn sm ghost" href="'+url+'" download="'+esc(title.replace(/[^\w.-]+/g,"_"))+'.'+(ext||"png")+'">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><img class="pdfv-img" alt="'+esc(title)+'" src="'+url+'"></div>';
+function livOpen(url,title){let el=document.getElementById("pdfv");if(!el){el=document.createElement("div");el.id="pdfv";el.setAttribute("role","dialog");el.setAttribute("aria-modal","true");document.body.appendChild(el);}
+  el.innerHTML='<div class="pdfv-bar"><b>'+esc(title)+'</b><span class="grow"></span><a class="btn sm ghost" href="'+url+'" download="'+esc(title.replace(/[^\w.-]+/g,"_"))+'.png">Download</a><button class="ibtn" data-act="mktclose" aria-label="Close">'+svg("x")+'</button></div><div class="pdfv-body"><img class="pdfv-img" alt="'+esc(title)+'" src="'+url+'"></div>';
   el.classList.add("open");const x=el.querySelector('[data-act="mktclose"]');if(x)x.focus();}
-function liVisualHTML(p){if(p.external)return "";const v=liVisual(p),c=livCardOf(p),ph=liPhoto(v.photo),adj=livPhotoAdj(p),pdf=(p.attachments||[]).length,open=livPick.split(":"),mine=open[0]===p.id;
+function liVisualHTML(p){if(p.external)return "";const v=liVisual(p),c=liCard(v.card),ph=liPhoto(v.photo),pdf=(p.attachments||[]).length,open=livPick.split(":"),mine=open[0]===p.id;
   const t=liText(p);
-  if(mine&&open[1]==="edit"&&(!livEd||livEd.pid!==p.id))livEdOpen(p);if(mine&&open[1]==="adjust"&&(!livAdj||livAdj.pid!==p.id))livAdjOpen(p);
-  const edPanel=mine&&open[1]==="edit"?livEdHTML(p):mine&&open[1]==="adjust"&&ph?livAdjHTML(p):'';
   const cardPick=mine&&open[1]==="card"?'<div class="livpick"><div class="sectlabel">Pick the number for the card</div><div class="livchips">'+LI_CARDS.slice().sort((a,b)=>(b.re.test(t)?1:0)-(a.re.test(t)?1:0)).map(x=>'<button class="chip'+(x.id===v.card?" on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="card" data-v="'+x.id+'"><b>'+esc(x.big)+'</b> '+esc((s=>s.length>46?s.slice(0,44).replace(/[\s,.:;]+\S*$/,"")+"…":s)(x.head.join(" ")))+(x.re.test(t)?' <span class="pill ok">in this post</span>':'')+'</button>').join("")+'</div></div>':'';
   const photoPick=mine&&open[1]==="photo"?'<div class="livpick"><div class="sectlabel">Pick the photo</div><div class="livgrid">'+livRank(p).map(x=>'<button class="'+(x.ph.id===v.photo?"on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="photo" data-v="'+x.ph.id+'" title="'+esc(x.ph.title)+'"><img alt="" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+x.ph.id+'.jpg"><small>'+esc(x.ph.title)+'</small></button>').join("")+'</div></div>':'';
   return '<div class="sectlabel" style="margin-top:18px">Visuals</div><p class="t2" style="margin:-4px 0 10px">'+(pdf?'LinkedIn puts either a PDF or images on a post, not both. This post carries the PDF, so keep these for the first comment or another post.':'Add both to the post in LinkedIn, the card first.')+'</p>'+
-   '<div class="livis"><figure class="livfig"><button class="livimg" data-act="livzoom" data-p="'+p.id+'" data-k="card" aria-label="Open the stat card full size"><img alt="Stat card: '+esc(c.big+" "+c.head.join(" "))+'" data-licard="'+esc(livCardKey(c,v.theme))+'"></button>'+
-     '<figcaption><b>Stat card</b><small>'+esc(c.big)+' · '+esc(c.source)+(c.edited?' · edited':'')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="card">PNG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="card">Change</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="edit">Edit</button><button class="btn sm ghost" data-act="livtheme" data-p="'+p.id+'">'+(v.theme==="day"?"Dark":"Light")+'</button></span></figcaption></figure>'+
-    '<figure class="livfig"><button class="livimg photo" data-act="livzoom" data-p="'+p.id+'" data-k="photo" aria-label="Open the photo full size"'+(ph?'':' disabled')+'>'+(ph?(adj?'<span class="livcrop"><img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+ph.id+'.jpg" style="'+livGeoCss(livGeo(ph,adj))+'"></span>':'<img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+ph.id+'.jpg">'):'<span class="t2">The photo set didn’t load</span>')+'</button>'+
-     '<figcaption><b>Product photo</b><small>'+(ph?esc(ph.title)+(adj?' · framed':''):'—')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="photo"'+(ph?'':' disabled')+'>JPG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="photo">Change</button>'+(ph?'<button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="adjust">Adjust</button>':'')+'</span></figcaption></figure></div>'+
-   cardPick+photoPick+edPanel+
+   '<div class="livis"><figure class="livfig"><button class="livimg" data-act="livzoom" data-p="'+p.id+'" data-k="card" aria-label="Open the stat card full size"><img alt="Stat card: '+esc(c.big+" "+c.head.join(" "))+'" data-licard="'+c.id+'|'+v.theme+'"></button>'+
+     '<figcaption><b>Stat card</b><small>'+esc(c.big)+' · '+esc(c.source)+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="card">PNG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="card">Change</button><button class="btn sm ghost" data-act="livtheme" data-p="'+p.id+'">'+(v.theme==="day"?"Dark":"Light")+'</button></span></figcaption></figure>'+
+    '<figure class="livfig"><button class="livimg photo" data-act="livzoom" data-p="'+p.id+'" data-k="photo" aria-label="Open the photo full size"'+(ph?'':' disabled')+'>'+(ph?'<img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+ph.id+'.jpg">':'<span class="t2">The photo set didn’t load</span>')+'</button>'+
+     '<figcaption><b>Product photo</b><small>'+(ph?esc(ph.title):'—')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="photo"'+(ph?'':' disabled')+'>JPG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="photo">Change</button></span></figcaption></figure></div>'+
+   cardPick+photoPick+
    '<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="both"'+(ph?'':' disabled')+'>Download both</button>'+(v.picked.card||v.picked.photo?'<button class="btn sm ghost" data-act="livreset" data-p="'+p.id+'">Back to the automatic picks</button>':'')+'</div>';}
-/* the card's own checks, shown with the post's other checks (and live in the card editor, for the wording being typed): its
-   number is in the post; an edited card carries only verified or sourced numbers */
-function livChecks(p,c,live){if(p.external)return [];const v=liVisual(p);c=c||livCardOf(p);
-  const out=[c.re.test(liText(p))?{ok:true,text:"The card repeats a number this post uses ("+c.big+")"}:{ok:false,text:v.cardFallback&&!c.edited?"This post quotes no checked number, so the card shows "+c.big+": change it if it doesn't fit":"The card's number ("+c.big+") isn't in the post"}];
-  const lo=c.edited?livLoose(p,c):[];if(lo.length)out.push({ok:false,text:livLooseText(lo)});else if(live)out.push({ok:true,text:"Every number on the card is verified or sourced"});
-  return out;}
+/* the card's own check, shown with the post's other checks */
+function livCheck(p){if(p.external)return null;const v=liVisual(p),c=liCard(v.card);
+  return c.re.test(liText(p))?{ok:true,text:"The card repeats a number this post uses ("+c.big+")"}:{ok:false,text:v.cardFallback?"This post quotes no checked number, so the card shows "+c.big+": change it if it doesn't fit":"The card's number ("+c.big+") isn't in the post"};}
 function livHandle(a,t){const p=liFind(t.dataset.p);if(!p)return true;const k=t.dataset.k;
   if(a==="livdl"){livDownload(p,k);return true;}
-  if(a==="livpick"){const on=livPick===p.id+":"+k;livPick=on?"":p.id+":"+k;livEd=null;livAdj=null;if(!on&&k==="edit")livEdOpen(p);if(!on&&k==="adjust")livAdjOpen(p);render();return true;}
-  if(a==="livedtheme"&&livEd){livEd.theme=t.dataset.v;render();return true;}
-  if(a==="livedorig"&&livEd){const c=liCard(livEd.of);Object.assign(livEd,{eyebrow:c.eyebrow,big:c.big,head:[c.head[0]||"",c.head[1]||""],sub:c.sub||"",source:c.source});render();return true;}
-  if(a==="livedsave"){if(!livEd||livEd.pid!==p.id)return true;const c=liCard(livEd.of),e=livCardWith(c,livEd);if(!e.big){toast("The card needs a number");return true;}
-    livStamp(p);p.visual.card=c.id;p.visual.theme=livEd.theme;
-    if(e.eyebrow===c.eyebrow&&e.big===c.big&&e.head.join("|")===c.head.join("|")&&e.sub===(c.sub||"")&&e.source===c.source)delete p.visual.cardEdit;
-    else p.visual.cardEdit={of:c.id,eyebrow:e.eyebrow,big:e.big,head:e.head,sub:e.sub,source:e.source};
-    p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livEd=null;livPick="";render();toast("Card saved");return true;}
-  if(a==="livadjz"&&livAdj){livAdj.z=t.dataset.v==="fill"?livGeo(liPhoto(livAdj.of),livAdj).zFill:1;livAdjDraw();return true;}
-  if(a==="livadjsave"){if(!livAdj||livAdj.pid!==p.id)return true;const g=livGeo(liPhoto(livAdj.of),livAdj);livStamp(p);p.visual.photo=livAdj.of;
-    if(g.z<1.005)delete p.visual.photoAdj;else p.visual.photoAdj={of:livAdj.of,z:+g.z.toFixed(3),x:+g.x.toFixed(4),y:+g.y.toFixed(4)};
-    p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livAdj=null;livPick="";render();toast("Photo saved");return true;}
-  if(a==="livset"){livStamp(p);p.visual[k]=t.dataset.v;delete p.visual[k==="card"?"cardEdit":"photoAdj"];p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livPick="";render();toast(k==="card"?"Card changed":"Photo changed");return true;}
+  if(a==="livpick"){livPick=livPick===p.id+":"+k?"":p.id+":"+k;render();return true;}
+  if(a==="livset"){livStamp(p);p.visual[k]=t.dataset.v;p.visual.by=USER;p.visual.at=new Date().toISOString();put("liPosts",p);livPick="";render();toast(k==="card"?"Card changed":"Photo changed");return true;}
   if(a==="livtheme"){livStamp(p);p.visual.theme=p.visual.theme==="day"?"night":"day";p.visual.by=USER;put("liPosts",p);render();return true;}
-  if(a==="livreset"){delete p.visual;put("liPosts",p);livPick="";livEd=null;livAdj=null;render();toast("Back to the automatic picks");return true;}
-  if(a==="livzoom"){const v=liVisual(p),c=livCardOf(p);if(k==="photo"){const ph=liPhoto(v.photo);if(ph&&livPhotoAdj(p))livPhotoURL(p).then(u=>livOpen(u,ph.title,"jpg")).catch(e=>toast("Couldn't frame the photo: "+e.message));else if(ph)mktOpen(LI_PHOTO_DIR+ph.id+".jpg",ph.title);}else livCardURL(c,v.theme).then(u=>livOpen(u,"AutoTQ stat card — "+c.big)).catch(e=>toast("Couldn't draw the card: "+e.message));return true;}
+  if(a==="livreset"){delete p.visual;put("liPosts",p);livPick="";render();toast("Back to the automatic picks");return true;}
+  if(a==="livzoom"){const v=liVisual(p);if(k==="photo"){const ph=liPhoto(v.photo);if(ph)mktOpen(LI_PHOTO_DIR+ph.id+".jpg",ph.title);}else livCardURL(v.card,v.theme).then(u=>livOpen(u,"AutoTQ stat card — "+liCard(v.card).big)).catch(e=>toast("Couldn't draw the card: "+e.message));return true;}
   return true;}
 
 /* ---------- Marketing plan on Home (2026-10-21): one `mktPlan` record per anchor piece (the white paper first). Its files live in
@@ -3180,17 +2759,17 @@ const CALL_TPLS=[["talked","Talked"],["interested","Interested"],["demo","Demo /
 function callNiceDate(d){if(!d)return "";const x=new Date(d+"T12:00:00");return x.toLocaleDateString([], {weekday:"long",month:"short",day:"numeric"});}
 function callTpl(l,tpl,dist,cb){const me=teamById(USER);const rep=callRep(l);const repT=rep?teamById(rep):null;const repFirst=repT?repT.name.split(" ")[0]:"";
   const first=String(l.name||"").trim().split(/\s+/)[0]||"there";const conf=l.conf?String(l.conf):"";
-  const what="AutoTQ is an automatic tourniquet with one-button activation. Place the cuff above the bleed, press Inflate, and it applies consistent compression on its own while it talks the person through each step, so anyone on your team can apply it quickly under stress. In our testing, 36 of 36 first-time users got AutoTQ on, 33 with no help.";
+  const what="AutoTQ is an automatic tourniquet with one-button activation. Place the cuff above the bleed, press Inflate, and it applies consistent compression on its own while it talks the person through each step, so anyone on your team can apply it quickly under stress.";
   const distLine=dist?"Since you purchase through "+dist+", they can offer you a quote and a demo."+(repT?" I've copied "+repFirst+" from our team, who works with them in your area and can set that up.":"")
     :(repT?repFirst+" from our team covers your area (copied here) and can set up a quote and a demo through the distributor you already use.":"Let me know which distributor you buy safety supplies through, and they can offer you a quote and a demo.");
   const sign="\n\nBest,\n"+(me.name||"")+"\nAutoTQ | Golden Hour Medical";
-  const links="Training is free for your team: "+SITE_URL+"training\nMore about AutoTQ: "+SITE_URL;
+  const links="More about AutoTQ: "+SITE_URL; // Max 2026-10-26: his voicemail email is the model — short version, one ask, one link, no stat
   const prev=callLastEmail(l);
   const T={
-    talked:["AutoTQ — great speaking with you","Hi "+first+",\n\nI enjoyed speaking with you over the phone today"+(conf?", and thanks again for connecting with us at "+conf:"")+".\n\nAs promised, a quick overview: "+what+"\n\n"+distLine+"\n\n"+links],
-    interested:["AutoTQ — next steps","Hi "+first+",\n\nThanks for the time on the phone today. I'm glad AutoTQ looks like a fit for your team.\n\nA quick recap: "+what+"\n\n"+distLine+"\n\n"+(cb?"I'll check back in on "+callNiceDate(cb)+". ":"")+"If anyone else on your team should see it, reply with their name and I'll include them.\n\n"+links],
-    demo:["AutoTQ demo — next steps","Hi "+first+",\n\nThanks for making the time today. I'm glad you'd like to see AutoTQ in person.\n\n"+(dist?"We'll set the demo and quote up through "+dist+". ":"")+(repT?repFirst+" from our team covers your area (copied here) and will reach out to find a time that works.":"I'll reach out to find a time that works.")+(cb?" I've pencilled in "+callNiceDate(cb)+" to make sure it's on the calendar.":"")+" If anyone else should be there, reply with their name and we'll include them.\n\nIn the meantime, a quick overview: "+what+"\n\n"+links],
-    callback:["AutoTQ — info ahead of our call","Hi "+first+",\n\nThanks for picking up today. As promised, here's a quick overview before we talk again"+(cb?" on "+callNiceDate(cb):"")+".\n\n"+what+"\n\n"+distLine+"\n\n"+links],
+    talked:["AutoTQ — great speaking with you","Hi "+first+",\n\nThanks for taking my call today"+(conf?" following up from "+conf:"")+".\n\nThe short version: "+what+"\n\n"+distLine+"\n\n"+links],
+    interested:["AutoTQ — next steps","Hi "+first+",\n\nThanks for the time on the phone today"+(conf?" following up from "+conf:"")+". Glad AutoTQ looks like a fit for your team.\n\nThe short version: "+what+"\n\n"+distLine+"\n\n"+(cb?"I'll check back in on "+callNiceDate(cb)+". ":"")+"If anyone else should see it, reply with their name and I'll include them.\n\n"+links],
+    demo:["AutoTQ demo — next steps","Hi "+first+",\n\nThanks for making the time today. I'm glad you'd like to see AutoTQ in person.\n\n"+(dist?"We'll set the demo and quote up through "+dist+". ":"")+(repT?repFirst+" from our team covers your area (copied here) and will reach out to find a time that works.":"I'll reach out to find a time that works.")+(cb?" I've pencilled in "+callNiceDate(cb)+" to make sure it's on the calendar.":"")+" If anyone else should be there, reply with their name and we'll include them.\n\nThe short version: "+what+"\n\n"+links],
+    callback:["AutoTQ — info ahead of our call","Hi "+first+",\n\nThanks for picking up today"+(conf?" following up from "+conf:"")+". Here's the short version before we talk again"+(cb?" on "+callNiceDate(cb):"")+".\n\n"+what+"\n\n"+distLine+"\n\n"+links],
     vm:["AutoTQ — just left you a voicemail","Hi "+first+",\n\nI just left you a voicemail"+(conf?" following up from "+conf:"")+".\n\nThe short version: "+what+"\n\nWould a 10-minute call this week make sense? Reply with a time that works and I'll call you then.\n\n"+links],
     noanswer:["AutoTQ — tried to reach you","Hi "+first+",\n\nI tried to reach you by phone today"+(conf?" to follow up from "+conf:"")+".\n\nThe short version: "+what+"\n\nWould a 10-minute call this week make sense? Reply with a time that works and I'll call you then.\n\n"+links],
     nudge:[prev&&prev.subject?(/^re:/i.test(prev.subject)?prev.subject:"Re: "+prev.subject):"AutoTQ — following up","Hi "+first+",\n\nJust floating this back to the top of your inbox. Would a 10-minute call this week make sense to see if AutoTQ fits "+(l.company?l.company:"your team")+"?\n\nIf now isn't the right time, a one-word reply is fine and I'll stop following up."]};
@@ -3406,8 +2985,6 @@ document.addEventListener("click",e=>{
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
   if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
   if(a.indexOf("cat")===0&&catHandle(a,t))return;
-  if(a.indexOf("pros")===0&&prosHandle(a,t))return;
-  if(a.indexOf("liinv")===0&&liInvHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a.indexOf("call")===0&&callHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
@@ -3455,10 +3032,6 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("input",e=>{
   const el=e.target;
-  if(el.id==="prosQ"){prosQ=el.value;prosShow=40;clearTimeout(window.__pq);window.__pq=setTimeout(()=>{render();const q=document.getElementById("prosQ");if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length);}},250);return;}
-  if(el.id==="prosPLi"){const nm=document.getElementById("prosPName");if(nm&&!nm.value.trim()){const n=prosNameFromLi(el.value);if(n)nm.value=n;}prosSheetSync();return;}
-  if(el.id==="prosPName"){prosSheetSync();return;}
-  if(el.id==="prosPEmail"){el.dataset.edited=el.value.trim()?"1":"";prosSheetSync();return;}
   if(el.id==="callNote"){callNoteVal=el.value;return;}
   if(el.id==="callDist"){callDistVal=el.value;return;}
   if(/^callFu(To|Subj|Body|Dist)$/.test(el.id)){callFuRead();if(el.id==="callFuBody")callFu.edited=true;const b=document.getElementById("callFuSend");if(b&&callFu)b.href=callFuHref(callFu);return;}const c=curCampaign?campaignById(curCampaign):null;
@@ -3475,8 +3048,7 @@ document.addEventListener("input",e=>{
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
 });
-document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liInvFile"&&e.target.files&&e.target.files[0]){liInvUpload(e.target.files[0]);e.target.value="";return;}if(e.target.id==="prosFile"&&e.target.files&&e.target.files[0]){prosImport(e.target.files[0]);e.target.value="";return;}if(e.target.id==="prosSel"){prosList=e.target.value;prosShow=40;prosQ="";render();return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
-document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="liInvFold")liInvOpen=e.target.open;if(e.target&&e.target.id==="prosCamp")prosCampOpen=e.target.open;},true);
+document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()&&hubUser()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
