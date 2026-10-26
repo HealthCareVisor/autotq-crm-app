@@ -588,6 +588,28 @@ svg.usmap .dots{stroke:var(--dots)}
 .limetin{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:6px}.limetin label{display:flex;flex-direction:column;gap:3px;width:112px}
 .limetin small{font-size:11.5px;color:var(--ink-3)}
 .limsg{max-width:720px}
+.pros .prostools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--rule-2)}
+.pros .prostools .chips{margin:0;justify-content:flex-start}
+.pros #prosQ{max-width:300px;margin-left:auto}
+.pros .prosnote{padding:10px 16px 12px;margin:0;white-space:normal;line-height:1.5}
+.prow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1.4fr) auto;gap:6px 18px;align-items:center;padding:12px 16px;border-top:1px solid var(--rule)}
+.prow .pco b{display:block;line-height:1.35}.prow .pco a{color:var(--ink);text-decoration:none}.prow .pco a:hover{text-decoration:underline}
+.prow small{display:block;font-size:12px;color:var(--ink-3);line-height:1.4;overflow-wrap:anywhere}
+.pli{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px}
+.pli a{display:inline-flex;align-items:center;gap:4px;color:var(--info);text-decoration:none;font-weight:550}.pli a:hover{text-decoration:underline}.pli a.miss{color:var(--ink-3)}
+.pli .i{width:14px;height:14px;flex:none}
+.pfmt b{display:block;font-size:13px;font-weight:600;overflow-wrap:anywhere;line-height:1.4}.pfmt b.none{color:var(--ink-3);font-weight:500}.pfmt small a{color:var(--ink-3)}
+.prow>.btn{justify-self:end;flex:none}
+.ppls{grid-column:1/-1;border-left:2px solid var(--coral);margin:4px 0 0 2px;padding-left:12px;display:flex;flex-direction:column;gap:6px}
+.ppl{display:flex;align-items:center;gap:6px 10px;flex-wrap:wrap}.ppl .nm{min-width:150px}.ppl .nm a{color:var(--ink)}.ppl .nm small{display:inline;margin-left:6px}
+.pem{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}.pem code{font-family:inherit;font-size:12.5px;font-weight:550;background:var(--panel);padding:2px 6px;border-radius:6px;overflow-wrap:anywhere}
+.ppl .ibtn{width:28px;height:28px}
+.lifold>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:12px 16px;border:1px solid var(--rule);border-radius:var(--r-lg);background:var(--paper);cursor:pointer;font-size:14px;flex-wrap:wrap}
+.lifold>summary::-webkit-details-marker{display:none}.lifold>summary .t2{white-space:normal}
+.lifold .fchev{margin-left:auto;transition:transform .2s}.lifold[open] .fchev{transform:rotate(180deg)}
+.lifold[open]>summary{margin-bottom:14px}
+@media (max-width:900px){.prow{grid-template-columns:minmax(0,1fr) auto}.prow .pli,.prow .pfmt{grid-column:1/-1}.prow>.btn{grid-row:1;grid-column:2}}
+@media (max-width:640px){.pros #prosQ{max-width:none;margin-left:0}.ppl .nm{min-width:0;flex:1 1 100%}}
 .liinv .pill{flex:none}.liinv .btn{flex:none}.liinv .nm a{color:var(--ink);text-decoration:none}.liinv .nm a:hover{text-decoration:underline}
 @media (max-width:700px){.liinv{flex-wrap:wrap}.liinv .nm{flex:1 1 100%}}
 @media (max-width:1100px){.liprof .likpis{grid-template-columns:repeat(3,minmax(0,1fr))}.likpi{border-bottom:1px solid var(--rule)}.limets{gap:12px}}
@@ -743,7 +765,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=APP==="catalog"?["catalogItems"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites"]; // orders: the past-buyer guard (pastBuyers); liInvites: LinkedIn › Messenger › Follow invites
+const PULL_COLLECTIONS=APP==="catalog"?["catalogItems"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites","prospects"]; // orders: the past-buyer guard (pastBuyers); liInvites: LinkedIn › Messenger › Follow invites; prospects: › Prospects by industry
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1644,7 +1666,7 @@ function render(){
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
   const titles={calls:"Calls",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Invite the buyers among your connections to follow the AutoTQ page. DMs and InMail come later.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Follow invites for your own connections are folded below.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
   const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="calls"?["Calls"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
@@ -1970,7 +1992,7 @@ function liInvUpload(f){
 function liInvRow(r,acts){const pm=LIINV_PERSONA[r.persona]||["",""];
   return '<div class="actrow liinv"><span class="nm"><b>'+(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+'</b><small class="what">'+esc(r.reason||"")+'</small>'+
    (r.invitedAt?'<small>Invited '+esc(String(r.invitedAt).slice(0,10))+'</small>':'')+'</span><span class="pill '+pm[1]+'">'+pm[0]+'</span>'+acts+'</div>';}
-function viewLinkedInMsg(){
+function liInvHTML(){
   const all=liInvites(),st=liInvState(),by=s=>all.filter(r=>r.status===s).sort((a,b)=>(b.score||0)-(a.score||0)||String(a.name).localeCompare(String(b.name)));
   const appr=by("approved"),cand=by("candidate"),inv=by("invited").sort((a,b)=>String(b.invitedAt||"").localeCompare(String(a.invitedAt||""))),nf=by("notfound");
   const month=todayStr().slice(0,7),invMonth=inv.filter(r=>String(r.invitedAt||"").slice(0,7)===month).length;
@@ -1995,6 +2017,134 @@ function viewLinkedInMsg(){
   h+='<p class="t2" style="margin-top:12px;white-space:normal">Invites go out under Max&#39;s own name, from the AutoTQ page&#39;s <b>Invite connections</b> window. The page shares one monthly pool of credits across its admins; it renews on the 1st, and an accepted invite returns its credit. Premium auto-invites to people who engage with posts run by themselves and use no credits.</p>';
   return h;
 }
+/* LinkedIn › Messenger › Prospects by industry (Max, 2026-10-26: "per industry… gun manufacturers and gun ranges; list out a
+   hundred or so, tell me where to grab the LinkedIn link for their bio, and snag the email structure from any role at the
+   company so I can find the safety manager and one other person, maybe procurement"). One record per company in the synced
+   `prospects` collection, grouped by `list`. A company's email `format` counts only when Claude saw a real address there
+   (`formatExample` + `formatSource`); every address built from it is a pattern — "verify before sending". */
+const PROS_LISTS={"gun-makers":"Gun manufacturers","gun-ranges":"Gun ranges"};
+const PROS_FMT_OK=/^(\{(first|last|f|l)\}[._-]?)+$/;
+const PROS_TITLES=["Safety manager","EHS manager","Procurement manager","Purchasing manager","Range manager","General manager","Owner"];
+let prosList="",prosQ="",prosShow=40,liInvOpen=false;
+function prospects(){return (DB.prospects||[]).filter(r=>r&&r.id&&r.company);}
+function prosLists(){const m={};prospects().forEach(r=>{const k=r.list||"other";(m[k]=m[k]||{key:k,name:r.listName||PROS_LISTS[k]||k,n:0}).n++;});return Object.values(m).sort((a,b)=>a.name.localeCompare(b.name));}
+function prosById(id){return prospects().find(r=>r.id===id);}
+function prosHref(u){u=String(u||"").trim();return !u?"":/^https?:\/\//i.test(u)?u:"https://"+u.replace(/^\/+/,"");}
+function prosDomain(r){const d=String(r.domain||"").trim().toLowerCase();if(d)return d.replace(/^https?:\/\//,"").replace(/^www\./,"").replace(/\/.*$/,"");
+  const ex=String(r.formatExample||"").split("@")[1];if(ex)return ex.toLowerCase();
+  const w=prosHref(r.website);try{return w?new URL(w).hostname.replace(/^www\./,""):"";}catch(e){return "";}}
+function prosLi(r){const m=String(r.liCompany||"").match(/linkedin\.com\/company\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/company/"+m[1]+"/":"";}
+function prosPeopleUrl(r,kw){const c=prosLi(r);return c?c+"people/?keywords="+encodeURIComponent(kw):"https://www.linkedin.com/search/results/people/?keywords="+encodeURIComponent(r.company+" "+kw);}
+function prosKws(r){return r.type==="range"?[["Safety","safety"],["Manager / owner","manager OR owner"]]:[["Safety","safety OR EHS"],["Procurement","procurement OR purchasing"]];}
+/* a format is shown (and used) only with the address it was learned from and where that address was seen */
+function prosFmtOk(r){return PROS_FMT_OK.test(String(r.format||""))&&!!r.formatExample&&!!r.formatSource&&!!prosDomain(r);}
+function prosNameParts(n){const w=String(n||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\([^)]*\)|"[^"]*"/g," ").split(",")[0].trim().split(/\s+/)
+    .filter(x=>x&&!/^(dr|mr|mrs|ms|jr|sr|ii|iii|iv|phd|md|csp|chst|ohst|cih|pe|mba|asp)\.?$/i.test(x));
+  const cl=x=>String(x||"").toLowerCase().replace(/[^a-z-]/g,"").replace(/^-+|-+$/g,"");
+  return {first:cl(w[0]),last:cl(w.length>1?w[w.length-1]:"")};}
+function prosEmail(fmt,domain,name){const p=prosNameParts(name);if(!PROS_FMT_OK.test(String(fmt||""))||!domain||!p.first)return "";
+  if(/\{(last|l)\}/.test(fmt)&&!p.last)return "";
+  const tok={first:p.first.replace(/-/g,""),last:p.last.replace(/-/g,""),f:p.first.charAt(0),l:p.last.charAt(0)};
+  const local=fmt.replace(/\{(first|last|f|l)\}/g,(_,k)=>tok[k]);return /^[a-z0-9][a-z0-9._-]*$/.test(local)?local+"@"+domain:"";}
+function prosLiPerson(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?#\s]+)/i);return m?"https://www.linkedin.com/in/"+m[1]+"/":"";}
+function prosNameFromLi(u){const m=String(u||"").match(/linkedin\.com\/in\/([^/?#\s]+)/i);if(!m)return "";
+  let s="";try{s=decodeURIComponent(m[1]);}catch(e){s=m[1];}
+  const w=s.split("-").filter(x=>x&&!/\d/.test(x)&&!/^[a-f0-9]{6,}$/i.test(x));return w.length>=2?w.map(x=>x.charAt(0).toUpperCase()+x.slice(1).toLowerCase()).join(" "):"";}
+function prosCur(){const L=prosLists();if(!L.find(x=>x.key===prosList))prosList=L.length?L[0].key:"";return prosList;}
+function prosRows(){const k=prosCur(),q=prosQ.trim().toLowerCase();
+  return prospects().filter(r=>(r.list||"other")===k&&(!q||[r.company,r.city,r.state,r.note,r.domain].concat((r.people||[]).map(p=>p.name+" "+(p.title||""))).join(" ").toLowerCase().includes(q)))
+    .sort((a,b)=>String(a.company).localeCompare(String(b.company)));}
+function prosPersonHTML(r,p){
+  return '<div class="ppl"><span class="nm"><b>'+(p.li?'<a href="'+esc(p.li)+'" target="_blank" rel="noopener">'+esc(p.name)+'</a>':esc(p.name))+'</b>'+(p.title?'<small>'+esc(p.title)+'</small>':'')+'</span>'+
+   (p.email?'<span class="pem"><code>'+esc(p.email)+'</code>'+(p.kind==="typed"?'<span class="pill">typed in</span>':'<span class="pill warn">pattern — verify before sending</span>')+'</span>'+
+     '<button class="btn sm ghost" data-act="proscopy" data-v="'+esc(p.email)+'">Copy</button>':'<span class="t2">no email — the company has no format yet</span>')+
+   '<button class="ibtn" data-act="prosdel" data-id="'+esc(r.id)+'" data-p="'+esc(p.id)+'" aria-label="Remove '+esc(p.name)+'">'+svg("x")+'</button></div>';}
+function prosRow(r){const dom=prosDomain(r),li=prosLi(r),ok=prosFmtOk(r),loc=[r.city,r.state].filter(Boolean).join(", ");
+  const ex=ok?prosEmail(r.format,dom,"Jane Smith"):"";
+  return '<div class="prow"><div class="pco"><b>'+(r.website?'<a href="'+esc(prosHref(r.website))+'" target="_blank" rel="noopener">'+esc(r.company)+'</a>':esc(r.company))+'</b>'+
+     '<small>'+esc(loc||"—")+(r.note?' · '+esc(r.note):'')+'</small></div>'+
+   '<div class="pli">'+(li?'<a href="'+esc(li)+'" target="_blank" rel="noopener">'+svg("ext")+'Company page</a>':'<a class="miss" href="'+esc("https://www.linkedin.com/search/results/companies/?keywords="+encodeURIComponent(r.company))+'" target="_blank" rel="noopener">'+svg("search")+'Find the page</a>')+
+     prosKws(r).map(k=>'<a href="'+esc(prosPeopleUrl(r,k[1]))+'" target="_blank" rel="noopener">'+svg("users")+'People: '+k[0]+'</a>').join("")+'</div>'+
+   '<div class="pfmt">'+(ok?'<small>Email format</small><b>Jane Smith → '+esc(ex)+'</b><small>seen: '+esc(r.formatExample)+' · '+(/^https?:/i.test(r.formatSource)?'<a href="'+esc(r.formatSource)+'" target="_blank" rel="noopener">source</a>':esc(r.formatSource))+'</small>'
+     :'<small>Email format</small><b class="none">No format found</b><small>'+(r.generic?'general inbox: '+esc(r.generic):'no address published')+'</small>')+'</div>'+
+   '<button class="btn sm" data-act="prosadd" data-id="'+esc(r.id)+'">'+svg("plus")+'Add a person</button>'+
+   ((r.people||[]).length?'<div class="ppls">'+r.people.map(p=>prosPersonHTML(r,p)).join("")+'</div>':'')+'</div>';}
+function prosHTML(){const L=prosLists(),k=prosCur(),rows=prosRows(),inList=prospects().filter(r=>(r.list||"other")===k);
+  const nF=inList.filter(prosFmtOk).length,nL=inList.filter(r=>prosLi(r)).length,nP=inList.reduce((s,r)=>s+(r.people||[]).length,0);
+  let h='<div class="pan pros" style="margin-bottom:14px"><div class="ph2">'+svg("globe")+'Prospects by industry'+
+    '<span class="meta"><label class="btn sm ghost" style="cursor:pointer">Import list<input type="file" id="prosFile" accept=".json,.csv" hidden></label>'+(inList.length?'<button class="btn sm" data-act="prosexport">'+svg("dl")+'Export to Excel</button>':'')+'</span></div>';
+  if(!L.length)return h+'<div class="empty" style="padding:26px 16px">No industry lists yet. Ask Claude for one (“gun manufacturers and gun ranges”): it finds the companies, their LinkedIn pages and the email format each one uses, and you import the file here.</div></div>';
+  h+='<div class="prostools"><div class="chips">'+L.map(x=>'<span class="chip'+(x.key===k?" on":"")+'" data-act="proslist" data-v="'+esc(x.key)+'">'+esc(x.name)+' · '+x.n+'</span>').join("")+'</div>'+
+    '<input class="f" id="prosQ" value="'+esc(prosQ)+'" placeholder="Search company, city, state, person" aria-label="Search the list"></div>'+
+   '<p class="t2 linote prosnote"><b>'+inList.length+'</b> companies · <b>'+nF+'</b> with an email format · <b>'+nL+'</b> with a LinkedIn page · <b>'+nP+'</b> '+(nP===1?'person':'people')+' added. '+
+    'To grab someone: open <b>People: Safety</b>, click the person, copy the address bar (<b>linkedin.com/in/…</b>), then <b>Add a person</b> and paste it. Their email is built from the company&#39;s format, so it&#39;s a pattern — verify before sending.</p>';
+  h+=rows.length?rows.slice(0,prosShow).map(prosRow).join("")+(rows.length>prosShow?'<button class="ibx" data-act="prosmore" style="justify-content:center;color:var(--ink-3)">Show '+Math.min(60,rows.length-prosShow)+' more of '+rows.length+'</button>':'')
+    :'<div class="empty" style="padding:22px 16px">Nothing matches “'+esc(prosQ)+'”.</div>';
+  return h+'</div>';}
+function prosAddSheet(r,keep){const dom=prosDomain(r),ok=prosFmtOk(r),v=keep||{};
+  openInsp('<h2>Add a person</h2><p class="t2">at '+esc(r.company)+(ok?' · format: Jane Smith → '+esc(prosEmail(r.format,dom,"Jane Smith")):' · no email format found yet')+'</p><div class="insp-line" style="background:var(--coral)"></div>'+
+   '<label class="fl" for="prosPLi">Their LinkedIn link</label><input class="f" id="prosPLi" value="'+esc(v.li||"")+'" placeholder="linkedin.com/in/…" autocomplete="off">'+
+   '<label class="fl" for="prosPName">Name</label><input class="f" id="prosPName" value="'+esc(v.name||"")+'" placeholder="First Last" autocomplete="off">'+
+   '<label class="fl" for="prosPTitle">Title</label><div class="chips" style="justify-content:flex-start;margin:0 0 8px">'+PROS_TITLES.filter(x=>r.type==="range"?!/procure|purchas/i.test(x):!/range/i.test(x)).map(x=>'<span class="chip" data-act="prostitle" data-v="'+esc(x)+'">'+esc(x)+'</span>').join("")+'</div>'+
+   '<input class="f" id="prosPTitle" value="'+esc(v.title||"")+'" placeholder="Safety manager" autocomplete="off">'+
+   '<label class="fl" for="prosPEmail">Email</label><input class="f" id="prosPEmail" value="'+esc(v.email||"")+'" placeholder="'+(ok?'built from the name':'type it if you found it')+'" autocomplete="off">'+
+   '<p class="t2" id="prosPWhy" style="margin:6px 0 0;white-space:normal"></p>'+
+   '<div class="row" style="gap:8px;margin-top:16px"><button class="btn coral" data-act="prossave" data-id="'+esc(r.id)+'">'+svg("plus")+'Add to '+esc(r.company)+'</button><button class="btn ghost" data-act="closesheet">Cancel</button></div>');
+  prosSheetSync();setTimeout(()=>{const f=document.getElementById("prosPLi");if(f)f.focus();},30);}
+/* the sheet's email follows the name until it's typed over */
+function prosSheetSync(){const b=document.querySelector('[data-act="prossave"]'),r=b&&prosById(b.dataset.id);if(!r)return;
+  const nm=document.getElementById("prosPName"),em=document.getElementById("prosPEmail"),why=document.getElementById("prosPWhy");
+  const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),nm.value):"";
+  if(!em.dataset.edited)em.value=built;
+  why.innerHTML=em.value&&em.value===built?'Built from '+esc(r.formatExample)+' — a pattern, <b>verify before sending</b>.':em.value?'Typed in — kept as you wrote it.':prosFmtOk(r)?'Type the name and the email builds itself.':'No format for this company yet'+(r.generic?' (general inbox: '+esc(r.generic)+')':'')+'. Add their email if you found it.';}
+function prosImport(f){
+  f.text().then(t=>{let rows=[],list="",listName="";
+    if(/\.json$/i.test(f.name)||/^\s*[\[{]/.test(t)){const j=JSON.parse(t);rows=Array.isArray(j)?j:(j.rows||j.companies||[]);if(!Array.isArray(j)){list=j.list||"";listName=j.listName||"";}}
+    else{const R=csvRows(t),H=(R[0]||[]).map(x=>String(x).trim().toLowerCase().replace(/[^a-z]/g,""));rows=R.slice(1).map(r=>{const o={};H.forEach((x,i)=>{o[x]=r[i];});return o;});}
+    list=String(list||f.name.replace(/\.[^.]+$/,"")).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"list";
+    listName=listName||PROS_LISTS[list]||list.replace(/-/g," ").replace(/^./,c=>c.toUpperCase());
+    const g=(o,...ks)=>{for(const k of ks){const v=o[k];if(v!=null&&String(v).trim())return String(v).trim();}return "";};
+    const have={};prospects().forEach(r=>{have[r.id]=r;});const now=new Date().toISOString();let added=0,updated=0;
+    rows.forEach(o=>{if(!o||typeof o!=="object")return;const company=g(o,"name","company","companyname");if(!company)return;
+      const rec={list,listName,company,type:g(o,"type").toLowerCase()||(/range/.test(list)?"range":/maker|manufact/.test(list)?"maker":""),city:g(o,"city"),state:g(o,"state").toUpperCase(),
+        website:g(o,"website","site","url"),domain:g(o,"domain").toLowerCase(),liCompany:g(o,"liCompany","licompany","linkedin","linkedincompany"),format:g(o,"format","emailformat"),
+        formatExample:g(o,"formatExample","formatexample","example"),formatSource:g(o,"formatSource","formatsource","source"),generic:g(o,"generic","generalinbox","info"),note:g(o,"note","notes")};
+      if(!PROS_FMT_OK.test(rec.format))rec.format="";
+      const key=(prosDomain(rec)||company).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+      const id="pros-"+list+"-"+key,old=have[id];
+      put("prospects",Object.assign({id,people:[],importedAt:now},old||{},rec,{updatedAt:now,by:USER}));have[id]=1;if(old)updated++;else added++;});
+    prosList=list;prosShow=40;render();toast(listName+": "+added+" added"+(updated?" · "+updated+" updated":"")+" — the people you added are kept");
+  }).catch(e=>toast(e&&e.message?"Couldn't read that file — "+e.message:"Couldn't read that file"));}
+function prosExport(){const k=prosCur(),L=prosLists().find(x=>x.key===k),list=prospects().filter(r=>(r.list||"other")===k).sort((a,b)=>String(a.company).localeCompare(String(b.company)));
+  const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const out=[["Company","City","State","Website","LinkedIn company page","People: safety","People: second search","Email format","Format learned from","Where it was seen","General inbox","Person","Title","Person's LinkedIn","Email","Email status"]];
+  list.forEach(r=>{const ok=prosFmtOk(r),kw=prosKws(r),base=[r.company,r.city,r.state,prosHref(r.website),prosLi(r),prosPeopleUrl(r,kw[0][1]),prosPeopleUrl(r,kw[1][1]),
+      ok?"Jane Smith → "+prosEmail(r.format,prosDomain(r),"Jane Smith"):"No format found",ok?r.formatExample:"",ok?r.formatSource:"",r.generic||""];
+    const ps=r.people||[];if(!ps.length)out.push(base.concat(["","","","",""]));
+    ps.forEach(p=>out.push(base.concat([p.name,p.title||"",p.li||"",p.email||"",p.email?(p.kind==="typed"?"typed in":"pattern — verify before sending"):""])));});
+  const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
+  livSave(u,(L?L.name:"Prospects")+" — prospects "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+list.length+" companies — opens in Excel");}
+function prosHandle(a,t){
+  if(a==="proslist"){prosList=t.dataset.v;prosShow=40;render();return true;}
+  if(a==="prosmore"){prosShow+=60;render();return true;}
+  if(a==="prosexport"){prosExport();return true;}
+  if(a==="prosadd"){const r=prosById(t.dataset.id);if(r)prosAddSheet(r);return true;}
+  if(a==="prostitle"){const f=document.getElementById("prosPTitle");if(f){f.value=t.dataset.v;}return true;}
+  if(a==="prossave"){const r=prosById(t.dataset.id);if(!r)return true;const v=id=>(document.getElementById(id)||{}).value||"";
+    const li=prosLiPerson(v("prosPLi")),name=v("prosPName").trim()||prosNameFromLi(li);if(!name){toast("Add their name");return true;}
+    const built=prosFmtOk(r)?prosEmail(r.format,prosDomain(r),name):"",email=(v("prosPEmail").trim()||built).toLowerCase();
+    if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast("That email doesn't look right");return true;}
+    r.people=(r.people||[]).concat([{id:uid(),name,title:v("prosPTitle").trim(),li,email,kind:email&&email===built?"pattern":email?"typed":"",addedAt:new Date().toISOString(),by:USER}]);
+    put("prospects",r);closeInsp();render();toast(name+" added to "+r.company);return true;}
+  if(a==="prosdel"){const r=prosById(t.dataset.id),p=r&&(r.people||[]).find(x=>x.id===t.dataset.p);if(!p)return true;if(!confirm("Remove "+p.name+" from "+r.company+"?"))return true;
+    r.people=r.people.filter(x=>x.id!==p.id);put("prospects",r);render();return true;}
+  if(a==="proscopy"){const v=t.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast("Copied "+v),()=>toast(v));return true;}
+  return false;
+}
+function viewLinkedInMsg(){const all=liInvites(),st=liInvState(),wait=all.filter(r=>r.status==="candidate"||r.status==="approved").length;
+  return prosHTML()+'<details class="lifold" id="liInvFold"'+(liInvOpen?' open':'')+'><summary>'+svg("users")+'<b>Follow invites</b><span class="t2">· '+
+    (all.length?wait+' of your connections waiting'+(st.balance!=null?' · '+liNum(st.balance)+' credits left':''):'invite the buyers among your connections to follow the AutoTQ page')+'</span>'+svg("chevD","fchev")+'</summary>'+
+    '<div class="lifoldb">'+liInvHTML()+'</div></details>';}
 function liInvHandle(a,t){
   if(a==="liinvapprove"){const n=+t.dataset.n||25,now=new Date().toISOString(),cand=liInvites().filter(r=>r.status==="candidate").sort((x,y)=>(y.score||0)-(x.score||0)||String(x.name).localeCompare(String(y.name))).slice(0,n);
     cand.forEach(r=>{r.status="approved";r.batch=todayStr();r.approvedBy=USER;r.approvedAt=now;put("liInvites",r);});render();toast(cand.length+" approved — tell Claude “send” to invite them");return true;}
@@ -3080,6 +3230,7 @@ document.addEventListener("click",e=>{
   if(a==="menu"){sideOpen=!sideOpen;render();return;}
   if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
   if(a.indexOf("cat")===0&&catHandle(a,t))return;
+  if(a.indexOf("pros")===0&&prosHandle(a,t))return;
   if(a.indexOf("liinv")===0&&liInvHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a.indexOf("call")===0&&callHandle(a,t))return;
@@ -3128,6 +3279,10 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("input",e=>{
   const el=e.target;
+  if(el.id==="prosQ"){prosQ=el.value;prosShow=40;clearTimeout(window.__pq);window.__pq=setTimeout(()=>{render();const q=document.getElementById("prosQ");if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length);}},250);return;}
+  if(el.id==="prosPLi"){const nm=document.getElementById("prosPName");if(nm&&!nm.value.trim()){const n=prosNameFromLi(el.value);if(n)nm.value=n;}prosSheetSync();return;}
+  if(el.id==="prosPName"){prosSheetSync();return;}
+  if(el.id==="prosPEmail"){el.dataset.edited=el.value.trim()?"1":"";prosSheetSync();return;}
   if(el.id==="callNote"){callNoteVal=el.value;return;}
   if(el.id==="callDist"){callDistVal=el.value;return;}
   if(/^callFu(To|Subj|Body|Dist)$/.test(el.id)){callFuRead();if(el.id==="callFuBody")callFu.edited=true;const b=document.getElementById("callFuSend");if(b&&callFu)b.href=callFuHref(callFu);return;}const c=curCampaign?campaignById(curCampaign):null;
@@ -3144,7 +3299,8 @@ document.addEventListener("input",e=>{
   if(el.dataset&&el.dataset.afield&&c.steps[+el.dataset.ci]){const s=c.steps[+el.dataset.ci];const alt=(s.alts||[])[+el.dataset.aj];if(alt){alt[el.dataset.afield]=el.value;campTouched(c);saveCamp(c);}return;}
   if(el.dataset&&el.dataset.cfield&&c.steps[+el.dataset.ci]){const f=el.dataset.cfield;if(f==="day")c.steps[+el.dataset.ci].day=Math.max(1,parseInt(el.value,10)||1);else c.steps[+el.dataset.ci][f]=el.value;campTouched(c);saveCamp(c);}
 });
-document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liInvFile"&&e.target.files&&e.target.files[0]){liInvUpload(e.target.files[0]);e.target.value="";return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
+document.addEventListener("change",e=>{if(e.target.id==="ovCampSel"){ovCamp=e.target.value;render();return;}if(e.target.id==="liInvFile"&&e.target.files&&e.target.files[0]){liInvUpload(e.target.files[0]);e.target.value="";return;}if(e.target.id==="prosFile"&&e.target.files&&e.target.files[0]){prosImport(e.target.files[0]);e.target.value="";return;}if(e.target.id==="liImport"&&e.target.files&&e.target.files[0]){liImportFile(e.target.files[0]);e.target.value="";return;}if(e.target.id==="campFile")campHandleFile(e.target.files[0]);if(e.target.id==="sqFile"){importSquarespace(e.target.files[0]);e.target.value="";}});
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="liInvFold")liInvOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()&&hubUser()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
