@@ -1426,6 +1426,7 @@ function render(){
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
   ensureActIds(); // older logged activities may predate ids — editing needs one
   normActTypes(); // meetings → visits, voicemails → calls (left voicemail), travel → visits with company
+  linkHubActs();  // Marketing-hub calls/emails → their contact (created if missing)
   const me=teamById(USER);
   if(!logState.landed){logState.landed=true;if(view==="today")applyRoleDefaults();} /* admins land on Team (Max, 2026-10-16) */
   if(view==="invoicing"&&!invAccess())view="today";
@@ -2250,6 +2251,43 @@ function normActTypes(){
     else if(a.type==="cotravel"){a.type="visit";a.with="distrep";}
     else if(a.type==="mrtravel"){a.type="visit";a.with="manrep";}
     a.norm=2;ch=true;
+  });
+  if(ch)save();
+}
+/* Calls and emails logged from the Marketing hub carry the person's name + company (and the conference-lead id, refId)
+   but no CRM contact, so Activity showed "Call · —" (Max, 2026-10-26: "auto create profiles just for the sake of the
+   activities"). Each one is linked to its contact — the lead's email, an earlier profile for the same lead, or the same
+   name at the same company — and a contact (and account) is created when there is none. Ids come from the lead / name, so
+   two devices doing this at once write the same records, not duplicates. Runs only after the full pull (SYNC.booted), so a
+   half-loaded book never looks empty. The conference lead itself is untouched (not marked promoted / qualified). */
+function hubKey(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");}
+function hubActPerson(a){
+  const src=(a.refId&&(leadById(a.refId)||(DB.leads||[]).find(l=>l.id===a.refId)))||{};
+  const name=String(src.name||a.name||"").trim(),coName=String(src.company||a.company||"").trim();if(!name)return null;
+  const em=String(src.email||a.email||"").trim().toLowerCase(),coOf=x=>(company(x.cid)||{}).name||x.branch||"";
+  let p=(src.refPid&&person(src.refPid))||(em&&DB.people.find(x=>(x.email||"").toLowerCase()===em))||(a.refId&&DB.people.find(x=>x.refId===a.refId))||
+    DB.people.find(x=>hubKey(x.name)===hubKey(name)&&hubKey(coOf(x))===hubKey(coName))||null;
+  if(p)return p;
+  const ck=hubKey(coName),st=String(src.state||"").toUpperCase().slice(0,2),now=new Date().toISOString(),from=a.conf||src.conf||"Marketing hub";
+  let c=ck?(DB.companies.find(x=>hubKey(x.name)===ck)||bcMatchCompany(coName)||company("hubco_"+ck.slice(0,40))):null;
+  if(!c&&ck){c={id:"hubco_"+ck.slice(0,40),name:coName,type:(src.segment==="Distributor/Rep"||src.kind==="distributor")?"distributor":"enduser",
+      city:src.city||"",state:st,territory:regionFromState(st),note:"Added for activity logged from the Marketing hub ("+from+")",
+      units:0,revenue:0,orders:0,lastOrder:"",demoCount:0,source:"Marketing hub activity",createdAt:now};
+    if(c.type==="distributor")c.dstatus="potential";DB.companies.unshift(c);}
+  p={id:"hubp_"+hubKey(a.refId||(name+"_"+coName)).slice(0,48),name:name,cid:c?c.id:null,branch:c?c.name:coName,role:src.title||"Contact",
+    email:src.email||a.email||"",phone:src.phone||"",city:src.city||"",state:st,units:0,pos:0,last:null,
+    refId:a.refId||"",source:"Marketing hub activity",note:from+(a.refId?" lead":""),createdAt:now};
+  DB.people.unshift(p);return p;
+}
+function linkHubActs(){
+  if(!SYNC.booted)return;
+  let ch=false;
+  (DB.activities||[]).forEach(a=>{
+    if(!a||a.pid||!(a.refId||a.name))return;
+    const p=hubActPerson(a);if(!p)return;
+    a.pid=p.id;if(!a.cid&&p.cid)a.cid=p.cid;
+    if(a.date&&(!p.last||new Date(a.date)>new Date(p.last)))p.last=a.date;
+    ch=true;
   });
   if(ch)save();
 }
@@ -3254,7 +3292,7 @@ function promoteLead(id,stay){
     DB.companies.unshift(c);
   }
   const em=String(l.email||"").trim().toLowerCase();
-  let p=em?DB.people.find(x=>String(x.email||"").toLowerCase()===em):null;const had=!!p;
+  let p=(em?DB.people.find(x=>String(x.email||"").toLowerCase()===em):null)||DB.people.find(x=>x.refId===l.id)||null;const had=!!p; // refId: a profile made for a hub activity
   if(!p){
     p={id:uid(),name:l.name,cid:c.id,branch:c.name,role:l.title||"Contact",
        city:l.city||"",state:l.state||"",units:0,pos:0,last:l.contacted?new Date().toISOString():null,
