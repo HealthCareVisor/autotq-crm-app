@@ -1936,8 +1936,8 @@ function liWeekHTML(posts){
   const lab=x=>x.dt.toLocaleDateString("en-US",{month:"short",day:"numeric"});
   return '<div class="liwk">'+days.map(x=>'<button class="'+x.cls+'" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+' aria-label="'+esc(x.d[1]+' '+lab(x)+(x.p?' — '+liTitle(x.p):x.sl?' — planned, no draft yet':''))+'">'+
      '<span class="lil">'+x.d[0]+'</span><span class="lidt">'+x.d[1]+' '+x.dt.getDate()+'</span>'+
-     (x.sl?(x.p?'<span class="lik">'+esc(x.p.theme||LI_PILLAR[x.p.pillar]||x.p.pillar||"")+'</span><span class="lit">'+esc(liTitle(x.p))+'</span>'+liStatusPill(x.p)+((x.p.attachments||[]).length?'<span class="pill info">PDF attached</span>':''):'<span class="lit none">No draft yet</span><span class="pill">9:00 AM ET</span>'):'')+'</button>').join("")+'</div>'+
-   '<div class="liwklist">'+days.filter(x=>x.sl).map(x=>'<button class="ibx" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+'><span class="nm"><b>'+x.d[1]+' '+lab(x)+' · '+(x.p?esc(liTitle(x.p)):'No draft yet')+'</b></span>'+(x.p?liStatusPill(x.p)+((x.p.attachments||[]).length?'<span class="pill info">PDF</span>':''):'')+'</button>').join("")+'</div>';
+     (x.sl?(x.p?'<span class="lik">'+esc(x.p.theme||LI_PILLAR[x.p.pillar]||x.p.pillar||"")+'</span><span class="lit">'+esc(liTitle(x.p))+'</span>'+liStatusPill(x.p)+((x.p.attachments||[]).length?'<span class="pill info">PDF attached</span>':'')+(x.p.handoff?'<span class="pill ok">Sent to '+esc(LI_POSTER.first)+'</span>':''):'<span class="lit none">No draft yet</span><span class="pill">9:00 AM ET</span>'):'')+'</button>').join("")+'</div>'+
+   '<div class="liwklist">'+days.filter(x=>x.sl).map(x=>'<button class="ibx" '+(x.p?'data-act="lisel" data-v="'+x.p.id+'"':'disabled')+'><span class="nm"><b>'+x.d[1]+' '+lab(x)+' · '+(x.p?esc(liTitle(x.p)):'No draft yet')+'</b></span>'+(x.p?liStatusPill(x.p)+((x.p.attachments||[]).length?'<span class="pill info">PDF</span>':'')+(x.p.handoff?'<span class="pill ok">Sent to '+esc(LI_POSTER.first)+'</span>':''):'')+'</button>').join("")+'</div>';
 }
 function liPastHTML(){const ps=liPast();
   return '<div class="pan" style="margin-top:14px"><div class="ph2">'+svg("chart")+'Past posts<span class="t2" style="margin-left:4px">· '+ps.length+' posted · tap one to see it or add its numbers</span></div>'+
@@ -1960,7 +1960,7 @@ function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStat
   h+='<div class="pan"><div class="ph2 liwkhead">'+svg("cal")+'Week of '+esc(wk)+
     '<button class="btn sm ghost" data-act="liweek" data-v="'+prev.toISOString().slice(0,10)+'" aria-label="Week before" style="padding:0 8px">‹</button><button class="btn sm ghost" data-act="liweek" data-v="'+next.toISOString().slice(0,10)+'" aria-label="Week after" style="padding:0 8px">›</button>'+
     (liWeek!==liMonday(0)?'<button class="btn sm ghost" data-act="liweek" data-v="'+liMonday(0)+'">This week</button>':'')+
-    '<span class="meta"><button class="btn sm ghost" data-act="liresearch"'+(keyMissing||st.running?' disabled':'')+'>Refresh research</button><button class="btn sm coral" data-act="ligen"'+(keyMissing||st.running?' disabled':'')+'>'+(posts.length>=3?'All three drafted':'Draft '+(posts.length?'the rest of ':'')+'this week')+'</button></span></div>'+
+    '<span class="meta">'+(n=>'<button class="btn sm" data-act="lihandgo" data-v="'+liWeek+'"'+(n&&!(liHand&&liHand.busy)?'':' disabled')+' title="'+(n?'1.png, 2.png and the description for each approved post, in one download, with the email to '+LI_POSTER.first+' ready':'Approve this week\'s posts first')+'">'+svg("mail")+(liHand&&liHand.busy?'Packing…':'Send to '+LI_POSTER.first+(n?' · '+n:''))+'</button>')(liHandPosts(liWeek).length)+'<button class="btn sm ghost" data-act="liresearch"'+(keyMissing||st.running?' disabled':'')+'>Refresh research</button><button class="btn sm coral" data-act="ligen"'+(keyMissing||st.running?' disabled':'')+'>'+(posts.length>=3?'All three drafted':'Draft '+(posts.length?'the rest of ':'')+'this week')+'</button></span></div>'+
     liWeekHTML(posts)+'</div>';
   const sel=liPosts().find(p=>p.id===liSel)||posts.find(p=>p.status==="draft"); /* a draft waiting for review opens by itself */
   if(sel){liSel=sel.id;h+='<div style="margin-top:14px">'+liPostHTML(sel)+'</div>';}
@@ -2419,7 +2419,82 @@ function liResearchHTML(){const rs=(DB.liResearch||[]).slice().sort((a,b)=>Strin
   return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("plus")+'Add a post you liked<span class="t2" style="margin-left:4px">· a LinkedIn post or article that did well — it shapes the next drafts</span></div><div class="libody"><div class="row" style="gap:8px;flex-wrap:wrap"><input class="f" id="liAddUrl" placeholder="Link" style="flex:2;min-width:220px"><input class="f" id="liAddOrg" placeholder="Who posted it" style="flex:1;min-width:160px"></div><textarea class="f" id="liAddWhy" placeholder="What made it work (the hook, a number, a photo, the length, the reactions you saw)" style="width:100%;min-height:70px;margin-top:8px"></textarea><button class="btn sm coral" data-act="liaddres" style="margin-top:8px">Add to research</button></div></div>'+
     '<div class="pan"><div class="ph2">'+svg("search")+'Research<span class="t2" style="margin-left:4px">· '+rs.length+' items · every item keeps its link</span></div>'+(rs.length?rs.slice(0,80).map(r=>'<div class="actrow"><span class="nm"><b><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.title||r.url)+'</a></b><small>'+esc([({news:"News",pattern:"What works",example:"Example post"})[r.kind]||r.kind,r.org,r.date].filter(Boolean).join(" · "))+(r.source==="manual"?' · added by hand':'')+'</small>'+(r.summary?'<small class="what">'+esc(r.summary)+'</small>':'')+(r.takeaway?'<small>Takeaway: '+esc(r.takeaway)+'</small>':'')+'</span></div>').join(""):'<div class="empty" style="padding:22px 16px">No research yet. Refresh research (needs the API key) or add a post you liked.</div>')+'</div>';}
 function liFind(id){return liPosts().find(p=>p.id===id);}
+/* Send to Carisse (Max, 2026-10-26: "compile posts so that they can be sent to our poster … everything ready to go when I ship it
+   out to her … we won't be posting directly but we can send .png1 .png2 description"). One button per week: every approved,
+   not-yet-posted post becomes a folder in one zip — 1.png (the stat card), 2.png (the product photo, as framed), description.txt
+   (when to post + the post text); a PDF post carries document.pdf instead (LinkedIn takes a PDF or images, not both). The zip goes
+   to the private marketing bucket (linkedin/handoff/) with a 30-day signed link, and the email to Carisse opens ready to send
+   from Max's own mail app. Marks each post `handoff` when he opens the email. */
+const LI_POSTER={name:"Carisse Joseph",first:"Carisse",email:"carisse@goldenhourmedical.com"};
+let liHand=null;
+const ZIP_CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function zipCrc(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=ZIP_CRC[(c^u8[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+/* a plain "stored" zip (PNG/PDF are already compressed): local headers, data, central directory */
+function zipStore(files){const enc=new TextEncoder(),parts=[],central=[];let off=0;const d=new Date();
+  const dt=((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF,dd=(((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  files.forEach(f=>{const name=enc.encode(f.name),data=f.data,crc=zipCrc(data);
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,dt,true);h.setUint16(12,dd,true);
+    h.setUint32(14,crc,true);h.setUint32(18,data.length,true);h.setUint32(22,data.length,true);h.setUint16(26,name.length,true);h.setUint16(28,0,true);
+    parts.push(new Uint8Array(h.buffer),name,data);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,dt,true);c.setUint16(14,dd,true);
+    c.setUint32(16,crc,true);c.setUint32(20,data.length,true);c.setUint32(24,data.length,true);c.setUint16(28,name.length,true);c.setUint32(42,off,true);
+    central.push(new Uint8Array(c.buffer),name);off+=30+name.length+data.length;});
+  const cdSize=central.reduce((s,x)=>s+x.length,0),e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob(parts.concat(central,[new Uint8Array(e.buffer)]),{type:"application/zip"});}
+async function liBytes(b){return new Uint8Array(await b.arrayBuffer());}
+/* the product photo as a PNG, framed the way it shows on the post */
+function livPhotoPng(p){const v=liVisual(p),a=livPhotoAdj(p);
+  return mktBlob(LI_PHOTO_DIR+v.photo+".jpg").then(livImg).then(im=>{const cv=document.createElement("canvas"),x=cv.getContext("2d");
+    if(a){const g=livGeo({w:im.naturalWidth,h:im.naturalHeight},a);cv.width=2160;cv.height=2700;x.fillStyle="#fff";x.fillRect(0,0,cv.width,cv.height);x.imageSmoothingQuality="high";x.drawImage(im,g.l*cv.width,g.t*cv.height,g.w*cv.width,g.h*cv.height);}
+    else{cv.width=im.naturalWidth;cv.height=im.naturalHeight;x.drawImage(im,0,0);}
+    return new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error("couldn't make the photo PNG")),"image/png"));});}
+function liHandPosts(week){return liPosts().filter(p=>p.week===week&&p.status==="approved"&&!p.external).sort((a,b)=>String(a.slotAt).localeCompare(String(b.slotAt)));}
+function liHandDay(p){return new Date(p.slotAt||p.at).toLocaleDateString("en-US",{weekday:"short",timeZone:"America/New_York"});}
+function liHandFolder(p){return String(p.slotAt||todayStr()).slice(0,10)+" "+liHandDay(p);}
+function liHandDesc(p){const pdf=(p.attachments||[]).length,t=liText(p).trim();
+  return "AutoTQ LinkedIn post\r\nPost on: "+liWhen(p.slotAt||p.at)+"\r\nPost from: the AutoTQ company page\r\n"+
+    (pdf?"Attach: document.pdf (this post carries a PDF; LinkedIn takes a PDF or images, not both)\r\n":"Images: add 1.png first, then 2.png\r\n")+
+    "\r\n----- Post text (copy everything below this line) -----\r\n\r\n"+t.replace(/\r?\n/g,"\r\n")+"\r\n";}
+async function liHandBuild(week){const posts=liHandPosts(week),enc=new TextEncoder(),files=[];
+  for(const p of posts){const dir=liHandFolder(p)+"/",v=liVisual(p),pdf=(p.attachments||[])[0];
+    files.push({name:dir+"description.txt",data:enc.encode(liHandDesc(p))});
+    if(pdf){const u=await mktBlob(pdf.path);files.push({name:dir+"document.pdf",data:await liBytes(await (await fetch(u)).blob())});}
+    else{files.push({name:dir+"1.png",data:await liBytes(await livCardBlob(livCardOf(p),v.theme))});
+      if(v.photo)files.push({name:dir+"2.png",data:await liBytes(await livPhotoPng(p))});}}
+  const wk=new Date(week+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  files.unshift({name:"README.txt",data:enc.encode("AutoTQ LinkedIn posts, week of "+wk+"\r\n\r\n"+posts.map(p=>liWhen(p.slotAt||p.at)+"  "+liTitle(p)+"  (folder: "+liHandFolder(p)+")").join("\r\n")+
+    "\r\n\r\nEach folder: 1.png (post first), 2.png, description.txt (when to post + the post text).\r\n")});
+  return {posts,blob:zipStore(files),name:"AutoTQ_LinkedIn_week_of_"+week+".zip",wk};}
+function liHandEmail(h,full){const lines=h.posts.map(p=>liWhen(p.slotAt||p.at)+": "+liTitle(p));
+  const body="Hi "+LI_POSTER.first+",\n\nHere are this week's LinkedIn posts for the AutoTQ page, ready to go. One download has everything"+(h.url?" (the link works for 30 days):\n"+h.url:" (attached)")+
+    "\n\nEach post has its own folder with 1.png (post it first), 2.png and description.txt (the post text and when to post it).\n\n"+lines.join("\n")+
+    (full?"\n\n"+h.posts.map(p=>"----- "+liWhen(p.slotAt||p.at)+" -----\n"+liText(p).trim()).join("\n\n"):"")+"\n\nThanks!\nMax";
+  return {subject:"AutoTQ LinkedIn posts, week of "+h.wk+" ("+h.posts.length+" post"+(h.posts.length===1?"":"s")+")",body};}
+function liHandHref(h){const e=liHandEmail(h,false);return "mailto:"+encodeURIComponent(LI_POSTER.email)+"?subject="+encodeURIComponent(e.subject)+"&body="+encodeURIComponent(e.body);}
+async function liHandStart(week){if(liHand&&liHand.busy)return;const n=liHandPosts(week).length;if(!n){toast("Approve this week's posts first");return;}
+  liHand={week,busy:true};render();toast("Packing "+n+" post"+(n===1?"":"s")+"…");
+  try{const h=await liHandBuild(week);liHand=Object.assign(liHand,h);
+    const path="linkedin/handoff/"+week+"/"+Date.now().toString(36)+"_"+h.name;
+    const up=await supa("/storage/v1/object/"+MKT_BUCKET+"/"+path.split("/").map(encodeURIComponent).join("/"),{method:"POST",headers:{"Content-Type":"application/octet-stream","x-upsert":"true"},body:h.blob});
+    if(up.ok){const sg=await supa("/storage/v1/object/sign/"+MKT_BUCKET+"/"+path.split("/").map(encodeURIComponent).join("/"),{method:"POST",body:JSON.stringify({expiresIn:60*60*24*30})});
+      const sj=await sg.json().catch(()=>({}));const su=sj.signedURL||sj.signedUrl||"";if(sg.ok&&su){liHand.url=/^https?:/.test(su)?su:SUPA_URL+"/storage/v1"+(su.startsWith("/")?"":"/")+su;liHand.path=path;}}
+    if(!liHand.url)toast("Couldn't make the download link. Download the zip and attach it instead.");
+  }catch(e){toast("Couldn't pack the posts: "+(e.message||e));liHand=null;render();return;}
+  liHand.busy=false;liHand.local=URL.createObjectURL(liHand.blob);render();liHandSheet();}
+function liHandSheet(){const h=liHand;if(!h||h.busy)return;
+  openInsp('<h2>Ready for '+esc(LI_POSTER.first)+'</h2><p class="t2">'+h.posts.length+' post'+(h.posts.length===1?'':'s')+' from the week of '+esc(h.wk)+'. Each has 1.png, 2.png and description.txt'+(h.posts.some(p=>(p.attachments||[]).length)?' (a PDF post has document.pdf instead of the images)':'')+'.</p><div class="insp-line" style="background:var(--coral)"></div>'+
+    '<div class="list" style="margin:8px 0 14px">'+h.posts.map(p=>'<div class="ibx" style="cursor:default"><span class="nm"><b>'+esc(liWhen(p.slotAt||p.at))+'</b><small>'+esc(liTitle(p))+'</small></span></div>').join("")+'</div>'+
+    (h.url?'<p class="t2" style="white-space:normal">The download link works for 30 days. The email opens in your mail app with the link in it, addressed to '+esc(LI_POSTER.name)+' &lt;'+esc(LI_POSTER.email)+'&gt;.</p>':'<p class="t2" style="white-space:normal">The link couldn’t be made, so download the zip and attach it to the email.</p>')+
+    '<div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap"><a class="btn coral" href="'+esc(liHandHref(h))+'" data-act="lihandsent">'+svg("mail")+'Email '+esc(LI_POSTER.first)+'</a>'+
+    '<a class="btn" href="'+esc(h.local)+'" download="'+esc(h.name)+'">'+svg("dl")+'Download the zip</a><button class="btn ghost" data-act="lihandcopy">Copy the email</button></div>');}
+function liHandHandle(a,t){
+  if(a==="lihandgo"){liHandStart(t.dataset.v);return true;}
+  if(a==="lihandsent"){const h=liHand;if(h)setTimeout(()=>{const now=new Date().toISOString();h.posts.forEach(p=>{p.handoff={at:now,to:LI_POSTER.email,by:USER,zip:h.path||""};put("liPosts",p);});render();},400);return true;} /* the link itself opens the email; stamp after */
+  if(a==="lihandcopy"){const h=liHand;if(!h)return true;const e=liHandEmail(h,true);prosClip("To: "+LI_POSTER.email+"\nSubject: "+e.subject+"\n\n"+e.body,"Copied the email, with each post's text");return true;}
+  return false;}
 function liHandle(a,t){const id=t.dataset.v;
+  if(a.indexOf("lihand")===0)return liHandHandle(a,t)||true;
   if(a==="litab"){liTab=t.dataset.v;liEdit=false;render();return true;}
   if(a==="liweek"){liWeek=t.dataset.v;liSel="";liEdit=false;render();return true;}
   if(a==="lisel"){liSel=id;const q=liFind(id);if(q&&q.week)liWeek=q.week;liTab="week";liEdit=false;render();const el=document.querySelector(".lipost");if(el)el.scrollIntoView({block:"start",behavior:"smooth"});return true;}
