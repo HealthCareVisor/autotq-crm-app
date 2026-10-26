@@ -125,6 +125,18 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .cc-hist{margin-top:10px}.cc-hist p{margin:4px 0}.callouts .chip{min-height:38px;padding:0 14px}
 .callnext .ibx.on{background:var(--rule-2)}
 .cc-fu{margin-top:12px;padding:10px 12px;border:1px dashed var(--rule);border-radius:10px}.cc-fu .btn{text-decoration:none}
+.callfu .fu-grid{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;column-gap:10px;margin-top:6px}.callfu .fu-grid label.fl{margin:10px 0 0}.callfu .fu-grid>.f,.callfu .fu-grid>.row,.callfu .fu-grid>.fu-cc{margin-top:10px}
+.fu-cc{display:flex;align-items:center;gap:8px;font-size:14px}.fu-body{margin-top:12px;font:14px/1.55 var(--sans,inherit);min-height:240px;resize:vertical}.callfu .btn{text-decoration:none}
+@media (max-width:640px){.callfu .fu-grid{grid-template-columns:1fr}.callfu .fu-grid label.fl{margin-top:12px}}
+.fu-row{align-items:flex-start;gap:14px}.fu-act{text-align:right;min-width:190px}.fu-act .btn{text-decoration:none}.fu-reply{margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--ok);background:var(--rule-2);border-radius:6px;font-size:13.5px;white-space:pre-wrap}
+@media (max-width:640px){.fu-row{flex-direction:column}.fu-act{text-align:left;min-width:0}.fu-act .row{justify-content:flex-start!important}}
+.planstrip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}.pblk{display:flex;flex-direction:column;gap:6px;text-align:left;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--paper);color:inherit;cursor:pointer;font:inherit}
+.pblk .pl{display:flex;flex-direction:column}.pblk small{color:var(--ink-3);font-size:12px}.pblk.on{border-color:var(--coral,#E8473F);box-shadow:0 0 0 1px var(--coral,#E8473F) inset}.pblk.done{opacity:.6}.pblk .cbar{margin-top:0}.pblk.on .cbar i{background:var(--coral,#E8473F)}
+@media (max-width:640px){.planstrip{grid-template-columns:1fr}}
+.chip.hotchip{border-color:var(--bad);color:var(--bad)}.chip.hotchip.on{background:var(--bad);color:#fff}
+.kpis .kpi-s{background:var(--paper);padding:12px 14px;border:0;border-radius:0}.kpi-s small{display:block;color:var(--ink-3);font-size:12.5px}.kpi-s b{font-size:24px;font-weight:650;letter-spacing:-.02em}.kpi-s b small{display:inline;font-size:13px;font-weight:500;margin-left:4px}
+table.score td.num{white-space:nowrap}table.score tr.tot td{font-weight:650;border-top:2px solid var(--rule)}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .reccard{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);padding:16px 18px}
 .lists{display:flex;flex-direction:column;margin-top:6px}.lrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--rule-2)}.lrow:first-child{border-top:0}
 .lrow .grow{display:flex;flex-direction:column;min-width:0}.lrow b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lrow small{color:var(--ink-3);font-size:12.5px;margin-top:2px}
@@ -1630,7 +1642,7 @@ function render(){
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
   const titles={calls:"Calls",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook"};
-  const subs={calls:"Every conference lead with a phone number, one at a time — callbacks first, then warm leads, then everyone never called. Each call is logged on the lead for the whole team.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",limsg:"Automated DMs, InMail and invites to follow the AutoTQ page",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
   const crumbs=[APP_NAME].concat(view==="cat"?(catSel&&catFind(catSel)?[catPh(catPhase(catFind(catSel)))[1],catFind(catSel).name]:[catPhaseF?catPh(catPhaseF)[1]:"All products"]):view==="start"?["Home"]:view==="calls"?["Calls"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
@@ -2638,15 +2650,33 @@ function repliedSectionHTML(){const ps=repliedPeople();if(!ps.length)return "";
   return '<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("mail")+'Engaged<span class="t2" style="margin-left:4px">· '+ps.length+' replied or clicked · off the campaigns, working leads now</span></div>'+ps.map(p=>{const l=p.l,r=ACT_REP[regionFromState(l.state)]||"";
     return '<div class="actrow"><i class="actdot done" style="background:#3FB950"></i><span class="nm"><b>'+esc(((l.first||"")+" "+(l.last||"")).trim()||l.email)+'</b><small>'+esc([l.title,l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))+' · '+esc(p.c.name.replace(/ — .*/,""))+(p.at?' · '+esc(actDay(p.at)):'')+'</small><small class="what">'+(p.reply&&p.reply.text?'Replied: “'+esc(p.reply.text.replace(/\s+/g," ").slice(0,160))+(p.reply.text.length>160?'…':'')+'”':(l.outcome||l.flag==="replied")?'Replied — message not saved yet':p.click?'Clicked '+esc(actPage(p.click.url))+' · '+esc(actAgo(p.click.at)):'')+'</small></span><span class="row" style="gap:6px">'+
       (l.handedTo?'<span class="pill info">With '+esc(repShort(l.handedTo))+'</span>':(r?'<button class="btn sm coral" data-act="actpush" data-v="'+esc(p.key)+'" data-r="'+r+'">To '+repShort(r)+'</button>':''))+'<button class="btn sm" data-act="actreply" data-v="'+esc(p.key)+'">Read & reply</button></span></div>';}).join("")+'</div>';}
-/* ---------- Calls (2026-10-26, Max: "a call list where I'm forced to do 50 calls a day… get through all of the conference lists")
+/* ---------- Calls (2026-10-26, Max: "a call list where I'm forced to do 50 calls a day… get through all of the conference lists";
+   later the same night: "build it for me to be a call and follow up machine" — sort by not called yet, a hand-tailored email right after
+   every call, and track what goes out and what comes back so the conference lists can be judged).
    A personal power dialer over the conference leads. Every call is stored on the lead (confLeads.calls[{at,by,out,note,cb}]) plus
    lastCall / contacted / status / next / temp, so the CRM's Conferences tab and the no-double-touch guard see it; one `activities`
-   row (type "call") per call for the team timeline. Daily goal per person in localStorage (default 50). ---------- */
+   row (type "call") per call for the team timeline. Daily goal per person in localStorage (default 50).
+   Follow-up emails leave from the caller's own Outlook (mailto), so they are real one-to-one mail with his signature; each one is kept on
+   the lead (confLeads.emails[{at,by,tpl,subject,body,to,cc,dist}], fuAt). mail-run (hourly, and the "Check for replies" button) reads
+   max@'s Sent folder to confirm it went (fuSentAt) and his inbox for answers (replies collection + replyAt on the lead). ---------- */
 const CALL_OUTS=[["noanswer","No answer",0],["vm","Voicemail",0],["talked","Talked",1],["interested","Interested",1],["demo","Demo / quote",1],["callback","Call back",1],["notint","Not interested",1],["wrong","Wrong number",0]];
 const CALL_DONE_OUTS=["notint","wrong","demo"]; // off the queue (demo/quote goes to the pipeline; a callback date brings anyone back)
+const CALL_FU_OUTS=["talked","interested","demo","callback","vm","noanswer"]; // these open the follow-up email right after logging
 const TZ_OFF={Eastern:-4,Central:-5,Mountain:-6,Pacific:-7,Alaska:-8,Hawaii:-10};
-let callConfs=null, callSkip=new Set(), callCur=null, callOutSel="", callTab="queue", callDistVal=null;
-function callGoal(){try{return +localStorage.getItem("autotq_call_goal_"+USER)||50;}catch(e){return 50;}}
+const CALL_BKT_RANK={0:0,2:1,1:2,3:3}; // callbacks due today, then never called (Max: "sort by haven't called yet"), then warm follow-ups, then retries
+const CALL_BKT_LBL={0:"Call back",1:"Warm",2:"New",3:"Retry"};
+let callConfs=null, callSkip=new Set(), callCur=null, callOutSel="", callTab="queue", callDistVal=null, callQF="all", callNoteVal="", callFu=null, callFuF="all";
+/* day plan (Max, 2026-10-26: "50 easy in the morning and then it will switch by region as the day goes on … 20 is fair"):
+   East Coast until 50 are logged or 12:30 PM Eastern, then Central until 20 or 3 PM Eastern, then the West. Click a block to jump to it. */
+const CALL_PLAN=[{k:"east",lbl:"Morning · East Coast",sh:"East",tz:["Eastern"],n:50,until:12.5},{k:"central",lbl:"Midday · Central",sh:"Central",tz:["Central"],n:20,until:15},{k:"west",lbl:"Afternoon · West",sh:"West",tz:["Mountain","Pacific","Alaska","Hawaii"],n:20,until:24}];
+let callPlanPick=null;
+function callPlanOn(){try{return localStorage.getItem("autotq_call_plan_"+USER)!=="off";}catch(e){return true;}}
+function callPlanSet(on){try{localStorage.setItem("autotq_call_plan_"+USER,on?"on":"off");}catch(e){}}
+function callEtHour(){try{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date());const h=+p.find(x=>x.type==="hour").value%24,m=+p.find(x=>x.type==="minute").value;return h+m/60;}catch(e){return new Date().getHours();}}
+function callPlanDone(b){const today=todayStr();let n=0;(DB.confLeads||[]).forEach(l=>{if(!b.tz.includes(callTz(l)))return;callsOf(l).forEach(c=>{if(c.by===USER&&callDayKey(c.at)===today)n++;});});return n;}
+function callPlanBlock(){if(!callPlanOn())return null;if(callPlanPick)return CALL_PLAN.find(b=>b.k===callPlanPick)||null;const h=callEtHour();
+  const open=CALL_PLAN.find(b=>callPlanDone(b)<b.n&&h<b.until);if(open)return open;const left=CALL_PLAN.filter(b=>callPlanDone(b)<b.n);return left.length?left[left.length-1]:null;}
+function callGoal(){if(callPlanOn())return CALL_PLAN.reduce((n,b)=>n+b.n,0);try{return +localStorage.getItem("autotq_call_goal_"+USER)||50;}catch(e){return 50;}}
 function callGoalSet(n){try{localStorage.setItem("autotq_call_goal_"+USER,String(n));}catch(e){}}
 function callDigits(p){return String(p||"").replace(/\D/g,"").replace(/^1(?=\d{10}$)/,"");}
 function callPhones(l){const ps=String(l.phone||"").split(/[;\/|]|\bor\b|,/).map(x=>x.trim()).filter(x=>callDigits(x).length>=10);return ps;}
@@ -2659,7 +2689,7 @@ function callGoodHour(l){const h=callLocalHour(l);return h>=8.5&&h<17;}
 function callsOf(l){return Array.isArray(l.calls)?l.calls:[];}
 function callLast(l){const c=callsOf(l);return c.length?c[c.length-1]:null;}
 function callDayKey(iso){const d=new Date(iso);return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
-function callPool(){return (DB.confLeads||[]).filter(l=>l.segment!=="Set Aside"&&callPhones(l).length);}
+function callPool(){return (DB.confLeads||[]).filter(l=>l.segment!=="Set Aside"&&l.segment!=="Distributor/Rep"&&callPhones(l).length);}
 function callIsDone(l){const last=callLast(l);if(last&&CALL_DONE_OUTS.includes(last.out)&&!(last.cb&&last.cb>todayStr()))return !(l.cb&&l.cb<=todayStr());
   if(!callsOf(l).length&&/not interested|do not call|wrong number|no longer|retired|left the company/i.test(l.status||""))return true;return false;}
 function callBucket(l){ // 0 callback due · 1 warm/hot · 2 never called · 3 retry (no answer / voicemail) · 9 not now
@@ -2672,9 +2702,14 @@ function callBucket(l){ // 0 callback due · 1 warm/hot · 2 never called · 3 r
   if(last&&["noanswer","vm"].includes(last.out)&&daysSince>=3&&n<5)return 3;
   if(!n&&l.contacted&&!/not interested/i.test(l.status||""))return 3; // reached before this tool (status only)
   return 9;}
-function callQueue(){const today=todayStr();const on=callConfs;
+function callQueueAll(){const today=todayStr();const on=callConfs;
   return callPool().filter(l=>(!on||!on.size||on.has(l.conf))&&!callIsDone(l)&&!callsOf(l).some(c=>callDayKey(c.at)===today)&&!callSkip.has(l.id)).map(l=>({l,b:callBucket(l),good:callGoodHour(l)})).filter(x=>x.b<9)
-    .sort((a,b)=>a.b-b.b||(b.good?1:0)-(a.good?1:0)||(TZ_OFF[callTz(b.l)]-TZ_OFF[callTz(a.l)])||String(a.l.cb||"").localeCompare(String(b.l.cb||""))||String(a.l.conf).localeCompare(String(b.l.conf))||String(a.l.company||"").localeCompare(String(b.l.company||"")));}
+    .sort((a,b)=>CALL_BKT_RANK[a.b]-CALL_BKT_RANK[b.b]||(b.good?1:0)-(a.good?1:0)||(TZ_OFF[callTz(b.l)]-TZ_OFF[callTz(a.l)])||String(a.l.cb||"").localeCompare(String(b.l.cb||""))||String(a.l.conf).localeCompare(String(b.l.conf))||String(a.l.company||"").localeCompare(String(b.l.company||"")));}
+/* a good mix (Max, 2026-10-26: "shoot me warm leads, just a good mix"): callbacks due first, then warm, new, new, retry, repeating */
+function callMix(q){const g={0:[],1:[],2:[],3:[]};q.forEach(x=>g[x.b].push(x));const out=g[0].slice();const pat=[1,2,2,3];let i=0;
+  while(g[1].length||g[2].length||g[3].length){const k=pat[i++%pat.length];if(g[k].length)out.push(g[k].shift());} // an empty group is skipped; the others keep their turn
+  return out;}
+function callQueue(){let q=callQueueAll();const b=callPlanBlock();if(b){const qb=q.filter(x=>b.tz.includes(callTz(x.l)));if(qb.length)q=qb;}if(callQF==="all")return callMix(q);return callQF==="new"?q.filter(x=>x.b===2):callQF==="warm"?q.filter(x=>x.b===0||x.b===1):callQF==="retry"?q.filter(x=>x.b===3):q;}
 function callMine(){const out=[];(DB.confLeads||[]).forEach(l=>callsOf(l).forEach(c=>{if(c.by===USER)out.push({l,c});}));return out.sort((a,b)=>String(b.c.at).localeCompare(String(a.c.at)));}
 function callStats(){const mine=callMine();const today=todayStr();const byDay={};mine.forEach(x=>{const k=callDayKey(x.c.at);const o=byDay[k]=byDay[k]||{dials:0,connects:0};o.dials++;if((CALL_OUTS.find(z=>z[0]===x.c.out)||[])[2])o.connects++;});
   const t=byDay[today]||{dials:0,connects:0};let streak=0;const g=callGoal();for(let i=0;i<120;i++){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const v=(byDay[callDayKey(d.toISOString())]||{}).dials||0;if(v>=g)streak++;else if(i===0)continue;else break;}
@@ -2689,69 +2724,191 @@ function callLog(l,out,note,cb){const now=new Date().toISOString();const rec={at
   put("activities",{id:uid(),type:"call",by:USER,date:now,note:lbl+(note?" · "+note:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null,out});
   callSkip.delete(l.id);}
 function callConfList(){const m={};callPool().forEach(l=>{const o=m[l.conf]=m[l.conf]||{conf:l.conf,total:0,called:0,left:0};o.total++;if(callsOf(l).length||l.contacted)o.called++;if(!callIsDone(l)&&callBucket(l)<9)o.left++;});return Object.values(m).sort((a,b)=>a.conf.localeCompare(b.conf));}
-function viewCalls(){
-  const st=callStats(),g=callGoal(),t=st.today,q=callQueue();if(!callCur||!q.some(x=>x.l.id===callCur))callCur=q.length?q[0].l.id:null;
-  const pctDone=Math.min(100,Math.round(t.dials/g*100));const left=Math.max(0,g-t.dials);
-  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const k=callDayKey(d.toISOString());days.push({k,lb:d.toLocaleDateString([], {weekday:"narrow"}),v:(st.byDay[k]||{}).dials||0,c:(st.byDay[k]||{}).connects||0});}
-  const maxV=Math.max(g,...days.map(x=>x.v));
-  let h='<div class="callhead">'+
-    '<div class="pan callgoal"><div class="cg-top"><div><small>Today</small><b class="num">'+t.dials+'<span>/'+g+'</span></b><p class="t2" style="margin:2px 0 0">'+(left?left+' to go':'Goal hit — every call now is extra')+' · '+t.connects+' conversation'+(t.connects===1?'':'s')+'</p></div>'+
-      '<div class="cg-goal"><small>Daily goal</small><div class="chips">'+[30,50,75,100].map(n=>'<span class="chip'+(g===n?" on":"")+'" data-act="callgoal" data-v="'+n+'">'+n+'</span>').join("")+'</div></div></div>'+
-      '<div class="cg-bar"><i style="width:'+pctDone+'%"></i></div>'+
-      '<div class="cg-days">'+days.map(d=>'<div class="'+(d.k===todayStr()?"td":"")+'" title="'+d.k+': '+d.v+' calls, '+d.c+' conversations"><i style="height:'+Math.round(d.v/maxV*100)+'%" class="'+(d.v>=g?"hit":"")+'"></i><small>'+d.lb+'</small></div>').join("")+'<span class="goalline" style="bottom:'+(16+Math.round(g/maxV*54))+'px"></span></div>'+
-      '<p class="t2" style="margin:8px 0 0">'+(st.streak?'<b>'+st.streak+'-day streak</b> at goal · ':'')+st.mine.length+' calls logged all time · '+q.length+' in the queue</p></div>'+
-    callConfsHTML("deskonly")+'</div>';
-  h+='<div class="chips" style="margin:14px 0 12px">'+[["queue","Up next"],["log","Today’s calls "+t.dials],["cb","Callbacks"]].map(x=>'<span class="chip'+(callTab===x[0]?" on":"")+'" data-act="calltab" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
-    if(callTab==="log"){const rows=st.mine.filter(x=>callDayKey(x.c.at)===todayStr());
-    h+=rows.length?'<div class="tablewrap"><table class="lv"><thead><tr><th>Time</th><th>Who</th><th>Company</th><th>Where</th><th>Show</th><th>Outcome</th><th>Note</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+new Date(x.c.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+'</td><td class="lvname">'+esc(x.l.name||"")+'</td><td>'+esc(x.l.company||"")+'</td><td>'+esc([x.l.city,x.l.state].filter(Boolean).join(", "))+'</td><td>'+esc(x.l.conf||"")+'</td><td>'+callOutPill(x.c.out)+(x.c.cb?' <span class="t2">→ '+esc(x.c.cb.slice(5))+'</span>':'')+'</td><td class="wrap">'+esc(x.c.note||"")+'</td></tr>').join("")+'</tbody></table></div>':'<div class="empty">No calls logged today yet.</div>';
-    return h;}
-  if(callTab==="cb"){const cbs=(DB.confLeads||[]).filter(l=>l.cb).sort((a,b)=>String(a.cb).localeCompare(b.cb));
-    h+=cbs.length?'<div class="pan">'+cbs.map(l=>'<button class="ibx" data-act="callpick" data-id="'+esc(l.id)+'"><span class="tag'+(l.cb<=todayStr()?" hot":"")+'">'+esc(l.cb.slice(5).replace("-","/"))+'</span><span class="nm"><b>'+esc(l.name||"")+'</b><small>'+esc([l.company,l.city&&l.state?l.city+", "+l.state:l.state,l.conf].filter(Boolean).join(" · "))+'</small></span><span class="t2" style="margin:0;max-width:40%;text-align:right">'+esc(l.next||"")+'</span></button>').join("")+'</div>':'<div class="empty">No callbacks scheduled.</div>';
-    return h;}
-  if(!q.length)return h+'<div class="empty">Nobody left to call with these lists'+(callConfs&&callConfs.size?' — turn on more lists above':'')+'. Callbacks come back on their day.</div>';
-  const cur=(q.find(x=>x.l.id===callCur)||q[0]);h+='<div class="callgrid">'+callCardHTML(cur.l,cur.b)+'<div class="pan callnext"><div class="ph2">'+svg("users")+'Next up<span class="t2" style="margin-left:4px">· '+q.length+'</span></div>'+q.slice(0,12).map(x=>'<button class="ibx'+(x.l.id===cur.l.id?" on":"")+'" data-act="callpick" data-id="'+esc(x.l.id)+'"><span class="tag'+(x.b===0||x.b===1?" hot":"")+'">'+["Call back","Warm","New","Retry"][x.b]+'</span><span class="nm"><b>'+esc(x.l.name||"")+'</b><small>'+esc((x.l.company||"")+" · "+(x.l.state||"")+" · "+callLocalTime(x.l))+'</small></span>'+(x.good?'':'<span class="t2" style="margin:0" title="Outside 8:30–5 their time">late</span>')+'</button>').join("")+'</div></div>'+callConfsHTML("phoneonly");
-  return h;}
-function callConfsHTML(cls){return '<div class="pan callconfs '+cls+'"><div class="ph2">'+svg("chart")+'Getting through the lists</div>'+callConfList().map(o=>{const on=!callConfs||!callConfs.size||callConfs.has(o.conf);const p=o.total?Math.round(o.called/o.total*100):0;
-      return '<button class="ccrow'+(on?"":" off")+'" data-act="callconf" data-v="'+esc(o.conf)+'"><span class="ck">'+(on?svg("check"):"")+'</span><span class="grow"><b>'+esc(o.conf)+'</b><small>'+o.called+' of '+o.total+' reached at least once · '+o.left+' left to call</small><span class="cbar"><i style="width:'+p+'%"></i></span></span><span class="num">'+p+'%</span></button>';}).join("")+'</div>';}
-/* follow-up email after a call (2026-10-26): Max's own template, from his own mail app (mailto — the email leaves from his real inbox),
-   territory rep on cc, ordering routed through the contact's distributor. No pricing. */
+
+/* follow-up tracking: what went out after a call, what came back */
+function callEmails(l){return Array.isArray(l.emails)?l.emails:[];}
+function callLastEmail(l){const e=callEmails(l);return e.length?e[e.length-1]:null;}
+function callReplies(l){const k=String(l.email||"").toLowerCase();const fu=callEmails(l)[0];if(!k||!fu)return [];return repliesOf(k).filter(r=>String(r.at)>=String(fu.at).slice(0,16));}
+function callBizDays(fromIso){let d=new Date(fromIso),n=0;const now=new Date();d.setHours(0,0,0,0);while(d<now){d.setDate(d.getDate()+1);if(d<=now&&d.getDay()!==0&&d.getDay()!==6)n++;}return n;}
+function callFuState(l){const e=callLastEmail(l);if(!e)return null;const rp=callReplies(l);
+  if(rp.length&&!(l.replyDone&&l.replyDone>=rp[0].at))return {k:"replied",lbl:"Replied",cls:"ok",rank:0,rp};
+  if(rp.length)return {k:"handled",lbl:"Replied · handled",cls:"",rank:4,rp};
+  const days=callBizDays(e.at);const sent=l.fuSentAt&&l.fuSentAt>=String(e.at).slice(0,16);
+  if(!sent&&(Date.now()-new Date(e.at).getTime())>36*3600000)return {k:"unsent",lbl:"Not in your Sent folder",cls:"warn",rank:1,days};
+  if(days>=3&&callEmails(l).length<3)return {k:"nudge",lbl:"No reply · "+days+" business days",cls:"warn",rank:2,days};
+  return {k:"waiting",lbl:sent?"Sent · waiting":"Opened in Outlook",cls:"info",rank:3,days};}
+function callFuRows(){return (DB.confLeads||[]).filter(l=>callEmails(l).length&&callEmails(l).some(e=>e.by===USER)).map(l=>({l,s:callFuState(l),e:callLastEmail(l)})).filter(x=>x.s)
+  .sort((a,b)=>a.s.rank-b.s.rank||String(b.e.at).localeCompare(String(a.e.at)));}
+
+/* conference scorecard: how each show's leads perform once called */
+function callScore(){const m={};const pool=(DB.confLeads||[]).filter(l=>l.segment!=="Set Aside"&&l.segment!=="Distributor/Rep");
+  pool.forEach(l=>{const o=m[l.conf||"—"]=m[l.conf||"—"]||{conf:l.conf||"—",leads:0,phone:0,called:0,reached:0,emailed:0,replied:0,demo:0,bought:0};
+    o.leads++;if(callPhones(l).length)o.phone++;const cs=callsOf(l);if(cs.length)o.called++;
+    if(cs.some(c=>(CALL_OUTS.find(z=>z[0]===c.out)||[])[2]))o.reached++;if(callEmails(l).length)o.emailed++;if(callReplies(l).length)o.replied++;
+    if(cs.some(c=>c.out==="demo"))o.demo++;const bh=buyerHit(l);if(bh&&bh.skip&&bh.how!=="our team")o.bought++;});
+  return Object.values(m).sort((a,b)=>b.called-a.called||b.leads-a.leads);}
+
+/* the follow-up email: Max's wording, no pricing, ordering through the contact's distributor, territory rep on cc */
 const REP_BY_TERR={East:"johnm",Central:"john",West:"tim"};
 function callTerritory(l){const st=String(l.state||"").toUpperCase().slice(0,2);
   if(/^(MT|WY|CO|NM|AZ|UT|NV|ID|WA|OR|CA|AK|HI)$/.test(st))return "West";if(/^(IL|WI|MN|IA|MO|AR|LA|OK|TX|KS|NE|SD|ND)$/.test(st))return "Central";return st?"East":"";}
 const DIST_NAMES=["Grainger","Fastenal","MSC","Cintas","UniFirst","Ritz Safety","PMG","Medique","Industrial Supply","Airgas","Global Industrial","Bound Tree","Henry Schein","HD Supply","Rescue1","Copper State","Ballard","Mallory","Bunzl","Magid","Uline","Zoro","Amazon"];
-function callGuessDist(l){const t=[l.notes,l.status,l.next].concat(callsOf(l).map(c=>c.note)).join(" ");return DIST_NAMES.find(d=>new RegExp("\\b"+d.replace(/ /g,"\\s+")+"\\b","i").test(t))||"";}
-function callFollowupHref(l,dist){const me=teamById(USER);const rep=REP_BY_TERR[callTerritory(l)];const repT=rep&&rep!==USER?teamById(rep):null;const repEmail=repT?userEmail(rep):"";
-  const first=String(l.name||"").trim().split(/\s+/)[0]||"there";
-  const body="Hi "+first+",\n\nI enjoyed speaking with you over the phone today.\n\nAs promised, a quick overview of AutoTQ: it's an automatic tourniquet with one-button activation. Place the cuff above the bleed, press Inflate, and it applies consistent compression on its own and talks the person through it, so anyone can apply it rapidly under stress.\n\n"+
-    (dist?"Since you purchase through "+dist+", they can offer you a quote and a demo."+(repT?" I've copied "+repT.name.split(" ")[0]+" from our team, who works with them in your area and can set that up.":""):(repT?repT.name.split(" ")[0]+" from our team covers your area (copied here) and can set up a quote and a demo through the distributor you already use.":"Let me know which distributor you buy safety supplies through, and they can offer you a quote and a demo."))+
-    "\n\nTraining is free for your team: "+SITE_URL+"training\n\nBest,\n"+(me.name||"")+"\nAutoTQ | Golden Hour Medical";
-  return "mailto:"+encodeURIComponent(l.email||"")+"?subject="+encodeURIComponent("AutoTQ — great speaking with you")+(repEmail?"&cc="+encodeURIComponent(repEmail):"")+"&body="+encodeURIComponent(body);}
+function callGuessDist(l){if(l.dist)return l.dist;const t=[l.notes,l.status,l.next].concat(callsOf(l).map(c=>c.note)).join(" ");return DIST_NAMES.find(d=>new RegExp("\\b"+d.replace(/ /g,"\\s+")+"\\b","i").test(t))||"";}
+function callRep(l){const rep=REP_BY_TERR[callTerritory(l)];return rep&&rep!==USER?rep:"";}
+const CALL_TPLS=[["talked","Talked"],["interested","Interested"],["demo","Demo / quote"],["callback","Call back"],["vm","Voicemail"],["noanswer","No answer"],["nudge","Nudge"]];
+function callNiceDate(d){if(!d)return "";const x=new Date(d+"T12:00:00");return x.toLocaleDateString([], {weekday:"long",month:"short",day:"numeric"});}
+function callTpl(l,tpl,dist,cb){const me=teamById(USER);const rep=callRep(l);const repT=rep?teamById(rep):null;const repFirst=repT?repT.name.split(" ")[0]:"";
+  const first=String(l.name||"").trim().split(/\s+/)[0]||"there";const conf=l.conf?String(l.conf):"";
+  const what="AutoTQ is an automatic tourniquet with one-button activation. Place the cuff above the bleed, press Inflate, and it applies consistent compression on its own while it talks the person through each step, so anyone on your team can apply it quickly under stress. In our testing, 36 of 36 first-time users got AutoTQ on, 33 with no help.";
+  const distLine=dist?"Since you purchase through "+dist+", they can offer you a quote and a demo."+(repT?" I've copied "+repFirst+" from our team, who works with them in your area and can set that up.":"")
+    :(repT?repFirst+" from our team covers your area (copied here) and can set up a quote and a demo through the distributor you already use.":"Let me know which distributor you buy safety supplies through, and they can offer you a quote and a demo.");
+  const sign="\n\nBest,\n"+(me.name||"")+"\nAutoTQ | Golden Hour Medical";
+  const links="Training is free for your team: "+SITE_URL+"training\nMore about AutoTQ: "+SITE_URL;
+  const prev=callLastEmail(l);
+  const T={
+    talked:["AutoTQ — great speaking with you","Hi "+first+",\n\nI enjoyed speaking with you over the phone today"+(conf?", and thanks again for connecting with us at "+conf:"")+".\n\nAs promised, a quick overview: "+what+"\n\n"+distLine+"\n\n"+links],
+    interested:["AutoTQ — next steps","Hi "+first+",\n\nThanks for the time on the phone today. I'm glad AutoTQ looks like a fit for your team.\n\nA quick recap: "+what+"\n\n"+distLine+"\n\n"+(cb?"I'll check back in on "+callNiceDate(cb)+". ":"")+"If anyone else on your team should see it, reply with their name and I'll include them.\n\n"+links],
+    demo:["AutoTQ demo — next steps","Hi "+first+",\n\nThanks for making the time today. I'm glad you'd like to see AutoTQ in person.\n\n"+(dist?"We'll set the demo and quote up through "+dist+". ":"")+(repT?repFirst+" from our team covers your area (copied here) and will reach out to find a time that works.":"I'll reach out to find a time that works.")+(cb?" I've pencilled in "+callNiceDate(cb)+" to make sure it's on the calendar.":"")+" If anyone else should be there, reply with their name and we'll include them.\n\nIn the meantime, a quick overview: "+what+"\n\n"+links],
+    callback:["AutoTQ — info ahead of our call","Hi "+first+",\n\nThanks for picking up today. As promised, here's a quick overview before we talk again"+(cb?" on "+callNiceDate(cb):"")+".\n\n"+what+"\n\n"+distLine+"\n\n"+links],
+    vm:["AutoTQ — just left you a voicemail","Hi "+first+",\n\nI just left you a voicemail"+(conf?" following up from "+conf:"")+".\n\nThe short version: "+what+"\n\nWould a 10-minute call this week make sense? Reply with a time that works and I'll call you then.\n\n"+links],
+    noanswer:["AutoTQ — tried to reach you","Hi "+first+",\n\nI tried to reach you by phone today"+(conf?" to follow up from "+conf:"")+".\n\nThe short version: "+what+"\n\nWould a 10-minute call this week make sense? Reply with a time that works and I'll call you then.\n\n"+links],
+    nudge:[prev&&prev.subject?(/^re:/i.test(prev.subject)?prev.subject:"Re: "+prev.subject):"AutoTQ — following up","Hi "+first+",\n\nJust floating this back to the top of your inbox. Would a 10-minute call this week make sense to see if AutoTQ fits "+(l.company?l.company:"your team")+"?\n\nIf now isn't the right time, a one-word reply is fine and I'll stop following up."]};
+  const x=T[tpl]||T.talked;return {subject:x[0],body:x[1]+sign};}
+function callFuOpen(l,tpl,ctx){const dist=callDistVal!=null?callDistVal:callGuessDist(l);const cb=ctx&&ctx.cb||l.cb||"";const t=callTpl(l,tpl,dist,cb);const rep=callRep(l);
+  callFu={id:l.id,tpl,out:ctx&&ctx.out||tpl,cb,dist,subject:t.subject,body:t.body,to:l.email||"",cc:rep?userEmail(rep):"",ccOn:!!rep&&tpl!=="vm"&&tpl!=="noanswer"&&tpl!=="nudge",edited:false,from:ctx&&ctx.from||"queue"};}
+function callFuHref(f){return "mailto:"+encodeURIComponent(f.to||"")+"?subject="+encodeURIComponent(f.subject||"")+(f.ccOn&&f.cc?"&cc="+encodeURIComponent(f.cc):"")+"&body="+encodeURIComponent(f.body||"");}
+function callFuRead(){if(!callFu)return;const g=id=>document.getElementById(id);if(g("callFuTo"))callFu.to=g("callFuTo").value.trim();if(g("callFuSubj"))callFu.subject=g("callFuSubj").value;if(g("callFuBody"))callFu.body=g("callFuBody").value;if(g("callFuDist"))callFu.dist=g("callFuDist").value.trim();if(g("callFuCc"))callFu.ccOn=g("callFuCc").checked;}
+function callComposerHTML(l){const f=callFu;const rep=callRep(l);const hist=callEmails(l);const rp=callReplies(l);const long=encodeURIComponent(f.body||"").length>1800;
+  return '<div class="pan callcard callfu"><div class="cc-top"><span class="pill info">'+(f.from==="queue"?"Step 2 · follow-up email":"Follow-up email")+'</span><span class="t2" style="margin:0">'+esc(l.conf||"")+'</span>'+(f.from==="queue"?'<span style="margin-left:auto">'+callOutPill(f.out)+'</span>':'')+'</div>'+
+    '<h2 class="cc-name" style="font-size:22px">'+esc(l.name||"—")+'</h2><p class="cc-sub">'+esc([l.title,l.company].filter(Boolean).join(" · "))+'</p>'+
+    '<div class="sectlabel" style="margin-top:14px">Template</div><div class="chips">'+CALL_TPLS.map(t=>'<span class="chip'+(f.tpl===t[0]?" on":"")+'" data-act="callfutpl" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
+    '<div class="fu-grid"><label class="fl">To</label><input class="f" id="callFuTo" value="'+esc(f.to)+'" placeholder="their email">'+
+      '<label class="fl">Cc</label><label class="fu-cc"><input type="checkbox" id="callFuCc"'+(f.ccOn?" checked":"")+(f.cc?"":" disabled")+'> '+(f.cc?esc(teamById(rep).name)+' <span class="t2" style="margin:0">'+esc(f.cc)+' · territory rep</span>':'<span class="t2" style="margin:0">No territory rep for '+esc(l.state||"this state")+'</span>')+'</label>'+
+      '<label class="fl">Buys through</label><div class="row" style="gap:8px"><input class="f" id="callFuDist" value="'+esc(f.dist||"")+'" placeholder="Grainger, Fastenal, Cintas…" style="max-width:240px"><button class="btn sm ghost" data-act="callfuredo" title="Rewrite the email with this distributor and template">Rewrite</button></div>'+
+      '<label class="fl">Subject</label><input class="f" id="callFuSubj" value="'+esc(f.subject)+'"></div>'+
+    '<textarea class="f fu-body" id="callFuBody" rows="13">'+esc(f.body)+'</textarea>'+
+    (long?'<p class="t2" style="margin:6px 0 0;color:var(--bad)">Long email — some mail apps cut a link this long. Trim it, or use Copy text and paste into Outlook.</p>':'')+
+    '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><a class="btn coral" id="callFuSend" data-act="callfusend" href="'+esc(callFuHref(f))+'">'+svg("mail")+' Open in Outlook'+(f.from==="queue"?' · next call':'')+'</a><button class="btn" data-act="callfucopy">Copy text</button><button class="btn ghost" data-act="callfuskip">'+(f.from==="queue"?'No email · next call':'Cancel')+'</button></div>'+
+    '<p class="t2" style="margin:8px 0 0">It opens in your Outlook so it goes from your own inbox with your signature. Edit anything here or there. The hub checks your Sent folder and inbox every hour and marks it Sent, then Replied.</p>'+
+    (hist.length||rp.length?'<div class="cc-hist" style="margin-top:12px"><div class="sectlabel">Emails so far</div>'+hist.slice(-3).reverse().map(e=>'<p><span class="pill">'+esc((CALL_TPLS.find(t=>t[0]===e.tpl)||[0,"Email"])[1])+'</span> <span class="t2" style="margin:0">'+new Date(e.at).toLocaleDateString([], {month:"short",day:"numeric"})+' · '+esc(e.subject||"")+'</span></p>').join("")+rp.slice(0,2).map(r=>'<p><span class="pill ok">Reply</span> <span class="t2" style="margin:0">'+new Date(r.at).toLocaleDateString([], {month:"short",day:"numeric"})+' · '+esc(String(r.text||r.subject||"").slice(0,160))+'</span></p>').join("")+'</div>':'')+
+    '</div>';}
+function callFuRecord(l,f){const now=new Date().toISOString();const rec={at:now,by:USER,tpl:f.tpl,out:f.out,subject:f.subject,body:String(f.body||"").slice(0,3000),to:f.to,cc:f.ccOn?f.cc:"",dist:f.dist||""};
+  if(f.to&&f.to.toLowerCase()!==String(l.email||"").toLowerCase()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.to)){if(l.email)l.emailOld=l.email;l.email=f.to;}
+  l.emails=callEmails(l).concat([rec]);l.fuAt=now;l.fuBy=USER;if(f.dist)l.dist=f.dist;
+  if(f.tpl==="nudge"&&!l.cb){}put("confLeads",l);
+  put("activities",{id:uid(),type:"email",by:USER,date:now,note:"Follow-up email ("+((CALL_TPLS.find(t=>t[0]===f.tpl)||[0,f.tpl])[1])+"): "+f.subject+(f.dist?" · via "+f.dist:"")+(rec.cc?" · cc "+rec.cc:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null});}
+
+function viewCalls(){
+  const st=callStats(),g=callGoal(),t=st.today,qa=callQueueAll(),q=callQueue();if(!callCur||!q.some(x=>x.l.id===callCur))callCur=q.length?q[0].l.id:null;
+  const pctDone=Math.min(100,Math.round(t.dials/g*100));const left=Math.max(0,g-t.dials);
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const k=callDayKey(d.toISOString());days.push({k,lb:d.toLocaleDateString([], {weekday:"narrow"}),v:(st.byDay[k]||{}).dials||0,c:(st.byDay[k]||{}).connects||0});}
+  const maxV=Math.max(g,...days.map(x=>x.v));const fu=callFuRows();const fuNeed=fu.filter(x=>x.s.rank<=2).length;
+  const emToday=(DB.confLeads||[]).reduce((n,l)=>n+callEmails(l).filter(e=>e.by===USER&&callDayKey(e.at)===todayStr()).length,0);
+  let h='<div class="callhead">'+
+    '<div class="pan callgoal"><div class="cg-top"><div><small>Today</small><b class="num">'+t.dials+'<span>/'+g+'</span></b><p class="t2" style="margin:2px 0 0">'+(left?left+' to go':'Goal hit — every call now is extra')+' · '+t.connects+' conversation'+(t.connects===1?'':'s')+' · '+emToday+' follow-up email'+(emToday===1?'':'s')+'</p></div>'+
+      '<div class="cg-goal"><small>Daily goal</small><div class="chips"><span class="chip'+(callPlanOn()?" on":"")+'" data-act="callplan" data-v="on" title="50 East Coast, then 20 Central, then 20 West">Day plan</span>'+[30,50,75,100].map(n=>'<span class="chip'+(!callPlanOn()&&g===n?" on":"")+'" data-act="callgoal" data-v="'+n+'">'+n+'</span>').join("")+'</div></div></div>'+
+      '<div class="cg-bar"><i style="width:'+pctDone+'%"></i></div>'+
+      '<div class="cg-days">'+days.map(d=>'<div class="'+(d.k===todayStr()?"td":"")+'" title="'+d.k+': '+d.v+' calls, '+d.c+' conversations"><i style="height:'+Math.round(d.v/maxV*100)+'%" class="'+(d.v>=g?"hit":"")+'"></i><small>'+d.lb+'</small></div>').join("")+'<span class="goalline" style="bottom:'+(16+Math.round(g/maxV*54))+'px"></span></div>'+
+      '<p class="t2" style="margin:8px 0 0">'+(st.streak?'<b>'+st.streak+'-day streak</b> at goal · ':'')+st.mine.length+' calls logged all time · '+qa.length+' in the queue</p></div>'+
+    callConfsHTML("deskonly")+'</div>';
+  h+='<div class="chips" style="margin:14px 0 12px">'+[["queue","Up next"],["fu","Follow-ups"+(fuNeed?" · "+fuNeed:"")],["score","Scorecard"],["log","Today’s calls "+t.dials],["cb","Callbacks"]].map(x=>'<span class="chip'+(callTab===x[0]?" on":"")+(x[0]==="fu"&&fuNeed?" hotchip":"")+'" data-act="calltab" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
+  if(callFu){const l=(DB.confLeads||[]).find(x=>x.id===callFu.id);if(l)return h+'<div class="callgrid">'+callComposerHTML(l)+callNextHTML(q,l.id)+'</div>';callFu=null;}
+  if(callTab==="log"){const rows=st.mine.filter(x=>callDayKey(x.c.at)===todayStr());
+    h+=rows.length?'<div class="tablewrap"><table class="lv"><thead><tr><th>Time</th><th>Who</th><th>Company</th><th>Where</th><th>Show</th><th>Outcome</th><th>Email</th><th>Note</th></tr></thead><tbody>'+rows.map(x=>{const em=callEmails(x.l).find(e=>e.at>=x.c.at);return '<tr><td>'+new Date(x.c.at).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})+'</td><td class="lvname">'+esc(x.l.name||"")+'</td><td>'+esc(x.l.company||"")+'</td><td>'+esc([x.l.city,x.l.state].filter(Boolean).join(", "))+'</td><td>'+esc(x.l.conf||"")+'</td><td>'+callOutPill(x.c.out)+(x.c.cb?' <span class="t2">→ '+esc(x.c.cb.slice(5))+'</span>':'')+'</td><td>'+(em?'<span class="pill info">Sent</span>':'<span class="t2" style="margin:0">—</span>')+'</td><td class="wrap">'+esc(x.c.note||"")+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="empty">No calls logged today yet.</div>';
+    return h;}
+  if(callTab==="cb"){const cbs=(DB.confLeads||[]).filter(l=>l.cb).sort((a,b)=>String(a.cb).localeCompare(b.cb));
+    h+=cbs.length?'<div class="pan">'+cbs.map(l=>'<button class="ibx" data-act="callpick" data-id="'+esc(l.id)+'"><span class="tag'+(l.cb<=todayStr()?" hot":"")+'">'+esc(l.cb.slice(5).replace("-","/"))+'</span><span class="nm"><b>'+esc(l.name||"")+'</b><small>'+esc([l.company,l.city&&l.state?l.city+", "+l.state:l.state,l.conf].filter(Boolean).join(" · "))+'</small></span><span class="t2" style="margin:0;max-width:40%;text-align:right">'+esc(l.next||"")+'</span></button>').join("")+'</div>':'<div class="empty">No callbacks scheduled.</div>';
+    return h;}
+  if(callTab==="fu")return h+callFuHTML(fu);
+  if(callTab==="score")return h+callScoreHTML();
+  const pb=callPlanBlock();const qb2=pb&&qa.some(x=>pb.tz.includes(callTz(x.l)))?qa.filter(x=>pb.tz.includes(callTz(x.l))):qa;if(callPlanOn())h+='<div class="planstrip">'+CALL_PLAN.map(b=>{const d=callPlanDone(b);const pc=Math.min(100,Math.round(100*d/b.n));const left=qa.filter(x=>b.tz.includes(callTz(x.l))).length;
+      return '<button class="pblk'+(pb&&pb.k===b.k?" on":"")+(d>=b.n?" done":"")+'" data-act="callplanpick" data-v="'+b.k+'"><span class="pl"><b>'+esc(b.lbl)+'</b><small>'+d+' of '+b.n+(d>=b.n?' · done':'')+' · '+left+' in line</small></span><span class="cbar"><i style="width:'+pc+'%"></i></span></button>';}).join("")+'</div>'+(callPlanPick?'<p class="t2" style="margin:-6px 0 10px">You picked '+esc((CALL_PLAN.find(b=>b.k===callPlanPick)||{}).sh||"")+' by hand · <a href="#" data-act="callplanpick" data-v="">back to automatic</a></p>':'');
+  h+='<div class="chips" style="margin:-4px 0 12px">'+[["all",(pb?pb.sh+" · all ":"Everyone ")+qb2.length],["new","Not called yet "+qb2.filter(x=>x.b===2).length],["warm","Callbacks & warm "+qb2.filter(x=>x.b===0||x.b===1).length],["retry","Retries "+qb2.filter(x=>x.b===3).length]].map(x=>'<span class="chip sm'+(callQF===x[0]?" on":"")+'" data-act="callqf" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
+  if(!q.length)return h+'<div class="empty">Nobody left to call'+(callQF!=="all"?' in this group':'')+(callConfs&&callConfs.size?' with these lists — turn on more lists above':'')+'. Callbacks come back on their day.</div>';
+  const cur=(q.find(x=>x.l.id===callCur)||q[0]);h+='<div class="callgrid">'+callCardHTML(cur.l,cur.b)+callNextHTML(q,cur.l.id)+'</div>'+callConfsHTML("phoneonly");
+  return h;}
+function callNextHTML(q,curId){return '<div class="pan callnext"><div class="ph2">'+svg("users")+'Next up<span class="t2" style="margin-left:4px">· '+q.length+'</span></div>'+q.slice(0,12).map(x=>'<button class="ibx'+(x.l.id===curId?" on":"")+'" data-act="callpick" data-id="'+esc(x.l.id)+'"><span class="tag'+(x.b===0||x.b===1?" hot":"")+'">'+CALL_BKT_LBL[x.b]+'</span><span class="nm"><b>'+esc(x.l.name||"")+'</b><small>'+esc((x.l.company||"")+" · "+(x.l.state||"")+" · "+callLocalTime(x.l))+'</small></span>'+(x.good?'':'<span class="t2" style="margin:0" title="Outside 8:30–5 their time">late</span>')+'</button>').join("")+'</div>';}
+function callFuHTML(rows){
+  const cnt=k=>rows.filter(x=>x.s.k===k).length;
+  const F=[["all","All "+rows.length],["replied","Replied "+cnt("replied")],["nudge","Nudge due "+cnt("nudge")],["unsent","Not sent "+cnt("unsent")],["waiting","Waiting "+cnt("waiting")]];
+  let h='<div class="row" style="gap:8px;flex-wrap:wrap;margin:-4px 0 12px;align-items:center"><div class="chips">'+F.map(x=>'<span class="chip sm'+(callFuF===x[0]?" on":"")+'" data-act="callfuf" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div><button class="btn sm ghost" data-act="actcheck" style="margin-left:auto">Check for replies now</button></div>';
+  const rs=callFuF==="all"?rows:rows.filter(x=>x.s.k===callFuF);
+  if(!rows.length)return h+'<div class="empty">No follow-up emails yet. Log a call and the email opens right after it.</div>';
+  if(!rs.length)return h+'<div class="empty">Nobody here right now.</div>';
+  return h+'<div class="list">'+rs.slice(0,200).map(({l,s,e})=>{const lc=callLast(l);const rp=s.rp&&s.rp[0];
+    return '<div class="card fu-row"><div class="grow"><p class="t1"><b>'+esc(l.name||"—")+'</b> <span class="t2" style="margin:0">'+esc([l.company,l.state,l.conf].filter(Boolean).join(" · "))+'</span></p>'+
+      '<p class="t2" style="margin:4px 0 0">'+(lc?callOutPill(lc.out)+' ':'')+'Emailed '+new Date(e.at).toLocaleDateString([], {month:"short",day:"numeric"})+' · '+esc(e.subject||"")+(callEmails(l).length>1?' · '+callEmails(l).length+' emails':'')+(e.cc?' · cc '+esc(shortName(TEAM_EMAILS[e.cc]||"")||e.cc):'')+'</p>'+
+      (rp?'<p class="fu-reply">'+esc(String(rp.text||rp.subject||"(no text)").slice(0,320))+'</p>':'')+'</div>'+
+      '<div class="fu-act"><span class="pill '+s.cls+'">'+esc(s.lbl)+'</span><div class="row" style="gap:6px;margin-top:8px;justify-content:flex-end;flex-wrap:wrap">'+
+        (s.k==="replied"?'<button class="btn sm coral" data-act="callfudone" data-id="'+esc(l.id)+'">Handled</button>':'')+
+        (s.k==="nudge"||s.k==="waiting"?'<button class="btn sm'+(s.k==="nudge"?" coral":"")+'" data-act="callfunudge" data-id="'+esc(l.id)+'">Nudge email</button>':'')+
+        (s.k==="unsent"?'<button class="btn sm coral" data-act="callfureopen" data-id="'+esc(l.id)+'">Reopen email</button>':'')+
+        (callPhones(l).length?'<a class="btn sm" href="tel:+1'+callDigits(callPhones(l)[0])+'">'+svg("phone")+' Call</a>':'')+
+        '<button class="btn sm ghost" data-act="callpick" data-id="'+esc(l.id)+'">Open</button></div></div></div>';}).join("")+'</div>'+(rs.length>200?'<p class="t2" style="text-align:center">Showing 200 of '+rs.length+'</p>':'');}
+function callScoreHTML(){const rows=callScore();const T={conf:"Total",leads:0,phone:0,called:0,reached:0,emailed:0,replied:0,demo:0,bought:0};rows.forEach(r=>Object.keys(T).forEach(k=>{if(k!=="conf")T[k]+=r[k];}));
+  const pc=(a,b)=>b?Math.round(100*a/b)+"%":"—";const cell=(v,b)=>'<td class="num">'+v+(b!=null?'<small class="t2" style="margin:0 0 0 6px">'+pc(v,b)+'</small>':'')+'</td>';
+  const tr=r=>'<tr'+(r.conf==="Total"?' class="tot"':'')+'><td class="lvname">'+esc(r.conf)+'</td>'+cell(r.leads)+cell(r.phone,r.leads)+cell(r.called,r.phone)+cell(r.reached,r.called)+cell(r.emailed,r.called)+cell(r.replied,r.emailed)+cell(r.demo,r.reached)+cell(r.bought,r.leads)+'</tr>';
+  const st=callStats();const d14=[];for(let i=0;i<14;i++){const d=new Date();d.setDate(d.getDate()-i);d14.push(callDayKey(d.toISOString()));}
+  const dials=d14.reduce((n,k)=>n+((st.byDay[k]||{}).dials||0),0),conv=d14.reduce((n,k)=>n+((st.byDay[k]||{}).connects||0),0);
+  const em=(DB.confLeads||[]).reduce((n,l)=>n+callEmails(l).filter(e=>e.by===USER&&d14.includes(callDayKey(e.at))).length,0);
+  const rp=(DB.confLeads||[]).filter(l=>callReplies(l).some(r=>d14.includes(callDayKey(r.at)))).length;
+  return '<div class="kpis" style="margin-bottom:14px">'+[["Calls · 14 days",dials],["Conversations",conv+'<small> '+pc(conv,dials)+'</small>'],["Follow-up emails",em],["Replies",rp+'<small> '+pc(rp,em)+'</small>']].map(k=>'<div class="kpi-s"><small>'+k[0]+'</small><b class="num">'+k[1]+'</b></div>').join("")+'</div>'+
+    '<div class="tablewrap"><table class="lv score"><thead><tr><th>Conference</th><th>Leads</th><th>With a number</th><th>Called</th><th>Reached</th><th>Emailed</th><th>Replied</th><th>Demo / quote</th><th>Customers</th></tr></thead><tbody>'+rows.map(tr).join("")+tr(T)+'</tbody></table></div>'+
+    '<p class="t2" style="margin-top:8px">End users only. Each % is out of the column before it: called out of those with a number, reached (talked, interested, demo, call back, not interested) out of called, emailed out of called, replied out of emailed, demo out of reached. Customers = the person or their organization is in Orders (any time, so it can include buyers from before the show).</p>';}
+function callConfsHTML(cls){return '<div class="pan callconfs '+cls+'"><div class="ph2">'+svg("chart")+'Getting through the lists</div>'+callConfList().map(o=>{const on=!callConfs||!callConfs.size||callConfs.has(o.conf);const p=o.total?Math.round(o.called/o.total*100):0;
+      return '<button class="ccrow'+(on?"":" off")+'" data-act="callconf" data-v="'+esc(o.conf)+'"><span class="ck">'+(on?svg("check"):"")+'</span><span class="grow"><b>'+esc(o.conf)+'</b><small>'+o.called+' of '+o.total+' reached at least once · '+o.left+' left to call</small><span class="cbar"><i style="width:'+p+'%"></i></span></span><span class="num">'+p+'%</span></button>';}).join("")+'</div>';}
 function callOutPill(o){const x=CALL_OUTS.find(z=>z[0]===o)||[o,o,0];const cls=o==="demo"||o==="interested"?"ok":o==="callback"||o==="talked"?"info":o==="notint"||o==="wrong"?"dang":"";return '<span class="pill '+cls+'">'+esc(x[1])+'</span>';}
-function callCardHTML(l,b){const phones=callPhones(l);const hist=callsOf(l);const lastEmail=l.lastEmail?'Emailed '+esc(l.lastEmail):'';
+function callCardHTML(l,b){const phones=callPhones(l);const hist=callsOf(l);const lastEmail=l.lastEmail?'Campaign email '+esc(l.lastEmail):'';
   const inCamp=campaigns().filter(c=>(c.leads||[]).some(x=>x.refId===l.id&&x.sent&&Object.keys(x.sent).length)).map(c=>c.name);
-  return '<div class="pan callcard"><div class="cc-top"><span class="pill '+(b===0?"dang":b===1?"warn":"")+'">'+["Callback due","Warm lead","Never called","Retry"][b]+'</span><span class="t2" style="margin:0">'+esc(l.conf||"")+' · '+esc(l.segment||"")+'</span><span class="t2" style="margin:0 0 0 auto">'+callLocalTime(l)+' their time'+(callGoodHour(l)?'':' · outside office hours')+'</span></div>'+
-    '<h2 class="cc-name">'+esc(l.name||"—")+'</h2><p class="cc-sub">'+esc([l.title,l.company].filter(Boolean).join(" · "))+'</p><p class="t2" style="margin:2px 0 12px">'+esc([l.city,l.state].filter(Boolean).join(", "))+(l.email?' · <a href="mailto:'+esc(l.email)+'">'+esc(l.email)+'</a>':'')+'</p>'+
+  const bh=buyerHit(l);const cust=bh&&bh.skip&&bh.how!=="our team";const fs=callFuState(l);const rp=callReplies(l)[0];
+  return '<div class="pan callcard"><div class="cc-top"><span class="pill '+(b===0?"dang":b===1?"warn":"")+'">'+({0:"Callback due",1:"Warm lead",2:"Never called",3:"Retry"})[b]+'</span>'+(cust?'<span class="pill ok" title="'+esc(bh.why)+'">Customer · ask for referrals</span>':'')+'<span class="t2" style="margin:0">'+esc(l.conf||"")+' · '+esc(l.segment||"")+'</span><span class="t2" style="margin:0 0 0 auto">'+callLocalTime(l)+' their time'+(callGoodHour(l)?'':' · outside office hours')+'</span></div>'+
+    '<h2 class="cc-name">'+esc(l.name||"—")+'</h2><p class="cc-sub">'+esc([l.title,l.company].filter(Boolean).join(" · "))+'</p><p class="t2" style="margin:2px 0 12px">'+esc([l.city,l.state].filter(Boolean).join(", "))+(l.email?' · '+esc(l.email):' · <b>no email on file</b>')+'</p>'+
     '<div class="row" style="gap:8px;flex-wrap:wrap">'+phones.map((p,i)=>'<a class="btn '+(i?"":"coral ")+'callbtn" href="tel:+1'+callDigits(p)+'">'+svg("phone")+' '+esc(p)+'</a>').join("")+'</div>'+
-    ((l.status&&!/^not contacted$/i.test(l.status))||l.next||l.notes||lastEmail||inCamp.length?'<div class="cc-ctx">'+(l.status&&!/^not contacted$/i.test(l.status)?'<p><b>Last status</b> '+esc(l.status)+'</p>':'')+(l.next?'<p><b>Next</b> '+esc(l.next)+'</p>':'')+(lastEmail||inCamp.length?'<p><b>Email</b> '+[lastEmail].concat(inCamp.map(n=>"in "+esc(n))).filter(Boolean).join(" · ")+'</p>':'')+(l.notes?'<p><b>Notes</b> '+esc(String(l.notes).slice(0,240))+'</p>':'')+'</div>':'')+
+    ((l.status&&!/^not contacted$/i.test(l.status))||l.next||l.notes||lastEmail||inCamp.length||fs?'<div class="cc-ctx">'+(l.status&&!/^not contacted$/i.test(l.status)?'<p><b>Last status</b> '+esc(l.status)+'</p>':'')+(l.next?'<p><b>Next</b> '+esc(l.next)+'</p>':'')+
+      (fs?'<p><b>Follow-up</b> <span class="pill '+fs.cls+'">'+esc(fs.lbl)+'</span> '+esc((callLastEmail(l)||{}).subject||"")+'</p>':'')+(rp?'<p><b>They said</b> '+esc(String(rp.text||rp.subject||"").slice(0,240))+'</p>':'')+
+      (lastEmail||inCamp.length?'<p><b>Campaigns</b> '+[lastEmail].concat(inCamp.map(n=>"in "+esc(n))).filter(Boolean).join(" · ")+'</p>':'')+(l.notes?'<p><b>Notes</b> '+esc(String(l.notes).slice(0,240))+'</p>':'')+'</div>':'')+
     (hist.length?'<div class="cc-hist">'+hist.slice(-4).reverse().map(c=>'<p>'+callOutPill(c.out)+' <span class="t2" style="margin:0">'+new Date(c.at).toLocaleDateString([], {month:"short",day:"numeric"})+' · '+esc(shortName(c.by||""))+(c.note?' · '+esc(c.note):'')+'</span></p>').join("")+'</div>':'')+
     '<div class="sectlabel" style="margin-top:16px">How did it go?</div><div class="chips callouts">'+CALL_OUTS.map(o=>'<span class="chip'+(callOutSel===o[0]?" on":"")+'" data-act="callout" data-v="'+o[0]+'">'+o[1]+'</span>').join("")+'</div>'+
     (callOutSel==="callback"||callOutSel==="interested"||callOutSel==="demo"?'<div class="row" style="gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap"><span class="t2" style="margin:0">Call back on</span><input class="f" type="date" id="callCb" value="'+callDefaultCb(callOutSel)+'" style="max-width:180px"></div>':'')+
-    (["talked","interested","demo","callback"].includes(callOutSel)&&l.email?'<div class="cc-fu"><div class="row" style="gap:8px;flex-wrap:wrap;align-items:center"><span class="t2" style="margin:0">Buys through</span><input class="f" id="callDist" value="'+esc(callDistVal!=null?callDistVal:callGuessDist(l))+'" placeholder="Grainger, Fastenal, Cintas…" style="max-width:220px"><a class="btn" id="callFuBtn" data-act="callfu" data-id="'+esc(l.id)+'" href="'+esc(callFollowupHref(l,callDistVal!=null?callDistVal:callGuessDist(l)))+'">'+svg("mail")+' Email follow-up</a></div><p class="t2" style="margin:6px 0 0">Opens your mail app with your follow-up written: no pricing, ordering through their distributor'+(REP_BY_TERR[callTerritory(l)]?', '+esc(teamById(REP_BY_TERR[callTerritory(l)]).name)+' on cc':'')+'.'+(l.fuAt?' Last sent '+esc(l.fuAt.slice(5,10).replace("-","/"))+'.':'')+'</p></div>':'')+
-    '<textarea class="f" id="callNote" rows="2" placeholder="Notes — who you spoke to, what they need, the distributor they buy from" style="margin-top:10px"></textarea>'+
-    '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn coral" data-act="callsave" data-id="'+esc(l.id)+'"'+(callOutSel?'':' disabled')+'>Log it · next call '+svg("chevR")+'</button><button class="btn ghost" data-act="callskip" data-id="'+esc(l.id)+'">Skip for today</button></div></div>';}
+    (CALL_FU_OUTS.includes(callOutSel)?'<div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px"><span class="t2" style="margin:0">Buys through</span><input class="f" id="callDist" value="'+esc(callDistVal!=null?callDistVal:callGuessDist(l))+'" placeholder="Grainger, Fastenal, Cintas…" style="max-width:220px"></div>':'')+
+    '<textarea class="f" id="callNote" rows="2" placeholder="Notes — who you spoke to, what they need, the distributor they buy from" style="margin-top:10px">'+esc(callNoteVal)+'</textarea>'+
+    '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn coral" data-act="callsave" data-id="'+esc(l.id)+'"'+(callOutSel?'':' disabled')+'>'+(CALL_FU_OUTS.includes(callOutSel)?'Log it · write the email '+svg("chevR"):'Log it · next call '+svg("chevR"))+'</button>'+(l.email?'<button class="btn" data-act="callfuany" data-id="'+esc(l.id)+'">'+svg("mail")+' Email without logging</button>':'')+'<button class="btn ghost" data-act="callskip" data-id="'+esc(l.id)+'">Skip for today</button></div></div>';}
 function callDefaultCb(o){const d=new Date();d.setDate(d.getDate()+(o==="callback"?2:o==="interested"?5:7));while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return callDayKey(d.toISOString());}
+function callNext(){callFu=null;callOutSel="";callDistVal=null;callNoteVal="";callCur=null;callTab="queue";render();window.scrollTo(0,0);}
 function callHandle(a,t){
-  if(a==="callgoal"){callGoalSet(+t.dataset.v);render();return true;}
-  if(a==="calltab"){callTab=t.dataset.v;render();return true;}
+  const byId=id=>(DB.confLeads||[]).find(x=>x.id===id);
+  if(a==="callgoal"){callGoalSet(+t.dataset.v);callPlanSet(false);callPlanPick=null;render();return true;}
+  if(a==="callplan"){callPlanSet(true);render();return true;}
+  if(a==="callplanpick"){callPlanPick=t.dataset.v||null;callCur=null;callQF="all";render();return true;}
+  if(a==="calltab"){callTab=t.dataset.v;if(callFu&&callFu.from!=="queue")callFu=null;render();return true;}
+  if(a==="callqf"){callQF=t.dataset.v;callCur=null;render();return true;}
+  if(a==="callfuf"){callFuF=t.dataset.v;render();return true;}
   if(a==="callconf"){const all=callConfList().map(o=>o.conf);if(!callConfs)callConfs=new Set(all);const v=t.dataset.v;if(callConfs.has(v))callConfs.delete(v);else callConfs.add(v);if(callConfs.size===all.length)callConfs=null;callCur=null;render();return true;}
-  if(a==="callpick"){callCur=t.dataset.id;callTab="queue";callOutSel="";callDistVal=null;render();window.scrollTo(0,0);return true;}
-  if(a==="callout"){const n=document.getElementById("callNote");const keep=n?n.value:"";const dEl=document.getElementById("callDist");if(dEl)callDistVal=dEl.value;callOutSel=t.dataset.v;render();const n2=document.getElementById("callNote");if(n2)n2.value=keep;return true;}
-  if(a==="callfu"){const l=(DB.confLeads||[]).find(x=>x.id===t.dataset.id);if(l){const d=((document.getElementById("callDist")||{}).value||"").trim();t.href=callFollowupHref(l,d);l.fuAt=new Date().toISOString();l.fuBy=USER;if(d)l.dist=d;put("confLeads",l);put("activities",{id:uid(),type:"email",by:USER,date:l.fuAt,note:"Follow-up email after call"+(d?" · via "+d:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null});toast("Follow-up opened in your mail app");}return false;}
-  if(a==="callskip"){callSkip.add(t.dataset.id);callCur=null;callOutSel="";render();return true;}
-  if(a==="callsave"){const l=(DB.confLeads||[]).find(x=>x.id===t.dataset.id);if(!l||!callOutSel)return true;const note=((document.getElementById("callNote")||{}).value||"").trim();
-    const cbEl=document.getElementById("callCb");const cb=cbEl&&cbEl.value?cbEl.value:(callOutSel==="callback"?callDefaultCb("callback"):"");
-    callLog(l,callOutSel,note,cb);const s=callStats();callOutSel="";callDistVal=null;callCur=null;render();window.scrollTo(0,0);
-    const g=callGoal();toast(s.today.dials===g?"That's "+g+" — goal hit for today":"Logged · "+s.today.dials+"/"+g+" today");return true;}
+  if(a==="callpick"){callCur=t.dataset.id;callTab="queue";callOutSel="";callDistVal=null;callNoteVal="";callFu=null;callSkip.delete(t.dataset.id);
+    const l=byId(callCur);if(l&&!callQueue().some(x=>x.l.id===l.id)){callQF="all";} // opening someone outside the filter
+    render();window.scrollTo(0,0);return true;}
+  if(a==="callout"){const n=document.getElementById("callNote");if(n)callNoteVal=n.value;const dEl=document.getElementById("callDist");if(dEl)callDistVal=dEl.value;callOutSel=t.dataset.v;render();return true;}
+  if(a==="callskip"){callSkip.add(t.dataset.id);callNext();return true;}
+  if(a==="callsave"){const l=byId(t.dataset.id);if(!l||!callOutSel)return true;const note=((document.getElementById("callNote")||{}).value||"").trim();
+    const dEl=document.getElementById("callDist");if(dEl)callDistVal=dEl.value.trim();
+    const cbEl=document.getElementById("callCb");const cb=cbEl&&cbEl.value?cbEl.value:(callOutSel==="callback"?callDefaultCb("callback"):"");const out=callOutSel;
+    callLog(l,out,note,cb);const s=callStats();const g=callGoal();
+    if(CALL_FU_OUTS.includes(out)){callFuOpen(l,out,{out,cb,from:"queue"});callOutSel="";callNoteVal="";render();window.scrollTo(0,0);
+      toast((s.today.dials===g?"That's "+g+" — goal hit · ":"Logged · "+s.today.dials+"/"+g+" · ")+(l.email?"now the email":"add their email to send one"));return true;}
+    callNext();toast(s.today.dials===g?"That's "+g+" — goal hit for today":"Logged · "+s.today.dials+"/"+g+" today");return true;}
+  if(a==="callfuany"){const l=byId(t.dataset.id);if(!l)return true;const n=document.getElementById("callNote");if(n)callNoteVal=n.value;const lc=callLast(l);callFuOpen(l,callEmails(l).length?"nudge":lc&&CALL_FU_OUTS.includes(lc.out)?lc.out:"talked",{from:"card"});render();return true;}
+  if(a==="callfunudge"){const l=byId(t.dataset.id);if(!l)return true;callFuOpen(l,"nudge",{from:"fu"});callTab="fu";render();window.scrollTo(0,0);return true;}
+  if(a==="callfureopen"){const l=byId(t.dataset.id);if(!l)return true;const e=callLastEmail(l);callFuOpen(l,e&&e.tpl||"talked",{from:"fu",out:e&&e.out});if(e){callFu.subject=e.subject;callFu.body=e.body;callFu.ccOn=!!e.cc;callFu.reopen=true;}render();window.scrollTo(0,0);return true;}
+  if(a==="callfudone"){const l=byId(t.dataset.id);if(!l)return true;const rp=callReplies(l)[0];l.replyDone=rp?rp.at:new Date().toISOString();put("confLeads",l);render();toast("Marked handled");return true;}
+  if(a==="callfutpl"){if(!callFu)return true;callFuRead();const l=byId(callFu.id);if(!l)return true;callFu.tpl=t.dataset.v;const x=callTpl(l,callFu.tpl,callFu.dist,callFu.cb);callFu.subject=x.subject;callFu.body=x.body;callFu.ccOn=!!callFu.cc&&!["vm","noanswer","nudge"].includes(callFu.tpl);render();return true;}
+  if(a==="callfuredo"){if(!callFu)return true;callFuRead();const l=byId(callFu.id);if(!l)return true;const x=callTpl(l,callFu.tpl,callFu.dist,callFu.cb);callFu.subject=x.subject;callFu.body=x.body;render();return true;}
+  if(a==="callfucopy"){callFuRead();const txt=(callFu.to?"To: "+callFu.to+"\n":"")+(callFu.ccOn&&callFu.cc?"Cc: "+callFu.cc+"\n":"")+"Subject: "+callFu.subject+"\n\n"+callFu.body;
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Copied — paste it into Outlook, then press Open in Outlook or mark it below")).catch(()=>toast("Couldn't copy — select the text and copy it"));return true;}
+  if(a==="callfuskip"){const from=callFu&&callFu.from;callFu=null;if(from==="queue")callNext();else render();return true;}
+  if(a==="callfusend"){if(!callFu)return false;callFuRead();const l=byId(callFu.id);if(!l)return false;
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(callFu.to||"")){t.removeAttribute("href");toast("Add their email first");setTimeout(render,50);return true;}
+    t.href=callFuHref(callFu);const f=callFu;if(!f.reopen)callFuRecord(l,f);else{l.fuAt=new Date().toISOString();put("confLeads",l);}
+    const from=f.from;setTimeout(()=>{callFu=null;if(from==="queue")callNext();else render();},400);toast("Opening in Outlook — press Send there");return false;}
   return false;}
 function viewLeads(){
   const confs=confLeadLists();let ls=(DB.confLeads||[]);if(leadsConf)ls=ls.filter(l=>l.conf===leadsConf);
@@ -2874,7 +3031,10 @@ document.addEventListener("click",e=>{
   if(a==="sesrefresh"){MAILOUT_STATUS=null;render();return;}
 });
 document.addEventListener("input",e=>{
-  const el=e.target;const c=curCampaign?campaignById(curCampaign):null;
+  const el=e.target;
+  if(el.id==="callNote"){callNoteVal=el.value;return;}
+  if(el.id==="callDist"){callDistVal=el.value;return;}
+  if(/^callFu(To|Subj|Body|Dist)$/.test(el.id)){callFuRead();if(el.id==="callFuBody")callFu.edited=true;const b=document.getElementById("callFuSend");if(b&&callFu)b.href=callFuHref(callFu);return;}const c=curCampaign?campaignById(curCampaign):null;
   if(el.id==="leadsQ"){leadsQ=el.value;clearTimeout(window.__lq);window.__lq=setTimeout(()=>{render();const q=document.getElementById("leadsQ");if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length);}},250);return;}
   if(el.id==="sName"){const sd=senders().find(x=>x.id===el.dataset.sid);if(sd){sd.name=el.value;clearTimeout(window.__sn);window.__sn=setTimeout(()=>saveSender(sd),500);}return;}
   if(!c)return;
