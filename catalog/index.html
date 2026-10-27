@@ -128,6 +128,9 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .callfu .fu-grid{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;column-gap:10px;margin-top:6px}.callfu .fu-grid label.fl{margin:10px 0 0}.callfu .fu-grid>.f,.callfu .fu-grid>.row,.callfu .fu-grid>.fu-cc{margin-top:10px}
 .fu-cc{display:flex;align-items:center;gap:8px;font-size:14px}.fu-body{margin-top:12px;font:14px/1.55 var(--sans,inherit);min-height:240px;resize:vertical}.callfu .btn{text-decoration:none}
 @media (max-width:640px){.callfu .fu-grid{grid-template-columns:1fr}.callfu .fu-grid label.fl{margin-top:12px}}
+.todo{margin-bottom:14px}.todo-row{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-top:1px solid var(--rule-2)}.todo-row .t1{margin:0;font-weight:550}.todo-row.done .t1{text-decoration:line-through;color:var(--ink-3)}
+.todo-note{margin:4px 0 0;white-space:pre-wrap;font-size:13px}.todo-ck{width:22px;height:22px;flex:none;border:1.5px solid var(--ink-3);border-radius:6px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;margin-top:1px;padding:0}.todo-ck svg{width:14px;height:14px}
+.todo-add{gap:8px;margin-top:10px}.todo-add .f{flex:1}
 .fu-ai{margin-top:14px;padding:12px;border:1px solid var(--rule);border-radius:10px;background:var(--rule-2)}.fu-ai textarea{background:var(--paper)}
 .cadsla{margin-top:14px;padding:10px 12px;border:1px solid var(--coral);border-radius:10px;background:var(--coral-wash)}.cadsla p{margin:2px 0;font-size:13.5px}.cadsla .clk{font-variant-numeric:tabular-nums;font-weight:650}
 .cadsla.late{border-color:var(--bad);background:var(--bad-wash)}
@@ -2941,8 +2944,21 @@ function mktWebHTML(p){const ch=p.channels||[];if(!ch.length)return "";
 function mktStepsHTML(p){return '<div class="pan"><div class="ph2">'+svg("chart")+'How we’ll use it<span class="t2" style="margin-left:4px">· in order</span></div><ol class="msteps">'+(p.steps||[]).map((s,i)=>'<li><span class="k">'+(i+1)+'</span><span class="t"><b>'+esc(s.label)+'</b>'+(s.when||s.who?'<small>'+esc([s.when,s.who].filter(Boolean).join(" · "))+'</small>':'')+'</span>'+mktPill(mktItemSt(s))+'</li>').join("")+'</ol></div>';}
 function mktFilesHTML(p){const fs=[];if(p.file)fs.push(mktFileCard(p.file,p.title,p.kind+" · "+(p.file.pages||1)+" pages"));(p.assets||[]).forEach(a=>fs.push(mktFileCard(a.file,a.title,a.kind+((a.file.pages||1)>1?" · "+a.file.pages+" pages":""))));
   return '<div class="pan"><div class="ph2">'+svg("file")+'Files<span class="t2" style="margin-left:4px">· tap to read</span></div><div class="mfiles">'+fs.join("")+'</div></div>';}
+/* To do (Max, 2026-10-27: "put it as a to do on the marketing hub page"): personal to-dos (tasks type "todo") for the signed-in user,
+   on top of Home. Same `tasks` collection the CRM reads; check one off and it records doneAt/doneBy. */
+function todoList(){return (DB.tasks||[]).filter(t=>t&&t.type==="todo"&&!t.removed&&(t.owner===USER||(t.assignees||[]).includes(USER))).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||String(a.due||"9").localeCompare(String(b.due||"9"))||String(b.createdAt).localeCompare(String(a.createdAt)));}
+function todoHTML(){const all=todoList();const open=all.filter(t=>!t.done);const recent=all.filter(t=>t.done&&t.doneAt&&(Date.now()-new Date(t.doneAt).getTime())<3*86400000);
+  return '<div class="pan todo"><div class="ph2">'+svg("check")+'To do<span class="t2" style="margin-left:4px">· '+(open.length?open.length+' open':'all done')+'</span></div>'+
+    open.concat(recent).map(t=>'<div class="todo-row'+(t.done?' done':'')+'"><button class="todo-ck" data-act="todock" data-id="'+esc(t.id)+'" aria-label="'+(t.done?'Mark not done':'Mark done')+'">'+(t.done?svg("check"):'')+'</button><div class="grow"><p class="t1">'+esc(t.title||"")+'</p>'+(t.note?'<p class="t2 todo-note">'+esc(t.note)+'</p>':'')+(t.due&&!t.done?'<p class="t2" style="margin:2px 0 0">'+(t.due<todayStr()?'<b style="color:var(--bad)">Overdue</b> · ':'')+'Due '+esc(t.due.slice(5).replace("-","/"))+'</p>':'')+'</div></div>').join("")+
+    '<div class="row todo-add"><input class="f" id="todoNew" placeholder="Add a to-do"><button class="btn sm" data-act="todoadd">Add</button></div></div>';}
+function todoHandle(a,t){
+  if(a==="todock"){const x=(DB.tasks||[]).find(z=>z.id===t.dataset.id);if(!x)return true;x.done=!x.done;if(x.done){x.doneAt=new Date().toISOString();x.doneBy=USER;x.completedAt=x.doneAt;x.completedDay=todayStr();}else{delete x.doneAt;delete x.doneBy;delete x.completedAt;delete x.completedDay;}put("tasks",x);render();return true;}
+  if(a==="todoadd"){const el=document.getElementById("todoNew");const v=(el&&el.value||"").trim();if(!v){toast("Type the to-do first");return true;}
+    const x={id:uid(),owner:USER,assignees:[USER],title:v.slice(0,300),type:"todo",due:"",done:false,createdAt:new Date().toISOString()};(DB.tasks=DB.tasks||[]).unshift(x);put("tasks",x);render();return true;}
+  return false;}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="todoNew"){e.preventDefault();todoHandle("todoadd",e.target);}});
 function viewHome(){const plans=mktPlans();
-  const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>';
+  const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>'+todoHTML();
   if(!plans.length)return head+'<div class="empty">No plan yet.</div>';
   return head+mktTilesHTML(plans)+mktScheduleHTML(plans)+plans.map(p=>mktWebHTML(p)+'<div class="mcols">'+mktStepsHTML(p)+mktFilesHTML(p)+'</div>').join('<div style="height:14px"></div>');}
 function mktHandle(a,t){
@@ -3892,6 +3908,7 @@ document.addEventListener("click",e=>{
   if(a.indexOf("liinv")===0&&liInvHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a.indexOf("call")===0&&callHandle(a,t))return;
+  if(a.indexOf("todo")===0&&todoHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
   if(a.indexOf("act")===0&&actHandle(a,t))return;
