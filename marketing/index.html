@@ -128,9 +128,25 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .callfu .fu-grid{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;column-gap:10px;margin-top:6px}.callfu .fu-grid label.fl{margin:10px 0 0}.callfu .fu-grid>.f,.callfu .fu-grid>.row,.callfu .fu-grid>.fu-cc{margin-top:10px}
 .fu-cc{display:flex;align-items:center;gap:8px;font-size:14px}.fu-body{margin-top:12px;font:14px/1.55 var(--sans,inherit);min-height:240px;resize:vertical}.callfu .btn{text-decoration:none}
 @media (max-width:640px){.callfu .fu-grid{grid-template-columns:1fr}.callfu .fu-grid label.fl{margin-top:12px}}
-.todo{margin-bottom:14px}.todo-row{display:flex;gap:12px;align-items:flex-start;padding:10px 4px;border-top:1px solid var(--rule-2)}.todo-row .t1{margin:0;font-weight:550}.todo-row.done .t1{text-decoration:line-through;color:var(--ink-3)}
-.todo-note{margin:4px 0 0;white-space:pre-wrap;font-size:13px}.todo-ck{width:22px;height:22px;flex:none;border:1.5px solid var(--ink-3);border-radius:6px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;margin-top:1px;padding:0}.todo-ck svg{width:14px;height:14px}
-.todo-add{gap:8px;margin-top:10px}.todo-add .f{flex:1}
+.tdl{margin-bottom:14px;padding-bottom:6px}.tdl-top{display:flex;align-items:center;margin-bottom:6px}
+.tdl-grp{margin-top:14px;border-left:4px solid var(--gc);border-radius:6px 0 0 6px}
+.tdl-gh{display:flex;gap:10px;align-items:baseline;background:none;border:0;padding:2px 10px 6px;color:var(--gc);cursor:pointer;font:inherit}.tdl-gname{font-weight:650;font-size:15px}
+.tdl-head,.tdl-row,.tdl-add{display:grid;grid-template-columns:34px minmax(0,1fr) 74px 128px 104px 132px;align-items:stretch}
+.tdl-head{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}.tdl-head span{padding:4px 8px;text-align:center}.tdl-head span:nth-child(2){text-align:left}
+.tdl-row{border-top:1px solid var(--rule-2);min-height:40px}.tdl-row:last-of-type{border-bottom:1px solid var(--rule-2)}.tdl-row>*{border-left:1px solid var(--rule-2)}.tdl-row>:first-child{border-left:0}
+.tdl-row.open{background:var(--rule-2)}.tdl-ck{margin:auto;width:18px;height:18px;border:1.5px solid var(--ink-3);border-radius:5px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}.tdl-ck svg{width:12px;height:12px}
+.tdl-row.done .tdl-ck{background:#00C875;border-color:#00C875;color:#fff}.tdl-row.done .tdl-title{text-decoration:line-through;color:var(--ink-3)}
+.tdl-item{display:flex;align-items:center;gap:8px;background:none;border:0;color:inherit;font:inherit;text-align:left;padding:8px 10px;cursor:pointer;min-width:0}.tdl-title{font-weight:550;overflow:hidden;text-overflow:ellipsis}.tdl-noteic svg{width:14px;height:14px;color:var(--ink-3)}
+.tdl-own{display:flex;align-items:center;justify-content:center;gap:2px}.tdl-av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:650}
+.tdl-cell{position:relative;display:flex}.tdl-lbl{flex:1;border:0;margin:0;font:inherit;font-size:13px;font-weight:550;cursor:pointer;padding:0 6px;min-height:38px}
+.tdl-menu{position:absolute;z-index:30;top:100%;left:50%;transform:translateX(-50%);background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:8px;display:grid;gap:6px;min-width:150px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.tdl-opt{border:0;border-radius:6px;padding:8px 10px;font:inherit;font-size:13px;font-weight:550;cursor:pointer}
+.tdl-date{align-items:center;justify-content:center}.tdl-due{background:transparent;border:0;color:inherit;font:inherit;font-size:13px;padding:6px;width:100%;text-align:center;color-scheme:dark light}.tdl-date.od .tdl-due{color:#E2445C;font-weight:650}
+.tdl-detail{padding:12px 14px 14px 44px;background:var(--rule-2);border-top:1px solid var(--rule-2)}
+.tdl-add{border-bottom:1px solid var(--rule-2)}.tdl-add .f{grid-column:2/6;border:0;background:transparent;padding:9px 10px}.tdl-add .btn{grid-column:6;margin:4px}
+@media (max-width:760px){.tdl-head{display:none}.tdl-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"ck item own" ". st pr" ". du du";gap:6px 8px;padding:8px 6px}.tdl-row>*{border-left:0}
+  .tdl-ck{grid-area:ck}.tdl-item{grid-area:item;padding:2px 0}.tdl-own{grid-area:own}.tdl-status{grid-area:st}.tdl-priority{grid-area:pr}.tdl-date{grid-area:du;justify-content:flex-start}.tdl-due{text-align:left;padding:2px 0}
+  .tdl-lbl{min-height:30px;border-radius:6px}.tdl-detail{padding-left:14px}.tdl-add{grid-template-columns:1fr auto}.tdl-add>span{display:none}.tdl-add .f{grid-column:1}.tdl-add .btn{grid-column:2}}
 .fu-ai{margin-top:14px;padding:12px;border:1px solid var(--rule);border-radius:10px;background:var(--rule-2)}.fu-ai textarea{background:var(--paper)}
 .cadsla{margin-top:14px;padding:10px 12px;border:1px solid var(--coral);border-radius:10px;background:var(--coral-wash)}.cadsla p{margin:2px 0;font-size:13.5px}.cadsla .clk{font-variant-numeric:tabular-nums;font-weight:650}
 .cadsla.late{border-color:var(--bad);background:var(--bad-wash)}
@@ -2944,19 +2960,64 @@ function mktWebHTML(p){const ch=p.channels||[];if(!ch.length)return "";
 function mktStepsHTML(p){return '<div class="pan"><div class="ph2">'+svg("chart")+'How we’ll use it<span class="t2" style="margin-left:4px">· in order</span></div><ol class="msteps">'+(p.steps||[]).map((s,i)=>'<li><span class="k">'+(i+1)+'</span><span class="t"><b>'+esc(s.label)+'</b>'+(s.when||s.who?'<small>'+esc([s.when,s.who].filter(Boolean).join(" · "))+'</small>':'')+'</span>'+mktPill(mktItemSt(s))+'</li>').join("")+'</ol></div>';}
 function mktFilesHTML(p){const fs=[];if(p.file)fs.push(mktFileCard(p.file,p.title,p.kind+" · "+(p.file.pages||1)+" pages"));(p.assets||[]).forEach(a=>fs.push(mktFileCard(a.file,a.title,a.kind+((a.file.pages||1)>1?" · "+a.file.pages+" pages":""))));
   return '<div class="pan"><div class="ph2">'+svg("file")+'Files<span class="t2" style="margin-left:4px">· tap to read</span></div><div class="mfiles">'+fs.join("")+'</div></div>';}
-/* To do (Max, 2026-10-27: "put it as a to do on the marketing hub page"): personal to-dos (tasks type "todo") for the signed-in user,
-   on top of Home. Same `tasks` collection the CRM reads; check one off and it records doneAt/doneBy. */
-function todoList(){return (DB.tasks||[]).filter(t=>t&&t.type==="todo"&&!t.removed&&(t.owner===USER||(t.assignees||[]).includes(USER))).sort((a,b)=>(a.done?1:0)-(b.done?1:0)||String(a.due||"9").localeCompare(String(b.due||"9"))||String(b.createdAt).localeCompare(String(a.createdAt)));}
-function todoHTML(){const all=todoList();const open=all.filter(t=>!t.done);const recent=all.filter(t=>t.done&&t.doneAt&&(Date.now()-new Date(t.doneAt).getTime())<3*86400000);
-  return '<div class="pan todo"><div class="ph2">'+svg("check")+'To do<span class="t2" style="margin-left:4px">· '+(open.length?open.length+' open':'all done')+'</span></div>'+
-    open.concat(recent).map(t=>'<div class="todo-row'+(t.done?' done':'')+'"><button class="todo-ck" data-act="todock" data-id="'+esc(t.id)+'" aria-label="'+(t.done?'Mark not done':'Mark done')+'">'+(t.done?svg("check"):'')+'</button><div class="grow"><p class="t1">'+esc(t.title||"")+'</p>'+(t.note?'<p class="t2 todo-note">'+esc(t.note)+'</p>':'')+(t.due&&!t.done?'<p class="t2" style="margin:2px 0 0">'+(t.due<todayStr()?'<b style="color:var(--bad)">Overdue</b> · ':'')+'Due '+esc(t.due.slice(5).replace("-","/"))+'</p>':'')+'</div></div>').join("")+
-    '<div class="row todo-add"><input class="f" id="todoNew" placeholder="Add a to-do"><button class="btn sm" data-act="todoadd">Add</button></div></div>';}
+/* To do board (Max, 2026-10-27: "make my to dos on the marketing hub like Monday.com format"). Personal to-dos (tasks type "todo") for
+   the signed-in user, as a board: groups by due date (Overdue & today · This week · Later · No date · Done), one row per item with a
+   colored Status label (Not started / Working on it / Stuck / Done), Priority label (Critical / High / Medium / Low), owner, due date and
+   notes. Click a label to change it; click an item to open its notes. Same `tasks` collection the CRM reads (done/doneAt kept in step). */
+const TODO_STATUS=[["todo","Not started","#C4C4C4","#333"],["doing","Working on it","#FDAB3D","#fff"],["stuck","Stuck","#E2445C","#fff"],["done","Done","#00C875","#fff"]];
+const TODO_PRI=[["critical","Critical","#333333","#fff"],["high","High","#401694","#fff"],["medium","Medium","#5559DF","#fff"],["low","Low","#579BFC","#fff"],["","—","transparent","var(--ink-3)"]];
+let todoOpen=null, todoPick=null, todoDoneOpen=false;
+function todoList(){return (DB.tasks||[]).filter(t=>t&&t.type==="todo"&&!t.removed&&(t.owner===USER||(t.assignees||[]).includes(USER)));}
+function todoStatus(t){return t.done?"done":(t.status&&t.status!=="done"?t.status:"todo");}
+function todoWeekEnd(){const d=new Date();const add=(7-d.getDay())%7;d.setDate(d.getDate()+add);return callDayKey(d.toISOString());}
+function todoGroupOf(t){if(todoStatus(t)==="done")return "done";const today=todayStr();if(!t.due)return "nodate";if(t.due<=today)return "now";if(t.due<=todoWeekEnd())return "week";return "later";}
+const TODO_GROUPS=[["now","Overdue & today","#E2445C"],["week","This week","#FDAB3D"],["later","Later","#579BFC"],["nodate","No date","#A25DDC"],["done","Done","#00C875"]];
+function todoLabel(kind,t){const v=kind==="status"?todoStatus(t):(t.priority||"");const L=(kind==="status"?TODO_STATUS:TODO_PRI).find(x=>x[0]===v)||(kind==="status"?TODO_STATUS[0]:TODO_PRI[4]);
+  const open=todoPick===t.id+":"+kind;
+  return '<div class="tdl-cell tdl-'+kind+'"><button class="tdl-lbl" data-act="todopick" data-id="'+esc(t.id)+'" data-v="'+kind+'" style="background:'+L[2]+';color:'+L[3]+'">'+esc(L[1])+'</button>'+
+    (open?'<div class="tdl-menu">'+(kind==="status"?TODO_STATUS:TODO_PRI).map(o=>'<button class="tdl-opt" data-act="todoset" data-id="'+esc(t.id)+'" data-k="'+kind+'" data-v="'+o[0]+'" style="background:'+(o[2]==="transparent"?"var(--rule-2)":o[2])+';color:'+(o[2]==="transparent"?"var(--ink-2)":o[3])+'">'+esc(o[0]?o[1]:"No priority")+'</button>').join("")+'</div>':'')+'</div>';}
+function todoOwner(t){const ids=(t.assignees&&t.assignees.length?t.assignees:[t.owner]).filter(Boolean);return '<div class="tdl-own">'+ids.slice(0,3).map(id=>{const m=teamById(id);return '<span class="tdl-av" title="'+esc(m.name)+'" style="background:'+(m.c||"#888")+'">'+esc((m.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2))+'</span>';}).join("")+'</div>';}
+function todoRowHTML(t){const st=todoStatus(t);const open=todoOpen===t.id;const od=t.due&&t.due<todayStr()&&st!=="done";
+  return '<div class="tdl-row'+(st==="done"?" done":"")+(open?" open":"")+'">'+
+    '<button class="tdl-ck" data-act="todock" data-id="'+esc(t.id)+'" aria-label="'+(st==="done"?"Mark not done":"Mark done")+'">'+(st==="done"?svg("check"):"")+'</button>'+
+    '<button class="tdl-item" data-act="todoopen" data-id="'+esc(t.id)+'"><span class="tdl-title">'+esc(t.title||"")+'</span>'+(t.note?'<span class="tdl-noteic" title="Has notes">'+svg("file")+'</span>':'')+'</button>'+
+    todoOwner(t)+todoLabel("status",t)+todoLabel("priority",t)+
+    '<div class="tdl-cell tdl-date'+(od?" od":"")+'"><input type="date" class="tdl-due" data-id="'+esc(t.id)+'" value="'+esc(t.due||"")+'" aria-label="Due date"></div>'+
+    '</div>'+
+    (open?'<div class="tdl-detail"><label class="fl" style="margin-top:0">Item</label><input class="f" id="todoEdTitle" value="'+esc(t.title||"")+'"><label class="fl">Notes</label><textarea class="f" id="todoEdNote" rows="5" placeholder="Steps, links, who to call…">'+esc(t.note||"")+'</textarea>'+
+      '<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn sm coral" data-act="todosave" data-id="'+esc(t.id)+'">Save</button><button class="btn sm ghost" data-act="todoopen" data-id="'+esc(t.id)+'">Close</button><button class="btn sm ghost" data-act="tododel" data-id="'+esc(t.id)+'" style="margin-left:auto;color:var(--bad)">Delete</button></div>'+
+      '<p class="t2" style="margin:8px 0 0">Added '+esc(new Date(t.createdAt||Date.now()).toLocaleDateString([], {month:"short",day:"numeric"}))+(t.doneAt?' · done '+esc(new Date(t.doneAt).toLocaleDateString([], {month:"short",day:"numeric"})):'')+'</p></div>':'');}
+function todoHTML(){const all=todoList();const by={};TODO_GROUPS.forEach(g=>by[g[0]]=[]);all.forEach(t=>by[todoGroupOf(t)].push(t));
+  const prk=t=>({critical:0,high:1,medium:2,low:3})[t.priority]??4;
+  Object.keys(by).forEach(k=>by[k].sort((a,b)=>k==="done"?String(b.doneAt||"").localeCompare(String(a.doneAt||"")):(prk(a)-prk(b)||String(a.due||"9").localeCompare(String(b.due||"9"))||String(a.createdAt).localeCompare(String(b.createdAt)))));
+  const openN=all.filter(t=>todoStatus(t)!=="done").length;
+  let h='<div class="pan tdl"><div class="tdl-top"><div class="ph2" style="margin:0">'+svg("check")+'To do<span class="t2" style="margin-left:4px">· '+(openN?openN+' open':'all done')+'</span></div></div>';
+  TODO_GROUPS.forEach(g=>{const rows=by[g[0]];if(!rows.length&&(g[0]==="done"||g[0]==="nodate"||g[0]==="later"))return;
+    const collapsed=g[0]==="done"&&!todoDoneOpen;
+    h+='<div class="tdl-grp" style="--gc:'+g[2]+'"><button class="tdl-gh" '+(g[0]==="done"?'data-act="tododone"':'tabindex="-1"')+'><span class="tdl-gname">'+(g[0]==="done"?(collapsed?"▸ ":"▾ "):"")+esc(g[1])+'</span><span class="t2" style="margin:0">'+rows.length+' item'+(rows.length===1?"":"s")+'</span></button>';
+    if(!collapsed){h+='<div class="tdl-head"><span></span><span>Item</span><span>Owner</span><span>Status</span><span>Priority</span><span>Due</span></div>'+rows.map(todoRowHTML).join("");
+      if(g[0]!=="done")h+='<div class="tdl-add"><span></span><input class="f tdl-new" data-g="'+g[0]+'" placeholder="+ Add item"><button class="btn sm ghost" data-act="todoadd" data-g="'+g[0]+'">Add</button></div>';}
+    h+='</div>';});
+  return h+'</div>';}
+function todoFind(id){return (DB.tasks||[]).find(z=>z.id===id);}
+function todoSetStatus(x,v){x.status=v;x.done=v==="done";if(x.done){x.doneAt=x.doneAt||new Date().toISOString();x.doneBy=USER;x.completedAt=x.doneAt;x.completedDay=todayStr();}else{delete x.doneAt;delete x.doneBy;delete x.completedAt;delete x.completedDay;}}
+function todoDueFor(g){const d=new Date();if(g==="now")return todayStr();if(g==="week"){const e=todoWeekEnd();const t=new Date();t.setDate(t.getDate()+1);const k=callDayKey(t.toISOString());return k<=e?k:e;}if(g==="later"){d.setDate(d.getDate()+(8-d.getDay())%7+7);return callDayKey(d.toISOString());}return "";}
 function todoHandle(a,t){
-  if(a==="todock"){const x=(DB.tasks||[]).find(z=>z.id===t.dataset.id);if(!x)return true;x.done=!x.done;if(x.done){x.doneAt=new Date().toISOString();x.doneBy=USER;x.completedAt=x.doneAt;x.completedDay=todayStr();}else{delete x.doneAt;delete x.doneBy;delete x.completedAt;delete x.completedDay;}put("tasks",x);render();return true;}
-  if(a==="todoadd"){const el=document.getElementById("todoNew");const v=(el&&el.value||"").trim();if(!v){toast("Type the to-do first");return true;}
-    const x={id:uid(),owner:USER,assignees:[USER],title:v.slice(0,300),type:"todo",due:"",done:false,createdAt:new Date().toISOString()};(DB.tasks=DB.tasks||[]).unshift(x);put("tasks",x);render();return true;}
+  if(a==="todock"){const x=todoFind(t.dataset.id);if(!x)return true;todoSetStatus(x,todoStatus(x)==="done"?"todo":"done");put("tasks",x);render();return true;}
+  if(a==="todopick"){const k=t.dataset.id+":"+t.dataset.v;todoPick=todoPick===k?null:k;render();return true;}
+  if(a==="todoset"){const x=todoFind(t.dataset.id);if(!x)return true;if(t.dataset.k==="status")todoSetStatus(x,t.dataset.v);else x.priority=t.dataset.v;todoPick=null;put("tasks",x);render();return true;}
+  if(a==="todoopen"){todoOpen=todoOpen===t.dataset.id?null:t.dataset.id;todoPick=null;render();return true;}
+  if(a==="tododone"){todoDoneOpen=!todoDoneOpen;render();return true;}
+  if(a==="todosave"){const x=todoFind(t.dataset.id);if(!x)return true;const ti=((document.getElementById("todoEdTitle")||{}).value||"").trim();if(!ti){toast("The item needs a name");return true;}x.title=ti.slice(0,300);x.note=((document.getElementById("todoEdNote")||{}).value||"").slice(0,4000);put("tasks",x);todoOpen=null;render();toast("Saved");return true;}
+  if(a==="tododel"){const x=todoFind(t.dataset.id);if(!x)return true;if(!confirm("Delete “"+(x.title||"this item")+"”?"))return true;x.removed=true;x.removedAt=new Date().toISOString();x.removedBy=USER;put("tasks",x);todoOpen=null;render();toast("Deleted");return true;}
+  if(a==="todoadd"){const g=t.dataset.g||"nodate";const el=document.querySelector('.tdl-new[data-g="'+g+'"]');const v=(el&&el.value||"").trim();if(!v){if(el)el.focus();return true;}
+    const x={id:uid(),owner:USER,assignees:[USER],title:v.slice(0,300),type:"todo",status:"todo",priority:"",due:todoDueFor(g),done:false,createdAt:new Date().toISOString()};(DB.tasks=DB.tasks||[]).unshift(x);put("tasks",x);render();
+    const n=document.querySelector('.tdl-new[data-g="'+g+'"]');if(n)n.focus();return true;}
   return false;}
-document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="todoNew"){e.preventDefault();todoHandle("todoadd",e.target);}});
+document.addEventListener("keydown",e=>{const el=e.target;if(e.key==="Enter"&&el&&el.classList&&el.classList.contains("tdl-new")){e.preventDefault();todoHandle("todoadd",el);}
+  if(e.key==="Escape"&&todoPick){todoPick=null;render();}});
+document.addEventListener("change",e=>{const el=e.target;if(el&&el.classList&&el.classList.contains("tdl-due")){const x=todoFind(el.dataset.id);if(x){x.due=el.value||"";put("tasks",x);render();}}});
+document.addEventListener("click",e=>{if(todoPick&&!(e.target.closest&&e.target.closest(".tdl-cell")))  {todoPick=null;render();}},true);
 function viewHome(){const plans=mktPlans();
   const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>'+todoHTML();
   if(!plans.length)return head+'<div class="empty">No plan yet.</div>';
