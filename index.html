@@ -1510,7 +1510,7 @@ function render(){
   '<div class="console'+(sideMini()?" mini":"")+'">'+sideHTML(NU,me)+
    '<div class="work"><header class="tbar">'+hubMenuHTML()+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
     '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+subs[view]+'</div></div>'+
-    '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts & contacts…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
+    '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts, contacts & leads…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
     '<div class="tact"><button class="ibtn psearch" data-act="palopen" title="Search" aria-label="Search">'+svg("search")+'</button>'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
     '<button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>'+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline — changes will sync when you\'re back")+'">'+(SYNC.online?"":"Offline")+'</span>'+
@@ -1953,7 +1953,7 @@ function viewContacts(){
 /* ---------- GLOBAL SEARCH ---------- */
 function searchView(){
   const q=searchQ.trim().toLowerCase();
-  if(!q)return '<div class="empty">Type to search accounts and contacts.</div>';
+  if(!q)return '<div class="empty">Type to search accounts, contacts and leads.</div>';
   const cs=DB.companies.filter(c=>(admin()||inRegion(companyRegion(c)))&&((c.name||"").toLowerCase().includes(q)||(c.state||"").toLowerCase().includes(q)||(c.website||"").toLowerCase().includes(q))).slice(0,60);
   const ps=DB.people.filter(p=>(admin()||inRegion(personRegion(p)))&&((p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q))).slice(0,60);
   const os=myOpps().filter(o=>(o.name||"").toLowerCase().includes(q)||oppAcctLabel(o).toLowerCase().includes(q)||(o.rep||"").toLowerCase().includes(q)).slice(0,60);
@@ -1962,9 +1962,35 @@ function searchView(){
   h+=cs.length?accountTableHTML(cs,false):'<div class="empty">No matching accounts.</div>';
   h+='<div class="lvhead" style="margin-top:26px"><div class="sech">Contacts <span class="cnt">'+ps.length+'</span></div></div>';
   h+=ps.length?contactTableHTML(ps,false):'<div class="empty">No matching contacts.</div>';
+  h+=searchLeadsHTML(q);
   h+='<div class="lvhead" style="margin-top:26px"><div class="sech">Opportunities <span class="cnt">'+os.length+'</span></div></div>';
   h+=os.length?oppTableHTML(os,false):'<div class="empty">No matching opportunities.</div>';
   return h;
+}
+/* conference leads + the Leads tab in global search (2026-10-27, John M. on Teams: "contacts from the conferences and/or leads
+   aren't coming up when searching their name in the global at the top right"; Max: "clarify on that lead which conference it is
+   from and give you the option to push to main system"). Each hit names its conference; Push to CRM = the existing promote
+   (account + contact); once it's a contact the row says so and opens the contact. */
+function searchLeadsHTML(q){
+  const hit=l=>[l.name,l.email,l.company,l.title,l.phone,l.city,l.state,l.conf].join(" ").toLowerCase().includes(q);
+  const cls=(DB.confLeads||[]).filter(hit);ensureLeads();
+  const mls=DB.leads.filter(l=>!l.removed&&hit(l)&&!(l.refId&&cls.some(c=>c.id===l.refId))); // a pushed copy of a conference lead shows once, as the conference lead
+  const inCrm=l=>(l.refPid&&person(l.refPid))||(l.email?DB.people.find(p=>(p.email||"").toLowerCase()===String(l.email).toLowerCase()):null);
+  const rows=cls.map(l=>({l,conf:true})).concat(mls.map(l=>({l,conf:false})));
+  let h='<div class="lvhead" style="margin-top:26px"><div class="sech">Leads <span class="cnt">'+rows.length+'</span></div></div>';
+  if(!rows.length)return h+'<div class="empty">No matching conference leads or leads.</div>';
+  return h+'<div class="tablewrap"><table class="lv"><thead><tr><th>Lead</th><th>From</th><th></th><th>Company</th><th>State</th><th>Status</th></tr></thead><tbody>'+
+    rows.slice(0,60).map(({l,conf})=>{const p=inCrm(l);const st=conf?[l.temp&&l.temp!=="New"?l.temp:"",l.status&&l.status!=="Not contacted"?l.status:""].filter(Boolean).join(" · "):(leadLastTouch(l)?leadLastTouch(l).date+" · "+titlecase(leadLastTouch(l).method):"");
+      return '<tr data-act="'+(conf?"leadopen":"openlead")+'" data-id="'+esc(l.id)+'">'+
+      '<td><div class="lvname">'+esc(l.name||"—")+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
+      '<td><span class="pill '+(conf?"coral":"gray")+'">'+esc(conf?(l.conf||"Conference"):"Leads"+(l.conf&&l.conf!=="CRM"?" · "+l.conf:""))+'</span></td>'+
+      '<td style="white-space:nowrap">'+(p?'<button class="btn sm" data-act="person" data-id="'+esc(p.id)+'">'+svg("user")+' In CRM</button>'
+        :l.promoted?'<span class="pill ok">In CRM</span>' // pushed before the contact was linked: search Contacts by name
+        :'<button class="btn sm coral" data-act="'+(conf?"leadpromote":"mlpromote")+'" data-id="'+esc(l.id)+'">'+svg("plus")+' Push to CRM</button>')+'</td>'+
+      '<td>'+esc(l.company||"—")+'</td>'+
+      '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
+      '<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">'+(st?esc(st):'<span class="muted">Not contacted</span>')+'</td></tr>';}).join("")+
+    '</tbody></table></div>'+(rows.length>60?'<p class="muted" style="font-size:13px;margin-top:8px">Showing 60 of '+rows.length+' — type more of the name.</p>':'');
 }
 function demoListHTML(){
   const ds=(DB.demos||[]).slice().sort((a,b)=>String(a.state||"").localeCompare(String(b.state||"")));
@@ -3272,7 +3298,7 @@ function promoteLead(id,stay){
        note:[l.conf+" lead",l.status!=="Not contacted"?l.status:"",l.notes].filter(Boolean).join(" | ")};
     DB.people.unshift(p);
   }
-  l.promoted=true;
+  l.promoted=true;l.refPid=p.id; /* global search's "In CRM" opens this contact */
   const ml=confLeadInLeads(l);if(ml)ml.promoted=true; /* its twin in Leads shows "CRM" too */
   save();closeSheet();
   const msg=had?l.name+" was already in Contacts — linked":l.name+" added to Contacts"+(c?" @ "+c.name:"");
