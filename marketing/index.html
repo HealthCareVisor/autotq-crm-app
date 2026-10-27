@@ -130,22 +130,42 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .tdl{margin-bottom:14px;padding-bottom:6px}.tdl-top{display:flex;align-items:center;margin-bottom:6px}
 .tdl-grp{margin-top:14px;border-left:4px solid var(--gc);border-radius:6px 0 0 6px}
 .tdl-gh{display:flex;gap:10px;align-items:baseline;background:none;border:0;padding:2px 10px 6px;color:var(--gc);cursor:pointer;font:inherit}.tdl-gname{font-weight:650;font-size:15px}
-.tdl-head,.tdl-row,.tdl-add{display:grid;grid-template-columns:34px minmax(0,1fr) 74px 128px 104px 132px;align-items:stretch}
+.tdl-head,.tdl-row,.tdl-add{display:grid;grid-template-columns:34px minmax(0,1fr) 74px 136px 104px 124px;align-items:stretch}
 .tdl-head{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}.tdl-head span{padding:4px 8px;text-align:center}.tdl-head span:nth-child(2){text-align:left}
 .tdl-row{border-top:1px solid var(--rule-2);min-height:40px}.tdl-row:last-of-type{border-bottom:1px solid var(--rule-2)}.tdl-row>*{border-left:1px solid var(--rule-2)}.tdl-row>:first-child{border-left:0}
 .tdl-row.open{background:var(--rule-2)}.tdl-ck{margin:auto;width:18px;height:18px;border:1.5px solid var(--ink-3);border-radius:5px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}.tdl-ck svg{width:12px;height:12px}
 .tdl-row.done .tdl-ck{background:#00C875;border-color:#00C875;color:#fff}.tdl-row.done .tdl-title{text-decoration:line-through;color:var(--ink-3)}
 .tdl-item{display:flex;align-items:center;gap:8px;background:none;border:0;color:inherit;font:inherit;text-align:left;padding:8px 10px;cursor:pointer;min-width:0}.tdl-title{font-weight:550;overflow:hidden;text-overflow:ellipsis}.tdl-noteic svg{width:14px;height:14px;color:var(--ink-3)}
 .tdl-own{display:flex;align-items:center;justify-content:center;gap:2px}.tdl-av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:650}
-.tdl-cell{position:relative;display:flex}.tdl-lbl{flex:1;border:0;margin:0;font:inherit;font-size:13px;font-weight:550;cursor:pointer;padding:0 6px;min-height:38px}
-.tdl-menu{position:absolute;z-index:30;top:100%;left:50%;transform:translateX(-50%);background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:8px;display:grid;gap:6px;min-width:150px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.tdl-opt{border:0;border-radius:6px;padding:8px 10px;font:inherit;font-size:13px;font-weight:550;cursor:pointer}
-.tdl-date{align-items:center;justify-content:center}.tdl-due{background:transparent;border:0;color:inherit;font:inherit;font-size:13px;padding:6px;width:100%;text-align:center;color-scheme:dark light}.tdl-date.od .tdl-due{color:#E2445C;font-weight:650}
+/* Status + Priority (Max, 2026-10-27: "less obvious; sleek nice ui drop downs"): a quiet value — dot or priority bars, text,
+   chevron — that steps up to a hairline control on hover and opens a small menu. The menu escapes the panel (overflow visible). */
+.pan.tdl{overflow:visible}.tdl{--amber:var(--warn)}:root[data-theme="light"] .tdl{--amber:#D98E04}
+.tdl-cell{position:relative;display:flex}.tdl-status,.tdl-priority{align-items:center;justify-content:center;padding:0 2px}
+.tdl-lbl{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:28px;margin:0;padding:0 5px 0 8px;border:1px solid transparent;border-radius:8px;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.tdl-lbl:hover,.tdl-lbl[aria-expanded="true"]{background:var(--s-hov);border-color:var(--rule-3);color:var(--ink)}
+.tdl-lbl>span:not([class]){overflow:hidden;text-overflow:ellipsis}.tdl-lbl.none{color:var(--ink-4)}
+.tdl-lbl>svg.i{width:13px;height:13px;stroke-width:2;color:var(--ink-4);margin-left:-1px}.tdl-lbl:hover>svg.i,.tdl-lbl[aria-expanded="true"]>svg.i{color:var(--ink-3)}
+.tdl-dot{width:8px;height:8px;border-radius:50%;background:var(--dc);flex:none}.tdl-dot.ring{background:none;box-shadow:inset 0 0 0 1.5px var(--dc)}
+.tdl-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:10px;flex:none}.tdl-bars i{display:block;width:3px;border-radius:1px;background:var(--rule-3)}
+.tdl-bars i:nth-child(1){height:4px}.tdl-bars i:nth-child(2){height:7px}.tdl-bars i:nth-child(3){height:10px}.tdl-bars i.on{background:var(--ink-2)}.tdl-bars.crit i{background:var(--bad)}
+@keyframes tdlpop{from{opacity:0;transform:translate(var(--tx),4px)}to{opacity:1;transform:translate(var(--tx),0)}}
+.tdl-menu{--tx:-50%;position:absolute;z-index:30;top:calc(100% - 4px);left:50%;transform:translate(var(--tx),0);min-width:176px;background:var(--panel);border:1px solid var(--rule-3);border-radius:12px;box-shadow:var(--sh-3);padding:6px;animation:tdlpop .16s var(--ease)}
+.tdl-menu.up{top:auto;bottom:calc(100% - 4px)}
+.tdl-opt{display:flex;align-items:center;gap:9px;width:100%;min-height:34px;padding:0 10px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
+.tdl-opt:hover{background:var(--s-hov)}.tdl-opt:focus-visible{background:var(--s-on);outline:none}
+.tdl-opt .ck{margin-left:auto;display:flex;color:var(--coral)}.tdl-opt .ck svg.i{width:15px;height:15px;stroke-width:2.2}
+@media (prefers-reduced-motion:reduce){.tdl-menu{animation:none}}
+.tdl-date{align-items:center;justify-content:center;padding:0 2px}
+.tdl-due{width:100%;height:28px;padding:0 6px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--ink-2);font:inherit;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;text-align:center;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.tdl-due:hover{background:var(--s-hov);border-color:var(--rule-3);color:var(--ink)}.tdl-due:focus-visible{border-color:var(--coral);box-shadow:var(--ring)}
+.tdl-due[value=""]{color:var(--ink-4)}.tdl-due::-webkit-calendar-picker-indicator{opacity:.35;cursor:pointer;margin-left:4px;padding:0}.tdl-due:hover::-webkit-calendar-picker-indicator{opacity:.7}
+.tdl-date.od .tdl-due{color:var(--bad);font-weight:600}
 .tdl-detail{padding:12px 14px 14px 44px;background:var(--rule-2);border-top:1px solid var(--rule-2)}
 .tdl-add{border-bottom:1px solid var(--rule-2)}.tdl-add .f{grid-column:2/6;border:0;background:transparent;padding:9px 10px}.tdl-add .btn{grid-column:6;margin:4px}
 @media (max-width:760px){.tdl-head{display:none}.tdl-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"ck item own" ". st pr" ". du du";gap:6px 8px;padding:8px 6px}.tdl-row>*{border-left:0}
-  .tdl-ck{grid-area:ck}.tdl-item{grid-area:item;padding:2px 0}.tdl-own{grid-area:own}.tdl-status{grid-area:st}.tdl-priority{grid-area:pr}.tdl-date{grid-area:du;justify-content:flex-start}.tdl-due{text-align:left;padding:2px 0}
-  .tdl-lbl{min-height:30px;border-radius:6px}.tdl-detail{padding-left:14px}.tdl-add{grid-template-columns:1fr auto}.tdl-add>span{display:none}.tdl-add .f{grid-column:1}.tdl-add .btn{grid-column:2}}
+  .tdl-ck{grid-area:ck}.tdl-item{grid-area:item;padding:2px 0}.tdl-own{grid-area:own}.tdl-status{grid-area:st}.tdl-priority{grid-area:pr}.tdl-date{grid-area:du;justify-content:flex-start}.tdl-due{width:auto;text-align:left}
+  .tdl-status,.tdl-priority,.tdl-date{padding:0}.tdl-status{justify-content:flex-start;margin-left:-8px}.tdl-priority{justify-content:flex-end}.tdl-date{margin-left:-6px}
+  .tdl-lbl{height:32px}.tdl-menu{--tx:0}.tdl-status .tdl-menu{left:0}.tdl-priority .tdl-menu{left:auto;right:0}.tdl-detail{padding-left:14px}.tdl-add{grid-template-columns:1fr auto}.tdl-add>span{display:none}.tdl-add .f{grid-column:1}.tdl-add .btn{grid-column:2}}
 .fu-ai{margin-top:14px;padding:12px;border:1px solid var(--rule);border-radius:10px;background:var(--rule-2)}.fu-ai textarea{background:var(--paper)}
 .cadsla{margin-top:14px;padding:10px 12px;border:1px solid var(--coral);border-radius:10px;background:var(--coral-wash)}.cadsla p{margin:2px 0;font-size:13.5px}.cadsla .clk{font-variant-numeric:tabular-nums;font-weight:650}
 .cadsla.late{border-color:var(--bad);background:var(--bad-wash)}
@@ -3101,10 +3121,11 @@ function mktFilesHTML(p){const fs=[];if(p.file)fs.push(mktFileCard(p.file,p.titl
   return '<div class="pan"><div class="ph2">'+svg("file")+'Files<span class="t2" style="margin-left:4px">· tap to read</span></div><div class="mfiles">'+fs.join("")+'</div></div>';}
 /* To do board (Max, 2026-10-27: "make my to dos on the marketing hub like Monday.com format"). Personal to-dos (tasks type "todo") for
    the signed-in user, as a board: groups by due date (Overdue & today · This week · Later · No date · Done), one row per item with a
-   colored Status label (Not started / Working on it / Stuck / Done), Priority label (Critical / High / Medium / Low), owner, due date and
-   notes. Click a label to change it; click an item to open its notes. Same `tasks` collection the CRM reads (done/doneAt kept in step). */
-const TODO_STATUS=[["todo","Not started","#C4C4C4","#333"],["doing","Working on it","#FDAB3D","#fff"],["stuck","Stuck","#E2445C","#fff"],["done","Done","#00C875","#fff"]];
-const TODO_PRI=[["critical","Critical","#333333","#fff"],["high","High","#401694","#fff"],["medium","Medium","#5559DF","#fff"],["low","Low","#579BFC","#fff"],["","—","transparent","var(--ink-3)"]];
+   Status (Not started / Working on it / Stuck / Done) with a coloured dot, Priority (Critical / High / Medium / Low) with signal bars, owner,
+   due date and notes. Click a value to pick from its menu (arrows move, Esc or a click outside closes); click an item to open its notes.
+   Same `tasks` collection the CRM reads (done/doneAt kept in step). */
+const TODO_STATUS=[["todo","Not started","var(--ink-3)"],["doing","Working on it","var(--amber)"],["stuck","Stuck","var(--bad)"],["done","Done","var(--ok)"]];
+const TODO_PRI=[["critical","Critical",3],["high","High",3],["medium","Medium",2],["low","Low",1],["","—",0]];
 let todoOpen=null, todoPick=null, todoDoneOpen=false;
 function todoList(){return (DB.tasks||[]).filter(t=>t&&t.type==="todo"&&!t.removed&&(t.owner===USER||(t.assignees||[]).includes(USER)));}
 function todoStatus(t){return t.done?"done":(t.status&&t.status!=="done"?t.status:"todo");}
@@ -3112,9 +3133,16 @@ function todoWeekEnd(){const d=new Date();const add=(7-d.getDay())%7;d.setDate(d
 function todoGroupOf(t){if(todoStatus(t)==="done")return "done";const today=todayStr();if(!t.due)return "nodate";if(t.due<=today)return "now";if(t.due<=todoWeekEnd())return "week";return "later";}
 const TODO_GROUPS=[["now","Overdue & today","#E2445C"],["week","This week","#FDAB3D"],["later","Later","#579BFC"],["nodate","No date","#A25DDC"],["done","Done","#00C875"]];
 function todoLabel(kind,t){const v=kind==="status"?todoStatus(t):(t.priority||"");const L=(kind==="status"?TODO_STATUS:TODO_PRI).find(x=>x[0]===v)||(kind==="status"?TODO_STATUS[0]:TODO_PRI[4]);
-  const open=todoPick===t.id+":"+kind;
-  return '<div class="tdl-cell tdl-'+kind+'"><button class="tdl-lbl" data-act="todopick" data-id="'+esc(t.id)+'" data-v="'+kind+'" style="background:'+L[2]+';color:'+L[3]+'">'+esc(L[1])+'</button>'+
-    (open?'<div class="tdl-menu">'+(kind==="status"?TODO_STATUS:TODO_PRI).map(o=>'<button class="tdl-opt" data-act="todoset" data-id="'+esc(t.id)+'" data-k="'+kind+'" data-v="'+o[0]+'" style="background:'+(o[2]==="transparent"?"var(--rule-2)":o[2])+';color:'+(o[2]==="transparent"?"var(--ink-2)":o[3])+'">'+esc(o[0]?o[1]:"No priority")+'</button>').join("")+'</div>':'')+'</div>';}
+  const open=todoPick===t.id+":"+kind,name=kind==="status"?"Status":"Priority";
+  return '<div class="tdl-cell tdl-'+kind+'"><button class="tdl-lbl'+(kind==="priority"&&!v?" none":"")+'" data-act="todopick" data-id="'+esc(t.id)+'" data-v="'+kind+'" aria-haspopup="menu" aria-expanded="'+open+'" aria-label="'+name+': '+esc(v?L[1]:kind==="status"?L[1]:"No priority")+'">'+todoMark(L,kind)+'<span>'+esc(L[1])+'</span>'+svg("chevD")+'</button>'+
+    (open?'<div class="tdl-menu" role="menu" aria-label="'+name+'">'+(kind==="status"?TODO_STATUS:TODO_PRI).map(o=>'<button class="tdl-opt" role="menuitemradio" aria-checked="'+(o[0]===v)+'" tabindex="-1" data-act="todoset" data-id="'+esc(t.id)+'" data-k="'+kind+'" data-v="'+o[0]+'">'+todoMark(o,kind)+'<span>'+esc(o[0]?o[1]:"No priority")+'</span>'+(o[0]===v?'<span class="ck">'+svg("check")+'</span>':'')+'</button>').join("")+'</div>':'')+'</div>';}
+function todoMark(o,kind){if(kind==="status")return '<span class="tdl-dot'+(o[0]==="todo"?" ring":"")+'" style="--dc:'+o[2]+'"></span>';
+  return '<span class="tdl-bars'+(o[0]==="critical"?" crit":"")+'" aria-hidden="true">'+[1,2,3].map(k=>'<i'+(k<=o[2]?' class="on"':'')+'></i>').join("")+'</span>';}
+/* after a re-render: put focus back on a value (k = "id:kind"), or into the open menu on its current option; flip the menu up when it would run off screen */
+function todoFocusLbl(k){if(!k)return;const i=k.lastIndexOf(":"),b=document.querySelector('.tdl-lbl[data-id="'+CSS.escape(k.slice(0,i))+'"][data-v="'+k.slice(i+1)+'"]');if(b)b.focus({preventScroll:true});}
+function todoMenuFocus(){const m=document.querySelector(".tdl-menu");if(!m)return;const r=m.getBoundingClientRect(),cell=m.parentElement.getBoundingClientRect();
+  if(r.bottom>window.innerHeight-8&&cell.top-r.height>8)m.classList.add("up");(m.querySelector('[aria-checked="true"]')||m.querySelector(".tdl-opt")).focus({preventScroll:true});}
+function todoClosePick(){const k=todoPick;todoPick=null;render();todoFocusLbl(k);}
 function todoOwner(t){const ids=(t.assignees&&t.assignees.length?t.assignees:[t.owner]).filter(Boolean);return '<div class="tdl-own">'+ids.slice(0,3).map(id=>{const m=teamById(id);return '<span class="tdl-av" title="'+esc(m.name)+'" style="background:'+(m.c||"#888")+'">'+esc((m.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2))+'</span>';}).join("")+'</div>';}
 function todoRowHTML(t){const st=todoStatus(t);const open=todoOpen===t.id;const od=t.due&&t.due<todayStr()&&st!=="done";
   return '<div class="tdl-row'+(st==="done"?" done":"")+(open?" open":"")+'">'+
@@ -3143,8 +3171,8 @@ function todoSetStatus(x,v){x.status=v;x.done=v==="done";if(x.done){x.doneAt=x.d
 function todoDueFor(g){const d=new Date();if(g==="now")return todayStr();if(g==="week"){const e=todoWeekEnd();const t=new Date();t.setDate(t.getDate()+1);const k=callDayKey(t.toISOString());return k<=e?k:e;}if(g==="later"){d.setDate(d.getDate()+(8-d.getDay())%7+7);return callDayKey(d.toISOString());}return "";}
 function todoHandle(a,t){
   if(a==="todock"){const x=todoFind(t.dataset.id);if(!x)return true;todoSetStatus(x,todoStatus(x)==="done"?"todo":"done");put("tasks",x);render();return true;}
-  if(a==="todopick"){const k=t.dataset.id+":"+t.dataset.v;todoPick=todoPick===k?null:k;render();return true;}
-  if(a==="todoset"){const x=todoFind(t.dataset.id);if(!x)return true;if(t.dataset.k==="status")todoSetStatus(x,t.dataset.v);else x.priority=t.dataset.v;todoPick=null;put("tasks",x);render();return true;}
+  if(a==="todopick"){const k=t.dataset.id+":"+t.dataset.v;if(todoPick===k){todoClosePick();return true;}todoPick=k;render();todoMenuFocus();return true;}
+  if(a==="todoset"){const x=todoFind(t.dataset.id);if(!x)return true;if(t.dataset.k==="status")todoSetStatus(x,t.dataset.v);else x.priority=t.dataset.v;todoPick=null;put("tasks",x);render();todoFocusLbl(x.id+":"+t.dataset.k);return true;}
   if(a==="todoopen"){todoOpen=todoOpen===t.dataset.id?null:t.dataset.id;todoPick=null;render();return true;}
   if(a==="tododone"){todoDoneOpen=!todoDoneOpen;render();return true;}
   if(a==="todosave"){const x=todoFind(t.dataset.id);if(!x)return true;const ti=((document.getElementById("todoEdTitle")||{}).value||"").trim();if(!ti){toast("The item needs a name");return true;}x.title=ti.slice(0,300);x.note=((document.getElementById("todoEdNote")||{}).value||"").slice(0,4000);put("tasks",x);todoOpen=null;render();toast("Saved");return true;}
@@ -3154,9 +3182,15 @@ function todoHandle(a,t){
     const n=document.querySelector('.tdl-new[data-g="'+g+'"]');if(n)n.focus();return true;}
   return false;}
 document.addEventListener("keydown",e=>{const el=e.target;if(e.key==="Enter"&&el&&el.classList&&el.classList.contains("tdl-new")){e.preventDefault();todoHandle("todoadd",el);}
-  if(e.key==="Escape"&&todoPick){todoPick=null;render();}});
+  const m=todoPick&&el&&el.closest&&el.closest(".tdl-menu");
+  if(m){const os=[...m.querySelectorAll(".tdl-opt")],i=os.indexOf(el);
+    if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();os[(i+(e.key==="ArrowDown"?1:-1)+os.length)%os.length].focus();}
+    else if(e.key==="Home"||e.key==="End"){e.preventDefault();os[e.key==="Home"?0:os.length-1].focus();}
+    else if(e.key==="Tab"){e.preventDefault();todoClosePick();}}
+  else if((e.key==="ArrowDown"||e.key==="ArrowUp")&&el&&el.classList&&el.classList.contains("tdl-lbl")){e.preventDefault();el.click();}
+  if(e.key==="Escape"&&todoPick){e.preventDefault();todoClosePick();}});
 document.addEventListener("change",e=>{const el=e.target;if(el&&el.classList&&el.classList.contains("tdl-due")){const x=todoFind(el.dataset.id);if(x){x.due=el.value||"";put("tasks",x);render();}}});
-document.addEventListener("click",e=>{if(todoPick&&!(e.target.closest&&e.target.closest(".tdl-cell")))  {todoPick=null;render();}},true);
+document.addEventListener("click",e=>{if(todoPick&&!(e.target.closest&&e.target.closest(".tdl-menu,.tdl-lbl")))  {todoPick=null;render();}},true);
 function viewHome(){const plans=mktPlans();
   const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>'+todoHTML();
   if(!plans.length)return head+'<div class="empty">No plan yet.</div>';
