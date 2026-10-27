@@ -774,6 +774,9 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
   .tbar .psearch{display:flex}
 }
 @media(min-width:641px){.tbar .tact a.btn,.tbar .tact [data-act="help"],.tbar .tact button.av{display:none}} /* the sidebar's switcher covers it; phones keep the button */
+.hubm{display:none;position:relative;flex:none}
+.hubm .spop{left:0;right:auto;top:42px;width:270px;max-width:calc(100vw - 28px)}
+@media(max-width:640px){.hubm{display:block;margin-left:-6px}.hubm .hubbtn{width:36px;height:36px}}
 @media(max-width:640px){.tbar .backbtn{width:34px;padding:0;margin-left:-6px}.tbar .backbtn span.t{display:none}}
 @media(max-width:640px){
   .side{display:none}
@@ -1329,7 +1332,16 @@ function sideHTML(NU,me){
     '<button class="sitem" data-act="reset" style="color:var(--dang-t)">'+svg("clock")+'<span class="lbl">Reset local data (reseed)</span></button></div>'+
    '</div></aside>';
 }
-function sidePopSet(p){sidePop=p;const a=document.getElementById("spopWs"),b=document.getElementById("spopUser");if(a)a.classList.toggle("open",p==="ws");if(b)b.classList.toggle("open",p==="user");}
+/* Phone hub switcher (Max, 2026-10-27: "I should have top left hamburger to switch hubs on iPhone"): the sidebar (and its switcher) is
+   hidden on phones, so a hamburger at the top left of the header opens the same Switch to list. Phones only; Max and Hannah only. */
+function hubMenuHTML(){if(!mktAccess())return "";const ic=(c,p)=>'<span class="wsl" style="background:'+c+'"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+p+'</svg></span>';
+  return '<div class="hubm"><button class="ibtn hubbtn" data-act="hubmenu" aria-label="Switch hub" aria-haspopup="menu"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>'+
+    '<div class="spop'+(sidePop==="hub"?" open":"")+'" id="spopHub" role="menu"><div class="phd">Switch to</div>'+
+    '<button class="sitem on" data-act="sidepopclose">'+ic("#45433D",'<rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5" stroke="currentColor" stroke-width="2"/>')+'<span class="lbl">AutoTQ CRM<small>You are here</small></span></button>'+
+    '<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+ic("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, calls, to do</small></span></a>'+
+    '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+ic("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>'+
+    '</div></div>';}
+function sidePopSet(p){sidePop=p;const a=document.getElementById("spopWs"),b=document.getElementById("spopUser");const hb=document.getElementById("spopHub");if(hb)hb.classList.toggle("open",p==="hub");if(a)a.classList.toggle("open",p==="ws");if(b)b.classList.toggle("open",p==="user");}
 function sideApplyMini(){
   const c=document.querySelector(".console");if(!c)return;
   c.classList.toggle("mini",sideMini());
@@ -1496,7 +1508,7 @@ function render(){
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML=
   '<div class="console'+(sideMini()?" mini":"")+'">'+sideHTML(NU,me)+
-   '<div class="work"><header class="tbar">'+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
+   '<div class="work"><header class="tbar">'+hubMenuHTML()+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
     '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+subs[view]+'</div></div>'+
     '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts & contacts…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
     '<div class="tact"><button class="ibtn psearch" data-act="palopen" title="Search" aria-label="Search">'+svg("search")+'</button>'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
@@ -7160,7 +7172,7 @@ document.addEventListener("change",e=>{
 
 document.addEventListener("click",e=>{
   if(fltOpen&&!(e.target.closest&&e.target.closest(".fwrap"))){fltOpen=null;fltSync();}
-  if(sidePop&&!(e.target.closest&&e.target.closest('[data-act="sidews"],[data-act="sideuser"]')))sidePopSet(null);
+  if(sidePop&&!(e.target.closest&&e.target.closest('[data-act="sidews"],[data-act="sideuser"],[data-act="hubmenu"]')))sidePopSet(null);
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
@@ -7185,6 +7197,7 @@ document.addEventListener("click",e=>{
   if(a==="goback"){goBack(t.dataset.fb);return;}
   if(a==="nav"){closeSheet();const to=t.dataset.view;if(SIDE_SUBS[to]&&SIDE.open[to]===false){delete SIDE.open[to];sideSave();}goView(to);return;}
   if(a==="sidetoggle"){sideToggle();return;}
+  if(a==="hubmenu"){sidePopSet(sidePop==="hub"?null:"hub");return;}
   if(a==="sidews"){if(SIDE.mini&&!sideForced()){sideToggle();return;}if(mktAccess())sidePopSet(sidePop==="ws"?null:"ws");return;}
   if(a==="sideuser"){sidePopSet(sidePop==="user"?null:"user");return;}
   if(a==="sidepopclose"){sidePopSet(null);return;}
