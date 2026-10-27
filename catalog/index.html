@@ -642,6 +642,47 @@ svg.usmap .dots{stroke:var(--dots)}
 .lik{font-size:10.5px;font-weight:650;color:var(--coral);text-transform:uppercase;letter-spacing:.04em;line-height:1.3}
 @media (max-width:900px){.liday .lik{display:none}}
 .liwkhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* Industries: the treemap (family hues = reference palette slots 1-3, validated all-pairs; gray = not by industry) */
+.indmap .tmwrap{padding:14px 16px 6px}
+.tm{position:relative;width:100%;--f-safety:#2a78d6;--f-people:#eb6834;--f-work:#1baf7a;--f-none:#8E8D88}
+:root[data-theme="dark"] .tm,:root[data-theme="dark"] .tmkey,:root[data-theme="dark"] .tmdot{--f-safety:#3987e5;--f-people:#d95926;--f-work:#199e70;--f-none:#6F6E6A}
+.tmkey,.tmdot{--f-safety:#2a78d6;--f-people:#eb6834;--f-work:#1baf7a;--f-none:#8E8D88}
+.tm .f-safety{--c:var(--f-safety)}.tm .f-people{--c:var(--f-people)}.tm .f-work{--c:var(--f-work)}.tm .f-none{--c:var(--f-none)}
+.tmt{position:absolute;box-sizing:border-box;border:2px solid var(--paper);border-radius:10px;padding:0;margin:0;overflow:hidden;cursor:pointer;font:inherit;color:var(--ink);text-align:left;
+  background:color-mix(in srgb,var(--c) 14%,var(--paper));box-shadow:inset 0 3px 0 var(--c);transition:filter .15s}
+.tmt:hover{filter:brightness(.97)}:root[data-theme="dark"] .tmt:hover{filter:brightness(1.12)}.tmt:focus-visible{outline:2px solid var(--coral);outline-offset:1px}
+.tmh{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:8px;padding:9px 10px 0;font-size:12.5px;line-height:1.2}
+.tmh b{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.tmh span{margin-left:auto;color:var(--ink-2);font-weight:600;flex:none}
+.tmk{position:absolute;left:2px;right:2px}
+.tmc{position:absolute;box-sizing:border-box;border:2px solid color-mix(in srgb,var(--c) 14%,var(--paper));border-radius:8px;background:color-mix(in srgb,var(--c) 24%,var(--paper));padding:7px 9px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;gap:2px}
+.tmc.k2{background:color-mix(in srgb,var(--c) 32%,var(--paper))}.tmc.k1{background:color-mix(in srgb,var(--c) 42%,var(--paper))}.tmc.more{background:color-mix(in srgb,var(--c) 10%,var(--paper))}
+.tmc b{font-size:12.5px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.tmc small{font-size:12px;color:var(--ink-2);font-weight:550}.tmc.sm b{-webkit-line-clamp:1;display:block;white-space:nowrap}.tmc.k1 b{font-size:14px}.tmc.k1 small{font-size:13px}
+.tmkey{display:flex;flex-wrap:wrap;gap:6px 16px;padding:6px 16px 12px;font-size:12px;color:var(--ink-2)}.tmkey span{display:inline-flex;align-items:center;gap:6px}
+.tmkey i,.tmdot{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.tmkey .f-safety,.tmdot.f-safety{--c:var(--f-safety)}.tmkey .f-people,.tmdot.f-people{--c:var(--f-people)}.tmkey .f-work,.tmdot.f-work{--c:var(--f-work)}.tmkey .f-none,.tmdot.f-none{--c:var(--f-none)}
+.tmdot{margin-right:8px;width:12px;height:12px}
+.tmnone{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 16px 14px}.tmnone .chip{min-height:26px;font-size:12px}
+.tmtable{border-top:1px solid var(--rule)}.tmtable summary{cursor:pointer;padding:11px 16px;font-size:12.5px;color:var(--ink-3)}.tmtable .tablewrap{border-top:1px solid var(--rule-2)}
+table.lv th.r,table.lv td.r{text-align:right}
+.flick{display:inline-flex;padding:3px;border:1px solid var(--rule-3);border-radius:999px;background:var(--panel)}
+.flick button{border:0;background:none;font:inherit;font-size:12.5px;font-weight:600;color:var(--ink-3);padding:5px 14px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s}
+.flick button.on{background:var(--ink);color:var(--ground)}
+.tmtip{position:fixed;z-index:80;pointer-events:none;background:var(--s-tip);color:var(--s-tip-ink);font-size:12px;font-weight:550;padding:6px 9px;border-radius:7px;opacity:0;transition:opacity .1s;max-width:320px}
+.tmtip.show{opacity:1}
+@media (max-width:640px){.indmap .tmwrap{padding:10px 10px 4px}.tmc{padding:5px 6px}.tmh{padding:7px 8px 0;font-size:12px}}
+/* LinkedIn › Post: the schedule (one row per Mon / Wed / Fri) */
+.lisw{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:16px 16px 8px;border-top:1px solid var(--rule);font-size:11.5px;font-weight:650;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+.lisw.first{border-top:0}.lisw span{flex:1}.lisw .btn{text-transform:none;letter-spacing:0}
+.lisr{display:flex;align-items:center;gap:14px;width:100%;padding:10px 16px;border:0;border-top:1px solid var(--rule-2);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.lisw+.lisr{border-top:0}.lisr:disabled{cursor:default}.lisr:not(:disabled):hover,.lisr.on{background:var(--panel)}
+.lisd{width:46px;flex:none;display:flex;flex-direction:column;align-items:center;line-height:1.15;padding:5px 0;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
+.lisd small{font-size:10.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}.lisd b{font-size:18px;font-weight:650}
+.lisr.today .lisd{border-color:var(--coral)}.lisr.today .lisd b{color:var(--coral)}
+.lisr .nm{flex:1 1 200px;min-width:0}.lisr .nm .lik{display:block}.lisr .nm b{display:block;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lisr .nm b.none{color:var(--ink-3);font-weight:500}
+.lisp{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.lisr>svg.i{width:16px;height:16px;color:var(--ink-4);flex:none}
+.lischp{padding:4px 12px 14px;background:var(--panel)}.lischp .lipost{margin:0}
+@media (max-width:640px){.lisr{flex-wrap:wrap;gap:6px 12px}.lisr .nm{flex-basis:calc(100% - 92px)}.lisp{margin-left:58px;justify-content:flex-start}}
 .lipast .nm{flex:1;min-width:0}.lipast .nm b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .limets{display:flex;gap:18px;flex:none;font-variant-numeric:tabular-nums}.limets span{display:flex;flex-direction:column;align-items:flex-end;font-weight:650;font-size:14px;color:var(--ink)}
 .limets small{font-size:11px;color:var(--ink-3);font-weight:500}.limets .er{color:var(--coral)}
@@ -945,7 +986,7 @@ const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=APP==="catalog"?["catalogItems","intelItems","intelWatch","intelRuns","intelAsks","rdProjects","spend"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites","prospects","spend"]; // orders: the past-buyer guard (pastBuyers); liInvites: LinkedIn › Messenger › Follow invites; prospects: › Prospects by industry
+const PULL_COLLECTIONS=APP==="catalog"?["catalogItems","intelItems","intelWatch","intelRuns","intelAsks","rdProjects","spend"]:["mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites","prospects","spend","quotes"]; // orders: the past-buyer guard (pastBuyers) + Industries; quotes: the CRM Quotes tab, for Industries › Quoted; liInvites: LinkedIn › Messenger › Follow invites; prospects: › Prospects by industry
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1782,7 +1823,7 @@ document.addEventListener("mouseover",e=>{const el=e.target.closest&&e.target.cl
 document.addEventListener("scroll",tipHide,true);
 window.addEventListener("resize",()=>{clearTimeout(window.__sideRz);window.__sideRz=setTimeout(sideApplyMini,80);});
 /* one place that moves to a tab (sidebar, phone chips, palette) */
-function goView(to){sideOpen=false;sidePop=null;view=to;if(view==="camp")curCampaign=null;netFocus=null;closeInsp();render();window.scrollTo(0,0);}
+function goView(to){sideOpen=false;sidePop=null;view=to;if(view==="camp")curCampaign=null;if(view==="ind")indSel="";netFocus=null;closeInsp();render();window.scrollTo(0,0);}
 
 /* ---------- Ctrl/⌘K: jump to any tab, campaign, lead search or action ---------- */
 let PAL={q:"",sel:0,items:[]};
@@ -1845,10 +1886,10 @@ function render(){
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
-  const titles={calls:"Calls",ind:"Industries",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook",spend:"Spend / Expense",intel:"Market research & ideas"};
-  const subs={spend:"Card charges by bucket: Marketing, White-label and Conferences. Send Claude a screenshot of new charges and they land here; change a bucket on any charge and the totals follow.",calls:"Every conference end user with a phone number, one at a time: East Coast in the morning, Central at midday, the West in the afternoon — callbacks due first, then a mix of warm, new and retries. Every call the team has made is on the lead, including the June ASSP calls and Kellan's NSC calls. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const titles={calls:"Calls",ind:indSel?indName(indSel):"Industries",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook",spend:"Spend / Expense",intel:"Market research & ideas"};
+  const subs={spend:"Card charges by bucket: Marketing, White-label and Conferences. Send Claude a screenshot of new charges and they land here; change a bucket on any charge and the totals follow.",calls:"Every conference end user with a phone number, one at a time: East Coast in the morning, Central at midday, the West in the afternoon — callbacks due first, then a mix of warm, new and retries. Every call the team has made is on the lead, including the June ASSP calls and Kellan's NSC calls. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:indSel?"What this industry has bought and been quoted, who clicked its landing page, and the conference leads in it.":indTab==="pros"?"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.":"Every industry AutoTQ sells into, sized by what it has bought or been quoted. Tap one for its page.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="intel"?viewIntel():view==="spend"?viewSpend():view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
-  const crumbs=[APP_NAME].concat(view==="intel"?["Market research & ideas",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const crumbs=[APP_NAME].concat(view==="intel"?["Market research & ideas",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"].concat(indSel?[indName(indSel)]:[]):view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right">'+(APP==="catalog"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">Search products</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
@@ -2150,7 +2191,33 @@ function liPastHTML(){const ps=liPast();
       (m?'<span class="limets">'+[["Impressions",m.impressions],["Reactions",m.reactions],["Comments",m.comments],["Reposts",m.reposts],["Clicks",m.clicks]].map(x=>'<span>'+liNum(x[1])+'<small>'+x[0]+'</small></span>').join("")+'<span class="er">'+liPct(liEng(m))+'<small>Engagement</small></span></span>'
          :'<span class="pill">No numbers yet</span>')+svg("chevR")+'</button>';}).join("")
      :'<div class="empty" style="padding:22px 16px">Nothing posted yet. Approve a draft, post it on LinkedIn and tap Mark posted — or Import LinkedIn analytics to bring in what is already on the page.</div>')+'</div>';}
+/* Posts = the schedule only (Max, 2026-10-27: "wayy too flooded… just have potential posts 3 days a week for the rest of the month
+   and into next month; basically just the schedule should show for now"): every Mon / Wed / Fri from today to the end of next month,
+   one row each; tap a row and its post opens under it. The page numbers, the week strip, past posts and the Research tab are off for
+   now — viewLinkedInFull below still has them. */
+function liSlotPost(week,slot){return liPosts().filter(p=>p.week===week&&p.slot===slot&&p.status!=="rejected").sort((a,b)=>String(b.at).localeCompare(String(a.at)))[0]||null;}
+function liSchedule(){const out=[],d=new Date(todayStr()+"T12:00:00"),end=new Date(d.getFullYear(),d.getMonth()+2,0,12);
+  for(;d<=end;d.setDate(d.getDate()+1)){const sl=LI_SLOTS.find(x=>x[2]===(d.getDay()+6)%7);if(!sl)continue;const iso=mktYmd(d),week=liMondayOf(iso);out.push({iso,week,sl,dt:new Date(d),p:liSlotPost(week,sl[0])});}
+  return out;}
 function viewLinkedIn(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStatus();}
+  const st=liState(),keyMissing=LI_STATUS&&LI_STATUS.hasKey===false,busy=keyMissing||!!st.running,today=todayStr();
+  let h=(keyMissing?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Drafting is off</p><p class="t2">The li-studio function has no Anthropic API key, so the open days can\'t be drafted yet.</p></div>':'')+
+    (st.running?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Working: '+esc(st.running)+'…</p><p class="t2">The drafts appear here by themselves in a minute or three.</p></div>':st.lastError?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Last run stopped</p><p class="t2">'+esc(st.lastError)+'</p></div>':'');
+  const days=liSchedule(),weeks=[];days.forEach(x=>{let w=weeks[weeks.length-1];if(!w||w.week!==x.week)weeks.push(w={week:x.week,days:[]});w.days.push(x);});
+  const last=days.length?days[days.length-1].dt.toLocaleDateString("en-US",{month:"short",day:"numeric"}):"";
+  h+='<div class="pan lisched"><div class="ph2">'+svg("cal")+'Schedule<span class="t2" style="margin-left:4px">· Mon, Wed and Fri at 9:00 AM ET through '+esc(last)+' · '+days.filter(x=>x.p).length+' of '+days.length+' drafted</span></div>';
+  weeks.forEach((w,wi)=>{const open=w.days.filter(x=>!x.p).length,appr=liHandPosts(w.week).length;
+    h+='<div class="lisw'+(wi?'':' first')+'"><span>Week of '+esc(new Date(w.week+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}))+'</span>'+
+      (open?'<button class="btn sm ghost" data-act="ligen" data-v="'+w.week+'"'+(busy?' disabled':'')+'>Draft '+(open===1?'the open day':'the '+open+' open days')+'</button>':'')+
+      (appr?'<button class="btn sm ghost" data-act="lihandgo" data-v="'+w.week+'"'+(liHand&&liHand.busy?' disabled':'')+'>'+svg("mail")+(liHand&&liHand.busy&&liHand.week===w.week?'Packing…':'Send to '+esc(LI_POSTER.first)+' · '+appr)+'</button>':'')+'</div>';
+    w.days.forEach(x=>{const p=x.p,on=!!p&&liSel===p.id;
+      h+='<button class="lisr'+(on?' on':'')+(x.iso===today?' today':'')+'" '+(p?'data-act="lisel" data-v="'+p.id+'" aria-expanded="'+on+'"':'disabled')+'>'+
+        '<span class="lisd"><small>'+x.sl[1].slice(0,3)+'</small><b>'+x.dt.getDate()+'</b><small>'+x.dt.toLocaleDateString("en-US",{month:"short"})+'</small></span>'+
+        '<span class="nm">'+(p?'<small class="lik">'+esc(p.theme||LI_PILLAR[p.pillar]||p.pillar||"")+'</small><b>'+esc(liTitle(p))+'</b>':'<b class="none">No draft yet</b>')+'</span>'+
+        '<span class="lisp">'+(p?liStatusPill(p)+((p.attachments||[]).length?'<span class="pill info">PDF</span>':'')+(p.handoff?'<span class="pill ok">Sent to '+esc(LI_POSTER.first)+'</span>':''):'<span class="pill">9:00 AM ET</span>')+'</span>'+
+        (p?svg(on?"chevU":"chevD"):'')+'</button>'+(on?'<div class="lischp">'+liPostHTML(p)+'</div>':'');});});
+  return h+'</div>';}
+function viewLinkedInFull(){if(LI_STATUS===null){LI_STATUS={loading:true};liLoadStatus();}
   if(!liWeek)liWeek=liMonday(new Date().getDay()>=5||new Date().getDay()===0?1:0);
   const st=liState();const run=st.running?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Working: '+esc(st.running)+'…</p><p class="t2">Research and drafting take a minute or three. The drafts appear here by themselves.</p></div>':(st.lastError?'<div class="reccard" style="margin-bottom:14px"><p class="t1">Last run stopped</p><p class="t2">'+esc(st.lastError)+'</p></div>':'');
   const keyMissing=LI_STATUS&&LI_STATUS.hasKey===false;
@@ -2651,7 +2718,140 @@ function prosHandle(a,t){
 /* Industries tab (Max, 2026-10-26: "add it to the GHM marketing tab under Industries; Industries should show a drop down with our
    different industries"): the prospect lists moved here from LinkedIn › Messenger. Hot accounts (look-alikes of Toyota Tsusho America,
    group "hot") carry heat + a contact strategy ("Source & call"). */
-function viewIndustries(){return prosHTML();}
+/* Industries = where we've sold and quoted, as a treemap (Max, 2026-10-27, with a "cloud spend" treemap: "take our sales data and
+   show each industry that we can sell into… one filter, a simple flick that shows Sold and Quoted; once you click on the industry
+   square it shows that page: how many users have clicked on that landing page, sales amount, quote amount…"). A big tile per
+   industry (the IND_GROUPS, each with its landing page), small tiles inside = its accounts. Colour = the industry's family: three hues
+   from the validated reference palette (any two read apart, colour-blind too) plus gray for sales that aren't by industry; every tile
+   is also labelled. Sold = CRM orders with money on them (no $0 demos or loaners, no GHM supplier POs, no duplicates). Quoted = the
+   CRM Quotes tab. An account's industry: Max's own tag (settings/industryMap) → a name that says it (IND_SEED) → the CRM account
+   (a distributor, or its industry text) → a known distributor name → the industry regexes → "Not sorted yet". Page clicks = people
+   who clicked that page's link in our emails, link scanners left out. The prospect lists that lived here are under Prospect lists. */
+const IND_FAM=[["safety","Public safety",["ems","law"]],["people","Schools & public places",["campuses","schools","venues","public"]],["work","Workplaces",["manufacturing","construction","warehousing","maritime","general"]],["none","Not by industry",["dist","unsorted"]]];
+const IND_EXTRA={dist:"Through distributors",unsorted:"Not sorted yet"};
+const IND_SEED=[[/\bfiu\b|florida international/i,"campuses"],[/\bpanthers\b|\bnhl\b/i,"venues"],[/\bfbi\b/i,"law"]];
+const IND_DIST=/medique|ballard|safety products|campbell supply|leesar|msc industrial|industrial supply|copper ?state|advocates ?(4|for) ?health|ritz safety|fastenal|aed professionals|coro medical|central welding|rescue one|unifirst|austin tool|macgill|morton safety|grainger|cintas|henry schein|mckesson|bound tree|global industrial|airgas|vallen|zoro|uline/i;
+let indMode="sold",indSel="",indTab="map",indMemo={k:"",v:null};
+function indNorm(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+function indName(k){return IND_EXTRA[k]||indGroup(k)[1];}
+function indFam(k){return (IND_FAM.find(f=>f[2].includes(k))||IND_FAM[3])[0];}
+function indMap(){return ((DB.settings||[]).find(x=>x&&x.id==="industryMap")||{}).map||{};}
+function indOf(acct,cid,isDist){const n=indNorm(acct),tag=indMap()[n];if(tag)return tag;if(isDist)return "dist";
+  for(const s of IND_SEED)if(s[0].test(acct))return s[1];
+  const c=(cid&&company(cid))||(DB.companies||[]).find(x=>x&&indNorm(x.name)===n);
+  if(c&&/^(distributor|manrep)$/.test(c.type||""))return "dist";
+  if(!c&&IND_DIST.test(acct))return "dist";
+  for(const src of [acct,c&&c.industry])if(src)for(const g of IND_GROUPS)if(g[0]!=="general"&&g[4].test(src))return g[0];
+  return "unsorted";}
+function indMoney(v,full){v=+v||0;return full||v<1000?"$"+Math.round(v).toLocaleString("en-US"):"$"+(v/1000).toFixed(v>=99500?0:1).replace(/\.0$/,"")+"K";}
+function indRows(){
+  const sold=(DB.orders||[]).filter(o=>o&&!o.dupOf&&(parseFloat(o.amount)||0)>0&&!/^(loaner|supplier)$/i.test(o.status||"")&&!/^LNR/i.test(o.poNo||"")&&!/loaner/i.test(o.notes||""))
+    .map(o=>{const acct=String(o.account||"").trim()||"(no account)";return {mode:"sold",acct,v:parseFloat(o.amount)||0,at:o.poDate||"",ref:o.poNo||"",status:o.status||"",key:indOf(acct,o.cid,false)};});
+  const quoted=(DB.quotes||[]).filter(q=>q&&q.no&&q.items).map(q=>{let acct=String(q.account||"").trim()||"(no account)";
+      if(q.distName)acct=acct.replace(new RegExp("\\s*[-–|]\\s*"+String(q.distName).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+".*$","i"),"").trim()||acct;
+      return {mode:"quoted",acct,v:+q.total||0,at:q.date||"",ref:q.no,status:q.status||"draft",dist:q.distName||"",key:indOf(acct,q.cid,q.level==="distributor")};});
+  return sold.concat(quoted);}
+function indClicks(){const idx=leadIndex(campaigns()),out={};
+  (DB.mailEvents||[]).forEach(e=>{if(!e||e.type!=="click")return;const m=String(e.detail||"").match(/theautotq\.com\/([a-z0-9-]+)/i);if(!m)return;const r=idx.get(e.msgId);
+    if(r&&new Date(e.at)-new Date((r.l.sent||{})[r.k]||0)<120000)return; /* link scanners click within seconds of delivery */
+    const o=out[m[1].toLowerCase()]=out[m[1].toLowerCase()]||{n:0,people:new Map()};o.n++;const em=String((r&&r.l.email)||e.to||"").toLowerCase(),cur=o.people.get(em);
+    if(!cur||String(e.at)>String(cur.at))o.people.set(em,{email:em,name:r?((r.l.first||"")+" "+(r.l.last||"")).trim():"",company:r?r.l.company||"":"",at:e.at,camp:r?r.c.name:""});});
+  return out;}
+function indLeads(){const out={};(DB.confLeads||[]).forEach(x=>{if(!x||x.removed)return;const k=indGroupFor(campLeadFromConf(x)),o=out[k]=out[k]||{n:0,called:0,byConf:{}};o.n++;if((x.calls||[]).length)o.called++;const c=x.conf||"Other";o.byConf[c]=(o.byConf[c]||0)+1;});return out;}
+/* everything the tab shows, worked out once per data change */
+function indData(){const k=[(DB.orders||[]).length,(DB.quotes||[]).length,(DB.mailEvents||[]).length,(DB.confLeads||[]).length,SYNC.lastPull,JSON.stringify(indMap())].join("|");
+  if(indMemo.k===k)return indMemo.v;
+  const rows=indRows(),keys=IND_GROUPS.map(g=>g[0]).concat(["dist","unsorted"]),by={};
+  keys.forEach(x=>{by[x]={key:x,name:indName(x),fam:indFam(x),sold:0,quoted:0,orders:[],quotes:[],accts:{sold:{},quoted:{}}};});
+  rows.forEach(r=>{const b=by[r.key]||by.unsorted;b[r.mode]+=r.v;(r.mode==="sold"?b.orders:b.quotes).push(r);const a=b.accts[r.mode][r.acct]=b.accts[r.mode][r.acct]||{name:r.acct,v:0,n:0,last:""};a.v+=r.v;a.n++;if(r.at>a.last)a.last=r.at;});
+  indMemo={k,v:{by,keys,clicks:indClicks(),leads:indLeads()}};return indMemo.v;}
+/* squarified treemap (Bruls et al.): items [{v}] sorted largest first → each gets x, y, w, h inside the box */
+function tmSquarify(items,x,y,w,h){const total=items.reduce((s,z)=>s+z.v,0),out=[];if(!total||w<=0||h<=0)return out;
+  let rest=items.map(z=>Object.assign({},z,{_a:z.v*w*h/total}));
+  while(rest.length){const side=Math.min(w,h),worst=r=>{const s=r.reduce((t,z)=>t+z._a,0),mx=Math.max(...r.map(z=>z._a)),mn=Math.min(...r.map(z=>z._a));return Math.max(side*side*mx/(s*s),(s*s)/(side*side*mn));};
+    let row=[rest[0]],i=1;while(i<rest.length&&worst(row.concat([rest[i]]))<=worst(row)){row.push(rest[i]);i++;}
+    const s=row.reduce((t,z)=>t+z._a,0);
+    if(w>=h){const cw=s/h;let cy=y;row.forEach(z=>{Object.assign(z,{x,y:cy,w:cw,h:z._a/cw});cy+=z.h;out.push(z);});x+=cw;w-=cw;}
+    else{const ch=s/w;let cx=x;row.forEach(z=>{Object.assign(z,{x:cx,y,w:z._a/ch,h:ch});cx+=z.w;out.push(z);});y+=ch;h-=ch;}
+    rest=rest.slice(i);}
+  return out;}
+function indTreemapHTML(d){const mode=indMode,mainEl=document.querySelector(".main"),pc=(v,t)=>(v/t*100).toFixed(3)+"%";
+  /* lay it out in real pixels (the width it will get), so the label cut-offs below mean what they say */
+  const W=Math.max(300,Math.round((mainEl?mainEl.clientWidth-parseFloat(getComputedStyle(mainEl).paddingLeft)*2:window.innerWidth-(window.innerWidth>=900?300:28))-(window.innerWidth>=640?34:22))),H=Math.round(W>=640?Math.min(600,Math.max(380,W*.52)):W*1.55);
+  const items=d.keys.map(k=>d.by[k]).filter(b=>b[mode]>0).sort((a,b)=>b[mode]-a[mode]).map(b=>({v:b[mode],b}));
+  const total=items.reduce((s,z)=>s+z.v,0);
+  if(!total)return '<div class="empty" style="padding:30px 16px">'+(mode==="sold"?'No orders with money on them yet.':'No quotes yet. Quotes made in the CRM&#39;s Quotes tab show up here.')+'</div>';
+  return '<div class="tm" style="aspect-ratio:'+W+' / '+H+'">'+tmSquarify(items,0,0,W,H).map(t=>{const b=t.b,head=t.w>=88&&t.h>=58,hh=head?Math.min(34,t.h*.34):0;
+    const accts=Object.values(b.accts[mode]).sort((x,y)=>y.v-x.v),keep=accts.slice(0,10),more=accts.slice(10),kids=keep.map(a=>({v:a.v,a}));
+    if(more.length)kids.push({v:more.reduce((s,a)=>s+a.v,0),a:{name:more.length+" more",v:more.reduce((s,a)=>s+a.v,0),n:more.reduce((s,a)=>s+a.n,0),more:true}});
+    const iw=t.w-4,ih=t.h-hh-4,share=Math.round(b[mode]/total*100);
+    const kidHTML=tmSquarify(kids,0,0,iw,ih).map((c,i)=>{const big=c.w>=86&&c.h>=40,a=c.a,tip=a.name+" · "+indMoney(a.v,true)+" · "+a.n+" "+(mode==="sold"?"order":"quote")+(a.n===1?"":"s");
+      return '<span class="tmc'+(i===0?' k1':i<3?' k2':'')+(a.more?' more':'')+(c.h<60?' sm':'')+'" data-tip="'+esc(tip)+'" style="left:'+pc(c.x,iw)+';top:'+pc(c.y,ih)+';width:'+pc(c.w,iw)+';height:'+pc(c.h,ih)+'">'+
+        (big?'<b>'+esc(a.name)+'</b><small class="num">'+indMoney(a.v)+(c.h>=58?' · '+Math.round(a.v/total*100)+'%':'')+'</small>':'')+'</span>';}).join("");
+    return '<button class="tmt f-'+b.fam+'" data-act="indopen" data-v="'+b.key+'" data-tip="'+esc(b.name+" · "+indMoney(b[mode],true)+" · "+share+"% · tap for the page")+'" style="left:'+pc(t.x,W)+';top:'+pc(t.y,H)+';width:'+pc(t.w,W)+';height:'+pc(t.h,H)+'">'+
+      (head?'<span class="tmh"><b>'+esc(b.name)+'</b><span class="num">'+indMoney(b[mode])+'</span></span>':'')+
+      '<span class="tmk" style="top:'+(hh?pc(hh,t.h):'2px')+';height:calc('+pc(ih,t.h)+')">'+kidHTML+'</span></button>';}).join("")+'</div>';}
+function viewIndustries(){
+  if(indSel)return indPageHTML(indSel);
+  let h='<div class="esec" style="margin-bottom:16px">'+[["map","Industries"],["pros","Prospect lists"]].map(x=>'<button class="chip'+(indTab===x[0]?" on":"")+'" data-act="indtab" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
+  if(indTab==="pros")return h+prosHTML();
+  const d=indData(),mode=indMode,all=d.keys.map(k=>d.by[k]),tot=all.reduce((s,b)=>s+b[mode],0),n=all.reduce((s,b)=>s+(mode==="sold"?b.orders:b.quotes).length,0);
+  const accts=new Set();all.forEach(b=>Object.keys(b.accts[mode]).forEach(a=>accts.add(a)));
+  h+='<div class="pan indmap"><div class="ph2">'+svg("chart")+(mode==="sold"?'Sold':'Quoted')+' by industry<span class="t2" style="margin-left:4px">· <b class="num" style="color:var(--ink)">'+indMoney(tot,true)+'</b> · '+n+' '+(mode==="sold"?'order':'quote')+(n===1?'':'s')+' · '+accts.size+' account'+(accts.size===1?'':'s')+'</span>'+
+    '<span class="meta"><span class="flick" role="group" aria-label="Sold or quoted">'+[["sold","Sold"],["quoted","Quoted"]].map(x=>'<button class="'+(mode===x[0]?'on':'')+'" data-act="indmode" data-v="'+x[0]+'" aria-pressed="'+(mode===x[0])+'">'+x[1]+'</button>').join("")+'</span></span></div>'+
+    '<div class="tmwrap">'+indTreemapHTML(d)+'</div>'+
+    '<div class="tmkey">'+IND_FAM.map(f=>'<span><i class="f-'+f[0]+'"></i>'+esc(f[1])+'</span>').join("")+'</div>';
+  const none=IND_GROUPS.filter(g=>!(d.by[g[0]][mode]>0));
+  if(none.length)h+='<div class="tmnone"><span class="t2">'+(mode==="sold"?'No sales yet':'No quotes yet')+':</span>'+none.map(g=>'<button class="chip" data-act="indopen" data-v="'+g[0]+'">'+esc(g[1])+'</button>').join("")+'</div>';
+  h+='<details class="tmtable"><summary>Show as a table</summary><div class="tablewrap"><table class="lv"><thead><tr><th>Industry</th><th class="r">Sold</th><th class="r">Orders</th><th class="r">Quoted</th><th class="r">Quotes</th><th class="r">Page clicks</th><th class="r">Conference leads</th></tr></thead><tbody>'+
+    all.slice().sort((a,b)=>b.sold-a.sold||b.quoted-a.quoted).map(b=>{const pg=IND_EXTRA[b.key]?null:d.clicks[indGroup(b.key)[2]],ld=d.leads[b.key];
+      return '<tr data-act="indopen" data-v="'+b.key+'" style="cursor:pointer"><td>'+esc(b.name)+'</td><td class="r num">'+(b.sold?indMoney(b.sold,true):'—')+'</td><td class="r num">'+(b.orders.length||'—')+'</td><td class="r num">'+(b.quoted?indMoney(b.quoted,true):'—')+'</td><td class="r num">'+(b.quotes.length||'—')+'</td><td class="r num">'+(pg?pg.people.size:'—')+'</td><td class="r num">'+(ld?ld.n:'—')+'</td></tr>';}).join("")+'</tbody></table></div></details></div>';
+  return h;}
+/* one industry: the numbers, its customers (each can be re-tagged), quotes, who clicked its page, the conference leads it has */
+function indPageHTML(k){const d=indData(),b=d.by[k]||d.by.unsorted,g=IND_EXTRA[k]?null:indGroup(k),pg=g?d.clicks[g[2]]:null,ld=d.leads[k];
+  const custs=Object.values(b.accts.sold).sort((x,y)=>y.v-x.v),qs=b.quotes.slice().sort((x,y)=>String(y.at).localeCompare(String(x.at)));
+  const qOpen=qs.filter(q=>q.status==="draft"||q.status==="sent"),qWon=qs.filter(q=>q.status==="won");
+  const kp=(lab,val,sub)=>'<div class="likpi"><small>'+lab+'</small><b class="num">'+val+'</b><span>'+sub+'</span></div>';
+  const last=b.orders.map(o=>o.at).sort().pop();
+  const opts=v=>IND_GROUPS.map(x=>[x[0],x[1]]).concat([["dist",IND_EXTRA.dist],["unsorted",IND_EXTRA.unsorted]]).map(x=>'<option value="'+x[0]+'"'+(x[0]===v?' selected':'')+'>'+esc(x[1])+'</option>').join("");
+  const mv=(acct)=>'<select class="sel indmv" data-acct="'+esc(acct)+'" aria-label="Industry for '+esc(acct)+'">'+opts(k)+'</select>';
+  let h='<div class="row" style="gap:8px;margin-bottom:14px;flex-wrap:wrap"><button class="btn sm ghost" data-act="indopen" data-v="">'+svg("back")+'All industries</button>'+
+    (g?'<a class="btn sm ghost" href="'+esc(SITE_URL+g[2])+'" target="_blank" rel="noopener">'+svg("ext")+'Open the landing page</a>':'')+'</div>';
+  h+='<div class="pan liprof" style="margin-bottom:14px"><div class="ph2"><span class="tmdot f-'+b.fam+'"></span>'+esc(b.name)+'<span class="t2" style="margin-left:4px">· '+esc((IND_FAM.find(f=>f[0]===b.fam)||[])[1]||"")+(g?' · theautotq.com/'+esc(g[2]):'')+'</span></div><div class="likpis">'+
+    kp("Sold",b.sold?indMoney(b.sold,true):"—",b.orders.length+" order"+(b.orders.length===1?"":"s")+(last?" · last "+esc(last):""))+
+    kp("Quoted",b.quoted?indMoney(b.quoted,true):"—",qs.length?qs.length+" quote"+(qs.length===1?"":"s")+" · "+qOpen.length+" open"+(qWon.length?" · "+qWon.length+" won":""):"none yet")+
+    kp("Customers",custs.length||"—",custs.length?"avg order "+indMoney(b.sold/b.orders.length,true):"no orders yet")+
+    kp("Page clicks",g?(pg?pg.people.size:0):"—",g?(pg?pg.n+" click"+(pg.n===1?"":"s")+" from our emails":"no one has clicked it in an email yet"):"no landing page")+
+    kp("Conference leads",ld?ld.n:"—",ld?ld.called+" called":"none matched")+'</div>'+
+    (k==="unsorted"||k==="dist"?'<p class="t2 linote">'+(k==="unsorted"?'These accounts don&#39;t say what industry they are. Pick one beside each and it moves to that tile (saved for the whole team).':'Distributor orders: stock and drop-ships where the end user isn&#39;t on the order. If you know who it went to, pick that industry beside it.')+'</p>':'')+'</div>';
+  h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("check")+'Customers<span class="t2" style="margin-left:4px">· '+custs.length+' · largest first</span></div>'+
+    (custs.length?'<div class="tablewrap"><table class="lv"><thead><tr><th>Account</th><th class="r">Sold</th><th class="r">Orders</th><th>Last order</th><th>Industry</th></tr></thead><tbody>'+custs.map(a=>'<tr><td>'+esc(a.name)+'</td><td class="r num">'+indMoney(a.v,true)+'</td><td class="r num">'+a.n+'</td><td>'+esc(a.last||"—")+'</td><td>'+mv(a.name)+'</td></tr>').join("")+'</tbody></table></div>'
+      :'<div class="empty" style="padding:20px 16px">No orders in this industry yet.</div>')+'</div>';
+  h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("file")+'Quotes<span class="t2" style="margin-left:4px">· from the CRM&#39;s Quotes tab</span></div>'+
+    (qs.length?'<div class="tablewrap"><table class="lv"><thead><tr><th>Quote</th><th>Account</th><th>Date</th><th>Status</th><th class="r">Total</th><th>Industry</th></tr></thead><tbody>'+qs.map(q=>'<tr><td class="num">'+esc(q.ref)+'</td><td>'+esc(q.acct)+(q.dist?' <span class="t2">via '+esc(q.dist)+'</span>':'')+'</td><td>'+esc(q.at||"—")+'</td><td><span class="pill'+(q.status==="won"?' ok':q.status==="lost"?' dang':q.status==="sent"?' info':'')+'">'+esc(q.status.charAt(0).toUpperCase()+q.status.slice(1))+'</span></td><td class="r num">'+indMoney(q.v,true)+'</td><td>'+mv(q.acct)+'</td></tr>').join("")+'</tbody></table></div>'
+      :'<div class="empty" style="padding:20px 16px">No quotes in this industry yet.</div>')+'</div>';
+  if(g){const ppl=pg?[...pg.people.values()].sort((x,y)=>String(y.at).localeCompare(String(x.at))):[];
+    h+='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("eye")+'Who clicked the page<span class="t2" style="margin-left:4px">· from our emails; visits from anywhere else aren&#39;t counted here</span></div>'+
+      (ppl.length?ppl.slice(0,40).map(p=>'<div class="actrow"><span class="nm"><b>'+esc(p.name||p.email)+'</b><small>'+esc([p.company,p.camp,actDay(p.at)].filter(Boolean).join(" · "))+'</small></span></div>').join("")
+        :'<div class="empty" style="padding:20px 16px">No clicks on theautotq.com/'+esc(g[2])+' from our emails yet.</div>')+'</div>';}
+  if(ld)h+='<div class="pan"><div class="ph2">'+svg("users")+'Conference leads<span class="t2" style="margin-left:4px">· '+ld.n+' matched to this page · '+ld.called+' called</span></div><div class="tmnone" style="padding:12px 16px">'+
+    Object.entries(ld.byConf).sort((x,y)=>y[1]-x[1]).map(x=>'<span class="pill">'+esc(x[0])+' · '+x[1]+'</span>').join("")+'</div></div>';
+  return h;}
+function indHandle(a,t){
+  if(a==="indmode"){indMode=t.dataset.v==="quoted"?"quoted":"sold";render();return true;}
+  if(a==="indtab"){indTab=t.dataset.v;render();return true;}
+  if(a==="indopen"){indSel=t.dataset.v||"";tipHide();render();window.scrollTo(0,0);return true;}
+  return false;}
+document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("indmv"))return;
+  const rec=Object.assign({id:"industryMap"},(DB.settings||[]).find(x=>x&&x.id==="industryMap")||{}),map=Object.assign({},rec.map||{}),n=indNorm(el.dataset.acct);
+  if(el.value==="unsorted")delete map[n];else map[n]=el.value;rec.map=map;rec.by=USER;rec.at=new Date().toISOString();put("settings",rec);indMemo.k="";render();toast(el.dataset.acct+" → "+indName(el.value));});
+/* the treemap's hover label: one floating element that follows the pointer */
+let tmTip=null;
+document.addEventListener("mousemove",e=>{const el=e.target.closest&&e.target.closest(".tm [data-tip]");
+  if(!el){if(tmTip)tmTip.classList.remove("show");return;}
+  if(!tmTip){tmTip=document.createElement("div");tmTip.className="tmtip";document.body.appendChild(tmTip);}
+  tmTip.textContent=el.dataset.tip;tmTip.classList.add("show");const r=tmTip.getBoundingClientRect(),x=Math.min(e.clientX+14,window.innerWidth-r.width-8),y=e.clientY+18+r.height>window.innerHeight?e.clientY-r.height-12:e.clientY+18;
+  tmTip.style.left=x+"px";tmTip.style.top=y+"px";});
 function viewLinkedInMsg(){const all=liInvites(),st=liInvState(),wait=all.filter(r=>r.status==="candidate"||r.status==="approved").length;
   return '<div class="pan pros" style="margin-bottom:14px">'+lgHTML()+'</div><details class="lifold" id="liInvFold" open'+'><summary>'+svg("users")+'<b>Follow invites</b><span class="t2">· '+
     (all.length?wait+' of your connections waiting'+(st.balance!=null?' · '+liNum(st.balance)+' credits left':''):'invite the buyers among your connections to follow the AutoTQ page')+'</span>'+svg("chevD","fchev")+'</summary>'+
@@ -2803,6 +3003,7 @@ function liHandle(a,t){const id=t.dataset.v;
   if(a.indexOf("lihand")===0)return liHandHandle(a,t)||true;
   if(a==="litab"){liTab=t.dataset.v;liEdit=false;render();return true;}
   if(a==="liweek"){liWeek=t.dataset.v;liSel="";liEdit=false;render();return true;}
+  if(a==="lisel"&&t.classList.contains("lisr")){liSel=liSel===id?"":id;liEdit=false;render();const el=document.querySelector('.lisr[data-v="'+id+'"]');if(el&&liSel)el.scrollIntoView({block:"start",behavior:"smooth"});return true;} /* the schedule: tap opens, tap again closes */
   if(a==="lisel"){liSel=id;const q=liFind(id);if(q&&q.week)liWeek=q.week;liTab="week";liEdit=false;render();const el=document.querySelector(".lipost");if(el)el.scrollIntoView({block:"start",behavior:"smooth"});return true;}
   if(a==="liprofedit"){liProfEdit=!liProfEdit;render();return true;}
   if(a==="liprofsave"){const pr=Object.assign({id:"liProfile"},liProfile());const f=liN((document.getElementById("liFol")||{}).value),u=String((document.getElementById("liUrl")||{}).value||"").trim();
@@ -2818,7 +3019,7 @@ function liHandle(a,t){const id=t.dataset.v;
   if(a==="lirewrite"){const p=liFind(id);if(!p)return true;const note=prompt("What should the new version do differently?","");if(note===null)return true;liCall("rewrite",{id,note}).then(()=>toast("Writing a new version…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="licopy"){const p=liFind(id);if(p){const txt=liText(p)+((p.hashtags||[]).length?"\n\n"+p.hashtags.map(x=>"#"+x).join(" "):"");try{navigator.clipboard.writeText(txt);toast(p.external?"Copied — paste it into LinkedIn":"Copied — paste it into LinkedIn, then add the card and the photo");}catch(e){}}return true;}
   if(a==="liposted"){const p=liFind(id);if(!p)return true;const u=prompt("Link to the live LinkedIn post (optional)","");if(u===null)return true;if(!p.external)livStamp(p);p.status="posted";p.postedAt=new Date().toISOString();p.postedUrl=u.trim();p.postedBy=USER;put("liPosts",p);render();toast("Marked posted");return true;}
-  if(a==="ligen"){liCall("generate",{week:liWeek}).then(()=>{toast("Researching and drafting — about a minute or three");setTimeout(render,1500);}).catch(e=>toast("Couldn't start: "+e.message));return true;}
+  if(a==="ligen"){liCall("generate",{week:id||liWeek}).then(()=>{toast("Researching and drafting — about a minute or three");setTimeout(render,1500);}).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="liresearch"){liCall("research").then(()=>toast("Researching…")).catch(e=>toast("Couldn't start: "+e.message));return true;}
   if(a==="liaddres"){const u=(document.getElementById("liAddUrl")||{}).value||"",o=(document.getElementById("liAddOrg")||{}).value||"",w=(document.getElementById("liAddWhy")||{}).value||"";
     if(!/^https?:\/\//.test(u.trim())){toast("Paste the link first");return true;}put("liResearch",{id:"lr-m"+uid()+uid(),kind:"example",title:(o.trim()?o.trim()+" — ":"")+"post you liked",org:o.trim(),date:todayStr(),url:u.trim(),summary:"",takeaway:w.trim(),source:"manual",by:USER,at:new Date().toISOString()});render();toast("Added — the next drafts will use it");return true;}
@@ -4342,6 +4543,7 @@ document.addEventListener("click",e=>{
   if(a.indexOf("mkt")===0&&mktHandle(a,t))return;
   if(a.indexOf("cat")===0&&catHandle(a,t))return;
   if(a.indexOf("pros")===0&&prosHandle(a,t))return;
+  if(a.indexOf("ind")===0&&indHandle(a,t))return;
   if(a.indexOf("liinv")===0&&liInvHandle(a,t))return;
   if(a.indexOf("li")===0&&liHandle(a,t))return;
   if(a.indexOf("call")===0&&callHandle(a,t))return;
