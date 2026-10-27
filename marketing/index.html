@@ -110,11 +110,10 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 @media (max-width:900px){.callhead{grid-template-columns:1fr}}
 .callgoal{padding:16px 18px}.cg-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.cg-top small{color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
 .cg-top b.num{display:block;font-size:44px;font-weight:300;line-height:1.05}.cg-top b.num span{font-size:20px;color:var(--ink-3);margin-left:2px}
-.cg-goal{text-align:right}.cg-goal .chips{justify-content:flex-end;margin-top:6px}
-.cg-bar{height:8px;border-radius:99px;background:var(--rule-2);margin:14px 0 12px;overflow:hidden}.cg-bar i{display:block;height:100%;background:var(--coral);border-radius:99px}
-.cg-days{position:relative;display:flex;gap:6px;align-items:flex-end;height:74px}.cg-days>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
-.cg-days i{display:block;width:100%;max-width:26px;min-height:2px;background:var(--ink-4);border-radius:4px 4px 0 0}.cg-days i.hit{background:var(--coral)}.cg-days .td i{outline:1px solid var(--ink-2)}
-.cg-days small{font-size:10.5px;color:var(--ink-3);margin-top:4px}.goalline{position:absolute;left:0;right:0;border-top:1px dashed var(--ink-3);opacity:.6}
+.cg-goal{text-align:right}.cg-who{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px 14px;margin-top:8px;font-size:13px;color:var(--ink-2)}.cg-who b{font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.cg-days{position:relative;display:flex;gap:6px;align-items:flex-end;height:74px;margin-top:16px}.cg-days>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.cg-days .stk{display:flex;flex-direction:column;width:100%;max-width:26px;min-height:2px;background:var(--ink-4);border-radius:4px 4px 0 0;overflow:hidden}.cg-days .stk i{display:block;min-height:0}.cg-days .stk i.me{background:var(--coral)}.cg-days .td .stk{outline:1px solid var(--ink-2)}
+.cg-days small{font-size:10.5px;color:var(--ink-3);margin-top:4px}
 .callconfs .ccrow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 16px;border:0;border-top:1px solid var(--rule-2);background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
 .ccrow .ck{width:18px;height:18px;border:1.5px solid var(--ink-3);border-radius:5px;display:grid;place-items:center;flex:none}.ccrow .ck .i{width:13px;height:13px}.ccrow.off{opacity:.5}
 .ccrow .grow{display:flex;flex-direction:column;min-width:0}.ccrow small{color:var(--ink-3);font-size:12px}.cbar{display:block;height:4px;border-radius:9px;background:var(--rule-2);margin-top:6px;overflow:hidden}.cbar i{display:block;height:100%;background:var(--ink-2)}
@@ -1826,7 +1825,7 @@ function render(){
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel")view="cat";
   const me=teamById(USER);const n=APP==="catalog"?0:needsMe();
   const titles={calls:"Calls",ind:"Industries",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook",spend:"Spend / Expense",intel:"Market research & ideas"};
-  const subs={spend:"Card charges by bucket: Marketing, White-label and Conferences. Send Claude a screenshot of new charges and they land here; change a bucket on any charge and the totals follow.",calls:"Every conference end user with a phone number, one at a time. Day plan: 50 East Coast in the morning, then 20 Central, then 20 West — callbacks due first, then a mix of warm, new and retries. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
+  const subs={spend:"Card charges by bucket: Marketing, White-label and Conferences. Send Claude a screenshot of new charges and they land here; change a bucket on any charge and the totals follow.",calls:"Every conference end user with a phone number, one at a time: East Coast in the morning, Central at midday, the West in the afternoon — callbacks due first, then a mix of warm, new and retries. Every call the team has made is on the lead, including the June ASSP calls and Kellan's NSC calls. Log the call and the follow-up email opens ready to tailor and send from your own Outlook; Sent and replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
   const body=view==="intel"?viewIntel():view==="spend"?viewSpend():view==="start"?viewHome():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
   const crumbs=[APP_NAME].concat(view==="intel"?["Market research & ideas",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"]:view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
@@ -3824,18 +3823,13 @@ const CALL_BKT_RANK={5:-1,0:0,2:1,1:2,3:3}; // hand-raisers (speed to lead) firs
 const CALL_BKT_LBL={5:"Hot",0:"Call back",1:"Warm",2:"New",3:"Try "};
 const CALL_NOCC=["vm","noanswer","nudge","last"]; // emails that don't copy the territory rep
 let callConfs=null, callSkip=new Set(), callCur=null, callOutSel="", callTab="queue", callDistVal=null, callQF="all", callNoteVal="", callFu=null, callFuF="all", callPin=false;
-/* day plan (Max, 2026-10-26: "50 easy in the morning and then it will switch by region as the day goes on … 20 is fair"):
-   East Coast until 50 are logged or 12:30 PM Eastern, then Central until 20 or 3 PM Eastern, then the West. Click a block to jump to it. */
-const CALL_PLAN=[{k:"east",lbl:"Morning · East Coast",sh:"East",tz:["Eastern"],n:50,until:12.5},{k:"central",lbl:"Midday · Central",sh:"Central",tz:["Central"],n:20,until:15},{k:"west",lbl:"Afternoon · West",sh:"West",tz:["Mountain","Pacific","Alaska","Hawaii"],n:20,until:24}];
+/* day plan (Max, 2026-10-26: "it will switch by region as the day goes on"): East Coast until 12:30 PM Eastern, Central until 3 PM
+   Eastern, then the West. Click a block to jump to it. No daily call goal (Max, 2026-10-27: "get rid of the daily call goal"). */
+const CALL_PLAN=[{k:"east",lbl:"Morning · East Coast",sh:"East",tz:["Eastern"],until:12.5},{k:"central",lbl:"Midday · Central",sh:"Central",tz:["Central"],until:15},{k:"west",lbl:"Afternoon · West",sh:"West",tz:["Mountain","Pacific","Alaska","Hawaii"],until:24}];
 let callPlanPick=null;
-function callPlanOn(){try{return localStorage.getItem("autotq_call_plan_"+USER)!=="off";}catch(e){return true;}}
-function callPlanSet(on){try{localStorage.setItem("autotq_call_plan_"+USER,on?"on":"off");}catch(e){}}
 function callEtHour(){try{const p=new Intl.DateTimeFormat("en-US",{timeZone:"America/New_York",hour:"numeric",minute:"numeric",hour12:false}).formatToParts(new Date());const h=+p.find(x=>x.type==="hour").value%24,m=+p.find(x=>x.type==="minute").value;return h+m/60;}catch(e){return new Date().getHours();}}
 function callPlanDone(b){const today=todayStr();let n=0;(DB.confLeads||[]).forEach(l=>{if(!b.tz.includes(callTz(l)))return;callsOf(l).forEach(c=>{if(c.by===USER&&callDayKey(c.at)===today)n++;});});return n;}
-function callPlanBlock(){if(!callPlanOn())return null;if(callPlanPick)return CALL_PLAN.find(b=>b.k===callPlanPick)||null;const h=callEtHour();
-  const open=CALL_PLAN.find(b=>callPlanDone(b)<b.n&&h<b.until);if(open)return open;const left=CALL_PLAN.filter(b=>callPlanDone(b)<b.n);return left.length?left[left.length-1]:null;}
-function callGoal(){if(callPlanOn())return CALL_PLAN.reduce((n,b)=>n+b.n,0);try{return +localStorage.getItem("autotq_call_goal_"+USER)||50;}catch(e){return 50;}}
-function callGoalSet(n){try{localStorage.setItem("autotq_call_goal_"+USER,String(n));}catch(e){}}
+function callPlanBlock(){if(callPlanPick)return CALL_PLAN.find(b=>b.k===callPlanPick)||null;const h=callEtHour();return CALL_PLAN.find(b=>h<b.until)||CALL_PLAN[CALL_PLAN.length-1];}
 function callDigits(p){return String(p||"").replace(/\D/g,"").replace(/^1(?=\d{10}$)/,"");}
 function callPhones(l){const ps=String(l.phone||"").split(/[;\/|]|\bor\b|,/).map(x=>x.trim()).filter(x=>callDigits(x).length>=10);return ps;}
 function callTz(l){if(l.tz&&TZ_OFF[l.tz]!=null)return l.tz;const st=String(l.state||"").toUpperCase().slice(0,2);
@@ -3854,7 +3848,7 @@ function callBucket(l){ // 5 hand-raiser (speed to lead) · 0 callback due · 1 
   const today=todayStr(),last=callLast(l),n=callsOf(l).length;const h=callHot(l);if(h&&h.due)return 5;
   if(l.cb&&l.cb<=today)return 0;if(l.cb&&l.cb>today)return 9;
   const daysSince=last?Math.floor((Date.now()-new Date(last.at).getTime())/86400000):999;
-  const warm=/hot|warm/i.test(l.temp||"")||/interest|demo|hot|callback|call back/i.test(l.status||"");
+  const warm=/hot|warm|interest/i.test(l.temp||"")||/interest|demo|hot|callback|call back/i.test(l.status||"")||(last&&/interested|callback/.test(last.out)&&!last.cb);
   const cad=cadState(l);if(cad&&n)return cad.done?9:cad.due<=today?(warm?1:3):9; // tried, never reached: the six-call cadence sets the day (replaces "3+ days, under 5 tries")
   if(warm&&daysSince>=5)return 1;
   if(!n&&!l.contacted)return 2;
@@ -3871,8 +3865,14 @@ function callMix(q){const g={5:[],0:[],1:[],2:[],3:[]};q.forEach(x=>g[x.b].push(
 function callQueue(){let q=callQueueAll();const b=callPlanBlock();if(b){const qb=q.filter(x=>x.b===5||b.tz.includes(callTz(x.l)));if(qb.some(x=>x.b!==5))q=qb;}if(callQF==="all")return callMix(q);return callQF==="hot"?q.filter(x=>x.b===5):callQF==="new"?q.filter(x=>x.b===2):callQF==="warm"?q.filter(x=>x.b===0||x.b===1||x.b===5):callQF==="retry"?q.filter(x=>x.b===3):q;}
 function callMine(){const out=[];(DB.confLeads||[]).forEach(l=>callsOf(l).forEach(c=>{if(c.by===USER)out.push({l,c});}));return out.sort((a,b)=>String(b.c.at).localeCompare(String(a.c.at)));}
 function callStats(){const mine=callMine();const today=todayStr();const byDay={};mine.forEach(x=>{const k=callDayKey(x.c.at);const o=byDay[k]=byDay[k]||{dials:0,connects:0};o.dials++;if((CALL_OUTS.find(z=>z[0]===x.c.out)||[])[2])o.connects++;});
-  const t=byDay[today]||{dials:0,connects:0};let streak=0;const g=callGoal();for(let i=0;i<120;i++){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const v=(byDay[callDayKey(d.toISOString())]||{}).dials||0;if(v>=g)streak++;else if(i===0)continue;else break;}
-  return {today:t,byDay,mine,streak};}
+  return {today:byDay[today]||{dials:0,connects:0},byDay,mine};}
+/* everyone's calls on the conference leads (2026-10-27, Max: "draw on the call data from my OG calling and Kellan's calls"): the June
+   ASSP call log and the statuses the team typed in the CRM were turned into calls[] entries (src "log", approx: the day is known, the
+   hour isn't) by tools/backfill_old_calls.py, so the queue, the six-call cadence and these numbers all count them */
+function callTeam(){const by={},byDay={};(DB.confLeads||[]).forEach(l=>callsOf(l).forEach(c=>{const p=c.by||"?";const o=by[p]=by[p]||{id:p,calls:0,reach:0,vm:0,warm:0,first:"",last:""};
+    o.calls++;if(cadReach(c.out))o.reach++;if(c.out==="vm")o.vm++;if(/interested|demo|callback/.test(c.out))o.warm++;if(!o.first||c.at<o.first)o.first=c.at;if(c.at>o.last)o.last=c.at;
+    const k=callDayKey(c.at);const d=byDay[k]=byDay[k]||{all:0,mine:0,who:{}};d.all++;if(p===USER)d.mine++;d.who[p]=(d.who[p]||0)+1;}));
+  return {people:Object.values(by).sort((a,b)=>b.calls-a.calls),byDay};}
 function callLog(l,out,note,cb){const now=new Date().toISOString();const rec={at:now,by:USER,out,note:note||""};if(cb)rec.cb=cb;
   l.calls=callsOf(l).concat([rec]);l.lastCall=now;const lbl=(CALL_OUTS.find(z=>z[0]===out)||[out,out])[1];const talked=(CALL_OUTS.find(z=>z[0]===out)||[])[2];
   if(talked){l.contacted=true;l.contactedAt=now;}
@@ -3909,7 +3909,7 @@ function srcLink(k){const s=METHOD_SRC[k];return '<a href="'+esc(s[1])+'" target
 function bizAddDays(dayKey,k){const d=new Date(dayKey+"T12:00:00");while(k>0){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)k--;}while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return callDayKey(d.toISOString());}
 function cadReach(out){return !!(CALL_OUTS.find(z=>z[0]===out)||[])[2];}
 function cadState(l){ // null once they've been reached (callbacks / warm take over) or the number was wrong
-  const cs=callsOf(l);if(l.contacted||cs.some(c=>cadReach(c.out)||c.out==="wrong"))return null;
+  const cs=callsOf(l);if((l.contacted&&!cs.length)||cs.some(c=>cadReach(c.out)||c.out==="wrong"))return null; // with a call history, the calls decide (the old lists marked a voicemail "contacted")
   const tries=cs.filter(c=>c.out==="noanswer"||c.out==="vm");const n=tries.length,vms=tries.filter(c=>c.out==="vm").length;
   if(n>=CAD.length)return {n,vms,done:true,step:null,tries};
   return {n,vms,done:false,step:CAD[n],due:n?bizAddDays(callDayKey(tries[n-1].at),CAD[n].d-CAD[n-1].d):todayStr(),tries};}
@@ -3974,16 +3974,16 @@ function cadCardHTML(l,b,hot){const cad=cadState(l);let h="";
 function methodStats(){const pool=callPool(),d30=Date.now()-30*864e5,today=todayStr();
   const sp={sig:0,called:0,in5:0,in60:0,later:0,waiting:0,mins:[]};
   pool.forEach(l=>{const s0=callSignal(l);const s=s0&&callsOf(l).some(c=>c.at>s0.at)?s0:callSignalOpen(l);if(!s||new Date(s.at).getTime()<d30)return;sp.sig++; // called ones count even if later handed to a rep
-    const fc=callsOf(l).find(c=>c.at>s.at);if(!fc){sp.waiting++;return;}sp.called++;const m=callBizMins(s.at,new Date(fc.at).getTime());sp.mins.push(m);if(m<=5)sp.in5++;else if(m<=60)sp.in60++;else sp.later++;});
+    const fc=callsOf(l).find(c=>c.at>s.at);if(!fc){sp.waiting++;return;}if(fc.approx)return; /* a call from the old log: the hour isn't known */sp.called++;const m=callBizMins(s.at,new Date(fc.at).getTime());sp.mins.push(m);if(m<=5)sp.in5++;else if(m<=60)sp.in60++;else sp.later++;});
   sp.mins.sort((a,b)=>a-b);sp.median=sp.mins.length?sp.mins[Math.floor((sp.mins.length-1)/2)]:null;
   const cd={tried:0,by:[0,0,0,0,0,0],done:0,behind:0,oldest:"",reachedIn:0};
   pool.forEach(l=>{const c=cadState(l);if(!c){const cs=callsOf(l);const r=cs.findIndex(x=>cadReach(x.out));if(r>0&&cs.slice(0,r).every(x=>x.out==="noanswer"||x.out==="vm"))cd.reachedIn++;return;}if(!c.n)return;cd.tried++;if(c.done){cd.done++;return;}cd.by[c.n-1]++;if(c.due<today){cd.behind++;if(!cd.oldest||c.due<cd.oldest)cd.oldest=c.due;}});
   const att=[0,1,2,3,4,5,6].map(()=>({dials:0,reach:0}));
   pool.forEach(l=>{const cs=callsOf(l);for(let i=0;i<cs.length;i++){if(cs[i].out==="wrong")break;const a=att[Math.min(i,6)];a.dials++;if(cadReach(cs[i].out)){a.reach++;break;}}});
   const HB=[[8,10,"8–10 AM"],[10,12,"10 AM–noon"],[12,14,"Noon–2 PM"],[14,16,"2–4 PM"],[16,18,"4–6 PM"]];const hrs=HB.map(x=>({lbl:x[2],dials:0,reach:0})),oth={lbl:"Before 8 / after 6",dials:0,reach:0};
-  pool.forEach(l=>callsOf(l).forEach(c=>{if(c.out==="wrong")return;const h=callLocalHourAt(l,c.at);const i=HB.findIndex(x=>h>=x[0]&&h<x[1]);const o=i<0?oth:hrs[i];o.dials++;if(cadReach(c.out))o.reach++;}));
+  pool.forEach(l=>callsOf(l).forEach(c=>{if(c.out==="wrong"||c.approx)return;const h=callLocalHourAt(l,c.at);const i=HB.findIndex(x=>h>=x[0]&&h<x[1]);const o=i<0?oth:hrs[i];o.dials++;if(cadReach(c.out))o.reach++;}));
   const em={due:0,sent:0},vm={due:0,left:0,extra:0};
-  pool.forEach(l=>{const cs=callsOf(l),es=callEmails(l);let k=0;for(const c of cs){if(cadReach(c.out)||c.out==="wrong")break;const s=CAD[k++];if(!s)break;
+  pool.forEach(l=>{const cs=callsOf(l),es=callEmails(l);let k=0;for(const c of cs){if(cadReach(c.out)||c.out==="wrong")break;const s=CAD[k++];if(!s)break;if(c.src==="log")continue; // calls from before the method aren't graded on it
     if(s.vm){vm.due++;if(c.out==="vm")vm.left++;}else if(c.out==="vm")vm.extra++;
     if(s.em){em.due++;const t=new Date(c.at).getTime();if(es.some(e=>{const x=new Date(e.at).getTime();return x>=t-60000&&x-t<18*3600000;}))em.sent++;}}});
   return {sp,cd,att,hrs:hrs.concat(oth.dials?[oth]:[]),em,vm,pool:pool.length};}
@@ -4101,18 +4101,16 @@ function callFuRecord(l,f){const now=new Date().toISOString();const rec={at:now,
 
 function viewCalls(){
   CAMPMAP.k="";const pinL=callPin&&callCur?(DB.confLeads||[]).find(x=>x.id===callCur):null;
-  const st=callStats(),g=callGoal(),t=st.today,qa=callQueueAll(),q=callQueue();if(!pinL&&(!callCur||!q.some(x=>x.l.id===callCur))){callCur=q.length?q[0].l.id:null;callPin=false;}
-  const hotN=qa.filter(x=>x.b===5).length;
-  const pctDone=Math.min(100,Math.round(t.dials/g*100));const left=Math.max(0,g-t.dials);
-  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const k=callDayKey(d.toISOString());days.push({k,lb:d.toLocaleDateString([], {weekday:"narrow"}),v:(st.byDay[k]||{}).dials||0,c:(st.byDay[k]||{}).connects||0});}
-  const maxV=Math.max(g,...days.map(x=>x.v));const fu=callFuRows();const fuNeed=fu.filter(x=>x.s.rank<=2).length;
+  const st=callStats(),t=st.today,tm=callTeam(),qa=callQueueAll(),q=callQueue();if(!pinL&&(!callCur||!q.some(x=>x.l.id===callCur))){callCur=q.length?q[0].l.id:null;callPin=false;}
+  const hotN=qa.filter(x=>x.b===5).length;const who=id=>id===USER?"You":shortName(id);
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);if(d.getDay()===0||d.getDay()===6)continue;const k=callDayKey(d.toISOString());const x=tm.byDay[k]||{all:0,mine:0,who:{}};days.push({k,lb:d.toLocaleDateString([], {weekday:"narrow"}),all:x.all,mine:x.mine,who:x.who});}
+  const maxV=Math.max(1,...days.map(x=>x.all));const fu=callFuRows();const fuNeed=fu.filter(x=>x.s.rank<=2).length;const allCalls=tm.people.reduce((n,p)=>n+p.calls,0);
   const emToday=(DB.confLeads||[]).reduce((n,l)=>n+callEmails(l).filter(e=>e.by===USER&&callDayKey(e.at)===todayStr()).length,0);
   let h='<div class="callhead">'+
-    '<div class="pan callgoal"><div class="cg-top"><div><small>Today</small><b class="num">'+t.dials+'<span>/'+g+'</span></b><p class="t2" style="margin:2px 0 0">'+(left?left+' to go':'Goal hit — every call now is extra')+' · '+t.connects+' conversation'+(t.connects===1?'':'s')+' · '+emToday+' follow-up email'+(emToday===1?'':'s')+'</p></div>'+
-      '<div class="cg-goal"><small>Daily goal</small><div class="chips"><span class="chip'+(callPlanOn()?" on":"")+'" data-act="callplan" data-v="on" title="50 East Coast, then 20 Central, then 20 West">Day plan</span>'+[30,50,75,100].map(n=>'<span class="chip'+(!callPlanOn()&&g===n?" on":"")+'" data-act="callgoal" data-v="'+n+'">'+n+'</span>').join("")+'</div></div></div>'+
-      '<div class="cg-bar"><i style="width:'+pctDone+'%"></i></div>'+
-      '<div class="cg-days">'+days.map(d=>'<div class="'+(d.k===todayStr()?"td":"")+'" title="'+d.k+': '+d.v+' calls, '+d.c+' conversations"><i style="height:'+Math.round(d.v/maxV*100)+'%" class="'+(d.v>=g?"hit":"")+'"></i><small>'+d.lb+'</small></div>').join("")+'<span class="goalline" style="bottom:'+(16+Math.round(g/maxV*54))+'px"></span></div>'+
-      '<p class="t2" style="margin:8px 0 0">'+(st.streak?'<b>'+st.streak+'-day streak</b> at goal · ':'')+st.mine.length+' calls logged all time · '+qa.length+' in the queue</p></div>'+
+    '<div class="pan callgoal"><div class="cg-top"><div><small>Today</small><b class="num">'+t.dials+'<span> call'+(t.dials===1?'':'s')+'</span></b><p class="t2" style="margin:2px 0 0">'+t.connects+' conversation'+(t.connects===1?'':'s')+' · '+emToday+' follow-up email'+(emToday===1?'':'s')+'</p></div>'+
+      (tm.people.length?'<div class="cg-goal"><small>Calls so far · the team</small><div class="cg-who">'+tm.people.slice(0,5).map(p=>'<span title="'+esc(teamById(p.id).name)+': '+p.calls+' calls since '+esc(new Date(p.first).toLocaleDateString([], {month:"short",day:"numeric"}))+' · reached '+p.reach+' · '+p.vm+' voicemails"><b>'+p.calls+'</b> '+esc(who(p.id))+'</span>').join("")+'</div></div>':'')+'</div>'+
+      '<div class="cg-days">'+days.map(d=>'<div class="'+(d.k===todayStr()?"td":"")+'" title="'+d.k+': '+(d.all?Object.keys(d.who).map(p=>who(p)+' '+d.who[p]).join(', '):'no calls')+'"><span class="stk" style="height:'+Math.round(d.all/maxV*100)+'%"><i style="flex:'+(d.all-d.mine)+'"></i><i class="me" style="flex:'+d.mine+'"></i></span><small>'+d.lb+'</small></div>').join("")+'</div>'+
+      '<p class="t2" style="margin:8px 0 0">Two weeks: your calls in coral, the team’s in grey · '+allCalls+' calls on the conference lists in all · '+qa.length+' in the queue</p></div>'+
     callConfsHTML("deskonly")+'</div>';
   h+='<div class="chips" style="margin:14px 0 12px">'+[["queue","Up next"+(hotN?" · "+hotN+" hot":"")],["fu","Follow-ups"+(fuNeed?" · "+fuNeed:"")],["method","Method"],["score","Scorecard"],["log","Today’s calls "+t.dials],["cb","Callbacks"]].map(x=>'<span class="chip'+(callTab===x[0]?" on":"")+((x[0]==="fu"&&fuNeed)||(x[0]==="queue"&&hotN&&callTab!=="queue")?" hotchip":"")+'" data-act="calltab" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
   if(callFu){const l=(DB.confLeads||[]).find(x=>x.id===callFu.id);if(l)return h+'<div class="callgrid">'+callComposerHTML(l)+callNextHTML(q,l.id)+'</div>';callFu=null;}
@@ -4125,8 +4123,8 @@ function viewCalls(){
   if(callTab==="fu")return h+callFuHTML(fu);
   if(callTab==="score")return h+callScoreHTML();
   if(callTab==="method")return h+callMethodHTML();
-  const pb=callPlanBlock();const qb2=pb&&qa.some(x=>x.b!==5&&pb.tz.includes(callTz(x.l)))?qa.filter(x=>x.b===5||pb.tz.includes(callTz(x.l))):qa;if(callPlanOn())h+='<div class="planstrip">'+CALL_PLAN.map(b=>{const d=callPlanDone(b);const pc=Math.min(100,Math.round(100*d/b.n));const left=qa.filter(x=>b.tz.includes(callTz(x.l))).length;
-      return '<button class="pblk'+(pb&&pb.k===b.k?" on":"")+(d>=b.n?" done":"")+'" data-act="callplanpick" data-v="'+b.k+'"><span class="pl"><b>'+esc(b.lbl)+'</b><small>'+d+' of '+b.n+(d>=b.n?' · done':'')+' · '+left+' in line</small></span><span class="cbar"><i style="width:'+pc+'%"></i></span></button>';}).join("")+'</div>'+(callPlanPick?'<p class="t2" style="margin:-6px 0 10px">You picked '+esc((CALL_PLAN.find(b=>b.k===callPlanPick)||{}).sh||"")+' by hand · <a href="#" data-act="callplanpick" data-v="">back to automatic</a></p>':'');
+  const pb=callPlanBlock();const qb2=pb&&qa.some(x=>x.b!==5&&pb.tz.includes(callTz(x.l)))?qa.filter(x=>x.b===5||pb.tz.includes(callTz(x.l))):qa;h+='<div class="planstrip">'+CALL_PLAN.map(b=>{const d=callPlanDone(b);const left=qa.filter(x=>b.tz.includes(callTz(x.l))).length;
+      return '<button class="pblk'+(pb&&pb.k===b.k?" on":"")+'" data-act="callplanpick" data-v="'+b.k+'"><span class="pl"><b>'+esc(b.lbl)+'</b><small>'+left+' in line'+(d?' · '+d+' called today':'')+'</small></span></button>';}).join("")+'</div>'+(callPlanPick?'<p class="t2" style="margin:-6px 0 10px">You picked '+esc((CALL_PLAN.find(b=>b.k===callPlanPick)||{}).sh||"")+' by hand · <a href="#" data-act="callplanpick" data-v="">back to automatic</a></p>':'');
   h+='<div class="chips" style="margin:-4px 0 12px">'+(hotN?[["hot","Hot now "+hotN]]:[]).concat([["all",(pb?pb.sh+" · all ":"Everyone ")+qb2.length],["new","Not called yet "+qb2.filter(x=>x.b===2).length],["warm","Callbacks & warm "+qb2.filter(x=>x.b===0||x.b===1||x.b===5).length],["retry","Next of six calls "+qb2.filter(x=>x.b===3).length]]).map(x=>'<span class="chip sm'+(callQF===x[0]?" on":"")+(x[0]==="hot"&&callQF!=="hot"?" hotchip":"")+'" data-act="callqf" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>';
   if(!q.length&&!pinL)return h+'<div class="empty">Nobody left to call'+(callQF!=="all"?' in this group':'')+(callConfs&&callConfs.size?' with these lists — turn on more lists above':'')+'. Callbacks come back on their day.</div>';
   const cur=q.find(x=>x.l.id===callCur)||(pinL?{l:pinL,b:callBucket(pinL)}:q[0]);h+='<div class="callgrid">'+callCardHTML(cur.l,cur.b)+callNextHTML(q,cur.l.id)+'</div>'+callConfsHTML("phoneonly");
@@ -4156,7 +4154,11 @@ function callScoreHTML(){const rows=callScore();const T={conf:"Total",leads:0,ph
   const dials=d14.reduce((n,k)=>n+((st.byDay[k]||{}).dials||0),0),conv=d14.reduce((n,k)=>n+((st.byDay[k]||{}).connects||0),0);
   const em=(DB.confLeads||[]).reduce((n,l)=>n+callEmails(l).filter(e=>e.by===USER&&d14.includes(callDayKey(e.at))).length,0);
   const rp=(DB.confLeads||[]).filter(l=>callReplies(l).some(r=>d14.includes(callDayKey(r.at)))).length;
+  const tm=callTeam().people,dd=iso=>new Date(iso).toLocaleDateString([], {month:"short",day:"numeric"});
   return '<div class="kpis" style="margin-bottom:14px">'+[["Calls · 14 days",dials],["Conversations",conv+'<small> '+pc(conv,dials)+'</small>'],["Follow-up emails",em],["Replies",rp+'<small> '+pc(rp,em)+'</small>']].map(k=>'<div class="kpi-s"><small>'+k[0]+'</small><b class="num">'+k[1]+'</b></div>').join("")+'</div>'+
+    (tm.length?'<div class="tablewrap" style="margin-bottom:14px"><table class="lv score"><thead><tr><th>Who called</th><th>Calls</th><th>Reached</th><th>Voicemails</th><th>Interested, call back or demo</th><th>First – last call</th></tr></thead><tbody>'+
+      tm.map(p=>'<tr><td class="lvname">'+esc(p.id===USER?"You":teamById(p.id).name)+'</td><td class="num">'+p.calls+'</td><td class="num">'+p.reach+'<small class="t2" style="margin:0 0 0 6px">'+pc(p.reach,p.calls)+'</small></td><td class="num">'+p.vm+'</td><td class="num">'+p.warm+'</td><td>'+esc(dd(p.first)+(callDayKey(p.first)!==callDayKey(p.last)?' – '+dd(p.last):''))+'</td></tr>').join("")+
+      '</tbody></table></div>':'')+
     '<div class="tablewrap"><table class="lv score"><thead><tr><th>Conference</th><th>Leads</th><th>With a number</th><th>Called</th><th>Reached</th><th>Emailed</th><th>Replied</th><th>Demo / quote</th><th>Customers</th></tr></thead><tbody>'+rows.map(tr).join("")+tr(T)+'</tbody></table></div>'+
     '<p class="t2" style="margin-top:8px">End users only. Each % is out of the column before it: called out of those with a number, reached (talked, interested, demo, call back, not interested) out of called, emailed out of called, replied out of emailed, demo out of reached. Customers = the person or their organization is in Orders (any time, so it can include buyers from before the show).</p>';}
 function callConfsHTML(cls){return '<div class="pan callconfs '+cls+'"><div class="ph2">'+svg("chart")+'Getting through the lists</div>'+callConfList().map(o=>{const on=!callConfs||!callConfs.size||callConfs.has(o.conf);const p=o.total?Math.round(o.called/o.total*100):0;
@@ -4185,8 +4187,6 @@ function callDefaultCb(o){const d=new Date();d.setDate(d.getDate()+(o==="callbac
 function callNext(){callFu=null;callOutSel="";callDistVal=null;callNoteVal="";callCur=null;callPin=false;callTab="queue";render();window.scrollTo(0,0);}
 function callHandle(a,t){
   const byId=id=>(DB.confLeads||[]).find(x=>x.id===id);
-  if(a==="callgoal"){callGoalSet(+t.dataset.v);callPlanSet(false);callPlanPick=null;render();return true;}
-  if(a==="callplan"){callPlanSet(true);render();return true;}
   if(a==="callplanpick"){callPlanPick=t.dataset.v||null;callCur=null;callQF="all";render();return true;}
   if(a==="calltab"){callTab=t.dataset.v;if(callFu&&callFu.from!=="queue")callFu=null;render();return true;}
   if(a==="callqf"){callQF=t.dataset.v;callCur=null;callPin=false;callTab="queue";render();return true;}
@@ -4201,10 +4201,10 @@ function callHandle(a,t){
     const dEl=document.getElementById("callDist");if(dEl)callDistVal=dEl.value.trim();
     const cbEl=document.getElementById("callCb");const cb=cbEl&&cbEl.value?cbEl.value:(callOutSel==="callback"?callDefaultCb("callback"):"");const out=callOutSel;
     const cad0=cadState(l);const tpl=(out==="vm"||out==="noanswer")&&cad0&&!cad0.done&&cad0.step.tpl?cad0.step.tpl:out; // calls 5 and 6 of the cadence send the nudge / the last note
-    callLog(l,out,note,cb);const s=callStats();const g=callGoal();
+    callLog(l,out,note,cb);const s=callStats();
     if(CALL_FU_OUTS.includes(out)&&!t.dataset.noemail){callFuOpen(l,tpl,{out,cb,note,from:"queue"});callOutSel="";callNoteVal="";render();window.scrollTo(0,0);
-      toast((s.today.dials===g?"That's "+g+" — goal hit · ":"Logged · "+s.today.dials+"/"+g+" · ")+(l.email?"now the email":"add their email to send one"));return true;}
-    callNext();toast(s.today.dials===g?"That's "+g+" — goal hit for today":"Logged · "+s.today.dials+"/"+g+" today");return true;}
+      toast("Logged · "+s.today.dials+" today · "+(l.email?"now the email":"add their email to send one"));return true;}
+    callNext();toast("Logged · "+s.today.dials+" today");return true;}
   if(a==="callfuany"){const l=byId(t.dataset.id);if(!l)return true;const n=document.getElementById("callNote");if(n)callNoteVal=n.value;const lc=callLast(l);callFuOpen(l,callEmails(l).length?"nudge":lc&&CALL_FU_OUTS.includes(lc.out)?lc.out:"talked",{from:"card"});render();return true;}
   if(a==="callfunudge"){const l=byId(t.dataset.id);if(!l)return true;callFuOpen(l,"nudge",{from:"fu"});callTab="fu";render();window.scrollTo(0,0);return true;}
   if(a==="callfureopen"){const l=byId(t.dataset.id);if(!l)return true;const e=callLastEmail(l);callFuOpen(l,e&&e.tpl||"talked",{from:"fu",out:e&&e.out});if(e){callFu.subject=e.subject;callFu.body=e.body;callFu.ccOn=!!e.cc;callFu.reopen=true;}render();window.scrollTo(0,0);return true;}
