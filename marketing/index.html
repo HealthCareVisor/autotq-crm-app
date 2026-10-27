@@ -972,7 +972,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-"; // publishable key — safe in the page; data access is gated by RLS on the user's token
 // one file, two hubs (2026-10-21, Max: Catalog is "an entirely new hub… just like Marketing and CRM"): the same page is served at
 // /marketing/ and /catalog/. The sign-in is shared; each hub keeps its own data cache, sidebar and name.
-// /development/ (2026-10-27) is the third: Max's R&D documents, nothing synced (see the Development hub section).
+// /development/ (2026-10-27) is the third: R&D documents for Max and Hannah, nothing synced (see the Development hub section).
 const APP=/\/development(\/|$)/.test(location.pathname)||/[?&]app=development\b/.test(location.search)?"development":/\/catalog(\/|$)/.test(location.pathname)||/[?&]app=catalog\b/.test(location.search)?"catalog":"marketing";
 const APP_NAME=APP==="development"?"Development":APP==="catalog"?"Catalog":"Marketing";
 const HUB_URLS={marketing:"https://autotqcrm.goldenhourmedical.com/marketing/",catalog:"https://autotqcrm.goldenhourmedical.com/catalog/",development:"https://autotqcrm.goldenhourmedical.com/development/"};
@@ -1891,7 +1891,7 @@ function palKey(e){
 }
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
-  if(APP==="development"&&!devUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Development</div><div class="who">This hub is for Max.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
+  if(APP==="development"&&!devUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Development</div><div class="who">This hub is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">This app is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel")view="cat";if(APP==="development")view="doc";
   const me=teamById(USER);const n=APP!=="marketing"?0:needsMe();
@@ -3497,12 +3497,14 @@ function catFamilyHTML(k){const f=catFamMeta(k),its=catFamItems(k).slice().sort(
     return '<button class="fmod" data-act="catopen" data-id="'+esc(x.id)+'"><span class="fmth">'+(im?'<img alt="" data-mkt="'+esc(im.thumb||im.path)+'">':'<span class="cph">'+svg("box")+'</span>')+'</span><span class="fmbd"><b>'+esc(x.name)+'</b>'+catPill(catPhase(x))+
       '<small>'+esc(catQuoteLine(x))+'</small>'+((x.images||[]).length+(x.files||[]).length?'<small class="t2">'+(x.images||[]).length+' image'+((x.images||[]).length===1?'':'s')+' · '+(x.files||[]).length+' file'+((x.files||[]).length===1?'':'s')+'</small>':'')+'</span>'+svg("chevR")+'</button>';}).join("")+'</div>';
   return h;}
-/* ---------- Development hub (Max, 2026-10-27: "add this under development instead of catalog and only make it viewable for me").
-   The same page at /development/: one sidebar tab per document (R&D write-ups and research pages; anything added later). Only Max: the hub checks devUser(), and the database lets only max@ read or write records › rdDocs (can_see, access.sql).
+/* ---------- Development hub (Max, 2026-10-27: "add this under development instead of catalog and only make it viewable for me";
+   later that day: "Give Hannah access to autotq development").
+   The same page at /development/: one sidebar tab per document (R&D write-ups and research pages; anything added later). Max and
+   Hannah only: the hub checks devUser(), and the database lets only them read or write records › rdDocs (can_see, access.sql).
    RULE: the content lives only in the database and is fetched when a tab opens: never in this file (the hub repo is public), never in
    localStorage. A document is shown in a sandboxed frame (scripts run, with no same-origin access, so it can't read the sign-in).
    Kinds: "html" (a self-contained page) and "md" (Markdown, rendered inside the frame). The body is gzip+base64 in data.gz. */
-function devUser(){return USER==="max";}
+function devUser(){return hubUser();}
 let docSel="",DOCS=null,DOCS_AT=0,DOCS_SIG="";const DOC_CACHE={},DOC_BUSY={};
 async function docsLoad(force){if(APP!=="development"||!authed()||!devUser())return;if(!force&&DOCS&&Date.now()-DOCS_AT<300000)return;
   try{const r=await supa("/rest/v1/records?collection=eq.rdDocs&deleted=eq.false&select=id,updated_at,updated_by,title:data->>title,sub:data->>sub,icon:data->>icon,ord:data->>ord,kind:data->>kind,size:data->>size");
@@ -3570,9 +3572,9 @@ function viewDoc(){
   if(!DOCS)return '<div class="docmsg">Loading your documents…</div>';
   const m=docMeta(docSel),c=DOC_CACHE[docSel];
   const addBtn='<label class="btn sm ghost" style="cursor:pointer">'+svg("plus")+'Add document<input type="file" id="docNew" accept=".html,.htm,.md,text/html,text/markdown" hidden></label>';
-  if(!m)return '<div class="ph"><h1>Development</h1><p>No documents yet. Add a page (.html) or a write-up (.md); only you can open them.</p></div><div class="docbar"><span class="grow"></span>'+addBtn+'</div>';
+  if(!m)return '<div class="ph"><h1>Development</h1><p>No documents yet. Add a page (.html) or a write-up (.md); only Max and Hannah can open them.</p></div><div class="docbar"><span class="grow"></span>'+addBtn+'</div>';
   return '<div class="ph"><h1>'+esc(m.title||"Document")+'</h1><p>'+esc(m.sub||"")+'</p></div>'+
-    '<div class="docbar"><span class="t2">Updated '+esc(ivAgo(m.updated_at))+(m.updated_by?' by '+esc(docWho(m.updated_by)):'')+' · Only you can open this</span><span class="grow"></span>'+
+    '<div class="docbar"><span class="t2">Updated '+esc(ivAgo(m.updated_at))+(m.updated_by?' by '+esc(docWho(m.updated_by)):'')+' · Max and Hannah only</span><span class="grow"></span>'+
     '<button class="btn sm ghost" data-act="docfull">'+svg("ext")+'Full screen</button>'+
     '<button class="btn sm ghost" data-act="docdl" data-id="'+esc(m.id)+'">'+svg("dl")+'Download</button>'+
     '<label class="btn sm ghost" style="cursor:pointer">Replace<input type="file" id="docRep" data-id="'+esc(m.id)+'" accept=".html,.htm,.md,text/html,text/markdown" hidden></label>'+addBtn+'</div>'+
