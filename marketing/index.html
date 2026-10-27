@@ -130,16 +130,17 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .tdl{margin-bottom:14px;padding-bottom:6px}.tdl-top{display:flex;align-items:center;margin-bottom:6px}
 .tdl-grp{margin-top:14px;border-left:4px solid var(--gc);border-radius:6px 0 0 6px}
 .tdl-gh{display:flex;gap:10px;align-items:baseline;background:none;border:0;padding:2px 10px 6px;color:var(--gc);cursor:pointer;font:inherit}.tdl-gname{font-weight:650;font-size:15px}
-.tdl-head,.tdl-row,.tdl-add{display:grid;grid-template-columns:34px minmax(0,1fr) 74px 136px 104px 124px;align-items:stretch}
+.tdl-head,.tdl-row,.tdl-add,.tdl-pick{display:grid;grid-template-columns:34px minmax(0,1fr) 74px 136px 104px 124px;align-items:stretch}
 .tdl-head{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}.tdl-head span{padding:4px 8px;text-align:center}.tdl-head span:nth-child(2){text-align:left}
 .tdl-row{border-top:1px solid var(--rule-2);min-height:40px}.tdl-row:last-of-type{border-bottom:1px solid var(--rule-2)}.tdl-row>*{border-left:1px solid var(--rule-2)}.tdl-row>:first-child{border-left:0}
-.tdl-row.open{background:var(--rule-2)}.tdl-ck{margin:auto;width:18px;height:18px;border:1.5px solid var(--ink-3);border-radius:5px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}.tdl-ck svg{width:12px;height:12px}
+.tdl-row.open{background:var(--rule-2)}.tdl-row .tdl-ck{margin:auto;width:18px;height:18px;border:1.5px solid var(--ink-3);border-radius:5px;background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0}.tdl-ck svg{width:12px;height:12px}
 .tdl-row.done .tdl-ck{background:#00C875;border-color:#00C875;color:#fff}.tdl-row.done .tdl-title{text-decoration:line-through;color:var(--ink-3)}
 .tdl-item{display:flex;align-items:center;gap:8px;background:none;border:0;color:inherit;font:inherit;text-align:left;padding:8px 10px;cursor:pointer;min-width:0}.tdl-title{font-weight:550;overflow:hidden;text-overflow:ellipsis}.tdl-noteic svg{width:14px;height:14px;color:var(--ink-3)}
 .tdl-own{display:flex;align-items:center;justify-content:center;gap:2px}.tdl-av{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:650}
 /* Status + Priority (Max, 2026-10-27: "less obvious; sleek nice ui drop downs"): a quiet value — dot or priority bars, text,
-   chevron — that steps up to a hairline control on hover and opens a small menu. The menu escapes the panel (overflow visible). */
-.pan.tdl{overflow:visible}.tdl{--amber:var(--warn)}:root[data-theme="light"] .tdl{--amber:#D98E04}
+   chevron — that steps up to a hairline control on hover and opens a small menu right under it. The menu sits in the board's flow
+   (.tdl-pick, a row after the item) and pushes the rows below down instead of covering them (Max, same day). */
+.tdl{--amber:var(--warn)}:root[data-theme="light"] .tdl{--amber:#D98E04}
 .tdl-cell{position:relative;display:flex}.tdl-status,.tdl-priority{align-items:center;justify-content:center;padding:0 2px}
 .tdl-lbl{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:28px;margin:0;padding:0 5px 0 8px;border:1px solid transparent;border-radius:8px;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
 .tdl-lbl:hover,.tdl-lbl[aria-expanded="true"]{background:var(--s-hov);border-color:var(--rule-3);color:var(--ink)}
@@ -148,9 +149,9 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 .tdl-dot{width:8px;height:8px;border-radius:50%;background:var(--dc);flex:none}.tdl-dot.ring{background:none;box-shadow:inset 0 0 0 1.5px var(--dc)}
 .tdl-bars{display:inline-flex;align-items:flex-end;gap:1.5px;height:10px;flex:none}.tdl-bars i{display:block;width:3px;border-radius:1px;background:var(--rule-3)}
 .tdl-bars i:nth-child(1){height:4px}.tdl-bars i:nth-child(2){height:7px}.tdl-bars i:nth-child(3){height:10px}.tdl-bars i.on{background:var(--ink-2)}.tdl-bars.crit i{background:var(--bad)}
-@keyframes tdlpop{from{opacity:0;transform:translate(var(--tx),4px)}to{opacity:1;transform:translate(var(--tx),0)}}
-.tdl-menu{--tx:-50%;position:absolute;z-index:30;top:calc(100% - 4px);left:50%;transform:translate(var(--tx),0);min-width:176px;background:var(--panel);border:1px solid var(--rule-3);border-radius:12px;box-shadow:var(--sh-3);padding:6px;animation:tdlpop .16s var(--ease)}
-.tdl-menu.up{top:auto;bottom:calc(100% - 4px)}
+@keyframes tdlpop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.tdl-pick{padding:0 0 10px}.tdl-pick .tdl-menu{grid-column:4;justify-self:center}.tdl-pick-priority .tdl-menu{grid-column:5}
+.tdl-menu{width:max-content;min-width:176px;background:var(--panel);border:1px solid var(--rule-3);border-radius:12px;padding:6px;animation:tdlpop .16s var(--ease)}
 .tdl-opt{display:flex;align-items:center;gap:9px;width:100%;min-height:34px;padding:0 10px;border:0;border-radius:8px;background:none;color:var(--ink);font:inherit;font-size:13.5px;text-align:left;cursor:pointer}
 .tdl-opt:hover{background:var(--s-hov)}.tdl-opt:focus-visible{background:var(--s-on);outline:none}
 .tdl-opt .ck{margin-left:auto;display:flex;color:var(--coral)}.tdl-opt .ck svg.i{width:15px;height:15px;stroke-width:2.2}
@@ -165,7 +166,7 @@ button.card:hover{border-color:var(--rule-3);background:var(--panel)}
 @media (max-width:760px){.tdl-head{display:none}.tdl-row{grid-template-columns:30px minmax(0,1fr) auto;grid-template-areas:"ck item own" ". st pr" ". du du";gap:6px 8px;padding:8px 6px}.tdl-row>*{border-left:0}
   .tdl-ck{grid-area:ck}.tdl-item{grid-area:item;padding:2px 0}.tdl-own{grid-area:own}.tdl-status{grid-area:st}.tdl-priority{grid-area:pr}.tdl-date{grid-area:du;justify-content:flex-start}.tdl-due{width:auto;text-align:left}
   .tdl-status,.tdl-priority,.tdl-date{padding:0}.tdl-status{justify-content:flex-start;margin-left:-8px}.tdl-priority{justify-content:flex-end}.tdl-date{margin-left:-6px}
-  .tdl-lbl{height:32px}.tdl-menu{--tx:0}.tdl-status .tdl-menu{left:0}.tdl-priority .tdl-menu{left:auto;right:0}.tdl-detail{padding-left:14px}.tdl-add{grid-template-columns:1fr auto}.tdl-add>span{display:none}.tdl-add .f{grid-column:1}.tdl-add .btn{grid-column:2}}
+  .tdl-lbl{height:32px}.tdl-pick{display:flex;padding:0 6px 10px 36px}.tdl-pick-priority{justify-content:flex-end}.tdl-detail{padding-left:14px}.tdl-add{grid-template-columns:1fr auto}.tdl-add>span{display:none}.tdl-add .f{grid-column:1}.tdl-add .btn{grid-column:2}}
 .fu-ai{margin-top:14px;padding:12px;border:1px solid var(--rule);border-radius:10px;background:var(--rule-2)}.fu-ai textarea{background:var(--paper)}
 .cadsla{margin-top:14px;padding:10px 12px;border:1px solid var(--coral);border-radius:10px;background:var(--coral-wash)}.cadsla p{margin:2px 0;font-size:13.5px}.cadsla .clk{font-variant-numeric:tabular-nums;font-weight:650}
 .cadsla.late{border-color:var(--bad);background:var(--bad-wash)}
@@ -3134,14 +3135,15 @@ function todoGroupOf(t){if(todoStatus(t)==="done")return "done";const today=toda
 const TODO_GROUPS=[["now","Overdue & today","#E2445C"],["week","This week","#FDAB3D"],["later","Later","#579BFC"],["nodate","No date","#A25DDC"],["done","Done","#00C875"]];
 function todoLabel(kind,t){const v=kind==="status"?todoStatus(t):(t.priority||"");const L=(kind==="status"?TODO_STATUS:TODO_PRI).find(x=>x[0]===v)||(kind==="status"?TODO_STATUS[0]:TODO_PRI[4]);
   const open=todoPick===t.id+":"+kind,name=kind==="status"?"Status":"Priority";
-  return '<div class="tdl-cell tdl-'+kind+'"><button class="tdl-lbl'+(kind==="priority"&&!v?" none":"")+'" data-act="todopick" data-id="'+esc(t.id)+'" data-v="'+kind+'" aria-haspopup="menu" aria-expanded="'+open+'" aria-label="'+name+': '+esc(v?L[1]:kind==="status"?L[1]:"No priority")+'">'+todoMark(L,kind)+'<span>'+esc(L[1])+'</span>'+svg("chevD")+'</button>'+
-    (open?'<div class="tdl-menu" role="menu" aria-label="'+name+'">'+(kind==="status"?TODO_STATUS:TODO_PRI).map(o=>'<button class="tdl-opt" role="menuitemradio" aria-checked="'+(o[0]===v)+'" tabindex="-1" data-act="todoset" data-id="'+esc(t.id)+'" data-k="'+kind+'" data-v="'+o[0]+'">'+todoMark(o,kind)+'<span>'+esc(o[0]?o[1]:"No priority")+'</span>'+(o[0]===v?'<span class="ck">'+svg("check")+'</span>':'')+'</button>').join("")+'</div>':'')+'</div>';}
+  return '<div class="tdl-cell tdl-'+kind+'"><button class="tdl-lbl'+(kind==="priority"&&!v?" none":"")+'" data-act="todopick" data-id="'+esc(t.id)+'" data-v="'+kind+'" aria-haspopup="menu" aria-expanded="'+open+'" aria-label="'+name+': '+esc(v?L[1]:kind==="status"?L[1]:"No priority")+'">'+todoMark(L,kind)+'<span>'+esc(L[1])+'</span>'+svg("chevD")+'</button></div>';}
+function todoMenuRow(t){if(!todoPick||todoPick.indexOf(t.id+":")!==0)return "";const kind=todoPick.slice(t.id.length+1),v=kind==="status"?todoStatus(t):(t.priority||"");
+  return '<div class="tdl-pick tdl-pick-'+kind+'"><div class="tdl-menu" role="menu" aria-label="'+(kind==="status"?"Status":"Priority")+'">'+(kind==="status"?TODO_STATUS:TODO_PRI).map(o=>'<button class="tdl-opt" role="menuitemradio" aria-checked="'+(o[0]===v)+'" tabindex="-1" data-act="todoset" data-id="'+esc(t.id)+'" data-k="'+kind+'" data-v="'+o[0]+'">'+todoMark(o,kind)+'<span>'+esc(o[0]?o[1]:"No priority")+'</span>'+(o[0]===v?'<span class="ck">'+svg("check")+'</span>':'')+'</button>').join("")+'</div></div>';}
 function todoMark(o,kind){if(kind==="status")return '<span class="tdl-dot'+(o[0]==="todo"?" ring":"")+'" style="--dc:'+o[2]+'"></span>';
   return '<span class="tdl-bars'+(o[0]==="critical"?" crit":"")+'" aria-hidden="true">'+[1,2,3].map(k=>'<i'+(k<=o[2]?' class="on"':'')+'></i>').join("")+'</span>';}
-/* after a re-render: put focus back on a value (k = "id:kind"), or into the open menu on its current option; flip the menu up when it would run off screen */
+/* after a re-render: put focus back on a value (k = "id:kind"), or into the open menu on its current option (scrolled into view if it opened below the fold) */
 function todoFocusLbl(k){if(!k)return;const i=k.lastIndexOf(":"),b=document.querySelector('.tdl-lbl[data-id="'+CSS.escape(k.slice(0,i))+'"][data-v="'+k.slice(i+1)+'"]');if(b)b.focus({preventScroll:true});}
-function todoMenuFocus(){const m=document.querySelector(".tdl-menu");if(!m)return;const r=m.getBoundingClientRect(),cell=m.parentElement.getBoundingClientRect();
-  if(r.bottom>window.innerHeight-8&&cell.top-r.height>8)m.classList.add("up");(m.querySelector('[aria-checked="true"]')||m.querySelector(".tdl-opt")).focus({preventScroll:true});}
+function todoMenuFocus(){const m=document.querySelector(".tdl-menu");if(!m)return;const r=m.getBoundingClientRect();
+  if(r.bottom>window.innerHeight-8)m.scrollIntoView({block:"nearest"});(m.querySelector('[aria-checked="true"]')||m.querySelector(".tdl-opt")).focus({preventScroll:true});}
 function todoClosePick(){const k=todoPick;todoPick=null;render();todoFocusLbl(k);}
 function todoOwner(t){const ids=(t.assignees&&t.assignees.length?t.assignees:[t.owner]).filter(Boolean);return '<div class="tdl-own">'+ids.slice(0,3).map(id=>{const m=teamById(id);return '<span class="tdl-av" title="'+esc(m.name)+'" style="background:'+(m.c||"#888")+'">'+esc((m.name||"?").split(" ").map(w=>w[0]).join("").slice(0,2))+'</span>';}).join("")+'</div>';}
 function todoRowHTML(t){const st=todoStatus(t);const open=todoOpen===t.id;const od=t.due&&t.due<todayStr()&&st!=="done";
@@ -3150,7 +3152,7 @@ function todoRowHTML(t){const st=todoStatus(t);const open=todoOpen===t.id;const 
     '<button class="tdl-item" data-act="todoopen" data-id="'+esc(t.id)+'"><span class="tdl-title">'+esc(t.title||"")+'</span>'+(t.note?'<span class="tdl-noteic" title="Has notes">'+svg("file")+'</span>':'')+'</button>'+
     todoOwner(t)+todoLabel("status",t)+todoLabel("priority",t)+
     '<div class="tdl-cell tdl-date'+(od?" od":"")+'"><input type="date" class="tdl-due" data-id="'+esc(t.id)+'" value="'+esc(t.due||"")+'" aria-label="Due date"></div>'+
-    '</div>'+
+    '</div>'+todoMenuRow(t)+
     (open?'<div class="tdl-detail"><label class="fl" style="margin-top:0">Item</label><input class="f" id="todoEdTitle" value="'+esc(t.title||"")+'"><label class="fl">Notes</label><textarea class="f" id="todoEdNote" rows="5" placeholder="Steps, links, who to call…">'+esc(t.note||"")+'</textarea>'+
       '<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn sm coral" data-act="todosave" data-id="'+esc(t.id)+'">Save</button><button class="btn sm ghost" data-act="todoopen" data-id="'+esc(t.id)+'">Close</button><button class="btn sm ghost" data-act="tododel" data-id="'+esc(t.id)+'" style="margin-left:auto;color:var(--bad)">Delete</button></div>'+
       '<p class="t2" style="margin:8px 0 0">Added '+esc(new Date(t.createdAt||Date.now()).toLocaleDateString([], {month:"short",day:"numeric"}))+(t.doneAt?' · done '+esc(new Date(t.doneAt).toLocaleDateString([], {month:"short",day:"numeric"})):'')+'</p></div>':'');}
