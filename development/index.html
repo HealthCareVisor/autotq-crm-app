@@ -289,7 +289,7 @@ table.lv td.wrap{white-space:normal;min-width:260px}.lvname{font-weight:600}
 .sitem.on svg.i{color:var(--coral)}
 .sitem .lbl{flex:1;min-width:0}
 .sbadge{flex:none;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--coral);color:#fff;font-size:10.5px;font-weight:700;line-height:18px;text-align:center;font-variant-numeric:tabular-nums;transition:opacity .15s}
-.sbadge.act{background:none;color:var(--coral);box-shadow:inset 0 0 0 1.5px var(--coral)}
+.sbadge.act{display:block;gap:0;padding:0 5px;border-top:0;background:none;color:var(--coral);box-shadow:inset 0 0 0 1.5px var(--coral)} /* .act (the activity row) shares the class name */
 .sbadge+.sbadge{margin-left:-6px}
 .skid{flex:none;width:24px;height:24px;margin-right:-4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ink-4)}
 .skid:hover{background:var(--s-on);color:var(--ink-2)}
@@ -3097,8 +3097,9 @@ function livNumRe(big){const s=String(big||"").replace(/^[~≈]\s*/,"").replace(
 function livCardWith(c,e){const big=String(e.big||"").trim();
   return Object.assign({},c,{eyebrow:String(e.eyebrow||"").trim(),big,head:(e.head||[]).map(x=>String(x||"").trim()).filter(Boolean),sub:String(e.sub||"").trim(),source:String(e.source||"").trim(),re:livNorm(big)===livNorm(c.big)?c.re:livNumRe(big)||/$^/,edited:true});}
 /* the card as drawn: the picked one, in Max's words when he edited it */
-function livCardOf(p){const c=liCard(liVisual(p).card),e=p.visual&&p.visual.cardEdit;return e&&e.of===c.id?livCardWith(c,e):c;}
-function livCardKey(c,theme){const k=c.id+"|"+theme+(c.edited?"|"+livHash(JSON.stringify([c.eyebrow,c.big,c.head,c.sub,c.source])):"");LIV_CARD[k]=c;return k;}
+/* ...with the post's photo faded behind it (2026-10-27) */
+function livCardOf(p){const v=liVisual(p),c=liCard(v.card),e=p.visual&&p.visual.cardEdit,o=e&&e.of===c.id?livCardWith(c,e):c;return v.photo?Object.assign({},o,{photo:v.photo}):o;}
+function livCardKey(c,theme){const k=c.id+"|"+theme+(c.edited?"|"+livHash(JSON.stringify([c.eyebrow,c.big,c.head,c.sub,c.source])):"")+(c.photo?"|ph:"+c.photo:"");LIV_CARD[k]=c;return k;}
 /* numbers a card may carry: the studio's verified claims (LI_CARDS restates them), the claims this post used, its cited sources */
 function livLoose(p,c){const known=LI_CARDS.map(x=>[x.eyebrow,x.big,x.head.join(" "),x.sub||"",x.source].join(" ")).concat(p.claimsUsed||[],(p.sources||[]).map(s=>s.title||"")).join(" "),
     toks=new Set(known.match(/\d[\d,.]*\d|\d/g)||[]),k=livNorm(known),w=n=>LIV_W[+n]||n;let out=[];
@@ -3118,7 +3119,7 @@ function livGeoCss(g){return "left:"+(g.l*100).toFixed(3)+"%;top:"+(g.t*100).toF
 const LIV_IMG={};function livImg(src){return LIV_IMG[src]||(LIV_IMG[src]=new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>{delete LIV_IMG[src];no(new Error("couldn't load "+src));};im.src=src;}));}
 async function livCardCanvas(id,theme){const c=typeof id==="object"?id:liCard(id),day=theme==="day";
   if(document.fonts&&document.fonts.load)await Promise.all([300,500,600].map(w=>document.fonts.load(w+' 100px "Inter"'))).catch(()=>{});
-  const logo=await livImg(day?"assets/lockup_ink.png":"assets/lockup_light.png").catch(()=>null);
+  const logo=await livImg(day?"assets/lockup_ink.png":"assets/lockup_light.png").catch(()=>null),ph=c.photo?await livCut(c.photo).catch(()=>null):null;
   const W=1080,H=1350,S=2,L=72,MW=W-2*L,cv=document.createElement("canvas");cv.width=W*S;cv.height=H*S;const g=cv.getContext("2d");g.scale(S,S);
   const C=day?{bg:"#F2F0EB",ink:"#0E0E10",mute:"#6B6B70",src:"#86868C",track:"#DCD9D2"}:{bg:"#0A0A0C",ink:"#F2F0EB",mute:"#9A9AA0",src:"#77777D",track:"#26262B"},RED="#D9291C";
   const set=(w,s,sp)=>{g.font=w+" "+s+'px Inter, "Helvetica Neue", Arial, sans-serif';if("letterSpacing" in g)g.letterSpacing=((sp||0)*s).toFixed(2)+"px";};
@@ -3141,10 +3142,10 @@ async function livCardCanvas(id,theme){const c=typeof id==="object"?id:liCard(id
     if(!o.hs){o.hs=46;o.hl=head.map((x,i)=>{set(i?600:300,46,-.03);return wrap(x);});}
     o.headTop=numBot+Math.max(70,Math.round(o.bs*.344));let y=o.headTop+o.hl.reduce((a,b)=>a+b.length,0)*o.hs*1.02;
     if(c.sub){const sm=Math.round(34*Math.max(k,.85));set(400,sm,-.01);const sl=tw(c.sub)<=MW?[c.sub]:two(c.sub)||wrap(c.sub);o.ss=sm;o.sl=sl;o.subTop=y+34;y=o.subTop+o.sl.length*o.ss*1.35;}
-    o.barTop=y+56;set(400,24,.01);o.srl=wrap(c.source);o.srcTop=o.barTop+6+26;y=o.srcTop+o.srl.length*24*1.3;
+    o.statBot=y;o.barTop=y+56;set(400,24,.01);o.srl=wrap(c.source);o.srcTop=o.barTop+6+26;y=o.srcTop+o.srl.length*24*1.3;
     if(y<=1186||k===.68){Y=o;break;}}
   const o=Y,bl=(top,s,lh)=>top+((lh-1.2109)/2+.96875)*s;
-  g.fillStyle=C.bg;g.fillRect(0,0,W,H);g.textBaseline="alphabetic";
+  g.fillStyle=C.bg;g.fillRect(0,0,W,H);g.textBaseline="alphabetic";if(ph)livBehind(g,ph,o,W,H,day);
   set(500,o.eb.s,.14);g.fillStyle=C.mute;o.eb.ls.forEach((x,i)=>g.fillText(x,L,bl(o.ebTop+i*o.eb.s*1.3,o.eb.s,1.21)));
   set(300,o.bs,-.06);const nb=bl(o.numTop,o.bs,1);let nx=L-12;
   const parts=c.accent&&c.big.indexOf(c.accent)>-1?[c.big.slice(0,c.big.indexOf(c.accent)),c.accent,c.big.slice(c.big.indexOf(c.accent)+c.accent.length)]:[c.big];
@@ -3158,6 +3159,50 @@ async function livCardCanvas(id,theme){const c=typeof id==="object"?id:liCard(id
   else{set(600,34,-.01);g.fillStyle=C.ink;g.fillText("AutoTQ",L,1269);}
   set(500,26,.01);g.fillStyle=C.ink;g.textAlign="right";g.fillText("theAutoTQ.com",W-L,1266);g.textAlign="left";
   return cv;}
+/* the photo behind the card (Max, 2026-10-27: "Allow the stat line and upper half of PNG.1 to remain intact. png.2 ... should be
+   faded behind png.1"). livCut takes a studio shot's white background out, so the product sits on the card's own colour: the
+   light, grey-white pixels joined to the photo's edge without crossing an edge (brightness changing by more than 12 within 5 px:
+   a white wall plate has one, a soft shadow doesn't), plus pure-white holes of 1,000+ px inside the product (a handle's loop;
+   white printing is smaller and stays). The 3 px around all that keep the colour they had over white (colour to alpha), so the
+   product's edge is soft and its shadow goes dark. A photo with a real background (under 60% of its edge light) stays whole.
+   livBehind draws it under the source line and the logo: a product about 3/4 of the card wide, centred, its foot just past the
+   bottom edge (or against the card's edge, on any side where the product runs off the photo), or a full-bleed photo across the
+   lower part; invisible down to just under the number's lines (and never above the card's middle), easing in to 44% (night) /
+   40% (day), and softer again behind the logo row. */
+const LIV_CUT={},LIV_CUTS=[]; // the last 6 photos, worked out (about 9 MB each)
+function livCut(id){if(LIV_CUT[id])return LIV_CUT[id];LIV_CUTS.push(id);if(LIV_CUTS.length>6)delete LIV_CUT[LIV_CUTS.shift()];
+  return (LIV_CUT[id]=mktBlob(LI_PHOTO_DIR+id+".jpg").then(livImg).then(im=>{
+  const w=im.naturalWidth,h=im.naturalHeight,n=w*h,cv=document.createElement("canvas");cv.width=w;cv.height=h;
+  const x=cv.getContext("2d",{willReadFrequently:true});x.drawImage(im,0,0);const d=x.getImageData(0,0,w,h),q=d.data;
+  const lite=(i,lo,sat)=>{const j=i*4,a=q[j],b=q[j+1],c=q[j+2];return a>=lo&&b>=lo&&c>=lo&&Math.max(a,b,c)-Math.min(a,b,c)<=sat;};
+  let seen=0,lit=0;for(let i=0;i<w;i+=4){seen+=2;lit+=lite(i,200,24)+lite(n-w+i,200,24);}for(let j=0;j<h;j+=4){seen+=2;lit+=lite(j*w,200,24)+lite(j*w+w-1,200,24);}
+  if(lit<seen*.6)return {cv,w,h,cut:false,box:{x:0,y:0,w,h},off:{l:1,r:1,t:1,b:1}};
+  const lum=new Uint8Array(n),hx=new Uint8Array(n),hn=new Uint8Array(n),rg=new Uint8Array(n);for(let i=0,j=0;i<n;i++,j+=4)lum[i]=(2*q[j]+5*q[j+1]+q[j+2])>>3;
+  for(let y=0;y<h;y++){const o=y*w;for(let c=0;c<w;c++){let M=0,m=255;for(let k=c<2?0:c-2,e=c+2<w?c+2:w-1;k<=e;k++){const v=lum[o+k];if(v>M)M=v;if(v<m)m=v;}hx[o+c]=M;hn[o+c]=m;}}
+  for(let y=0;y<h;y++){const a=y<2?0:y-2,e=y+2<h?y+2:h-1,o=y*w;for(let c=0;c<w;c++){let M=0,m=255;for(let k=a;k<=e;k++){const i=k*w+c;if(hx[i]>M)M=hx[i];if(hn[i]<m)m=hn[i];}rg[o+c]=M-m;}}
+  const bg=new Uint8Array(n),st=new Int32Array(n);let sp=0;const add=i=>{if(!bg[i]&&rg[i]<=12&&lite(i,200,24)){bg[i]=1;st[sp++]=i;}};
+  for(let i=0;i<w;i++){add(i);add(n-w+i);}for(let j=0;j<h;j++){add(j*w);add(j*w+w-1);}
+  while(sp){const i=st[--sp],c=i%w;if(c)add(i-1);if(c<w-1)add(i+1);if(i>=w)add(i-w);if(i<n-w)add(i+w);}
+  const big=1000*n/(2048*1153),hole=new Uint8Array(n);
+  for(let i0=0;i0<n;i0++){if(bg[i0]||hole[i0]||!lite(i0,240,12))continue;let m=0;hole[i0]=1;st[sp++]=i0;const part=[];
+    while(sp){const i=st[--sp],c=i%w;part.push(i);m++;for(const k of [c?i-1:-1,c<w-1?i+1:-1,i>=w?i-w:-1,i<n-w?i+w:-1])if(k>-1&&!bg[k]&&!hole[k]&&lite(k,240,12)){hole[k]=1;st[sp++]=k;}}
+    if(m>=big)for(const i of part)bg[i]=1;}
+  let rim=bg;for(let k=0;k<3;k++){const r=rim.slice();for(let i=0;i<n;i++)if(!rim[i]){const c=i%w;if((c&&rim[i-1])||(c<w-1&&rim[i+1])||(i>=w&&rim[i-w])||(i<n-w&&rim[i+w]))r[i]=1;}rim=r;}
+  let x0=w,y0=h,x1=-1,y1=-1;
+  for(let i=0;i<n;i++){const j=i*4;if(rim[i]){const a=Math.max(255-q[j],255-q[j+1],255-q[j+2])/255;if(a<.004){q[j+3]=0;continue;}
+      for(let k=0;k<3;k++)q[j+k]=Math.round(255-(255-q[j+k])/a);q[j+3]=Math.round(a*255);if(a<.5)continue;}
+    const c=i%w,r=(i-c)/w;if(c<x0)x0=c;if(c>x1)x1=c;if(r<y0)y0=r;if(r>y1)y1=r;}
+  x.putImageData(d,0,0);if(x1<0)return {cv,w,h,cut:true,box:{x:0,y:0,w,h},off:{l:1,r:1,t:1,b:1}};
+  return {cv,w,h,cut:true,box:{x:x0,y:y0,w:x1-x0+1,h:y1-y0+1},off:{l:x0<3,r:x1>w-4,t:y0<3,b:y1>h-4}};}).catch(e=>{delete LIV_CUT[id];throw e;}));}
+function livBehind(g,ph,o,W,H,day){const top=Math.max(H/2,(o.statBot||H/2)+24),b=ph.box,f=ph.off,A=day?.4:.44;let s,dx,dy;
+  if(ph.cut&&!(f.l&&f.r)){s=Math.min(W*.76/b.w,(H-top+110)/b.h);dx=f.l?0:f.r?W-ph.w*s:W/2-(b.x+b.w/2)*s;
+    dy=H+(f.b?0:Math.min(60,b.h*s*.08))-(b.y+b.h)*s;if(f.t)dy=Math.min(dy,top-20);}
+  else{s=Math.max(W/ph.w,(H-top+80)/ph.h);dx=(W-ph.w*s)/2;dy=Math.min(top-40,Math.max(H-ph.h*s,(top+H)/2-ph.h*s*.5));}
+  const L=document.createElement("canvas");L.width=g.canvas.width;L.height=g.canvas.height;const x=L.getContext("2d");x.scale(L.width/W,L.height/H);
+  x.imageSmoothingQuality="high";x.drawImage(ph.cv,dx,dy,ph.w*s,ph.h*s);
+  const r=Math.min(300,(H-top)*.6),gr=x.createLinearGradient(0,top,0,H),at=v=>Math.min(1,Math.max(0,(v-top)/(H-top))),k=a=>"rgba(0,0,0,"+a.toFixed(3)+")";
+  gr.addColorStop(0,k(0));gr.addColorStop(at(top+r),k(A));if(H-200>top+r)gr.addColorStop(at(H-200),k(A));gr.addColorStop(1,k(A*.45));
+  x.globalCompositeOperation="destination-in";x.fillStyle=gr;x.fillRect(0,0,W,H);g.drawImage(L,0,0,W,H);}
 function livCardBlob(id,theme){return livCardCanvas(id,theme).then(cv=>new Promise((ok,no)=>cv.toBlob(b=>b?ok(b):no(new Error("couldn't make the PNG")),"image/png")));}
 function livCardURL(id,theme){const c=typeof id==="object"?id:liCard(id),k=livCardKey(c,theme);return LIV_URL[k]||(LIV_URL[k]=livCardBlob(c,theme).then(b=>URL.createObjectURL(b)).catch(e=>{delete LIV_URL[k];throw e;}));}
 function liHydrate(){document.querySelectorAll("img[data-licard]:not([data-on])").forEach(el=>{el.setAttribute("data-on","1");const k=el.getAttribute("data-licard"),[id,th]=k.split("|");livCardURL(LIV_CARD[k]||id,th).then(u=>{el.src=u;}).catch(()=>{el.alt="Couldn't draw the card";});});livWire();}
@@ -3168,7 +3213,7 @@ function livPhotoURL(p){const v=liVisual(p),a=livPhotoAdj(p)||{},k="ph|"+v.photo
     return new Promise((ok,no)=>cv.toBlob(b=>b?ok(URL.createObjectURL(b)):no(new Error("couldn't make the JPG")),"image/jpeg",.92));}).catch(e=>{delete LIV_URL[k];throw e;}));}
 /* the two editors: the card redraws into its preview as Max types; the photo moves by drag, wheel, arrow keys or the zoom slider */
 let livEdSeq=0;
-function livEdDraw(){if(!livEd||!document.getElementById("livEdPrev"))return;const n=++livEdSeq,p=liFind(livEd.pid),c=livCardWith(liCard(livEd.of),livEd);
+function livEdDraw(){if(!livEd||!document.getElementById("livEdPrev"))return;const n=++livEdSeq,p=liFind(livEd.pid),c0=livCardWith(liCard(livEd.of),livEd),ph=p&&liVisual(p).photo,c=ph?Object.assign({},c0,{photo:ph}):c0;
   livCardCanvas(c,livEd.theme).then(cv=>{const el=document.getElementById("livEdPrev");if(n!==livEdSeq||!el)return;cv.setAttribute("role","img");cv.setAttribute("aria-label","Card preview");el.replaceChildren(cv);}).catch(()=>{});
   const ck=document.getElementById("livEdChk");if(ck&&p)ck.innerHTML=livEdChkHTML(p,c);}
 function livAdjDraw(){if(!livAdj)return;const g=livGeo(liPhoto(livAdj.of),livAdj);livAdj.x=g.x;livAdj.y=g.y;livAdj.z=g.z;
@@ -3218,7 +3263,7 @@ function liVisualHTML(p){if(p.external)return "";const v=liVisual(p),c=livCardOf
   const edPanel=mine&&open[1]==="edit"?livEdHTML(p):mine&&open[1]==="adjust"&&ph?livAdjHTML(p):'';
   const cardPick=mine&&open[1]==="card"?'<div class="livpick"><div class="sectlabel">Pick the number for the card</div><div class="livchips">'+LI_CARDS.slice().sort((a,b)=>(b.re.test(t)?1:0)-(a.re.test(t)?1:0)).map(x=>'<button class="chip'+(x.id===v.card?" on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="card" data-v="'+x.id+'"><b>'+esc(x.big)+'</b> '+esc((s=>s.length>46?s.slice(0,44).replace(/[\s,.:;]+\S*$/,"")+"…":s)(x.head.join(" ")))+(x.re.test(t)?' <span class="pill ok">in this post</span>':'')+'</button>').join("")+'</div></div>':'';
   const photoPick=mine&&open[1]==="photo"?'<div class="livpick"><div class="sectlabel">Pick the photo</div><div class="livgrid">'+livRank(p).map(x=>'<button class="'+(x.ph.id===v.photo?"on":"")+'" data-act="livset" data-p="'+p.id+'" data-k="photo" data-v="'+x.ph.id+'" title="'+esc(x.ph.title)+'"><img alt="" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+x.ph.id+'.jpg"><small>'+esc(x.ph.title)+'</small></button>').join("")+'</div></div>':'';
-  return '<div class="sectlabel" style="margin-top:18px">Visuals</div><p class="t2" style="margin:-4px 0 10px">'+(pdf?'LinkedIn puts either a PDF or images on a post, not both. This post carries the PDF, so keep these for the first comment or another post.':'Add both to the post in LinkedIn, the card first.')+'</p>'+
+  return '<div class="sectlabel" style="margin-top:18px">Visuals</div><p class="t2" style="margin:-4px 0 10px">'+(pdf?'LinkedIn puts either a PDF or images on a post, not both. This post carries the PDF, so keep these for the first comment or another post.':'The card carries the photo, faded behind it. Post the card first; the photo can go second if you want it full size.')+'</p>'+
    '<div class="livis"><figure class="livfig"><button class="livimg" data-act="livzoom" data-p="'+p.id+'" data-k="card" aria-label="Open the stat card full size"><img alt="Stat card: '+esc(c.big+" "+c.head.join(" "))+'" data-licard="'+esc(livCardKey(c,v.theme))+'"></button>'+
      '<figcaption><b>Stat card</b><small>'+esc(c.big)+' · '+esc(c.source)+(c.edited?' · edited':'')+'</small><span class="livbtns"><button class="btn sm" data-act="livdl" data-p="'+p.id+'" data-k="card">PNG</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="card">Change</button><button class="btn sm ghost" data-act="livpick" data-p="'+p.id+'" data-k="edit">Edit</button><button class="btn sm ghost" data-act="livtheme" data-p="'+p.id+'">'+(v.theme==="day"?"Dark":"Light")+'</button></span></figcaption></figure>'+
     '<figure class="livfig"><button class="livimg photo" data-act="livzoom" data-p="'+p.id+'" data-k="photo" aria-label="Open the photo full size"'+(ph?'':' disabled')+'>'+(ph?(adj?'<span class="livcrop"><img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+ph.id+'.jpg" style="'+livGeoCss(livGeo(ph,adj))+'"></span>':'<img alt="'+esc(ph.title)+'" data-mkt="'+LI_PHOTO_DIR+'thumbs/'+ph.id+'.jpg">'):'<span class="t2">The photo set didn’t load</span>')+'</button>'+
