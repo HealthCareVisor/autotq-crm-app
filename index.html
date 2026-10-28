@@ -1867,7 +1867,7 @@ function buysFromCard(c){
       return '<div class="tk" style="margin-bottom:6px">'+
        '<span class="ic coral" style="width:32px;height:32px;border-radius:9px">'+svg("ware")+'</span>'+
        '<div class="grow">'+(d?'<a href="#" class="t1" style="font-size:14px;color:var(--info-t)" data-act="roster" data-id="'+d.id+'">'+esc(d.name)+'</a>':'<p class="t1" style="font-size:14px">'+esc(e.name)+'</p>')+
-        (d?'<p class="t2">'+(distStatus(d)==="setup"?"Set-up distributor":"Potential distributor")+(d.state?' · '+esc([d.city,d.state].filter(Boolean).join(", ")):'')+'</p>':'<p class="t2">Not set up with us yet</p>')+'</div>'+
+        (d?'<p class="t2">'+(d.type!=="distributor"?"No longer a distributor in the CRM":distStatus(d)==="setup"?"Set-up distributor":"Potential distributor")+(d.state?' · '+esc([d.city,d.state].filter(Boolean).join(", ")):'')+'</p>':'<p class="t2">Not set up with us yet</p>')+'</div>'+
        (e.first?'<span class="pill coral" style="flex:none">'+svg("star")+'1st choice</span>':'<button class="btn sm ghost" data-act="bffirst" data-id="'+c.id+'" data-i="'+i+'" title="Make first choice">'+svg("star")+' 1st</button>')+
        '<button class="tkdel" data-act="bfdel" data-id="'+c.id+'" data-i="'+i+'" aria-label="Remove" title="Remove">'+svg("x")+'</button></div>';}).join("");
   } else h+='<div class="empty" style="padding:10px">No distributors added yet.</div>';
@@ -2424,8 +2424,11 @@ function formPnRow(cid){
 }
 function formEditAccount(cid){
   const c=company(cid);if(!c)return;logState.editCid=cid;
+  const sw=c.type==="enduser"||c.type==="distributor";logState.eaKind=sw?c.type:null;
   openSheet('<h2>Edit account</h2>'+
    '<label class="fl">Name</label><input class="f" id="eaName" value="'+esc(c.name)+'">'+
+   (sw?'<label class="fl">Type</label><div class="seg" id="eaKind" style="margin:2px 0 4px">'+
+    [["enduser","End-user"],["distributor","Distributor"]].map(k=>'<button class="'+(c.type===k[0]?"on":"")+'" data-act="eakind" data-v="'+k[0]+'">'+k[1]+'</button>').join("")+'</div>':'')+
    '<label class="fl">Website</label><input class="f" id="eaWeb" value="'+esc(c.website||"")+'" placeholder="https://…">'+
    '<label class="fl">City</label><input class="f" id="eaCity" value="'+esc(c.city||"")+'">'+
    '<label class="fl">State</label><input class="f" id="eaState" value="'+esc(c.state||"")+'" maxlength="2" placeholder="FL">'+
@@ -2459,9 +2462,35 @@ function deleteAccount(cid){
 function saveAcct(){
   const c=company(logState.editCid);if(!c)return;
   const name=val("eaName");if(!name){toast("Account needs a name");return;}
+  const kind=logState.eaKind,switching=kind&&kind!==c.type;
+  if(switching&&!confirm(acctSwitchMsg(c,kind)))return;
   c.name=name;c.website=val("eaWeb");c.city=val("eaCity");
   c.state=val("eaState").toUpperCase().slice(0,2);c.industry=val("eaInd");c.note=val("eaNote");
-  save();closeSheet();render();toast("Account updated");
+  if(switching){
+    c.type=kind;c.typeChangedAt=new Date().toISOString();c.typeChangedBy=USER;
+    if(kind==="distributor"&&!c.dstatus)c.dstatus="potential"; // past orders as an end-user don't make it set up
+  }
+  save();closeSheet();render();toast(switching?c.name+" is now "+(kind==="distributor"?"a distributor":"an end-user"):"Account updated");
+}
+function acctSwitchMsg(c,kind){ // spells out what changes before an End-user <-> Distributor switch
+  const n=(k,one,many)=>k+" "+(k===1?one:many);
+  const ppl=DB.people.filter(p=>p.cid===c.id).length;
+  const toDist=kind==="distributor";
+  let m='Switch "'+c.name+'" from '+typeLabel(c.type)+' to '+typeLabel(kind)+'?\n';
+  if(toDist){
+    if(ppl)m+='\n• '+n(ppl,"contact will show as a distributor rep","contacts will show as distributor reps");
+    m+='\n• It starts as a Potential distributor (mark it Set-up on the account page)';
+    const bf=bfList(c).length;
+    if(bf)m+='\n• Its "Who they buy from" list ('+bf+') is hidden but kept, and comes back if you switch it back';
+  }else{
+    if(ppl)m+='\n• '+n(ppl,"contact will no longer count as a distributor rep","contacts will no longer count as distributor reps")+' (Field Map, call lists, reps-in-state)';
+    m+='\n• Channel status, enablement and part numbers are hidden but kept';
+    const buyers=DB.companies.filter(x=>x.id!==c.id&&bfList(x).some(e=>e.cid===c.id)).length;
+    if(buyers)m+='\n• '+n(buyers,"end-user lists","end-users list")+' it under "Who they buy from"; that entry stays';
+    const qs=quotesAll().filter(q=>q.distCid===c.id).length;
+    if(qs)m+='\n• '+n(qs,"quote routes","quotes route")+' through it; those stay as they are';
+  }
+  return m+'\n\nThis syncs to the whole team.';
 }
 
 /* ---------- DEMO MAP ---------- */
@@ -7403,6 +7432,7 @@ document.addEventListener("click",e=>{
   if(a==="repcsv"){reportCSV(t.dataset.id);return;}
   if(a==="editacct"){formEditAccount(id);return;}
   if(a==="saveAcct"){saveAcct();return;}
+  if(a==="eakind"){logState.eaKind=t.dataset.v;document.querySelectorAll("#eaKind button").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="delacct"){deleteAccount(id);return;}
   if(a==="delperson"){deletePerson(id);return;}
   if(a==="addcontactfor"){formNewContactFor(id);return;}
