@@ -1137,6 +1137,29 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .pj-form label.fl:first-of-type{margin-top:6px}
 .pj-form select.f{width:100%;border:1px solid var(--rule-3);background:var(--paper);border-radius:var(--r);padding:9px 10px;font:inherit;font-size:14px;color:var(--ink)}
 .pj-note{font-size:12.5px;color:var(--ink-3);margin:8px 0 0;line-height:1.5}
+/* the whiteboard (Marketing plan tab, 2026-10-28) */
+.wb{border:1px solid var(--rule);border-radius:12px;background:var(--paper);overflow:auto;margin-bottom:22px}
+.wb-grid{display:grid;min-width:1080px}
+.wb-h{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--rule);padding:10px 12px;font-size:12.5px;font-weight:620;color:var(--ink-2);z-index:1}
+.wb-h small{display:block;font-weight:500;color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.wb-h.now{color:var(--ink);box-shadow:inset 0 -2px 0 var(--coral)}
+.wb-lane{padding:10px 12px;border-top:1px solid var(--rule-2);font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:4px;background:var(--paper);position:sticky;left:0;z-index:1;border-right:1px solid var(--rule-2)}
+.wb-lane button{all:unset;cursor:pointer}.wb-lane button:hover{text-decoration:underline}
+.wb-lane small{font-weight:500;color:var(--ink-3);font-size:11.5px}
+.wb-cell{padding:8px;border-top:1px solid var(--rule-2);border-left:1px solid var(--rule-2);display:flex;flex-direction:column;gap:6px;min-height:58px}
+.wb-cell.now{background:rgba(232,64,46,.03)}.wb-cell.nodate{background:var(--panel)}
+.wb-card{display:block;width:100%;text-align:left;border:1px solid var(--rule);border-left:3px solid var(--wc,var(--ink-4));border-radius:8px;background:#fff;padding:7px 9px;font:inherit;font-size:12.5px;line-height:1.35;color:var(--ink);cursor:pointer;box-shadow:0 1px 2px rgba(20,24,28,.04)}
+:root[data-theme="dark"] .wb-card{background:var(--panel)}
+.wb-card:hover{border-color:var(--rule-3)}
+.wb-card .m{display:flex;align-items:center;gap:6px;margin-top:4px;color:var(--ink-3);font-size:11.5px}
+.wb-card .m .pj-av{width:16px;height:16px;font-size:7.5px;box-shadow:none}
+.wb-card.done{opacity:.55}.wb-card.done .t{text-decoration:line-through}
+.wb-card.late .m b{color:var(--bad)}
+.wb-foot{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-top:1px solid var(--rule);font-size:12px;color:var(--ink-3)}
+.wb-foot i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+@media print{@page{size:landscape;margin:10mm}body{background:#fff}.side,.crumb,.mnav,.sidescrim,#insp,#scrim,.toast,.wb-noprint,.mtiles,.msched,.mweb,.mcols{display:none!important}
+  .app{display:block}.mainwrap{box-shadow:none}.main{padding:0}.wb{border:0;overflow:visible}.wb-grid{min-width:0}.wb-lane,.wb-h{position:static}.wb-card{break-inside:avoid}}
+
 @media (min-width:901px){.iv-tabs-m{display:none}} /* the sidebar carries Feed / Watchlist / R&D board / Sources on desktop */
 @media (max-width:1180px){.pj-stat{grid-template-columns:repeat(3,minmax(0,1fr))}.pj-stat>button:nth-child(4){border-left:0}.pj-stat>button:nth-child(n+4){border-top:1px solid var(--rule)}}
 @media (max-width:1100px){.pj-hgrid,.pj-pgrid{grid-template-columns:minmax(0,1fr)}}
@@ -2026,7 +2049,7 @@ function palItems(q){
   const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
   const hit=s=>!ql||String(s).toLowerCase().includes(ql);
   const tabs=APP==="development"?(DOCS||[]).map(d=>[SVG[d.icon]?d.icon:"file",d.title||"Document",d.sub||"",()=>{docSel=d.id;docEnsure(d.id);goView("doc");}]):APP==="catalog"?[["folder","Projects","",()=>goView("projects")],["box","All products","",()=>{catPhaseF="";catSel="";goView("cat");}]].concat(CAT_PH.map(p=>[p[0]==="idea"?"spark":p[0]==="models"?"eye":"file",p[1],"Catalog phase",()=>{catPhaseF=p[0];catSel="";goView("cat");}]))
-    :[["home","Home","",()=>goView("start")],["folder","Projects","",()=>goView("projects")],["check","My tasks","",()=>goView("tasks")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn · Post","",()=>goView("li")],["file","LinkedIn · Messenger","",()=>goView("limsg")]]);
+    :[["home","Home","",()=>goView("start")],["folder","Projects","",()=>goView("projects")],["check","My tasks","",()=>goView("tasks")],["file","Marketing plan","",()=>goView("plan")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn · Post","",()=>goView("li")],["file","LinkedIn · Messenger","",()=>goView("limsg")]]);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2],t[3]));
   const acts=[APP==="development"?["plus","Add document","",()=>{const f=document.getElementById("docNew");if(f)f.click();}]:APP==="catalog"?["plus","New idea","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],["folder","New project","",()=>pjProjSheet(null)],["check","New task","",()=>pjTaskSheet(null,"")],
     ["sun","Light mode",THEME==="light"?"on":"",()=>setTheme("light")],["moon","Dark mode",THEME==="dark"?"on":"",()=>setTheme("dark")],
@@ -2090,7 +2113,7 @@ function render(){
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right">'+(APP!=="marketing"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">'+(APP==="development"?"Search documents":"Search products")+'</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   (APP==="development"?docMnav():APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>[f[0],f[1]])).map(([k,lb])=>'<button class="'+(view==="cat"&&catFam===k&&!catPhaseF?"on":"")+'" data-act="catfam" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'<button class="'+(view==="intel"?"on":"")+'" data-act="ivnav" data-v="feed">Research</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button></nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button><button class="'+(view==="tasks"?"on":"")+'" data-act="nav" data-v="tasks">My tasks</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button>'+(pjInner()?'<button class="'+(view==="ind"?"on":"")+'" data-act="nav" data-v="ind">Industries</button>':'')+'<button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button>'+(pjInner()?'<button class="'+(view==="spend"?"on":"")+'" data-act="nav" data-v="spend">Spend</button>':'')+'</nav>')+
+   (APP==="development"?docMnav():APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>[f[0],f[1]])).map(([k,lb])=>'<button class="'+(view==="cat"&&catFam===k&&!catPhaseF?"on":"")+'" data-act="catfam" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'<button class="'+(view==="intel"?"on":"")+'" data-act="ivnav" data-v="feed">Research</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button></nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button><button class="'+(view==="tasks"?"on":"")+'" data-act="nav" data-v="tasks">My tasks</button><button class="'+(view==="plan"?"on":"")+'" data-act="nav" data-v="plan">Marketing plan</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button>'+(pjInner()?'<button class="'+(view==="ind"?"on":"")+'" data-act="nav" data-v="ind">Industries</button>':'')+'<button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button>'+(pjInner()?'<button class="'+(view==="spend"?"on":"")+'" data-act="nav" data-v="spend">Spend</button>':'')+'</nav>')+
    '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"||view==="calls"||view==="ind"||view==="spend"||view==="intel"||view==="doc"||view==="projects"||view==="tasks"||view==="plan"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&view!=="intel"&&view!=="doc"&&view!=="projects"&&view!=="tasks"&&view!=="plan"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
@@ -3636,10 +3659,55 @@ document.addEventListener("keydown",e=>{const el=e.target;if(e.key==="Enter"&&el
   if(e.key==="Escape"&&todoPick){e.preventDefault();todoClosePick();}});
 document.addEventListener("change",e=>{const el=e.target;if(el&&el.classList&&el.classList.contains("tdl-due")){const x=todoFind(el.dataset.id);if(x){x.due=el.value||"";put("tasks",x);render();}}});
 document.addEventListener("click",e=>{if(todoPick&&!(e.target.closest&&e.target.closest(".tdl-menu,.tdl-lbl")))  {todoPick=null;render();}},true);
+
+/* ---------- the whiteboard (Marketing plan tab; Max, 2026-10-28: "something to map out on the whiteboard to show the next steps over
+   the course of November") — six weeks from this Monday across, one row per open project, every open step and action item a card in
+   its week: its due date if it has one, else its planned week (planWk = that Monday, set by tapping a card, or by a session with
+   project.py --week). A late item sits in the first week with its date in red; undated ones wait in "No week yet". LinkedIn posts get
+   their own row by their slot. Print gives a landscape page for the wall. ---------- */
+function wbMonday(d){d=new Date(d);d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
+function wbWeeks(){const m=wbMonday(new Date());const out=[];for(let i=0;i<6;i++){const d=new Date(m);d.setDate(d.getDate()+7*i);out.push(mktYmd(d));}return out;}
+function wbWeekOf(ds){return ds?mktYmd(wbMonday(new Date(ds+"T12:00:00"))):"";}
+function wbWkLabel(k,i){const d=new Date(k+"T12:00:00"),e=new Date(d);e.setDate(e.getDate()+4);const f=x=>x.toLocaleDateString("en-US",{month:"short",day:"numeric"});return [i===0?"This week":"Week of "+f(d),f(d)+" – "+f(e)];}
+function wbItems(){const W=wbWeeks(),first=W[0],last=W[W.length-1],rows=[];
+  pjSorted(pjVisible()).forEach(({p,c})=>{if(c.health==="done"||p.status==="hold")return;const cards=[];
+    (p.steps||[]).forEach(st=>{const ss=pjStepSt(st);if(st.camp&&!st.due&&!st.planWk)return;cards.push({p,kind:"s",id:st.id,label:st.label,who:st.who,st:ss,due:st.due||"",wk:st.planWk||""});});
+    pjTasks(p).forEach(t=>{const ts=todoStatus(t);cards.push({p,kind:"t",id:t.id,label:t.title,who:(t.assignees&&t.assignees[0])||t.owner,st:ts==="stuck"?"blocked":ts,due:t.due||"",wk:t.planWk||""});});
+    const out=cards.filter(x=>x.st!=="done"||(x.due||x.wk)).map(x=>{const k=x.due?wbWeekOf(x.due):x.wk;let col=k||"none";const late=!!(x.due&&x.due<todayStr()&&x.st!=="done");
+      if(col!=="none"&&col<first)col=x.st==="done"?"":first;if(col>last)col="";return Object.assign(x,{col,late});}).filter(x=>x.col);
+    if(out.length)rows.push({p,c,cards:out});});
+  return {W,rows};}
+function wbCard(x){const col=x.st==="blocked"?"#C2362F":x.st==="doing"?"#D98E04":x.st==="done"?"var(--ok)":"var(--ink-4)";
+  return '<button class="wb-card'+(x.st==="done"?" done":"")+(x.late?" late":"")+'" style="--wc:'+col+'" data-act="wbcard" data-p="'+esc(x.p.id)+'" data-k="'+x.kind+'" data-id="'+esc(x.id)+'"><span class="t">'+esc(x.label)+'</span>'+
+    '<span class="m">'+(x.who&&(TEAM.some(t=>t.id===x.who)||x.who==="claude")?pjAv([x.who],1):x.who?esc(x.who):'')+(x.due?'<b>'+esc(pjDay(x.due,true))+'</b>':'')+(x.st==="blocked"?'<span style="color:#C2362F">blocked</span>':x.st==="doing"?'<span>doing</span>':'')+'</span></button>';}
+function wbHTML(){const {W,rows}=wbItems(),today=wbWeekOf(todayStr());
+  const onRows=new Set();pjVisible().forEach(p=>(p.steps||[]).forEach(st=>{if(st.liPost)onRows.add(st.liPost);}));
+  const li=liPosts().filter(p=>p.status!=="rejected"&&p.slotAt&&!onRows.has(p.id)).map(p=>({p,col:wbWeekOf(String(p.slotAt).slice(0,10)),day:String(p.slotAt).slice(0,10)})).filter(x=>W.includes(x.col));
+  const cols='220px repeat('+W.length+',minmax(150px,1fr)) minmax(150px,1fr)';
+  let h='<div class="wb"><div class="wb-grid" style="grid-template-columns:'+cols+'"><div class="wb-h">Project</div>'+W.map((k,i)=>{const L=wbWkLabel(k,i);return '<div class="wb-h'+(k===today?" now":"")+'">'+esc(L[0])+'<small>'+esc(L[1])+'</small></div>';}).join("")+'<div class="wb-h">No week yet<small>tap a card to place it</small></div>';
+  rows.forEach(r=>{h+='<div class="wb-lane"><button data-act="pjopen" data-id="'+esc(r.p.id)+'">'+esc(r.p.title)+'</button><small>'+PJ_HEALTH[r.c.health][0]+' · '+r.c.pct+'%</small></div>'+
+    W.concat(["none"]).map(k=>'<div class="wb-cell'+(k===today?" now":"")+(k==="none"?" nodate":"")+'">'+r.cards.filter(x=>x.col===k).map(wbCard).join("")+'</div>').join("");});
+  if(li.length)h+='<div class="wb-lane">LinkedIn posts<small>Mon · Wed · Fri, 9 AM</small></div>'+W.concat(["none"]).map(k=>'<div class="wb-cell'+(k===today?" now":"")+(k==="none"?" nodate":"")+'">'+li.filter(x=>x.col===k).sort((a,b)=>a.day.localeCompare(b.day)).map(x=>'<button class="wb-card" style="--wc:'+(x.p.status==="posted"?"var(--ok)":x.p.status==="approved"?"#2D6CC0":"#D98E04")+'" data-act="mktli" data-v="'+esc(x.p.id)+'"><span class="t">'+esc(x.p.topic||x.p.hook||"Post")+'</span><span class="m"><b style="color:var(--ink-2)">'+esc(new Date(x.day+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}))+'</b>'+esc(x.p.status==="draft"?"needs review":x.p.status)+'</span></button>').join("")+'</div>').join("");
+  const held=pjVisible().filter(p=>p.status==="hold");
+  return h+'</div></div><div class="wb-foot" style="margin:-14px 0 22px;border:0;padding:0 2px"><span><i style="background:var(--ink-4)"></i>to do</span><span><i style="background:#D98E04"></i>doing</span><span><i style="background:#C2362F"></i>blocked</span><span><i style="background:var(--ok)"></i>done</span>'+(held.length?'<span>On hold: '+esc(held.map(p=>p.title).join(", "))+'</span>':'')+'</div>';}
+function wbSheet(pid,kind,id){const p=pjFind(pid);if(!p)return;const it=kind==="s"?pjStep(p,id):todoFind(id);if(!it)return;const W=wbWeeks(),cur=it.due?wbWeekOf(it.due):(it.planWk||"");
+  openInsp('<div class="pj-form"><h2>'+esc(kind==="s"?it.label:it.title)+'</h2><p class="pj-note" style="margin-top:2px">'+esc(p.title)+(kind==="t"?' · action item':' · step')+'</p>'+
+    (it.due?'<p class="pj-note">Due '+esc(pjDay(it.due))+'. Change the due date on the project page; the week follows it.</p>':
+     '<label class="fl">Which week</label><span class="pj-chips">'+W.map((k,i)=>'<button class="pj-chip'+(cur===k?" on":"")+'" data-act="wbweek" data-p="'+esc(pid)+'" data-k="'+kind+'" data-id="'+esc(id)+'" data-v="'+k+'">'+esc(i===0?"This week":"Wk of "+new Date(k+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}))+'</button>').join("")+'<button class="pj-chip'+(!cur?" on":"")+'" data-act="wbweek" data-p="'+esc(pid)+'" data-k="'+kind+'" data-id="'+esc(id)+'" data-v="">No week yet</button></span>')+
+    '<div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap"><button class="btn" data-act="pjopen" data-id="'+esc(pid)+'">Open the project</button>'+(kind==="t"?'<button class="btn ghost" data-act="pjtask" data-id="'+esc(id)+'">Edit the task</button>':'')+'<button class="btn ghost" data-act="closesheet">Close</button></div></div>');}
+function wbHandle(a,t){
+  if(a==="wbcard"){wbSheet(t.dataset.p,t.dataset.k,t.dataset.id);return true;}
+  if(a==="wbweek"){const p=pjFind(t.dataset.p);if(!p)return true;const v=t.dataset.v,lbl=v?"the week of "+new Date(v+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}):"no week";
+    if(t.dataset.k==="s"){const it=pjStep(p,t.dataset.id);if(!it)return true;if(v)it.planWk=v;else delete it.planWk;pjSave(p);pjLog(p,"plan","moved “"+it.label+"” to "+lbl);}
+    else{const it=todoFind(t.dataset.id);if(!it)return true;if(v)it.planWk=v;else delete it.planWk;put("tasks",it);pjLog(p,"plan","moved “"+it.title+"” to "+lbl);}
+    closeInsp();render();return true;}
+  if(a==="wbprint"){window.print();return true;}
+  return false;}
 function viewHome(){const plans=mktPlans();
-  const head='<div class="ph"><h1>Marketing plan</h1><p>Every piece, where it lives and how it gets used. Files open right here; nothing on this page publishes anything.</p></div>'+todoHTML();
-  if(!plans.length)return head+'<div class="empty">No plan yet.</div>';
-  return head+mktTilesHTML(plans)+mktScheduleHTML(plans)+plans.map(p=>mktWebHTML(p)+'<div class="mcols">'+mktStepsHTML(p)+mktFilesHTML(p)+'</div>').join('<div style="height:14px"></div>');}
+  const W=wbWeeks(),f=k=>new Date(k+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+  const head='<div class="pj-hello"><div><h1>Marketing plan</h1><p>The next six weeks, '+f(W[0])+' through '+f(mktYmd(new Date(new Date(W[W.length-1]+"T12:00:00").getTime()+4*864e5)))+'. Every open step and action item, in its week. Tap a card to move it.</p></div><div class="acts wb-noprint"><button class="btn" data-act="wbprint">'+svg("file")+' Print for the wall</button><button class="btn coral" data-act="pjtasknew">'+svg("plus")+' New task</button></div></div>'+wbHTML();
+  if(!plans.length)return head;
+  return head+'<div class="pj-ch wb-noprint" style="padding:0 2px 10px;border:0;min-height:0"><h2>Campaign plans</h2><span class="n">every piece, where it lives and how it gets used</span></div>'+mktTilesHTML(plans)+mktScheduleHTML(plans)+plans.map(p=>mktWebHTML(p)+'<div class="mcols">'+mktStepsHTML(p)+mktFilesHTML(p)+'</div>').join('<div style="height:14px"></div>');}
 function mktHandle(a,t){
   if(a==="mktpdf"){if(t.dataset.path)mktOpen(t.dataset.path,t.dataset.title);return true;}
   if(a==="mktclose"){mktClose();return true;}
@@ -4892,6 +4960,7 @@ document.addEventListener("click",e=>{
   if(a==="shold"){const sd=senders().find(x=>x.id===id);if(sd){sd.hold=!sd.hold;saveSender(sd);senderSheet(id);}return;}
   if(a==="sreset"){const sd=senders().find(x=>x.id===id);if(sd&&confirm("Restart "+sd.email+" at day 1 of the ramp?")){sd.log={};sd.hold=false;saveSender(sd);closeInsp();render();}return;}
   /* campaigns */
+  if(a.indexOf("wb")===0&&wbHandle(a,t))return;
   if(a.indexOf("pj")===0&&pjHandle(a,t))return;
   if(a.indexOf("todo")===0&&todoHandle(a,t))return;
   if(a.indexOf("spend")===0&&spendHandle(a,t))return;
@@ -5357,7 +5426,7 @@ document.addEventListener("click",e=>{if(pjMenu&&!(e.target.closest&&e.target.cl
 /* the marketing sidebar: Home · Projects · My tasks, then the channels, then the open projects */
 function pjSideHTML(n){const S=pjSorted(pjVisible()).filter(x=>x.c.health!=="done");const blk=S.filter(x=>x.c.health==="blocked").length;
   const t=todayStr(),od=todoList().filter(x=>todoStatus(x)!=="done"&&x.due&&x.due<t).length;
-  const top=[["start","home","Home",0],["projects","folder","Projects",blk],["tasks","check","My tasks",od]].map(([v,ic,lb,b])=>'<button class="sitem'+((view===v&&(v!=="projects"||!curProj))?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b+(v==="projects"?" blocked":" overdue"):""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge red">'+b+'</span><span class="mdot"></span>':'')+'</button>').join("");
+  const top=[["start","home","Home",0],["projects","folder","Projects",blk],["tasks","check","My tasks",od],["plan","file","Marketing plan",0]].map(([v,ic,lb,b])=>'<button class="sitem'+((view===v&&(v!=="projects"||!curProj))?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b+(v==="projects"?" blocked":" overdue"):""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge red">'+b+'</span><span class="mdot"></span>':'')+'</button>').join("");
   const proj=S.slice(0,9).map(({p,c})=>'<button class="sitem'+(view==="projects"&&curProj===p.id?" on":"")+'" data-act="pjopen" data-id="'+esc(p.id)+'" data-tip="'+esc(p.title+" · "+PJ_HEALTH[c.health][0]+" · "+c.pct+"%")+'"><span class="pjdot" style="background:'+PJ_HEALTH[c.health][1]+'"></span><span class="lbl">'+esc(p.title)+'</span><small>'+c.pct+'%</small></button>').join("")||'<p class="snone">No projects yet</p>';
   return {top:'<div class="sgrp sgrp-top"><div class="sgrp-b"><div>'+top+'</div></div></div>',proj:sideGrp("Projects",proj,0)};}
 function pjCatTop(){const n=pjVisible().filter(p=>pjCalc(p).health!=="done").length;return '<div class="sgrp sgrp-top"><div class="sgrp-b"><div><button class="sitem'+(view==="projects"?" on":"")+'" data-act="nav" data-v="projects" data-tip="Projects">'+svg("folder")+'<span class="lbl">Projects</span><small>'+n+'</small></button></div></div></div>';}
