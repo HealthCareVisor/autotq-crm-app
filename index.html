@@ -309,7 +309,7 @@ table.lv.stack>thead{display:none}
 table.lv.stack tr{padding:10px 14px;border-bottom:1px solid var(--line-2)}
 table.lv.stack>tbody>tr:last-child{border-bottom:0}
 table.lv.stack>tfoot>tr{background:var(--surface-2);border-top:1px solid var(--line);border-bottom:0}
-table.lv.stack td{border:0!important;padding:3px 0 3px clamp(104px,32%,180px);position:relative;min-height:22px;text-align:left!important;background:none!important}
+table.lv.stack td{border:0!important;padding:3px 0 3px clamp(104px,32%,180px);position:relative;max-width:none!important;min-width:0!important;min-height:22px;text-align:left!important;background:none!important}
 table.lv.stack td::before{content:attr(data-l);position:absolute;left:0;top:4px;width:calc(clamp(104px,32%,180px) - 12px);color:var(--muted);font-size:12px;font-weight:500;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 table.lv.stack td:first-child,table.lv.stack td[data-l=""]{padding-left:0}
 table.lv.stack td:first-child::before,table.lv.stack td[data-l=""]::before{display:none}
@@ -3148,14 +3148,90 @@ function confLeadLists(){
   const by={};(DB.confLeads||[]).forEach(l=>{(by[l.conf]=by[l.conf]||[]).push(l);});
   return Object.keys(by).map(conf=>{
     const ls=by[conf];
-    return {conf:conf,total:ls.length,contacted:ls.filter(l=>l.contacted).length,
-      tocall:ls.filter(l=>!l.contacted&&l.segment!=="Set Aside").length,
+    return {conf:conf,total:ls.length,contacted:ls.filter(l=>leadWorked(l)).length,
+      tocall:ls.filter(l=>!leadWorked(l)&&l.segment!=="Set Aside").length,
       hot:ls.filter(l=>l.temp==="Hot").length};
   });
 }
 function leadTempTag(t){
   const cls={Hot:"dang",Warm:"warn",Interested:"info","Interested (no budget)":"info",Voicemail:"gray",New:"gray"}[t]||"gray";
   return '<span class="pill '+cls+'">'+esc(t||"New")+'</span>';
+}
+/* Everything that has happened with a conference lead, in one place (Max, 2026-10-30): the hub's calls[] and emails[], anything logged on
+   the matching Contact page (activities, matched by the lead, its contact or the person's email), the pushed Leads copy's touches and
+   the hub's campaign emails (they live in notes). Read only, nothing is copied: a touch logged anywhere shows up here by itself. */
+const LEAD_CALL_OUTS=[["noanswer","No answer"],["vm","Voicemail"],["talked","Talked"],["interested","Interested"],["demo","Demo / quote"],["callback","Call back"],["notint","Not interested"],["wrong","Wrong number"]];
+const LEAD_LOG_OUTS=["noanswer","vm","talked","interested","notint","wrong"];
+function callOutLabel(o){return (LEAD_CALL_OUTS.find(x=>x[0]===o)||["","Call"])[1];}
+let leadActIdx=null,leadActSig="";
+function leadActIndex(){
+  const acts=DB.activities||[],sig=acts.length+"|"+(acts[0]?acts[0].id:"")+"|"+(DB.people||[]).length;
+  if(leadActIdx&&leadActSig===sig)return leadActIdx;
+  const pm=new Map((DB.people||[]).map(p=>[p.id,p])),ix=new Map();
+  const add=(k,a)=>{if(!ix.has(k))ix.set(k,[]);ix.get(k).push(a);};
+  acts.forEach(a=>{if(!a||a.type==="quote")return;
+    if(a.refId)add("r:"+a.refId,a);
+    if(a.pid){add("p:"+a.pid,a);const em=String((pm.get(a.pid)||{}).email||"").trim().toLowerCase();if(em)add("e:"+em,a);}});
+  leadActIdx=ix;leadActSig=sig;return ix;
+}
+function leadActs(l){
+  const ix=leadActIndex(),em=String(l.email||"").trim().toLowerCase(),seen=new Set(),out=[];
+  ["r:"+l.id,l.refPid?"p:"+l.refPid:"",em?"e:"+em:""].forEach(k=>(ix.get(k)||[]).forEach(a=>{if(!seen.has(a.id)){seen.add(a.id);out.push(a);}}));
+  return out;
+}
+function histDay(at){const s=String(at||"");if(s.length<=10)return s;const d=new Date(s);return isNaN(d)?s.slice(0,10):d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function histMd(day){const m=String(day).match(/^(\d{4})-(\d\d)-(\d\d)/);if(!m)return "";return (+m[2])+"/"+(+m[3])+(+m[1]!==new Date().getFullYear()?"/"+m[1].slice(2):"");}
+function histWho(id){return TEAM.some(t=>t.id===id)?shortName(id):"";}
+function histNote(n){const s=String(n||"").replace(/^\([^)]*\)\s*·\s*/,"").replace(/\s*·?\s*Left voicemail$/i,"").trim();return /^(voicemail left)?[\s·]*(left voicemail\b.*)?$/i.test(s)?"":s;}
+function leadHist(l){
+  const h=[],key=x=>x.day+"|"+(x.by||"")+"|"+x.kind;
+  (l.calls||[]).forEach(c=>h.push({at:c.at,day:histDay(c.at),by:c.by,kind:"call",out:c.out,label:callOutLabel(c.out),note:histNote(c.note)}));
+  (l.emails||[]).forEach(e=>h.push({at:e.at,day:histDay(e.at),by:e.by,kind:"email",label:"Email",note:e.subject||""}));
+  const have=new Set(h.map(key));
+  leadActs(l).forEach(a=>{
+    const kind=a.type==="voicemail"?"call":(a.type||"note"),vm=a.vm||a.type==="voicemail";
+    const label=kind==="call"?(vm?"Voicemail":a.out?callOutLabel(a.out):"Call"):actLabel(a.type,a);
+    const x={at:a.date,day:histDay(a.date),by:a.by,kind:kind,out:vm?"vm":a.out,label:label,note:histNote(a.note)};
+    if(!have.has(key(x)))h.push(x);});
+  const ml=confLeadInLeads(l);
+  (l.touches||[]).concat(ml&&ml.touches||[]).forEach(t=>{const m=String(t.method||"note").toLowerCase();
+    h.push({at:t.date,day:histDay(t.date),by:t.by,kind:/mail/.test(m)?"email":/call|voice/.test(m)?"call":"note",label:titlecase(t.method||"note"),note:t.note||""});});
+  String(l.notes||"").replace(/(\d{4}-\d\d-\d\d): (Campaign email \d*)\s*—\s*([^·|]*)/g,(m,d,lbl,subj)=>{h.push({at:d,day:d,by:"",kind:"campaign",label:lbl.trim(),note:subj.trim()});return m;});
+  h.forEach(x=>{if(x.note.toLowerCase()===x.label.toLowerCase())x.note="";});
+  return h.sort((a,b)=>String(b.day).localeCompare(String(a.day))||String(b.at).localeCompare(String(a.at)));
+}
+/* worked = off the To call pile: a voicemail counts (it always has here), a no-answer or an email alone doesn't */
+function leadWorked(l){
+  if(l.contacted||(l.calls||[]).some(c=>c.out!=="noanswer"))return true;
+  return leadActs(l).some(a=>a.by&&["call","voicemail","visit","meeting","demo","training"].includes(a.type));
+}
+function leadLastLine(l){
+  const h=leadHist(l).find(x=>x.kind!=="campaign");if(!h)return "";
+  const who=histWho(h.by),md=histMd(h.day),st=String(l.status||"");
+  if(who&&st.includes(who)&&st.includes(md))return "";
+  return [h.label,who,md].filter(Boolean).join(" · ");
+}
+function leadHistHTML(l){
+  const h=leadHist(l);
+  const tone=x=>x.out==="interested"||x.out==="demo"?"ok":x.out==="talked"||x.out==="callback"||x.kind==="visit"?"info":x.out==="notint"||x.out==="wrong"?"dang":"gray";
+  const row=x=>'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:44px;font-size:12.5px">'+esc(histMd(x.day))+'</b><span class="grow" style="font-size:13.5px"><span class="pill '+tone(x)+'" style="font-size:11px">'+esc(x.label)+'</span>'+
+    (histWho(x.by)?' <span class="muted" style="font-size:12.5px">'+esc(histWho(x.by))+'</span>':'')+(x.note?'<div class="t2" style="white-space:normal;margin-top:2px">'+esc(x.note)+'</div>':'')+'</span></div>';
+  return '<div class="sectlabel">History · '+h.length+'</div>'+(h.length?'<div class="list">'+h.slice(0,4).map(row).join("")+'</div>'+
+    (h.length>4?'<details class="fold"><summary class="t2" style="cursor:pointer;margin:-6px 0 12px">Show all '+h.length+'</summary><div class="list">'+h.slice(4).map(row).join("")+'</div></details>':'')
+    :'<p class="t2" style="margin:0 0 12px">Nothing logged yet.</p>');
+}
+/* a call logged from the lead sheet: the same record the hub's Calls tab writes (its callLog) */
+function confLeadCall(l,out,note){
+  const now=new Date().toISOString(),lbl=callOutLabel(out);
+  l.calls=(l.calls||[]).concat([{at:now,by:USER,out:out,note:note}]);l.lastCall=now;
+  if(["talked","interested","notint"].includes(out)){l.contacted=true;l.contactedAt=now;}
+  l.status=lbl+" — "+shortName(USER)+" "+mdStamp(now)+(note?": "+note.slice(0,120):"");
+  if(out==="interested"&&!/hot/i.test(l.temp||""))l.temp="Warm";if(out==="notint")l.temp="Cold";if(out==="vm"&&(!l.temp||l.temp==="New"))l.temp="Voicemail";
+  if(!l.owner)l.owner=USER;
+  const rec={id:uid(),type:"call",by:USER,date:now,note:lbl+(note?" · "+note:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null,out:out,norm:2};
+  if(out==="vm")rec.vm=true;
+  DB.activities.unshift(rec);
+  save();
 }
 function leadRegion(l){if(l.region==="International"&&!l.state)return "International";return l.state?regionFromState(l.state):(l.region||"");}
 /* Lead categories + hand-off (Max, 2026-10-16): outreach categorizes, sales works what's handed to them */
@@ -3208,13 +3284,13 @@ function confLeadsBody(conf,lead){ /* lead = an extra filter group shown first (
   const scoped=all.filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region));
   const segOk=l=>!confSegF||confLeadSeg(l)===confSegF;
   const segd=scoped.filter(segOk);
-  const cnt={tocall:segd.filter(l=>!l.contacted&&l.segment!=="Set Aside").length,
-    contacted:segd.filter(l=>l.contacted).length,
+  const cnt={tocall:segd.filter(l=>!leadWorked(l)&&l.segment!=="Set Aside").length,
+    contacted:segd.filter(l=>leadWorked(l)).length,
     hot:segd.filter(l=>["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp)).length,
     aside:segd.filter(l=>l.segment==="Set Aside").length,all:segd.length};
   let pool=segd.filter(l=>{
-    if(leadFilter==="tocall")return !l.contacted&&l.segment!=="Set Aside";
-    if(leadFilter==="contacted")return l.contacted;
+    if(leadFilter==="tocall")return !leadWorked(l)&&l.segment!=="Set Aside";
+    if(leadFilter==="contacted")return leadWorked(l);
     if(leadFilter==="hot")return ["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp);
     if(leadFilter==="aside")return l.segment==="Set Aside";
     return true;
@@ -3243,10 +3319,10 @@ function confLeadsBody(conf,lead){ /* lead = an extra filter group shown first (
   h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+'<th>Category</th>'+th("temp","Status")+'<th>Contact</th><th>Push</th></tr></thead><tbody>'+
    pool.map(l=>{const ml=confLeadInLeads(l);
     return '<tr data-act="leadopen" data-id="'+esc(l.id)+'">'+
-    '<td style="white-space:normal;min-width:150px;max-width:220px"><div class="lvname">'+esc(l.name)+(l.contacted?' <span class="pill ok" style="padding:2px 5px" title="Contacted" aria-label="Contacted">'+svg("check")+'</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
+    '<td style="white-space:normal;min-width:150px;max-width:220px"><div class="lvname">'+esc(l.name)+(leadWorked(l)?' <span class="pill ok" style="padding:2px 5px" title="Contacted" aria-label="Contacted">'+svg("check")+'</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
     '<td style="white-space:normal;min-width:140px;max-width:210px">'+esc(l.company||"—")+'<div class="lvsub">'+esc(l.city||"")+(l.city&&l.state?', ':'')+(l.state?esc(l.state):(leadRegion(l)==="International"?'Intl':''))+'</div></td>'+
     '<td>'+confSegTag(confLeadSeg(l))+'</td>'+
-    '<td style="max-width:230px;white-space:normal">'+leadTempTag(l.temp)+(l.status&&l.status!=="Not contacted"?'<div class="lvsub" style="white-space:normal">'+esc(l.status)+'</div>':'')+(l.next?'<div class="lvsub" style="white-space:normal">Next: '+esc(l.next)+'</div>':'')+'</td>'+
+    '<td style="max-width:230px;white-space:normal">'+leadTempTag(l.temp)+(l.status&&l.status!=="Not contacted"?'<div class="lvsub" style="white-space:normal">'+esc(l.status)+'</div>':'')+(l.next?'<div class="lvsub" style="white-space:normal">Next: '+esc(l.next)+'</div>':'')+(leadLastLine(l)?'<div class="lvsub" style="white-space:normal">Last: '+esc(leadLastLine(l))+'</div>':'')+'</td>'+
     '<td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">'+(l.phone?'<a href="tel:'+esc(String(l.phone).replace(/[^\d+]/g,""))+'" data-act="extlink" style="color:var(--info-t)">'+esc(l.phone)+'</a>':'<span class="muted">no phone</span>')+
       (l.email?'<div class="lvsub" style="overflow:hidden;text-overflow:ellipsis"><a href="mailto:'+esc(l.email)+'" data-act="extlink" style="color:var(--info-t)">'+esc(l.email)+'</a></div>':'')+'</td>'+
     '<td style="white-space:nowrap">'+
@@ -3291,8 +3367,12 @@ function formLead(id){
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
     (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
    (l.notes?'<div class="banner" style="white-space:normal">'+svg("note")+esc(l.notes)+'</div>':'')+
+   leadHistHTML(l)+
+   '<div class="sectlabel">Log a call</div><div class="chips" id="ldOut">'+LEAD_LOG_OUTS.map(o=>'<span class="chip" data-act="ldcallout" data-v="'+o+'">'+esc(callOutLabel(o))+'</span>').join("")+'</div>'+
+   '<input class="f" id="ldCallNote" placeholder="Note (optional)" autocomplete="off" style="margin-top:8px">'+
+   '<button class="btn block" data-act="ldcallsave" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("phone")+' Log call</button>'+
    '<label class="fl">Contacted?</label><div class="chips" id="ldC">'+
-    ['No','Yes'].map(v=>'<span class="chip'+((l.contacted?'Yes':'No')===v?' on':'')+'" data-act="setLeadC" data-v="'+v+'">'+v+'</span>').join("")+'</div>'+
+    ['No','Yes'].map(v=>'<span class="chip'+((leadWorked(l)?'Yes':'No')===v?' on':'')+'" data-act="setLeadC" data-v="'+v+'">'+v+'</span>').join("")+'</div>'+
    '<label class="fl">Temperature</label><div class="chips" id="ldT">'+
     temps.map(v=>'<span class="chip'+(l.temp===v?' on':'')+'" data-act="setLeadT" data-v="'+v+'">'+v+'</span>').join("")+'</div>'+
    '<label class="fl">Status / outcome</label><input class="f" id="ldStatus" value="'+esc(l.status||"")+'" placeholder="e.g. Voicemail left · HOT — wants demo">'+
@@ -3303,7 +3383,7 @@ function formLead(id){
      '<button class="btn block" data-act="pushlead" data-id="'+esc(l.id)+'">'+svg("phone")+' Log a touch &amp; push</button></div>')+
    (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ Already in the CRM as a contact</p>'
     :'<button class="btn block" data-act="leadpromote" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("user")+' Add to Contacts (account + contact)</button>'));
-  logState.leadC=l.contacted?'Yes':'No';logState.leadT=l.temp;
+  logState.leadC=leadWorked(l)?'Yes':'No';logState.leadT=l.temp;logState.ldOut=null;
 }
 function promoteLead(id,stay){
   const l=leadById(id);if(!l)return;
@@ -4523,7 +4603,7 @@ const REPORTS=[
  {id:"conf-leads",name:"Conference Call List",desc:"Every conference lead with call status — printable / exportable",
   run(){return {cols:["Lead","Company","Title","Email","Phone","City","State","Region","Segment","Contacted","Status","Temp","Next step","In CRM"],
    rows:(DB.confLeads||[]).filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region))
-    .map(l=>[l.name,l.company||"",l.title||"",l.email||"",l.phone||"",l.city||"",l.state||"",leadRegion(l),l.segment||"",l.contacted?"Yes":"No",l.status||"",l.temp||"",l.next||"",l.promoted?"Yes":""])};}}
+    .map(l=>[l.name,l.company||"",l.title||"",l.email||"",l.phone||"",l.city||"",l.state||"",leadRegion(l),l.segment||"",leadWorked(l)?"Yes":"No",l.status||"",l.temp||"",l.next||"",l.promoted?"Yes":""])};}}
 ];
 function viewReports(){
   return '<div class="sectlabel" style="margin-top:2px">'+REPORTS.length+' reports — tap to run, sort by any column, export CSV</div><div class="list">'+
@@ -7448,6 +7528,8 @@ document.addEventListener("click",e=>{
   if(a==="setLeadC"){logState.leadC=t.dataset.v;document.querySelectorAll("#ldC .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="setLeadT"){logState.leadT=t.dataset.v;document.querySelectorAll("#ldT .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="saveLead"){saveLead();return;}
+  if(a==="ldcallout"){logState.ldOut=logState.ldOut===t.dataset.v?null:t.dataset.v;document.querySelectorAll("#ldOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.ldOut));return;}
+  if(a==="ldcallsave"){const l=leadById(t.dataset.id);if(!l)return;if(!logState.ldOut){toast("Pick how the call went");return;}confLeadCall(l,logState.ldOut,val("ldCallNote"));render();formLead(l.id);toast("Call logged");return;}
   if(a==="leadpromote"){promoteLead(t.dataset.id);return;}
   if(a==="addsku"){openSheet('<h2>Add a SKU</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">Adds to the catalog on every distributor page.</p>'+
     '<label class="fl">Our part # (MPN)</label><input class="f" id="skuMpn" placeholder="e.g. 7000-XX">'+
