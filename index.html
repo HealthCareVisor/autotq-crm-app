@@ -748,6 +748,7 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:var(--ink);color:#fff;padding:11px 16px;border-radius:12px;
   font-size:13.5px;font-weight:500;z-index:60;opacity:0;transition:opacity .2s var(--ease),transform .28s var(--ease);pointer-events:none;max-width:min(88%,440px);text-align:center;box-shadow:var(--sh-pop)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.toast .tundo{background:none;border:0;padding:0;margin-left:12px;color:#fff;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;pointer-events:auto}
 
 /* ---------- responsive ---------- */
 @media(min-width:641px){
@@ -1120,7 +1121,9 @@ function svg(n,cls){return '<svg class="i '+(cls||"")+'" viewBox="0 0 24 24" ari
 /* the AutoTQ ring mark (traced from AutoTQ_CRM_assets/ring.png) */
 const BRAND_MARK='<svg class="mark" viewBox="0 0 157 227" aria-hidden="true"><path d="M152.6,23.5 148.1,15.8 143.1,10.8 136.8,6.5 126.2,3 114.6,3 17.1,28.5 14.8,30.8 14,35.1 25.5,68 30,72.8 33.9,72.8 44.5,69.1 64.6,64.9 91.2,64.9 102.9,67 116.6,70.9 124.2,70.9 137.6,66.5 141.1,64.1 149.9,55 154.9,43.1 154.9,30.8Z"/><circle cx="77.5" cy="150" r="66" fill="none" stroke="currentColor" stroke-width="18"/></svg>';
 function chev(){return svg("chevR","chev");}
-function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),1900);}
+function toast(m,undo){const t=document.getElementById("toast");t.textContent=m;
+  if(undo){const b=document.createElement("button");b.type="button";b.className="tundo";b.textContent="Undo";b.onclick=e=>{e.stopPropagation();t.classList.remove("show");undo();};t.appendChild(b);}
+  t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?5000:1900);}
 function openSheet(html){document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");}
 function closeSheet(){document.getElementById("scrim").classList.remove("open");}
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
@@ -1242,7 +1245,6 @@ const IS_MAC=/Mac|iPhone|iPad/.test(navigator.platform||"");
 const KEY_K=IS_MAC?"⌘K":"Ctrl K";
 /* sub-pages: [label, is it showing, open it] */
 const SIDE_SUBS={
-  leads:[["Leads",()=>leadsMode!=="conf",()=>{leadsMode="leads";}],["Conference leads",()=>leadsMode==="conf",()=>{leadsMode="conf";}]],
   map:[["Demos",()=>mapMode==="demos",()=>{mapMode="demos";}],["Field reps",()=>mapMode==="reps",()=>{mapMode="reps";}],["Trained",()=>mapMode==="training",()=>{mapMode="training";}]],
   insight:[["Dashboard",()=>insightTab==="dash",()=>{insightTab="dash";}],["Reports",()=>insightTab==="reports",()=>{insightTab="reports";}],["Distributor volume",()=>insightTab==="insights",()=>{insightTab="insights";}]]
 };
@@ -1464,7 +1466,7 @@ function render(){
     report:rep?rep.desc:"",
     insights:"Units bought & demos picked up, by distributor",
     map:(mapMode==="reps"?"Field reps by state — distributor + man-rep":mapMode==="training"?"Trained reps by state":(((DB.demos&&DB.demos.length)||0)+" demos in the field")),
-    conf:(confSchedule().filter(function(c){return !!confLeadsFor(c.name);}).length+" with lead lists"),
+    conf:(confLeadLists().length+" with lead lists"),
     camp:((DB.campaigns||[]).length?((DB.campaigns||[]).filter(c=>c.status==="active").length+" active · "+(DB.campaigns||[]).length+" total"):"Email sequences, sent from your own inbox"),
     leads:((DB.leads||[]).length?(DB.leads||[]).length+" working leads · "+(DB.leads||[]).filter(l=>l.touches&&l.touches.length).length+" touched":"Push the good ones here from the conference lists"),
     confleads:"Conference call list — tap a lead to log the call",
@@ -1568,7 +1570,7 @@ function goBack(fb){
   }
   restoreNav(st);render();window.scrollTo(0,st.scroll||0);
 }
-function navOn(v){if(v==="team"&&view==="teammate")return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
+function navOn(v){if(v==="team"&&view==="teammate")return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
 function typeLabel(t){return {distributor:"Distributor",manrep:"Man-rep",partner:"Partner",enduser:"End-user"}[t]||"Account";}
 function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.role;}
@@ -2086,14 +2088,7 @@ function viewToday(){
   }
   if(P==="outreach"&&confs.length){
     conf='<div class="sectlabel">Conference reach-out</div><div class="list">';
-    conf+=confs.map(cl=>{
-      const pct=cl.total?Math.round(cl.contacted/cl.total*100):0;
-      return '<button class="card" data-act="confleads" data-conf="'+esc(cl.conf)+'">'+
-       '<div class="row"><span class="ic coral">'+svg("cal")+'</span>'+
-       '<div class="grow"><p class="t1">'+esc(cl.conf)+'</p><p class="t2">'+cl.tocall+' to call · '+cl.contacted+' contacted'+(cl.hot?' · '+cl.hot+' hot':'')+'</p></div>'+
-       '<span class="pill '+(cl.hot?"dang":"coral")+'">'+pct+'%</span>'+chev()+'</div>'+
-       '<div class="bar"><i style="width:'+pct+'%"></i></div></button>';
-    }).join("")+'</div>';
+    conf+=confs.map(confListCard).join("")+'</div>';
   }
   if(P==="admin"){
     attn='<div class="sectlabel" style="margin-top:0">The team <span class="cnt">tap a name</span></div>'+teamRosterHTML(W);
@@ -2833,54 +2828,12 @@ function confSchedule(){
   var st=(window.CONF_SCHEDULE||[]).filter(function(c){return !seen[String(c.name||"").toLowerCase()];});
   return st.concat(db).sort(function(a,b){return String(a.start||"").localeCompare(String(b.start||""));});
 }
-function confGoing(c){if(c.who)return c.who;if(!c.state)return "";var r=regionFromState(c.state);return r==="East"?"John M. (East)":(r==="Central"?"John C. (Central)":(r==="West"?"Tim (West)":""));}
-function fmtConfDate(c){
-  var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
-  var ABBR={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Sept:8,Oct:9,Nov:10,Dec:11,
-            January:0,February:1,March:2,April:3,June:5,July:6,August:7,September:8,October:9,November:10,December:11};
-  var d=String(c.dates||"").trim();
-  var m=d.match(/^([A-Za-z]+)\s+(\d+)\s*[-–]\s*([A-Za-z]+)\s+(\d+)$/);
-  if(m && ABBR[m[1]]!=null && ABBR[m[3]]!=null) return MONTHS[ABBR[m[1]]]+" "+m[2]+" - "+MONTHS[ABBR[m[3]]]+" "+m[4];
-  m=d.match(/^([A-Za-z]+)\s+(\d+)\s*[-–]\s*(\d+)$/);
-  if(m && ABBR[m[1]]!=null) return MONTHS[ABBR[m[1]]]+" "+m[2]+" - "+MONTHS[ABBR[m[1]]]+" "+m[3];
-  if(c.start){var p=c.start.split("-"); if(p.length===3) return MONTHS[parseInt(p[1],10)-1]+" "+parseInt(p[2],10);}
-  return "";
-}
-function confCountdown(c){
-  if(!c.start)return "";
-  var t=new Date(); t.setHours(0,0,0,0);
-  var s=new Date(c.start+"T00:00:00");
-  var days=Math.round((s-t)/86400000);
-  if(days<0)return "";
-  if(days===0)return "Today";
-  if(days===1)return "1 day";
-  return days+" days";
-}
 function confLeadsFor(name){
   var lists=confLeadLists();
   for(var i=0;i<lists.length;i++){var w=lists[i].conf.split(" ")[0].toLowerCase();
     if(String(name||"").toLowerCase().indexOf(w)>-1)return lists[i];}
   return null;
 }
-function confCard(c,isPast,last){
-  var going=confGoing(c),cost=(c.cost||"").replace(/\.0$/,"");
-  var leads=confLeadsFor(c.name);
-  var meta=[cost?"$"+cost+"/booth":"",c.att?c.att+" attendees":"",c.booth?"Booth: "+c.booth:"",c.travel?"Travel: "+c.travel:""].filter(Boolean).join(" · ");
-  var cd=isPast?"":confCountdown(c);
-  var cityState=c.loc&&c.state?esc(c.loc)+", "+stateChip(c.state):(c.state?stateChip(c.state):esc(c.loc||""));
-  var when=fmtConfDate(c);
-  var locLine=[when?esc(when):"",cityState].filter(Boolean).join(" · ")+(going?" · "+esc(going):"");
-  return '<div class="card"><div class="row">'+
-    (cd?'<span class="pill coral" style="margin-right:8px;align-self:center;white-space:nowrap">'+cd+'</span>':'')+
-    '<span class="ic '+(isPast?"":"coral")+'">'+svg("cal")+'</span>'+
-    '<div class="grow"><p class="t1">'+esc(c.name)+(c.name===last?' <span class="pill coral">Last attended</span>':"")+'</p>'+
-    '<p class="t2">'+locLine+'</p></div>'+
-    (isPast?'<span class="pill gray">Past</span>':'<span class="pill ok">Upcoming</span>')+'</div>'+
-    (meta||c.link?'<p class="t2" style="margin:8px 0 0 52px;white-space:normal">'+esc(meta)+(c.link?(meta?' · ':'')+'<a href="'+esc(c.link)+'" target="_blank" rel="noopener" style="color:var(--info-t)">details</a>':"")+'</p>':"")+
-    (leads?'<button class="btn sm coral" data-act="confleads" data-conf="'+esc(leads.conf)+'" style="margin:10px 0 0 52px">'+svg("users")+' '+leads.total+' leads · '+leads.tocall+' to call</button>':"")+
-    '</div>';
-}
-/* Bleeding Control Challenge — the booth kiosk (AutoTQ_Challenge.html next to this file; /challenge/ when hosted) */
 function challengeUrl(){return location.protocol==="https:"?new URL("challenge/",location.href).href:new URL("AutoTQ_Challenge.html",location.href).href;}
 function openChallenge(){var w=window.open(challengeUrl(),"autotq_challenge");if(!w)toast("Allow pop-ups to open the challenge");}
 function challengeCard(){
@@ -2889,17 +2842,20 @@ function challengeCard(){
     '<p class="t2" style="white-space:normal">Booth game for the monitor — attendees scan the QR, you run the clock, the leaderboard ranks the fastest hands.</p></div></div>'+
     '<button class="btn sm coral" data-act="openchallenge" style="margin:10px 0 0 52px">'+svg("clock")+' Open challenge</button></div>';
 }
+function confListCard(cl){
+  const pct=cl.total?Math.round(cl.contacted/cl.total*100):0;
+  return '<button class="card" data-act="confleads" data-conf="'+esc(cl.conf)+'">'+
+   '<div class="row"><span class="ic coral">'+svg("cal")+'</span>'+
+   '<div class="grow"><p class="t1">'+esc(cl.conf)+'</p><p class="t2">'+cl.tocall+' to call · '+cl.contacted+' contacted'+(cl.hot?' · '+cl.hot+' hot':'')+'</p></div>'+
+   '<span class="pill '+(cl.hot?"dang":"coral")+'">'+pct+'%</span>'+chev()+'</div>'+
+   '<div class="bar"><i style="width:'+pct+'%"></i></div></button>';
+}
 function viewConf(){
-  /* only conferences we hold a lead list for — no upcoming calendar (Max, 2026-09-17) */
-  var today=todayStr();
-  var list=confSchedule().filter(function(c){return !!confLeadsFor(c.name);});
-  if(!list.length)return challengeCard()+'<div class="empty">No conference lead lists yet.</div>';
-  var past=list.filter(function(c){return (c.start||"")<today;});
-  var last=past.length?past[past.length-1].name:"";
-  var h=challengeCard();
-  h+='<div class="sectlabel">Conferences with leads · '+list.length+'</div>';
-  h+=list.slice().reverse().map(function(c){return confCard(c,(c.start||"")<today,last);}).join("");
-  return h;
+  /* one card per lead list, newest first (Max, 2026-10-30): lists are worked here; the Leads tab holds only what was pushed after a call */
+  const lists=confListsSorted();
+  const h=challengeCard();
+  if(!lists.length)return h+'<div class="empty">No conference lead lists yet.</div>';
+  return h+'<div class="sectlabel">Conferences with leads · '+lists.length+'</div><div class="list">'+lists.map(confListCard).join("")+'</div>';
 }
 
 /* ---------- CAMPAIGN (Apollo-powered email sequences) ---------- */
@@ -3185,7 +3141,7 @@ function histWho(id){return TEAM.some(t=>t.id===id)?shortName(id):"";}
 function histNote(n){const s=String(n||"").replace(/^\([^)]*\)\s*·\s*/,"").replace(/\s*·?\s*Left voicemail$/i,"").trim();return /^(voicemail left)?[\s·]*(left voicemail\b.*)?$/i.test(s)?"":s;}
 function leadHist(l){
   const h=[],key=x=>x.day+"|"+(x.by||"")+"|"+x.kind;
-  (l.calls||[]).forEach(c=>h.push({at:c.at,day:histDay(c.at),by:c.by,kind:"call",out:c.out,label:callOutLabel(c.out),note:histNote(c.note)}));
+  (l.calls||[]).forEach(c=>h.push({at:c.at,day:histDay(c.at),by:c.by,kind:"call",out:c.out,label:c.plus?"Call":callOutLabel(c.out),note:histNote(c.note)}));
   (l.emails||[]).forEach(e=>h.push({at:e.at,day:histDay(e.at),by:e.by,kind:"email",label:"Email",note:e.subject||""}));
   const have=new Set(h.map(key));
   leadActs(l).forEach(a=>{
@@ -3194,28 +3150,33 @@ function leadHist(l){
     const x={at:a.date,day:histDay(a.date),by:a.by,kind:kind,out:vm?"vm":a.out,label:label,note:histNote(a.note)};
     if(!have.has(key(x)))h.push(x);});
   const ml=confLeadInLeads(l);
+  const had=new Set(h.map(key));
   (l.touches||[]).concat(ml&&ml.touches||[]).forEach(t=>{const m=String(t.method||"note").toLowerCase();
-    h.push({at:t.date,day:histDay(t.date),by:t.by,kind:/mail/.test(m)?"email":/call|voice/.test(m)?"call":"note",label:titlecase(t.method||"note"),note:t.note||""});});
+    const x={at:t.date,day:histDay(t.date),by:t.by,kind:/call|voice/.test(m)?"call":/mail/.test(m)?"email":/meet/.test(m)?"visit":"note",label:titlecase(t.method||"note"),note:t.note||""};
+    if(!had.has(key(x)))h.push(x);});
   String(l.notes||"").replace(/(\d{4}-\d\d-\d\d): (Campaign email \d*)\s*—\s*([^·|]*)/g,(m,d,lbl,subj)=>{h.push({at:d,day:d,by:"",kind:"campaign",label:lbl.trim(),note:subj.trim()});return m;});
   h.forEach(x=>{if(x.note.toLowerCase()===x.label.toLowerCase())x.note="";});
   return h.sort((a,b)=>String(b.day).localeCompare(String(a.day))||String(b.at).localeCompare(String(a.at)));
 }
 /* worked = off the To call pile: a voicemail counts (it always has here), a no-answer or an email alone doesn't */
 function leadWorked(l){
-  if(l.contacted||(l.calls||[]).some(c=>c.out!=="noanswer"))return true;
-  return leadActs(l).some(a=>a.by&&["call","voicemail","visit","meeting","demo","training"].includes(a.type));
+  if(l.contacted||(l.calls||[]).some(c=>c.out!=="noanswer"||c.plus))return true;
+  return leadActs(l).some(a=>a.by&&(a.out!=="noanswer"||a.plus)&&["call","voicemail","visit","meeting","demo","training"].includes(a.type));
 }
 /* the Team KPIs (2026-10-30): conference calls live in calls[] and on Contact pages, never in touches[]. x.day is the local day, so an
    evening call counts on the day it was made. Connected = they picked up or we met them: not a voicemail, no answer or wrong number. */
 function leadHasTouches(l){return (l.calls||[]).length||(l.touches||[]).length||leadActs(l).length;}
 function leadTeamTouches(l,who){return leadHasTouches(l)?leadHist(l).filter(x=>inTeamRange(x.day)&&(!who||x.by===who)):[];}
 function leadConnected(x){return x.kind==="visit"||x.kind==="demo"||(x.kind==="call"&&!["vm","noanswer","wrong"].includes(x.out));}
-function leadLastLine(l){
-  const h=leadHist(l).find(x=>x.kind!=="campaign");if(!h)return "";
-  const who=histWho(h.by),md=histMd(h.day),st=String(l.status||"");
-  if(who&&st.includes(who)&&st.includes(md))return "";
-  return [h.label,who,md].filter(Boolean).join(" · ");
+function leadLogHTML(l){
+  const h=leadHist(l).filter(x=>x.kind!=="campaign"),st=String(l.status||"");
+  const line=t=>'<div class="lvsub clamp2" style="white-space:normal">'+t+'</div>';
+  const said=!st||st==="Not contacted"||(h.length&&/^(voicemail left|contacted)$|—[^:]*\b\d{1,2}\/\d{1,2}\b/i.test(st));
+  return leadTempTag(l.temp)+(said?'':line(esc(st)))+
+   h.slice(0,2).map(x=>line('<b>'+esc(histMd(x.day))+'</b> '+esc([x.label,histWho(x.by)].filter(Boolean).join(" · "))+(x.note?' — '+esc(x.note):''))).join("")+
+   (l.next?line('Next: '+esc(l.next)):'');
 }
+function leadAbout(l){return String(l.notes||"").replace(/\s*\|?\s*\d{4}-\d\d-\d\d: Campaign email[^|]*/g,"").trim();}
 function leadHistHTML(l){
   const h=leadHist(l);
   const tone=x=>x.out==="interested"||x.out==="demo"?"ok":x.out==="talked"||x.out==="callback"||x.kind==="visit"?"info":x.out==="notint"||x.out==="wrong"?"dang":"gray";
@@ -3226,17 +3187,25 @@ function leadHistHTML(l){
     :'<p class="t2" style="margin:0 0 12px">Nothing logged yet.</p>');
 }
 /* a call logged from the lead sheet: the same record the hub's Calls tab writes (its callLog) */
-function confLeadCall(l,out,note){
-  const now=new Date().toISOString(),lbl=callOutLabel(out);
-  l.calls=(l.calls||[]).concat([{at:now,by:USER,out:out,note:note}]);l.lastCall=now;
+function confLeadCall(l,out,note,plus){
+  const now=new Date().toISOString(),lbl=plus?"Call":callOutLabel(out),call={at:now,by:USER,out:out,note:note};
+  if(plus)call.plus=true;
+  l.calls=(l.calls||[]).concat([call]);l.lastCall=now;
   if(["talked","interested","notint"].includes(out)){l.contacted=true;l.contactedAt=now;}
   l.status=lbl+" — "+shortName(USER)+" "+mdStamp(now)+(note?": "+note.slice(0,120):"");
   if(out==="interested"&&!/hot/i.test(l.temp||""))l.temp="Warm";if(out==="notint")l.temp="Cold";if(out==="vm"&&(!l.temp||l.temp==="New"))l.temp="Voicemail";
   if(!l.owner)l.owner=USER;
   const rec={id:uid(),type:"call",by:USER,date:now,note:lbl+(note?" · "+note:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null,out:out,norm:2};
-  if(out==="vm")rec.vm=true;
+  if(out==="vm")rec.vm=true;if(plus)rec.plus=true;
   DB.activities.unshift(rec);
-  save();
+  save();return rec;
+}
+/* the row's +1: someone you called and aren't pushing to Leads */
+function confLeadPlus(id){
+  const l=leadById(id);if(!l)return;
+  const was={calls:l.calls,lastCall:l.lastCall,status:l.status,owner:l.owner};
+  const rec=confLeadCall(l,"noanswer","",true);render();
+  toast("+1 call · "+l.name,()=>{Object.assign(l,was);const i=DB.activities.findIndex(a=>a.id===rec.id);if(i>-1)DB.activities.splice(i,1);save();render();});
 }
 function leadRegion(l){if(l.region==="International"&&!l.state)return "International";return l.state?regionFromState(l.state):(l.region||"");}
 /* Lead categories + hand-off (Max, 2026-10-16): outreach categorizes, sales works what's handed to them */
@@ -3283,12 +3252,23 @@ const CONF_SEGS=[["End User","End users"],["Distributor/Rep","Distributors / rep
 function confLeadSeg(l){return l.segment||"End User";}
 function confSegTag(s){return '<span class="pill '+(s==="Distributor/Rep"?"coral":s==="Set Aside"?"gray":"info")+'">'+esc({"End User":"End user","Distributor/Rep":"Distributor / rep","Set Aside":"Set aside"}[s]||s||"—")+'</span>';}
 function confLeadInLeads(cl){ensureLeads();const em=String(cl.email||"").toLowerCase();return DB.leads.find(x=>!x.removed&&(x.refId===cl.id||(em&&String(x.email||"").toLowerCase()===em)));}
-function confLeadsBody(conf,lead){ /* lead = an extra filter group shown first (the Conference picker on the Leads tab) */
+/* territory split on every list: the state decides (regionFromState), a rep lands on their own region */
+let confRegF=null;
+function confLeadReg(l){return l.region==="International"?"International":(leadRegion(l)||"");}
+function confRegDef(){return ownOnly()?(["East","Central","West"].find(r=>repForRegion(r)===USER)||""):"";}
+function confRegCur(){return confRegF===null?confRegDef():confRegF;}
+function confRegSeg(pool){
+  const cur=confRegCur(),b=(v,t,n)=>'<button class="'+(cur===v?"on":"")+'" data-act="confregion" data-v="'+v+'">'+t+' <span class="cnt">'+n+'</span></button>';
+  return '<div class="seg" style="max-width:520px;margin:0 0 14px">'+b("","All",pool.length)+["East","Central","West"].map(r=>b(r,r,pool.filter(l=>confLeadReg(l)===r).length)).join("")+'</div>';
+}
+function confLeadPlace(l){const r=confLeadReg(l);return [[l.city,l.state].filter(Boolean).join(", "),r==="International"?"Intl":r].filter(Boolean).join(" · ");}
+function confLeadsBody(conf){
   const all=(DB.confLeads||[]).filter(l=>l.conf===conf);
   if(!all.length)return '<div class="empty">No leads loaded for this conference.</div>';
   const scoped=all.filter(l=>admin()||!l.region||l.region==="International"||inRegion(l.region));
   const segOk=l=>!confSegF||confLeadSeg(l)===confSegF;
-  const segd=scoped.filter(segOk);
+  const regCur=confRegCur(),catd=scoped.filter(segOk);
+  const segd=catd.filter(l=>!regCur||confLeadReg(l)===regCur);
   const cnt={tocall:segd.filter(l=>!leadWorked(l)&&l.segment!=="Set Aside").length,
     contacted:segd.filter(l=>leadWorked(l)).length,
     hot:segd.filter(l=>["Hot","Warm","Interested","Interested (no budget)"].includes(l.temp)).length,
@@ -3306,35 +3286,33 @@ function confLeadsBody(conf,lead){ /* lead = an extra filter group shown first (
   pool=pool.filter(l=>Object.keys(lf).every(k=>fltMatch(leadFltVal(l,k),lf[k])));
   const s=sortState.leads;
   pool=pool.slice().sort((a,b)=>cmpv(leadVal(a,s.key),leadVal(b,s.key))*s.dir);
-  const inLeads=scoped.filter(l=>confLeadInLeads(l)).length,inCrm=scoped.filter(l=>l.promoted).length;
-  let h='';
+  const inLeads=segd.filter(l=>confLeadInLeads(l)).length;
+  let h=confRegSeg(catd);
   h+='<div class="kpis">'+
    '<div class="kpi"><b>Leads</b><span>'+cnt.all+'</span><small>'+esc(conf)+'</small></div>'+
    '<div class="kpi"><b>To call</b><span>'+cnt.tocall+'</span></div>'+
    '<div class="kpi"><b>Contacted</b><span>'+cnt.contacted+'</span><small>'+(cnt.all?Math.round(cnt.contacted/cnt.all*100):0)+'% worked</small></div>'+
-   '<div class="kpi"><b>Pushed</b><span>'+inLeads+'</span><small>in Leads · '+inCrm+' in Contacts</small></div></div>';
+   '<div class="kpi"><b>Pushed</b><span>'+inLeads+'</span><small>in Leads</small></div></div>';
   /* one filter button (2026-10-21): conference · category · status */
-  FLT_RESET.conf=()=>{confSegF="";leadFilter="tocall";};
-  h+='<div class="lvhead">'+filterBar("conf",[lead||null,
+  FLT_RESET.conf=()=>{confSegF="";confRegF=null;leadFilter="tocall";};
+  h+='<div class="lvhead">'+filterBar("conf",[
      fltGroup("Category","confseg",[["","All",scoped.length]].concat(CONF_SEGS.map(c=>[c[0],c[1],scoped.filter(l=>confLeadSeg(l)===c[0]).length]).filter(o=>o[2])),confSegF,"",{sumOf:(v,o)=>v&&o?o[1]:"All categories"}),
      fltGroup("Status","leadfilter",[["tocall","To call",cnt.tocall],["contacted","Contacted",cnt.contacted],["hot","Interest",cnt.hot],["aside","Set aside",cnt.aside],["all","All",cnt.all]],leadFilter,"tocall")])+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search name, company, email…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   if(!pool.length)return h+'<div class="empty">Nothing in this tab.</div>';
   function th(k,l){return thSort("leads",k,l);}
-  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+'<th>Category</th>'+th("temp","Status")+'<th>Contact</th><th>Push</th></tr></thead><tbody>'+
+  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+th("temp","Call log")+'<th>Contact</th><th>Calls</th></tr></thead><tbody>'+
    pool.map(l=>{const ml=confLeadInLeads(l);
     return '<tr data-act="leadopen" data-id="'+esc(l.id)+'">'+
     '<td style="white-space:normal;min-width:150px;max-width:220px"><div class="lvname">'+esc(l.name)+(leadWorked(l)?' <span class="pill ok" style="padding:2px 5px" title="Contacted" aria-label="Contacted">'+svg("check")+'</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
-    '<td style="white-space:normal;min-width:140px;max-width:210px">'+esc(l.company||"—")+'<div class="lvsub">'+esc(l.city||"")+(l.city&&l.state?', ':'')+(l.state?esc(l.state):(leadRegion(l)==="International"?'Intl':''))+'</div></td>'+
-    '<td>'+confSegTag(confLeadSeg(l))+'</td>'+
-    '<td style="max-width:230px;white-space:normal">'+leadTempTag(l.temp)+(l.status&&l.status!=="Not contacted"?'<div class="lvsub" style="white-space:normal">'+esc(l.status)+'</div>':'')+(l.next?'<div class="lvsub" style="white-space:normal">Next: '+esc(l.next)+'</div>':'')+(leadLastLine(l)?'<div class="lvsub" style="white-space:normal">Last: '+esc(leadLastLine(l))+'</div>':'')+'</td>'+
+    '<td style="white-space:normal;min-width:140px;max-width:210px">'+esc(l.company||"—")+'<div class="lvsub">'+esc(confLeadPlace(l))+'</div></td>'+
+    '<td style="min-width:220px;white-space:normal">'+leadLogHTML(l)+'</td>'+
     '<td style="white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis">'+(l.phone?'<a href="tel:'+esc(String(l.phone).replace(/[^\d+]/g,""))+'" data-act="extlink" style="color:var(--info-t)">'+esc(l.phone)+'</a>':'<span class="muted">no phone</span>')+
       (l.email?'<div class="lvsub" style="overflow:hidden;text-overflow:ellipsis"><a href="mailto:'+esc(l.email)+'" data-act="extlink" style="color:var(--info-t)">'+esc(l.email)+'</a></div>':'')+'</td>'+
     '<td style="white-space:nowrap">'+
       (ml?'<button class="btn sm ghost" data-act="openlead" data-id="'+esc(ml.id)+'" title="Open it in Leads">'+svg("check")+' In Leads</button>'
-         :'<button class="btn sm" data-act="cfpush" data-id="'+esc(l.id)+'" title="Push to Leads">'+svg("spark")+' Leads</button>')+
-      (l.promoted?' <span class="pill ok" title="Already a contact in the CRM">Contact ✓</span>'
-         :' <button class="btn sm" data-act="cfcontact" data-id="'+esc(l.id)+'" title="Add as a contact (account + contact)">'+svg("user")+' Contact</button>')+
+         :'<button class="btn sm" data-act="cfplus" data-id="'+esc(l.id)+'" title="Count a call without pushing to Leads">+1 call</button>')+
+      (()=>{const n=leadHist(l).filter(x=>x.kind==="call").length;return n?'<div class="lvsub">'+n+(n===1?' call':' calls')+'</div>':'';})()+
     '</td></tr>';}).join("")+
    '</tbody></table></div>';
   return h;
@@ -3345,12 +3323,17 @@ function quickPushConfLead(id){
   const cl=leadById(id);if(!cl)return;
   if(confLeadInLeads(cl)){toast(cl.name+" is already in Leads");return;}
   const now=new Date().toISOString();
+  const touches=leadHist(cl).filter(x=>x.by&&["call","email","visit"].includes(x.kind)).reverse().map(x=>({date:x.day,
+    method:x.kind==="email"?"email":x.kind==="visit"?"meeting":x.out==="vm"?"voicemail":"call",
+    note:[x.kind==="call"&&x.out!=="vm"?x.label:"",x.note].filter(Boolean).join(" · "),by:x.by}));
   const ml={id:uid(),refId:cl.id,name:cl.name,title:cl.title||"",company:cl.company||"",email:cl.email||"",phone:cl.phone||"",
     city:cl.city||"",state:cl.state||"",conf:cl.conf,segment:cl.segment||"",kind:cl.segment==="Distributor/Rep"?"distributor":"enduser",
-    by:USER,createdAt:now,touches:[],promoted:!!cl.promoted};
+    by:USER,createdAt:now,touches:touches,promoted:!!cl.promoted};
+  const reg=confLeadReg(cl),rep=reg&&reg!=="International"?repForRegion(reg):"";
   if(ownOnly()){ml.assignee=USER;ml.cat="qualified";ml.catBy=USER;ml.catAt=now;}
+  else if(rep&&rep!=="house")leadHand(ml,rep);
   DB.leads.unshift(ml);save();render();
-  toast(cl.name+" pushed to "+(ownOnly()?"your Leads":"Leads"));
+  toast("Call logged · pushed to "+(ownOnly()?"your Leads":ml.assignee?shortName(ml.assignee)+"'s Leads":"Leads"));
 }
 function leadById(id){return (DB.confLeads||[]).find(l=>l.id===id);}
 function leadFltVal(l,key){
@@ -3371,23 +3354,21 @@ function formLead(id){
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
     (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
-   (l.notes?'<div class="banner" style="white-space:normal">'+svg("note")+esc(l.notes)+'</div>':'')+
+   (leadAbout(l)?'<div class="banner" style="white-space:normal">'+svg("note")+esc(leadAbout(l))+'</div>':'')+
    leadHistHTML(l)+
    '<div class="sectlabel">Log a call</div><div class="chips" id="ldOut">'+LEAD_LOG_OUTS.map(o=>'<span class="chip" data-act="ldcallout" data-v="'+o+'">'+esc(callOutLabel(o))+'</span>').join("")+'</div>'+
    '<input class="f" id="ldCallNote" placeholder="Note (optional)" autocomplete="off" style="margin-top:8px">'+
-   '<button class="btn block" data-act="ldcallsave" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("phone")+' Log call</button>'+
+   '<button class="btn coral block" data-act="ldcallsave" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("phone")+(confLeadInLeads(l)?' Log call':' Log call &amp; push to Leads')+'</button>'+
+   (confLeadInLeads(l)?'<button class="btn block" data-act="openlead" data-id="'+esc(confLeadInLeads(l).id)+'" style="margin-top:8px">'+svg("check")+' In Leads — open it</button>':'')+
+   '<details class="fold" style="margin-top:14px"><summary class="t2" style="cursor:pointer">Edit status and next step</summary>'+
    '<label class="fl">Contacted?</label><div class="chips" id="ldC">'+
     ['No','Yes'].map(v=>'<span class="chip'+((leadWorked(l)?'Yes':'No')===v?' on':'')+'" data-act="setLeadC" data-v="'+v+'">'+v+'</span>').join("")+'</div>'+
    '<label class="fl">Temperature</label><div class="chips" id="ldT">'+
     temps.map(v=>'<span class="chip'+(l.temp===v?' on':'')+'" data-act="setLeadT" data-v="'+v+'">'+v+'</span>').join("")+'</div>'+
    '<label class="fl">Status / outcome</label><input class="f" id="ldStatus" value="'+esc(l.status||"")+'" placeholder="e.g. Voicemail left · HOT — wants demo">'+
    '<label class="fl">Next step</label><input class="f" id="ldNext" value="'+esc(l.next||"")+'" placeholder="e.g. callback wk of 7/13">'+
-   '<button class="btn coral block" data-act="saveLead" style="margin-top:18px">Save lead</button>'+
-   (confLeadInLeads(l)?'<button class="btn block" data-act="openlead" data-id="'+esc(confLeadInLeads(l).id)+'" style="margin-top:8px">'+svg("check")+' In Leads — open it</button>'
-    :'<div class="qa" style="margin-top:8px"><button class="btn block" data-act="cfpush" data-id="'+esc(l.id)+'" style="border-color:var(--coral);color:var(--coral-tt)">'+svg("spark")+' Push to Leads</button>'+
-     '<button class="btn block" data-act="pushlead" data-id="'+esc(l.id)+'">'+svg("phone")+' Log a touch &amp; push</button></div>')+
-   (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ Already in the CRM as a contact</p>'
-    :'<button class="btn block" data-act="leadpromote" data-id="'+esc(l.id)+'" style="margin-top:8px">'+svg("user")+' Add to Contacts (account + contact)</button>'));
+   '<button class="btn coral block" data-act="saveLead" style="margin-top:18px">Save lead</button></details>'+
+   (l.promoted?'<p style="text-align:center;color:var(--ok-t);font-size:13px;margin-top:10px">✓ Already in the CRM as a contact</p>':''));
   logState.leadC=leadWorked(l)?'Yes':'No';logState.leadT=l.temp;logState.ldOut=null;
 }
 function promoteLead(id,stay){
@@ -3446,26 +3427,12 @@ function mlVal(l,k){const t=leadLastTouch(l);
   return "";}
 /* Leads tab = the working list, or the conference lists it is fed from (Max, 2026-10-20: conference leads back,
    with their contacts and category, so reps can push them) */
-let leadsMode="leads";
 function confListsSorted(){
   const yr=c=>{const m=String(c).match(/20\d\d/);return m?+m[0]:0;};
   const start=c=>{const s=confSchedule().find(x=>confLeadsFor(x.name)&&confLeadsFor(x.name).conf===c);return s&&s.start?s.start:"";};
   return confLeadLists().sort((a,b)=>yr(b.conf)-yr(a.conf)||String(start(b.conf)).localeCompare(String(start(a.conf)))||a.conf.localeCompare(b.conf));
 }
-function leadsModeSeg(){
-  ensureLeads();
-  const nL=DB.leads.filter(l=>!l.removed).length,nC=(DB.confLeads||[]).length;
-  return '<div class="seg" style="max-width:420px;margin:0 0 14px"><button class="'+(leadsMode==="leads"?"on":"")+'" data-act="leadsmode" data-v="leads">Leads <span class="cnt">'+nL+'</span></button>'+
-   '<button class="'+(leadsMode==="conf"?"on":"")+'" data-act="leadsmode" data-v="conf">Conference leads <span class="cnt">'+nC+'</span></button></div>';
-}
-function viewConfLeadsTab(){
-  const lists=confListsSorted();
-  if(!lists.length)return leadsModeSeg()+'<div class="empty">No conference lead lists loaded yet.</div>';
-  if(!lists.some(c=>c.conf===curConf))curConf=lists[0].conf;
-  return leadsModeSeg()+confLeadsBody(curConf,fltGroup("Conference","leadsconf",lists.map(c=>[c.conf,c.conf,c.total]),curConf,undefined));
-}
 function viewLeads(){
-  if(leadsMode==="conf")return viewConfLeadsTab();
   ensureLeads();
   const all=DB.leads.filter(l=>!l.removed);
   if(!logState.leadsFInit){logState.leadsFInit=true;leadsF=profile()==="sales"?"mine":"";}
@@ -3482,7 +3449,7 @@ function viewLeads(){
   pool=pool.filter(l=>Object.keys(mf).every(k=>fltMatch(mlVal(l,k),mf[k])));
   const s=sortState.myleads;
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
-  let h=leadsModeSeg();
+  let h="";
   const sales=profile()==="sales";
   /* one filter button (2026-10-21): show · sales person — both write leadsF */
   const isRep=String(leadsF||"").indexOf("rep:")===0;
@@ -3512,29 +3479,18 @@ function viewLeads(){
   '</tbody></table></div>';
   return h;
 }
-function pushLeadFromConf(confId){
-  const cl=leadById(confId);if(!cl)return;
-  ensureLeads();
-  let ml=DB.leads.find(x=>x.refId===confId)||(cl.email?DB.leads.find(x=>x.email&&x.email.toLowerCase()===String(cl.email).toLowerCase()):null);
-  if(!ml){
-    ml={id:uid(),refId:confId,name:cl.name,title:cl.title||"",company:cl.company||"",email:cl.email||"",phone:cl.phone||"",
-        city:cl.city||"",state:cl.state||"",conf:cl.conf,segment:cl.segment||"",by:USER,createdAt:new Date().toISOString(),touches:[]};
-    DB.leads.unshift(ml);
-  }
-  formTouch(ml.id,true);
-}
-function formTouch(leadId,fromConf,editIdx){
+function formTouch(leadId,editIdx){
   const l=myLeadById(leadId);if(!l)return;
   const ed=(editIdx!=null&&l.touches&&l.touches[editIdx])?l.touches[editIdx]:null;
   logState.touchLead=leadId;logState.touchEdit=ed?editIdx:null;logState.touchMethod=ed?(ed.method||"call"):"call";
   const methods=[["call","phone","Call"],["voicemail","phone","Left VM"],["email","mail","Email"],["meeting","cal","Meeting"],["note","note","Note"]];
-  openSheet('<h2>'+(ed?"Edit touch":fromConf?"Push to Leads — log the touch":"Log a touch")+'</h2>'+
+  openSheet('<h2>'+(ed?"Edit touch":"Log a touch")+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc(l.name)+(l.company?' · '+esc(l.company):'')+(l.conf?' · '+esc(l.conf):'')+'</p>'+
    '<label class="fl">Method of contact</label><div class="tiles" id="touchTiles">'+
    methods.map(m=>'<div class="tile'+(m[0]===logState.touchMethod?' on':'')+'" data-act="setTouchM" data-v="'+m[0]+'">'+svg(m[1])+m[2]+'</div>').join("")+'</div>'+
    '<label class="fl">Date of contact</label><input class="f" id="touchDate" type="date" value="'+esc(ed?(ed.date||todayStr()):todayStr())+'">'+
    '<label class="fl">Conversation details</label><textarea class="f" id="touchNote" rows="3" placeholder="What was said, what they want next…">'+(ed?esc(ed.note||""):"")+'</textarea>'+
-   '<button class="btn coral block" data-act="touchsave" style="margin-top:18px">'+(ed?"Save changes":fromConf?"Push to Leads":"Save touch")+'</button>'+
+   '<button class="btn coral block" data-act="touchsave" style="margin-top:18px">'+(ed?"Save changes":"Save touch")+'</button>'+
    (ed?'<button class="btn block" data-act="deltouch" data-id="'+esc(l.id)+'" data-i="'+editIdx+'" style="margin-top:8px;color:var(--dang-t)">Delete touch</button>'+
        '<button class="btn block ghost" data-act="openlead" data-id="'+esc(l.id)+'" style="margin-top:8px">Cancel</button>':''));
 }
@@ -7534,7 +7490,9 @@ document.addEventListener("click",e=>{
   if(a==="setLeadT"){logState.leadT=t.dataset.v;document.querySelectorAll("#ldT .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="saveLead"){saveLead();return;}
   if(a==="ldcallout"){logState.ldOut=logState.ldOut===t.dataset.v?null:t.dataset.v;document.querySelectorAll("#ldOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.ldOut));return;}
-  if(a==="ldcallsave"){const l=leadById(t.dataset.id);if(!l)return;if(!logState.ldOut){toast("Pick how the call went");return;}confLeadCall(l,logState.ldOut,val("ldCallNote"));render();formLead(l.id);toast("Call logged");return;}
+  if(a==="ldcallsave"){const l=leadById(t.dataset.id);if(!l)return;if(!logState.ldOut){toast("Pick how the call went");return;}const out=logState.ldOut,note=val("ldCallNote"),ml=confLeadInLeads(l);confLeadCall(l,out,note);closeSheet();
+    if(ml){(ml.touches=ml.touches||[]).push({date:todayStr(),method:out==="vm"?"voicemail":"call",note:[out==="vm"?"":callOutLabel(out),note].filter(Boolean).join(" · "),by:USER});save();render();toast("Call logged");}
+    else quickPushConfLead(l.id);return;}
   if(a==="leadpromote"){promoteLead(t.dataset.id);return;}
   if(a==="addsku"){openSheet('<h2>Add a SKU</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">Adds to the catalog on every distributor page.</p>'+
     '<label class="fl">Our part # (MPN)</label><input class="f" id="skuMpn" placeholder="e.g. 7000-XX">'+
@@ -7647,7 +7605,7 @@ document.addEventListener("click",e=>{
     c.buysFrom.splice(i,1);if(e.first&&c.buysFrom.length)c.buysFrom[0].first=true;save();render();return;}
   if(a==="bffirst"){const c=company(id);if(!c)return;const i=+t.dataset.i;
     bfList(c).forEach((e,j)=>e.first=j===i);save();render();return;}
-  if(a==="pushlead"&&person(id)){const p=person(id);ensureLeads();const co=company(p.cid); /* contact page; conference leads fall through to pushLeadFromConf below */
+  if(a==="pushlead"&&person(id)){const p=person(id);ensureLeads();const co=company(p.cid); /* contact page */
     const dup=DB.leads.find(l=>(p.email&&l.email&&l.email.toLowerCase()===p.email.toLowerCase())||(l.refPid===p.id)||(l.name.toLowerCase()===p.name.toLowerCase()&&(l.company||"").toLowerCase()===((co&&co.name)||"").toLowerCase()));
     if(dup){toast(p.name+" is already in Leads");return;}
     DB.leads.unshift({id:uid(),name:p.name,company:co?co.name:(p.branch||""),title:p.role||"",email:p.email||"",phone:p.phone||"",
@@ -7669,11 +7627,9 @@ document.addEventListener("click",e=>{
   if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
-  if(a==="leadsmode"){leadsMode=t.dataset.v;listQ="";render();return;}
-  if(a==="leadsconf"){curConf=t.dataset.v;leadFilter="tocall";confSegF="";listQ="";render();return;}
   if(a==="confseg"){confSegF=t.dataset.v;render();return;}
-  if(a==="cfpush"){quickPushConfLead(id);if(document.getElementById("scrim").classList.contains("open"))formLead(id);return;}
-  if(a==="cfcontact"){promoteLead(id,true);return;}
+  if(a==="confregion"){confRegF=t.dataset.v;render();return;}
+  if(a==="cfplus"){confLeadPlus(id);return;}
   if(a==="extlink")return; /* tel: / mailto: inside a clickable row — let the link work, don't open the row */
   if(a==="leadtoopp"){const l=myLeadById(id);if(!l)return;const c=bcMatchCompany(l.company||"");formOpp(null,c?c.id:null);logState.oppFromLead=l.id;
     setTimeout(()=>{const n=document.getElementById("oName");if(n&&!n.value)n.value=(l.company||l.name)+" — first order";const an=document.getElementById("oCidQ");if(an&&!c)an.value=l.company||l.name;const st=document.getElementById("oLoc");if(st&&!st.value&&l.state)st.value=l.state;const nt=document.getElementById("oNotes");if(nt)nt.value="From lead "+l.name+(l.conf?" ("+l.conf+")":"");},30);return;}
@@ -7681,9 +7637,8 @@ document.addEventListener("click",e=>{
   if(a==="leadcat"){e.stopPropagation();const l=myLeadById(id);if(l){l.cat=t.dataset.v;l.catAt=new Date().toISOString();l.catBy=USER;if(l.cat!=="handed"&&l.assignee&&t.dataset.v==="dead")l.assignee=null;save();render();if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="leadhand"){e.stopPropagation();const l=myLeadById(id);if(l){leadHand(l,t.dataset.v);save();render();toast(l.assignee?l.name+" → "+teamById(l.assignee).name:"Taken back");if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
   if(a==="openlead"){formLeadRec(id);return;}
-  if(a==="pushlead"){pushLeadFromConf(t.dataset.id);return;}
   if(a==="addtouch"){formTouch(id);return;}
-  if(a==="edittouch"){formTouch(id,false,parseInt(t.dataset.i,10));return;}
+  if(a==="edittouch"){formTouch(id,parseInt(t.dataset.i,10));return;}
   if(a==="deltouch"){const ml=myLeadById(id),i=parseInt(t.dataset.i,10);if(ml&&ml.touches&&ml.touches[i]&&confirm("Delete this touch from "+ml.name+"'s history?")){ml.touches.splice(i,1);logState.touchEdit=null;save();render();formLeadRec(ml.id);toast("Touch deleted");}return;}
   if(a==="editlead"){formEditLead(id);return;}
   if(a==="elsave"){saveEditLead();return;}
