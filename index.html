@@ -2059,7 +2059,7 @@ function viewToday(){
   else if(P==="outreach")h+=kpiRow([["Leads to categorize",toCat.length,"new, uncategorized",toCat.length?"warn":""],["Handed to sales",handedWk.length,"this week"],["Conf leads to call",toCall,confs.length+" show list"+(confs.length===1?"":"s")],["Follow-ups waiting",qMe.todo.length+qMe.old.length,"mine"]]);
   else{
     /* admins see the team's actions, not a pipeline (Max, 2026-10-16); the pipeline has its own tab */
-    const actsW=(DB.activities||[]).filter(a=>String(a.date).slice(0,10)>=W&&(!scopeRep||a.by===scopeRep)),actsT=actsW.filter(a=>String(a.date).slice(0,10)===T);
+    const actsW=(DB.activities||[]).filter(a=>localDay(a.date)>=W&&(!scopeRep||a.by===scopeRep)),actsT=actsW.filter(a=>localDay(a.date)===T);
     const inToday=GH_REPS.concat(["jamie","max","hannah"]).filter(id=>usageFor(id,T,T).mins>0||usageFor(id,T,T).days>0).length;
     FLT_RESET.home=()=>{logState.homeRep="";};
     h+='<div class="lvhead" style="margin-bottom:12px">'+filterBar("home",[fltGroup("Whose week","homerep",[["","Everyone"]].concat(GH_REPS.map(id=>[id,shortName(id)])),scopeRep,"",{sumOf:(v,o)=>o?(v?o[1]:"Everyone"):""})])+'</div>';
@@ -2113,7 +2113,7 @@ function viewTeammate(id){
   const t=teamById(id);if(!t||!t.id)return '<div class="empty">Who?</div>';
   const T=todayStr(),W=ymd(new Date(Date.now()-7*86400000)),M=T.slice(0,7)+"-01";
   const all=(DB.activities||[]).filter(a=>a.by===id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const wk=all.filter(a=>String(a.date).slice(0,10)>=W),mo=all.filter(a=>String(a.date).slice(0,10)>=M);
+  const wk=all.filter(a=>localDay(a.date)>=W),mo=all.filter(a=>localDay(a.date)>=M);
   const uAll=usageFor(id),uW=usageFor(id,W),uT=usageFor(id,T,T);
   const q=actQueueFor(id);
   const kinds={};all.forEach(a=>{const g=actTypeGroup(a.type);kinds[g]=(kinds[g]||0)+1;});
@@ -2129,7 +2129,7 @@ function viewTeammate(id){
      return '<tr><td>'+esc(fmtDay(r.day))+'</td><td class="num">'+fmtMins(r.mins)+'</td><td>'+tm(r.first)+'</td><td>'+tm(r.last)+'</td><td>'+esc(vs.join(", "))+'</td></tr>';}).join("")+'</tbody></table></div>';}
   h+='<div class="sectlabel">Everything '+esc(t.name.split(" ")[0])+' has logged <span class="cnt">'+all.length+'</span></div>';
   if(!all.length)return h+'<div class="empty">Nothing logged yet.</div>';
-  let cur="",out="";all.slice(0,200).forEach(a=>{const d=String(a.date).slice(0,10);if(d!==cur){cur=d;out+='<div class="sectlabel" style="margin:14px 2px 8px;font-size:12.5px;color:var(--muted)">'+esc(fmtDay(a.date))+'</div>';}out+=actRow(a);});
+  let cur="",out="";all.slice(0,200).forEach(a=>{const d=localDay(a.date);if(d!==cur){cur=d;out+='<div class="sectlabel" style="margin:14px 2px 8px;font-size:12.5px;color:var(--muted)">'+esc(fmtDay(a.date))+'</div>';}out+=actRow(a);});
   return h+out+(all.length>200?'<p class="t2" style="text-align:center">Showing the latest 200.</p>':'');
 }
 function actQueueFor(w){const keep=actWho;actWho=w;const q=actQueue();actWho=keep;return q;}
@@ -4016,7 +4016,9 @@ function actRow(a){
   else if(st==="done")acts='<span class="pill gray">done</span><button class="btn sm ghost" data-act="actreopen" data-id="'+a.id+'">Reopen</button>';
   else acts='<button class="btn sm coral" data-act="actfu" data-id="'+a.id+'">'+svg("clock")+' Follow up</button><button class="btn sm" data-act="actdone" data-id="'+a.id+'">Done</button>'+
     (p?'<button class="btn sm ghost" data-act="acttoopp" data-id="'+a.id+'" title="Start an opportunity from this">'+svg("chart")+' Opp</button>'+(p&&!(DB.leads||[]).some(l=>l.refPid===p.id)?'<button class="btn sm ghost" data-act="pushlead" data-id="'+p.id+'" title="Push to Leads">'+svg("spark")+' Lead</button>':''):'');
-  return '<div class="act'+(st==="old"?' old':'')+'"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span>'+
+  acts+='<button class="ibtn" data-act="editact" data-id="'+a.id+'" title="Edit — change the date, type or note" aria-label="Edit this entry">'+svg("edit")+'</button>';
+  /* the whole row opens the edit sheet too; its buttons keep their own actions */
+  return '<div class="act'+(st==="old"?' old':'')+'" data-act="editact" data-id="'+a.id+'" style="cursor:pointer"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span>'+
    '<div class="grow"><p class="t1">'+esc(actLabel(a.type,a))+' · '+who+(where?'<span class="t2" style="display:inline;margin-left:6px">'+where+'</span>':'')+'</p>'+
    '<p class="t2" style="white-space:normal">'+(a.note?esc(a.note)+' · ':'')+stamp+'</p></div><div class="actbtns">'+acts+'</div></div>';
 }
@@ -4041,7 +4043,7 @@ function viewActivity(){
   if(actBucket==="done")list=list.slice(0,80);
   /* group by day so a long queue still reads */
   let cur="",out="";
-  list.forEach(a=>{const d=String(a.date).slice(0,10);if(d!==cur){cur=d;out+='<div class="sectlabel" style="margin:16px 2px 8px">'+esc(fmtDay(a.date))+(since(a.date)>14?' <span class="pill warn">'+since(a.date)+' days ago</span>':'')+'</div>';}out+=actRow(a);});
+  list.forEach(a=>{const d=localDay(a.date);if(d!==cur){cur=d;out+='<div class="sectlabel" style="margin:16px 2px 8px">'+esc(fmtDay(a.date))+(since(a.date)>14?' <span class="pill warn">'+since(a.date)+' days ago</span>':'')+'</div>';}out+=actRow(a);});
   return h+out;
 }
 /* ---------- time in the CRM (Max, 2026-10-16): one synced record per person per day — first seen, last seen, minutes
@@ -4072,7 +4074,7 @@ function lastActive(u){const x=usageFor(u);if(!x.last)return "not seen yet";cons
 /* the admin's roster: everyone who sells or does outreach, one tappable row each */
 function teamRosterHTML(W){
   const ids=GH_REPS.concat(["jamie"]).filter(id=>TEAM.some(t=>t.id===id));
-  return '<div class="list">'+ids.map(id=>{const t=teamById(id);const wk=(DB.activities||[]).filter(a=>a.by===id&&String(a.date).slice(0,10)>=W).length,td=(DB.activities||[]).filter(a=>a.by===id&&String(a.date).slice(0,10)===todayStr()).length;const u=usageFor(id,W);
+  return '<div class="list">'+ids.map(id=>{const t=teamById(id);const wk=(DB.activities||[]).filter(a=>a.by===id&&localDay(a.date)>=W).length,td=(DB.activities||[]).filter(a=>a.by===id&&localDay(a.date)===todayStr()).length;const u=usageFor(id,W);
     return '<button class="card" data-act="teammate" data-id="'+id+'"><div class="row"><span class="av" style="background:'+t.c+';width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex:none">'+initials(t.name)+'</span>'+
      '<div class="grow"><p class="t1">'+esc(t.name)+' <span style="color:var(--muted);font-weight:500">· '+esc(t.role)+'</span></p><p class="t2">'+wk+' action'+(wk===1?"":"s")+' this week'+(td?' · '+td+' today':'')+' · '+fmtMins(u.mins)+' in the CRM this week · last active '+esc(lastActive(id))+'</p></div>'+chev()+'</div></button>';}).join("")+'</div>';
 }
@@ -4082,7 +4084,9 @@ let actDate=todayStr();
 const DOW7=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function dAdd(ymdS,n){const p=ymdS.split("-");const d=new Date(+p[0],+p[1]-1,+p[2]+n);return ymd(d);}
 function weekOf(ymdS){const p=ymdS.split("-");const d=new Date(+p[0],+p[1]-1,+p[2]);const sun=new Date(d.getFullYear(),d.getMonth(),d.getDate()-d.getDay());return Array.from({length:7},(_,i)=>{const x=new Date(sun);x.setDate(sun.getDate()+i);return ymd(x);});}
-function calActs(who,from,to){return (DB.activities||[]).filter(a=>a&&a.date&&(!who||a.by===who)&&String(a.date).slice(0,10)>=from&&String(a.date).slice(0,10)<=to);}
+/* activities sit on the viewer's local day (localDay), the same day the edit sheet shows — slicing the UTC ISO put an
+   evening entry on the next day, and re-saving the day the sheet showed changed nothing (Hannah, 2026-11-04) */
+function calActs(who,from,to){return (DB.activities||[]).filter(a=>a&&a.date&&(!who||a.by===who)&&localDay(a.date)>=from&&localDay(a.date)<=to);}
 function calTasks(who,from,to){return (DB.tasks||[]).filter(t=>!t.removed&&t.due>=from&&t.due<=to&&(who?taskFor(t,who):true));}
 function calTaskRow(t){return '<div class="wki task'+(t.done?' done':'')+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button><button class="grow txt" data-act="edittask" data-id="'+t.id+'" title="Edit or move this to-do"><b>'+esc(t.title)+'</b><small>'+esc(taskTypeMeta(t.type)[2])+(t.pid&&person(t.pid)?' · '+esc(person(t.pid).name):'')+(t.owner!==USER?' · '+esc(shortName(t.owner)):'')+'</small></button></div>';}
 function calActRow(a,showBy){const p=person(a.pid);return '<button class="wki" data-act="editact" data-id="'+a.id+'" title="Edit this entry or set its follow-up"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><span class="grow"><b>'+esc(p?p.name:(a.cid&&company(a.cid)?company(a.cid).name:actLabel(a.type,a)))+'</b><small>'+esc(actLabel(a.type,a))+(a.note?' · '+esc(a.note):'')+(showBy&&a.by?' · '+esc(shortName(a.by)):'')+'</small></span>'+(actState(a)==="sched"?'<span class="pill info" style="font-size:10px">'+svg("clock")+'</span>':actState(a)==="old"?'<span class="pill warn" style="font-size:10px">!</span>':'')+'</button>';}
@@ -4094,7 +4098,7 @@ function weekStripHTML(who,anchor,opts){
   let h='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(opts.title||"My week")+' <span class="cnt">'+open+' to do · '+acts.length+' logged</span></div>'+
    '<span class="t2" style="margin-left:4px">'+esc(fmtDay(days[0]).replace(/, \d{4}$/,""))+' – '+esc(fmtDay(days[6]))+'</span>'+
    '<div class="row" style="gap:6px;margin-left:auto"><button class="btn sm" data-act="'+opts.nav+'" data-v="-7">'+svg("chevL")+'</button>'+(days.includes(T)?'':'<button class="btn sm ghost" data-act="'+opts.nav+'" data-v="today">This week</button>')+'<button class="btn sm" data-act="'+opts.nav+'" data-v="7">'+svg("chevR")+'</button>'+(opts.extra||"")+'</div></div>';
-  h+='<div class="wk">'+days.map((d,i)=>{const da=acts.filter(a=>String(a.date).slice(0,10)===d).sort((a,b)=>new Date(a.date)-new Date(b.date)),dt=tasks.filter(t=>t.due===d).sort((a,b)=>(a.done?1:0)-(b.done?1:0));
+  h+='<div class="wk">'+days.map((d,i)=>{const da=acts.filter(a=>localDay(a.date)===d).sort((a,b)=>new Date(a.date)-new Date(b.date)),dt=tasks.filter(t=>t.due===d).sort((a,b)=>(a.done?1:0)-(b.done?1:0));
     const slipped=d<T&&dt.some(t=>!t.done);
     return '<div class="wkday'+(d===T?' today':d<T?' past':'')+'"><button class="wkh" data-act="'+(opts.dayNav||opts.nav)+'" data-v="day:'+d+'" title="Open this day"><b>'+DOW7[i]+'</b><span>'+parseInt(d.slice(8),10)+'</span>'+(da.length?'<em>'+da.length+'</em>':'')+'</button>'+
       (dt.length?'<div class="wksep">To do'+(slipped?' <span class="pill warn" style="font-size:10px">slipped</span>':'')+'</div>'+dt.map(calTaskRow).join(""):'')+
@@ -4108,9 +4112,9 @@ function monthGridHTML(who,anchor,nav){
   const start=new Date(y,m,1-first.getDay());const T=todayStr();
   const from=ymd(start),to=ymd(new Date(start.getFullYear(),start.getMonth(),start.getDate()+41));
   const acts=calActs(who,from,to),tasks=calTasks(who,from,to);
-  const byDay={};acts.forEach(a=>{const k=String(a.date).slice(0,10);(byDay[k]=byDay[k]||{a:[],t:[]}).a.push(a);});tasks.forEach(t=>{(byDay[t.due]=byDay[t.due]||{a:[],t:[]}).t.push(t);});
+  const byDay={};acts.forEach(a=>{const k=localDay(a.date);(byDay[k]=byDay[k]||{a:[],t:[]}).a.push(a);});tasks.forEach(t=>{(byDay[t.due]=byDay[t.due]||{a:[],t:[]}).t.push(t);});
   const title=first.toLocaleDateString(undefined,{month:"long",year:"numeric"});
-  const tally={};acts.filter(a=>String(a.date).slice(0,7)===anchor.slice(0,7)).forEach(a=>{const g=actTypeGroup(a.type);tally[g]=(tally[g]||0)+1;});
+  const tally={};acts.filter(a=>localDay(a.date).slice(0,7)===anchor.slice(0,7)).forEach(a=>{const g=actTypeGroup(a.type);tally[g]=(tally[g]||0)+1;});
   let h='<div class="lvhead" style="margin:0 0 10px"><div class="sech">'+esc(title)+'</div><span class="t2">'+(Object.keys(tally).length?Object.keys(tally).map(k=>tally[k]+" "+k).join(" · "):"nothing logged")+'</span>'+
    '<div class="row" style="gap:6px;margin-left:auto"><button class="btn sm" data-act="'+nav+'" data-v="-1m">'+svg("chevL")+'</button>'+(anchor.slice(0,7)===T.slice(0,7)?'':'<button class="btn sm ghost" data-act="'+nav+'" data-v="today">This month</button>')+'<button class="btn sm" data-act="'+nav+'" data-v="1m">'+svg("chevR")+'</button></div></div>';
   h+='<div class="mgrid">'+DOW7.map(d=>'<div class="mdow">'+d+'</div>').join("");
