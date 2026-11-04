@@ -1762,7 +1762,10 @@ function repForDeal(region,day){
   return "";
 }
 function repForRegion(r){return repForDeal(r,todayStr())||"";}
-function oppGhRep(o){if(o&&o.ghRep)return o.ghRep;const r=oppRegion(o);return (oppIsOpen(o)?repForRegion(r):repForDeal(r,o.closeDate||o.createdAt))||"";}
+/* Hannah's own deals get a sales person only when she picks one: no territory default, no "auto" (Hannah, 2026-11-04) */
+const NO_AUTO_REP=["hannah"];
+function oppNoAutoRep(o){return NO_AUTO_REP.includes(o?o.owner:USER);}
+function oppGhRep(o){if(o&&o.ghRep)return o.ghRep;if(o&&oppNoAutoRep(o))return "";const r=oppRegion(o);return (oppIsOpen(o)?repForRegion(r):repForDeal(r,o.closeDate||o.createdAt))||"";}
 /* orders (actual sales) follow the same rule; o.ghRep on the order overrides it */
 const ORDER_ALIAS={"fastenal company":"Fastenal","safety products inc.":"Safety Products Inc","safety products inc":"Safety Products Inc","medique products":"Medique","unifirst first aid & safety":"Unifirst","ballard industries":"Ballard Industrial","ritz safety toyota tsuhso":"Ritz Safety","copper state bolt & nut co.":"Copperstate","msc":"MSC Industrial Supply Co.","aed professionals general medical devices, inc":"AED Professionals","campbell supply company":"Campbell Supply Co","advocates for health":"Advocates4Health","rescue one federal fbi":"Rescue One","rescue one training for life inc.":"Rescue One","acme united":"ACME","industrial supply inc":"Industrial Supply","central welding supply":"Central Welding Supply","william v. macgill & co.":"William V. MacGill & Co."};
 const ORDER_STATE={"march safety foundation":"AZ","ritz safety toyota tsuhso":"KY","austin tool ; justin vogt":"TX","hub city fire & safety, llc":"MS"};
@@ -2077,7 +2080,8 @@ function viewToday(){
     if(rows.length)attn='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(P==="sales"?"My deals that need attention":"Deals that need attention")+' <span class="cnt">'+rows.length+'</span></div><button class="btn sm" data-act="nav" data-view="opps" style="margin-left:auto">Pipeline '+chev()+'</button></div><div class="list">'+rows.slice(0,8).map(attnRow).join("")+'</div>';
   }
   if(P==="sales"){
-    const q=qMe.old.concat(qMe.todo).slice(0,5);
+    const due=qMe.todo.filter(a=>actFuTask(a)); /* reminders whose day came lead, then stale, then the rest */
+    const q=due.concat(qMe.old,qMe.todo.filter(a=>!actFuTask(a))).slice(0,5);
     if(q.length)fu='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">Follow-ups waiting <span class="cnt">'+(qMe.todo.length+qMe.old.length)+'</span></div><button class="btn sm" data-act="nav" data-view="activity" style="margin-left:auto">Activity '+chev()+'</button></div>'+q.map(actRow).join("");
     lds=fromOutreachHTML(USER,{link:true,always:true});
   }
@@ -2175,7 +2179,7 @@ function teamFeed(){
   if(!feed.length)return"";
   let h='<div class="sectlabel">Team activity</div><div class="list">';
   h+=feed.map(a=>{const p=person(a.pid);return '<div class="card" style="padding:11px 14px"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:14px">'+teamById(a.by).name.split(" ")[0]+' · '+actLabel(a.type,a)+(p?' with '+p.name:'')+'</p>'+
+   '<div class="grow"><p class="t1" style="font-size:14px">'+teamById(a.by).name.split(" ")[0]+' · '+actLabel(a.type,a)+(actWhoName(a)?' with '+esc(actWhoName(a)):'')+'</p>'+
    '<p class="t2" style="white-space:normal">'+ago(a.date)+' · '+a.note+'</p></div></div></div>';}).join("");
   return h+'</div>';
 }
@@ -3494,15 +3498,30 @@ function formTouch(leadId,editIdx){
    (ed?'<button class="btn block" data-act="deltouch" data-id="'+esc(l.id)+'" data-i="'+editIdx+'" style="margin-top:8px;color:var(--dang-t)">Delete touch</button>'+
        '<button class="btn block ghost" data-act="openlead" data-id="'+esc(l.id)+'" style="margin-top:8px">Cancel</button>':''));
 }
+/* a touch logged on a Leads row is an activity too, tied to the lead's name (and contact, once there is one), so it shows in
+   Activity, Team and the outreach tile; t.actId links the two so an edit or delete follows (Max, 2026-11-04) */
+const TOUCH_ACT={call:"call",voicemail:"call",email:"email",meeting:"visit",note:"note"};
+function touchActDate(day){return day===todayStr()?new Date().toISOString():day+"T12:00:00.000Z";}
+function touchAct(l,t){
+  let a=t.actId?(DB.activities||[]).find(x=>x.id===t.actId):null;
+  if(t.actId&&!a)return; /* its activity was deleted on purpose: leave it gone */
+  if(!a){a={id:uid(),by:t.by||USER,norm:2};DB.activities.unshift(a);t.actId=a.id;}
+  if(!a.date||localDay(a.date)!==t.date)a.date=touchActDate(t.date);
+  a.type=TOUCH_ACT[t.method]||"note";a.note=t.note||"";
+  if(t.method==="voicemail"){a.vm=true;a.out="vm";}else{delete a.vm;if(a.out==="vm")delete a.out;}
+  Object.assign(a,{leadId:l.id,name:l.name,company:l.company||"",conf:l.conf||"",pid:l.refPid||null});
+  if(l.refId)a.refId=l.refId;else delete a.refId;
+  const pr=a.pid&&person(a.pid);if(pr&&(!pr.last||pr.last<a.date))pr.last=a.date;
+}
 function saveTouch(){
   const l=myLeadById(logState.touchLead);if(!l)return;
   l.touches=l.touches||[];
   const date=document.getElementById("touchDate").value||todayStr(),method=logState.touchMethod||"call",note=val("touchNote");
   if(logState.touchEdit!=null&&l.touches[logState.touchEdit]){
     const t=l.touches[logState.touchEdit];t.date=date;t.method=method;t.note=note;t.editedBy=USER;t.editedAt=new Date().toISOString();
-    logState.touchEdit=null;save();render();formLeadRec(l.id);toast("Touch updated");return;
+    touchAct(l,t);logState.touchEdit=null;save();render();formLeadRec(l.id);toast("Touch updated");return;
   }
-  l.touches.push({date:date,method:method,note:note,by:USER});
+  const tch={date:date,method:method,note:note,by:USER};touchAct(l,tch);l.touches.push(tch);
   const cl=l.refId?leadById(l.refId):null;
   if(cl){cl.contacted=true;if(cl.status==="Not contacted")cl.status="Contacted";}
   save();closeSheet();render();toast(l.name+" — in Leads with the touch logged");
@@ -3989,11 +4008,14 @@ function isCoTravel(a){return a.type==="cotravel"||(a.type==="visit"&&a.with==="
 function isMrTravel(a){return a.type==="mrtravel"||(a.type==="visit"&&a.with==="manrep");}
 function isVisit(a){return a.type==="visit"||a.type==="meeting"||a.type==="cotravel"||a.type==="mrtravel";}
 function actFuTask(a){return a.fuTask?(DB.tasks||[]).find(t=>t.id===a.fuTask):null;}
-function actLaterTouch(a){const d=new Date(a.date).getTime();return (DB.activities||[]).some(b=>b.id!==a.id&&b.pid&&b.pid===a.pid&&new Date(b.date).getTime()>d);}
+/* a later touch with the same contact — or, for a lead's call with no contact yet, the same lead — counts as the follow-up */
+function actLaterTouch(a){const d=new Date(a.date).getTime(),k=a.pid?"pid":a.refId?"refId":a.leadId?"leadId":"";if(!k)return false;
+  return (DB.activities||[]).some(b=>b.id!==a.id&&b[k]&&b[k]===a[k]&&new Date(b.date).getTime()>d);}
 function actState(a){
   if(a.closed)return "done";
   const t=actFuTask(a);
-  if(t&&!t.removed){return t.done?"done":"sched";}
+  /* a scheduled follow-up whose day has come (or gone) is waiting again: To follow up, the badge, Home (Hannah, 2026-11-04) */
+  if(t&&!t.removed){return t.done?"done":t.due&&t.due<=todayStr()?"todo":"sched";}
   if(!ACT_FU_TYPES.includes(a.type))return "done";
   if(actLaterTouch(a))return "done";
   return (since(a.date)||0)>14?"old":"todo";
@@ -4006,13 +4028,18 @@ function actQueue(){
   return q;
 }
 function actTypeGroup(t){return {call:"calls",voicemail:"calls",email:"emails",meeting:"visits",visit:"visits",cotravel:"visits",mrtravel:"visits",demo:"demos",training:"training",note:"notes",quote:"quotes"}[t]||"notes";}
+/* who an activity was with: the contact, else the lead's name kept on the record (conference / Leads calls before the person is a contact) */
+function actWhoName(a){const p=a&&a.pid?person(a.pid):null;return p?p.name:(a&&a.name)||"";}
 function actRow(a){
   const p=person(a.pid),c=p?company(p.cid):(a.cid?company(a.cid):null),st=actState(a),t=actFuTask(a);
-  const who=p?'<button class="lnk" data-act="actperson" data-id="'+p.id+'">'+esc(p.name)+'</button>':(c?esc(c.name):'<span class="muted">—</span>');
-  const where=(c?esc(c.name):p&&p.branch?esc(p.branch):"")+(p&&p.role?' · '+esc(p.role):'');
+  const lead=!p&&a.name?(a.refId&&leadById(a.refId)?["leadopen",a.refId]:a.leadId&&myLeadById(a.leadId)?["openlead",a.leadId]:null):null;
+  const who=p?'<button class="lnk" data-act="actperson" data-id="'+p.id+'">'+esc(p.name)+'</button>':
+    !p&&a.name?(lead?'<button class="lnk" data-act="'+lead[0]+'" data-id="'+esc(lead[1])+'">'+esc(a.name)+'</button>':esc(a.name)):(c?esc(c.name):'<span class="muted">—</span>');
+  const where=(c?esc(c.name):p&&p.branch?esc(p.branch):!p&&a.company?esc(a.company):"")+(p&&p.role?' · '+esc(p.role):!p&&a.conf?' · '+esc(a.conf):'');
   const stamp=fmtDay(a.date)+' · '+ago(a.date)+(a.by?' · '+esc(shortName(a.by)):'');
   let acts='';
   if(st==="sched"&&t)acts='<span class="pill info">'+svg("clock")+' follow-up '+esc(t.due)+'</span><button class="btn sm" data-act="actdone" data-id="'+a.id+'">Done</button>';
+  else if(st==="todo"&&t&&!t.done&&!t.removed)acts='<span class="pill '+(t.due<todayStr()?'dang':'warn')+'">'+svg("clock")+' follow-up '+(t.due<todayStr()?'was due '+esc(histMd(t.due)):'due today')+'</span><button class="btn sm" data-act="editact" data-id="'+a.id+'">Move</button><button class="btn sm" data-act="actdone" data-id="'+a.id+'">Done</button>';
   else if(st==="done")acts='<span class="pill gray">done</span><button class="btn sm ghost" data-act="actreopen" data-id="'+a.id+'">Reopen</button>';
   else acts='<button class="btn sm coral" data-act="actfu" data-id="'+a.id+'">'+svg("clock")+' Follow up</button><button class="btn sm" data-act="actdone" data-id="'+a.id+'">Done</button>'+
     (p?'<button class="btn sm ghost" data-act="acttoopp" data-id="'+a.id+'" title="Start an opportunity from this">'+svg("chart")+' Opp</button>'+(p&&!(DB.leads||[]).some(l=>l.refPid===p.id)?'<button class="btn sm ghost" data-act="pushlead" data-id="'+p.id+'" title="Push to Leads">'+svg("spark")+' Lead</button>':''):'');
@@ -4088,22 +4115,27 @@ function weekOf(ymdS){const p=ymdS.split("-");const d=new Date(+p[0],+p[1]-1,+p[
    evening entry on the next day, and re-saving the day the sheet showed changed nothing (Hannah, 2026-11-04) */
 function calActs(who,from,to){return (DB.activities||[]).filter(a=>a&&a.date&&(!who||a.by===who)&&localDay(a.date)>=from&&localDay(a.date)<=to);}
 function calTasks(who,from,to){return (DB.tasks||[]).filter(t=>!t.removed&&t.due>=from&&t.due<=to&&(who?taskFor(t,who):true));}
-function calTaskRow(t){return '<div class="wki task'+(t.done?' done':'')+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button><button class="grow txt" data-act="edittask" data-id="'+t.id+'" title="Edit or move this to-do"><b>'+esc(t.title)+'</b><small>'+esc(taskTypeMeta(t.type)[2])+(t.pid&&person(t.pid)?' · '+esc(person(t.pid).name):'')+(t.owner!==USER?' · '+esc(shortName(t.owner)):'')+'</small></button></div>';}
-function calActRow(a,showBy){const p=person(a.pid);return '<button class="wki" data-act="editact" data-id="'+a.id+'" title="Edit this entry or set its follow-up"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><span class="grow"><b>'+esc(p?p.name:(a.cid&&company(a.cid)?company(a.cid).name:actLabel(a.type,a)))+'</b><small>'+esc(actLabel(a.type,a))+(a.note?' · '+esc(a.note):'')+(showBy&&a.by?' · '+esc(shortName(a.by)):'')+'</small></span>'+(actState(a)==="sched"?'<span class="pill info" style="font-size:10px">'+svg("clock")+'</span>':actState(a)==="old"?'<span class="pill warn" style="font-size:10px">!</span>':'')+'</button>';}
+function calTaskRow(t,showDue){return '<div class="wki task'+(t.done?' done':'')+'"><button class="chk'+(t.done?" on":"")+'" data-act="toggletask" data-id="'+t.id+'" aria-label="complete">'+(t.done?svg("check"):"")+'</button><button class="grow txt" data-act="edittask" data-id="'+t.id+'" title="Edit or move this to-do"><b>'+esc(t.title)+'</b><small>'+esc(taskTypeMeta(t.type)[2])+(t.pid&&person(t.pid)?' · '+esc(person(t.pid).name):'')+(t.owner!==USER?' · '+esc(shortName(t.owner)):'')+(showDue?' · <span style="color:var(--dang-t)">due '+esc(histMd(t.due))+'</span>':'')+'</small></button></div>';}
+function calActRow(a,showBy){const p=person(a.pid);return '<button class="wki" data-act="editact" data-id="'+a.id+'" title="Edit this entry or set its follow-up"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><span class="grow"><b>'+esc(actWhoName(a)||(a.cid&&company(a.cid)?company(a.cid).name:actLabel(a.type,a)))+'</b><small>'+esc(actLabel(a.type,a))+(a.note?' · '+esc(a.note):'')+(showBy&&a.by?' · '+esc(shortName(a.by)):'')+'</small></span>'+(actState(a)==="sched"?'<span class="pill info" style="font-size:10px">'+svg("clock")+'</span>':actState(a)==="old"?'<span class="pill warn" style="font-size:10px">!</span>':'')+'</button>';}
 /* one week, Sun → Sat. who = a team id or "" for everyone; anchor = any day in the week */
 function weekStripHTML(who,anchor,opts){
   opts=opts||{};const days=weekOf(anchor),T=todayStr();
   const acts=calActs(who,days[0],days[6]),tasks=calTasks(who,days[0],days[6]);
-  const open=tasks.filter(t=>!t.done).length;
+  /* to-dos left undone before this week ride along on today until they're done or moved — otherwise a slipped follow-up
+     dropped out of sight the Sunday after its day (Hannah, 2026-11-04) */
+  const carried=days.includes(T)?calTasks(who,"",dAdd(days[0],-1)).filter(t=>!t.done).sort((a,b)=>String(b.due).localeCompare(String(a.due))):[];
+  const open=tasks.filter(t=>!t.done).length+carried.length;
   let h='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(opts.title||"My week")+' <span class="cnt">'+open+' to do · '+acts.length+' logged</span></div>'+
    '<span class="t2" style="margin-left:4px">'+esc(fmtDay(days[0]).replace(/, \d{4}$/,""))+' – '+esc(fmtDay(days[6]))+'</span>'+
    '<div class="row" style="gap:6px;margin-left:auto"><button class="btn sm" data-act="'+opts.nav+'" data-v="-7">'+svg("chevL")+'</button>'+(days.includes(T)?'':'<button class="btn sm ghost" data-act="'+opts.nav+'" data-v="today">This week</button>')+'<button class="btn sm" data-act="'+opts.nav+'" data-v="7">'+svg("chevR")+'</button>'+(opts.extra||"")+'</div></div>';
   h+='<div class="wk">'+days.map((d,i)=>{const da=acts.filter(a=>localDay(a.date)===d).sort((a,b)=>new Date(a.date)-new Date(b.date)),dt=tasks.filter(t=>t.due===d).sort((a,b)=>(a.done?1:0)-(b.done?1:0));
     const slipped=d<T&&dt.some(t=>!t.done);
     return '<div class="wkday'+(d===T?' today':d<T?' past':'')+'"><button class="wkh" data-act="'+(opts.dayNav||opts.nav)+'" data-v="day:'+d+'" title="Open this day"><b>'+DOW7[i]+'</b><span>'+parseInt(d.slice(8),10)+'</span>'+(da.length?'<em>'+da.length+'</em>':'')+'</button>'+
-      (dt.length?'<div class="wksep">To do'+(slipped?' <span class="pill warn" style="font-size:10px">slipped</span>':'')+'</div>'+dt.map(calTaskRow).join(""):'')+
+      (d===T&&carried.length?'<div class="wksep">Overdue <span class="pill dang" style="font-size:10px">'+carried.length+'</span></div>'+carried.slice(0,6).map(t=>calTaskRow(t,true)).join("")+
+        (carried.length>6?'<button class="lnk" data-act="taskhistory" style="font-size:12px;padding:2px 3px">+'+(carried.length-6)+' more</button>':''):'')+
+      (dt.length?'<div class="wksep">To do'+(slipped?' <span class="pill warn" style="font-size:10px">slipped</span>':'')+'</div>'+dt.map(t=>calTaskRow(t)).join(""):'')+
       (da.length?'<div class="wksep">Logged</div>'+da.map(a=>calActRow(a,!who)).join(""):'')+
-      (!dt.length&&!da.length?'<p class="t2" style="padding:6px 3px">—</p>':'')+'</div>';}).join("")+'</div>';
+      (!dt.length&&!da.length&&!(d===T&&carried.length)?'<p class="t2" style="padding:6px 3px">—</p>':'')+'</div>';}).join("")+'</div>';
   return h;
 }
 /* a month at a glance: how many of each kind per day; tap a day to open it */
@@ -4146,9 +4178,9 @@ function calNav(v){ /* shared ‹ › handler: "today", ±n days, ±1m months, "
 }
 function actFollowupForm(aid){
   const a=(DB.activities||[]).find(x=>x.id===aid);if(!a)return;
-  const p=person(a.pid);logState.actFuId=aid;
-  openSheet('<h2>Follow up</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+esc(actLabel(a.type,a))+(p?' with '+esc(p.name):'')+' · '+esc(fmtDay(a.date))+(a.note?'<br><i>'+esc(a.note)+'</i>':'')+'</p>'+
-   '<label class="fl">What</label><input class="f" id="afuTitle" value="'+esc("Follow up"+(p?" with "+p.name:"")+(a.note?" — "+a.note.slice(0,60):""))+'" autocomplete="off">'+
+  const nm=actWhoName(a);logState.actFuId=aid;
+  openSheet('<h2>Follow up</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+esc(actLabel(a.type,a))+(nm?' with '+esc(nm):'')+' · '+esc(fmtDay(a.date))+(a.note?'<br><i>'+esc(a.note)+'</i>':'')+'</p>'+
+   '<label class="fl">What</label><input class="f" id="afuTitle" value="'+esc("Follow up"+(nm?" with "+nm:"")+(a.note?" — "+a.note.slice(0,60):""))+'" autocomplete="off">'+
    '<label class="fl">How</label><div class="qa-types" id="afuType">'+[["call","Call"],["email","Email"],["demo","Demo"],["followup","Visit / meet"]].map((t,i)=>'<span class="qchip'+(i===0?" on":"")+'" data-act="afutype" data-v="'+t[0]+'">'+t[1]+'</span>').join("")+'</div>'+
    '<label class="fl">When</label><div class="qa-types" style="margin-bottom:6px">'+[[0,"Today"],[1,"Tomorrow"],[3,"In 3 days"],[7,"Next week"]].map(d=>'<span class="qchip" data-act="afudue" data-v="'+d[0]+'">'+d[1]+'</span>').join("")+'</div>'+
    '<input class="f" id="afuDue" type="date" value="'+ymd(new Date(Date.now()+3*86400000))+'">'+
@@ -4739,8 +4771,9 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
   logState.oppDistRepPid=o?(o.distRepPid||null):null;
   logState.oppManrepPid=o?(o.manrepPid||null):null;
   const dtypes=["End User Order","Stocking Order","Training / Demo","Other"];
-  logState.oppGhRep=o?(o.ghRep||oppGhRep(o)||""):(repForRegion(regionFromState((prefillCid&&company(prefillCid)||{}).state))||(GH_REPS.includes(USER)?USER:""));
-  const repChips=GH_REPS.concat(["jamie","max","house"]).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
+  const noAuto=oppNoAutoRep(o);
+  logState.oppGhRep=o?(o.ghRep||oppGhRep(o)||""):noAuto?"":(repForRegion(regionFromState((prefillCid&&company(prefillCid)||{}).state))||(GH_REPS.includes(USER)?USER:""));
+  const repChips=(noAuto?'<span class="chip'+(logState.oppGhRep?"":" on")+'" data-act="setGhRep" data-v="">No one yet</span>':'')+GH_REPS.concat(["jamie","max","house"]).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
    '<label class="fl">Opportunity name <span style="font-weight:400;color:var(--hint)">— account + what it is, e.g. "Grainger East run rate"</span></label><input class="f" id="oName" value="'+(o?esc(o.name):esc(pre.name||""))+'" placeholder="e.g. Grainger East run rate" autocomplete="off">'+
    '<label class="fl">Lead / end user <span style="font-weight:400;color:var(--hint)">— who the product is for (Conagra); ours pop up, a new name is fine</span></label>'+comboField("oCidQ","Type the end-user or account…",selCid?((company(selCid)||{}).name||""):(o?o.accountName||"":(pre.acct||"")))+
@@ -4799,8 +4832,9 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
     direct:!!(document.getElementById("oDirect")||{}).checked,
     probability:OPP_PROB[logState.oppStage||"Prospecting"]};
   /* every deal is tied to a Golden Hour sales person; the territory fills it in when nobody picked one (Max, 2026-10-16) */
-  data.ghRep=logState.oppGhRep||repForRegion(regionFromState(data.state))||(c?repForRegion(companyRegion(c)):"")||"";
-  if(!data.ghRep){toast("Pick the Golden Hour sales person on this deal");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
+  const noAuto=oppNoAutoRep(existing||null);
+  data.ghRep=logState.oppGhRep||(noAuto?"":repForRegion(regionFromState(data.state))||(c?repForRegion(companyRegion(c)):"")||"");
+  if(!data.ghRep&&!noAuto){toast("Pick the Golden Hour sales person on this deal");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
   if(data.stage==="Closed Won"&&!(logState.oppQuoteIds||[]).some(id=>quoteById(id))){toast("Closed won needs its quote — make one or attach the quote you sent");const el=document.getElementById("oppQts");if(el)el.scrollIntoView({block:"center"});return;}
   if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
   const ownerSel=document.getElementById("oOwner");
@@ -4919,7 +4953,7 @@ function oppFromQuote(q){
     contacts:[].concat(q.pid&&person(q.pid)?[{pid:q.pid,role:"Buyer"}]:[],q.distPid&&person(q.distPid)?[{pid:q.distPid,role:"Distributor rep"}]:[]),
     nextAction:"Follow up on quote "+q.no,nextActionDate:ymd(new Date(Date.now()+7*86400000)),closeDate:"",
     note:"Made from quote "+q.no+".",rep:"",touchesExtra:0,lastContact:"",direct:false};
-  o.ghRep=profile(USER)==="sales"?USER:(repForRegion(regionFromState(st))||"");
+  o.ghRep=profile(USER)==="sales"?USER:oppNoAutoRep(o)?"":(repForRegion(regionFromState(st))||"");
   if(o.ghRep==="house")o.ghRep="";
   DB.opps.unshift(o);q.oppId=o.id;
   return o;
@@ -5124,7 +5158,7 @@ function formActivity(id){
   const types=LOG_TYPES.slice();
   if(!types.some(t=>t[0]===logState.actType))types.push([logState.actType,"note",titlecase(logState.actType)]);
   const p=person(a.pid),tk=actFuTask(a),st=actState(a);
-  openSheet('<h2>'+esc(actLabel(a.type,a))+(p?' · '+esc(p.name):'')+'</h2>'+
+  openSheet('<h2>'+esc(actLabel(a.type,a))+(actWhoName(a)?' · '+esc(actWhoName(a)):'')+'</h2>'+
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">Logged by '+esc(a.by?teamById(a.by).name:"—")+' · '+esc(fmtDay(a.date))+(p&&p.branch?' · '+esc(p.branch):'')+'</p>'+
    '<label class="fl">Follow up</label>'+
    (st==="done"&&!tk?'<p class="t2" style="margin:0 0 4px">'+(a.closed?'Marked done':'Followed up already')+' · <button class="lnk" data-act="actreopen" data-id="'+a.id+'">reopen</button></p>'
@@ -5153,7 +5187,7 @@ function saveActivity(){
   const fuEl=document.getElementById("actFuDue");const due=fuEl?fuEl.value:"";
   if(due){ensureTasks();let tk=actFuTask(a);
     if(tk&&!tk.done){tk.due=due;}
-    else{const p=person(a.pid);tk={id:uid(),owner:USER,title:"Follow up"+(p?" with "+p.name:"")+(a.note?" — "+a.note.slice(0,60):""),type:"call",due:due,done:false,createdAt:new Date().toISOString(),pid:a.pid||null,actId:a.id};DB.tasks.unshift(tk);a.fuTask=tk.id;}
+    else{const nm=actWhoName(a);tk={id:uid(),owner:USER,title:"Follow up"+(nm?" with "+nm:"")+(a.note?" — "+a.note.slice(0,60):""),type:"call",due:due,done:false,createdAt:new Date().toISOString(),pid:a.pid||null,actId:a.id};DB.tasks.unshift(tk);a.fuTask=tk.id;}
     a.closed=false;}
   save();closeSheet();render();toast(due?"Saved — follow-up on "+due:"Activity updated");
 }
@@ -5374,9 +5408,11 @@ const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",californi
 function ensureLists(){DB.lists=DB.lists||[];}
 function shortName(id){if(id==="house")return "House";const n=teamById(id).name.split(" ")[0];return n+(id==="johnm"?" M.":id==="john"?" C.":"");}
 function mdStamp(iso){if(!iso)return"";const d=new Date(iso);return (d.getMonth()+1)+"/"+d.getDate();}
-function listLog(l,it,type,note){const pr=it.pid?person(it.pid):null;if(!pr)return;
-  DB.activities.unshift({id:uid(),pid:pr.id,type:type,note:note+" · list: "+l.name,date:new Date().toISOString(),by:USER});
-  pr.last=new Date().toISOString();}
+function listLog(l,it,type,note){const pr=it.pid?person(it.pid):null;if(!pr&&!it.name)return;
+  const rec={id:uid(),pid:pr?pr.id:null,type:type,note:note+" · list: "+l.name,date:new Date().toISOString(),by:USER};
+  if(!pr){rec.name=it.name;rec.company=it.company||"";} /* a row whose contact is gone still logs, under the name on the list */
+  DB.activities.unshift(rec);
+  if(pr)pr.last=rec.date;}
 function personSheetHTML(pid){
   const p=person(pid);if(!p)return'<div class="empty">Not found.</div>';
   const c=company(p.cid);
@@ -7466,7 +7502,7 @@ document.addEventListener("click",e=>{
   if(a==="pipexall"){const v=t.dataset.v;const sel=v==="1"?PIPE_FIELDS.map(f=>f[0]):v==="0"?[]:PIPE_DEFAULT.slice();try{localStorage.setItem("autotq_pipe_fields",JSON.stringify(sel));}catch(e){}document.querySelectorAll("#pipeFields .qchip").forEach(x=>x.classList.toggle("on",sel.includes(x.dataset.v)));return;}
   if(a==="pipexgo"){pipeExportCsv();return;}
   if(a==="pipef"){pipeF.rep=t.dataset.v;if(view!=="opps"){pushNav();view="opps";oppFilter="open";}e.stopPropagation();render();return;}
-  if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on?tm.c:"";x.style.color=on?tm.c:"";});return;}
+  if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on&&x.dataset.v?tm.c:"";x.style.color=on&&x.dataset.v?tm.c:"";});return;}
   if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
     if(t.dataset.v==="Closed Won"&&!oppHasQuote(o)){toast("Record the quote first — every deal has its outbound quote");formOpp(o.id);return;}
@@ -7643,7 +7679,7 @@ document.addEventListener("click",e=>{
   if(a==="openlead"){formLeadRec(id);return;}
   if(a==="addtouch"){formTouch(id);return;}
   if(a==="edittouch"){formTouch(id,parseInt(t.dataset.i,10));return;}
-  if(a==="deltouch"){const ml=myLeadById(id),i=parseInt(t.dataset.i,10);if(ml&&ml.touches&&ml.touches[i]&&confirm("Delete this touch from "+ml.name+"'s history?")){ml.touches.splice(i,1);logState.touchEdit=null;save();render();formLeadRec(ml.id);toast("Touch deleted");}return;}
+  if(a==="deltouch"){const ml=myLeadById(id),i=parseInt(t.dataset.i,10);if(ml&&ml.touches&&ml.touches[i]&&confirm("Delete this touch from "+ml.name+"'s history?")){const gone=ml.touches.splice(i,1)[0];if(gone&&gone.actId){const k=DB.activities.findIndex(x=>x.id===gone.actId);if(k>-1)DB.activities.splice(k,1);}logState.touchEdit=null;save();render();formLeadRec(ml.id);toast("Touch deleted");}return;}
   if(a==="editlead"){formEditLead(id);return;}
   if(a==="elsave"){saveEditLead();return;}
   if(a==="elkind"){collectLeadEdit("el");logState.elKind=t.dataset.v;formEditLead(logState.elId,true);return;}
