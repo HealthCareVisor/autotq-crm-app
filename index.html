@@ -528,6 +528,28 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .gtgrid{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:8px 10px;align-items:center;font-size:13.5px}
 .gtgrid.one{grid-template-columns:minmax(0,1fr) 92px;margin-top:14px}
 .gtgrid b{font-size:12px;color:var(--muted);font-weight:600}.gtgrid .f{margin:0;width:100%}
+/* test sessions (2026-11-05): the notes dock rides above every page and pop-up */
+.fbdock{position:fixed;right:18px;bottom:18px;z-index:50;width:min(360px,calc(100vw - 32px));font-size:13.5px}
+.fbdock.hide{display:none}.fbdock.min{width:auto}
+.fbbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-pop);padding:12px 14px 14px;max-height:min(72vh,580px);overflow:auto;overscroll-behavior:contain}
+.fbdock.min .fbbox{display:none}
+.fbpills{display:none;justify-content:flex-end;gap:8px}.fbdock.min .fbpills{display:flex}
+.fbpill{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border:0;border-radius:999px;padding:9px 15px;font:inherit;font-weight:600;font-size:13px;cursor:pointer;box-shadow:var(--sh-pop);white-space:nowrap}
+.fbpill:hover{background:#33312c}.fbpill.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.fbdot{width:8px;height:8px;border-radius:50%;background:var(--coral);flex:none;box-shadow:0 0 0 3px rgba(216,90,48,.28)}
+.fbdot.off{background:#fff;box-shadow:none}
+.fbhead{display:flex;align-items:center;gap:8px;margin-bottom:8px}.fbhead b{font-size:14.5px;font-weight:650}.fbcnt{color:var(--muted);font-size:12.5px}.fbhead .ibtn{margin-left:auto}
+.fbpage{font-size:12.5px;color:var(--muted);line-height:1.4}.fbpage b{color:var(--ink);font-weight:600}
+.fbask{margin:6px 0 10px;color:var(--ink-2);font-size:13.5px;line-height:1.4}
+.fbkinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.fbkinds .qchip{min-height:28px}
+.fbdock textarea.f{margin:0;min-height:76px;resize:vertical;width:100%}
+.fbrow{display:flex;align-items:center;gap:8px;margin-top:8px}.fbhint{font-size:11.5px;color:var(--muted)}
+.fbsub{font-size:12px;font-weight:600;color:var(--muted);margin:12px 2px 6px}
+#fbList .list{margin-bottom:4px}
+.fbn{align-items:flex-start}.fbn .pill{flex:none;font-size:11px}.fbn .grow{white-space:pre-wrap;font-size:13.5px;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+.fbsess>summary{cursor:pointer;padding:10px 2px;font-size:14px;list-style-position:inside}.fbsess>summary .pill{margin-left:4px}
+@media (max-width:640px){.fbdock{right:12px;bottom:calc(84px + env(safe-area-inset-bottom))}.fbbox{max-height:56vh}.fbhint{display:none}
+  .fbdock.insheet{bottom:auto;top:calc(10px + env(safe-area-inset-top))}.fbdock.insheet .fbbox{max-height:44vh}}
 @media (max-width:640px){
   .gtm{grid-template-columns:1fr}.gtmb{border-left:0;border-top:1px solid var(--line-2)}
   .gtr{grid-template-columns:minmax(0,108px) minmax(0,1fr) 64px}
@@ -904,7 +926,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1205,8 +1227,8 @@ function chev(){return svg("chevR","chev");}
 function toast(m,undo){const t=document.getElementById("toast");t.textContent=m;
   if(undo){const b=document.createElement("button");b.type="button";b.className="tundo";b.textContent="Undo";b.onclick=e=>{e.stopPropagation();t.classList.remove("show");undo();};t.appendChild(b);}
   t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?5000:1900);}
-function openSheet(html){document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");}
-function closeSheet(){document.getElementById("scrim").classList.remove("open");}
+function openSheet(html){document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");try{fbUpdate();}catch(e){}}
+function closeSheet(){document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}}
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;},true);
@@ -1223,6 +1245,7 @@ document.addEventListener("keydown",e=>{
 });
 
 function renderLogin(){
+  {const fd=document.getElementById("fbdock");if(fd)fd.remove();}
   const step=logState.setPw?"setpw":(logState.otpEmail?"code":(logState.pwEmail?"pw":"email"));
   let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Channel CRM</div>';
   if(step==="email"){
@@ -1609,6 +1632,7 @@ function render(){
   topScrollSync();
   fitZoom();
   try{trackUsage();}catch(e){}
+  try{fbSync();}catch(e){}
 }
 /* real navigation history — the back button returns to wherever you actually came from */
 let navStack=[];
@@ -2323,6 +2347,7 @@ function viewTeamGoals(){
   FLT_RESET.team=()=>{teamR={preset:"ytd",from:"",to:""};teamDrill=null;};
   let h='';
   if(!cfg.live)h+='<div class="gtest">'+svg("alert")+'<div class="grow"><b>Goals are in test.</b> Only Hannah and Max see them — the reps still see their usual page.</div>'+
+    (adm&&(DB.feedback||[]).some(x=>x&&(x.notes||[]).length)?'<button class="btn sm" data-act="fbpast">Test notes</button>':'')+
     (adm?'<button class="btn sm" data-act="goaltargets">Targets</button><button class="btn sm coral" data-act="goallive" data-v="1">Turn on for the team</button>':'')+'</div>';
   h+='<div class="gctl">'+(hasCard?'<div class="seg">'+[["me",goalHas(USER)?"Just me":"My test card"],["team","Whole team"]].map(x=>'<button class="'+(!see&&who===x[0]?"on":"")+'" data-act="goalwho" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>':'')+
    '<div class="seg">'+[["today","Today"],["week","This week"]].map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="goalview" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
@@ -2383,6 +2408,160 @@ function setGoalsLive(on){
   const r=goalTargetsRec();r.live=!!on;r.liveBy=USER;r.liveAt=new Date().toISOString();save();closeSheet();render();
   toast(on?"Goals are live for the team":"Goals are back in test — only Hannah and Max see them");
 }
+/* ---------- test sessions (Max, 2026-11-05: "a test session where she can log what she likes and dislikes via text boxes… begin
+   session, then end session"): Hannah (and Max) walk the CRM and type notes into a dock that files each one under the page or
+   pop-up they're on. One record per session in the synced "feedback" collection: {id,user,startedAt,endedAt,status open|done,
+   notes:[{at,key,page,view,kind change|like|bug|question|overall,text}]}. An ended session stays for Max (and Claude) to read. ---------- */
+const FB_USERS=["hannah","max"];
+const FB_KINDS=[["change","Change"],["like","Like"],["bug","Broken"],["question","Question"]];
+const FB_PH={change:"Type what you’d change here…",like:"What works well here?",bug:"What broke, and what did you press?",question:"What’s unclear?"};
+let fbKind="change",fbAck=null;
+function fbOn(){return FB_USERS.includes(USER);}
+function fbOpenSess(){return (DB.feedback||[]).find(s=>s&&s.user===USER&&s.status==="open");}
+function fbKindLbl(k){return k==="overall"?"Overall":(FB_KINDS.find(x=>x[0]===k)||["","Note"])[1];}
+function fbTone(k){return {like:"ok",change:"info",bug:"dang",question:"warn"}[k]||"gray";}
+function fbMinGet(){try{const v=localStorage.getItem("autotq_fb_min");if(v!=null)return v==="1";}catch(e){}return innerWidth<=640;}
+function fbMinSet(on){try{localStorage.setItem("autotq_fb_min",on?"1":"0");}catch(e){}const d=document.getElementById("fbdock");if(d)d.classList.toggle("min",!!on);}
+/* where she is: an open pop-up wins, else the tab (plus which goals view she's looking at) */
+function fbPage(){
+  const sc=document.getElementById("scrim"),h2=sc&&sc.classList.contains("open")?document.querySelector("#sheet h2"):null;
+  if(h2){const t=h2.textContent.trim();return {key:"sheet:"+t,label:t+" (pop-up)",fb:h2.hasAttribute("data-fb")};}
+  const h1=document.querySelector(".crumb h1");let label=h1?h1.textContent.trim():view,key=view;
+  if(view==="team"&&goalsOn()){
+    const see=logState.goalSee&&goalHas(logState.goalSee)&&logState.goalSee!==USER?logState.goalSee:null,who=logState.goalWho||(goalHas(USER)?"me":"team");
+    if(see){key="team:card";label+=" · "+teamById(see).name+"’s card";}else if(who==="me"){key="team:mine";label+=" · "+(goalHas(USER)?"my card":"my test card");}else{key="team:whole";label+=" · Whole team";}
+    label+=" ("+(goalViewCur()==="today"?"Today":"This week")+")";}
+  else if(view==="person"&&curPerson)key="person:"+curPerson;
+  else if(view==="roster"&&curCompany)key="roster:"+curCompany;
+  return {key:key,label:label};
+}
+function fbAsk(p){
+  const t=p.label;
+  if(/^Plan .*week/.test(t))return "Is planning the week quick and clear? Should past days lock, or the whole week once Monday is over?";
+  if(/^Targets/.test(t))return "Are these the right numbers per day? Anything to add, like a weekly calls number?";
+  if(/^Log activity/.test(t))return "Does Log open the way a rep would expect when they press it on a goal?";
+  if(p.key==="team:whole")return "Does each row tell you who’s behind at a glance? Anything to add, cut or rename?";
+  if(p.key==="team:card"||p.key==="team:mine")return "Is this how a rep should see their week: the day strip, the bars, the man-rep list?";
+  if(p.key==="today")return "Is “Behind this week” and the status cards what everyone should see first on Home?";
+  return "What do you like on this page, and what would you change?";
+}
+function fbDockEl(){let d=document.getElementById("fbdock");if(!d){d=document.createElement("div");d.id="fbdock";document.body.appendChild(d);}return d;}
+function fbBuild(){
+  const d=fbDockEl(),s=fbOpenSess(),past=(DB.feedback||[]).some(x=>x&&x.notes&&x.notes.length);
+  d.dataset.state=s?"on":"off";d.dataset.sid=s?s.id:"";
+  if(!s){d.className="fbdock min";
+    d.innerHTML='<div class="fbpills"><button class="fbpill" data-act="fbwelcome"><span class="fbdot off"></span>Start a test session</button>'+
+     (past?'<button class="fbpill ghost" data-act="fbpast" title="Notes from earlier test sessions">Past notes</button>':'')+'</div>';
+    fbUpdate();return;}
+  d.className="fbdock"+(fbMinGet()?" min":"");
+  d.innerHTML='<div class="fbpills"><button class="fbpill" data-act="fbmax" title="Open the notes box"><span class="fbdot"></span>Test session · <span id="fbCnt"></span></button></div>'+
+   '<div class="fbbox" role="complementary" aria-label="Test session notes"><div class="fbhead"><span class="fbdot"></span><b>Test session</b><span class="fbcnt" id="fbCnt2"></span>'+
+   '<button class="ibtn" data-act="fbmin" title="Make it small" aria-label="Make the notes box small">'+svg("chevD")+'</button></div>'+
+   '<div class="fbpage">On this page: <b id="fbPage"></b></div><p class="fbask" id="fbAsk"></p>'+
+   '<div class="fbkinds" id="fbKinds">'+FB_KINDS.map(k=>'<button class="qchip'+(fbKind===k[0]?" on":"")+'" data-act="fbkind" data-v="'+k[0]+'">'+k[1]+'</button>').join("")+'</div>'+
+   '<textarea class="f" id="fbText" rows="3" placeholder="'+FB_PH[fbKind]+'"></textarea>'+
+   '<div class="fbrow"><button class="btn sm coral" data-act="fbsave">Save note</button><span class="fbhint">Ctrl + Enter</span><span class="grow"></span><button class="btn sm" data-act="fbend">End session</button></div>'+
+   '<div id="fbList"></div></div>';
+  document.getElementById("fbText").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();fbSave();}});
+  fbUpdate();
+}
+/* refresh the dock in place, so a half-typed note survives every re-render and sync */
+function fbUpdate(){
+  const d=document.getElementById("fbdock");if(!d)return;
+  const p=fbPage();d.classList.toggle("hide",!!p.fb); /* out of the way while its own pop-ups are open */
+  d.classList.toggle("insheet",document.getElementById("scrim").classList.contains("open")); /* phones: up top, clear of the pop-up's buttons */
+  const s=fbOpenSess();if(!s||d.dataset.state!=="on")return;
+  const notes=s.notes||[],n=notes.length,cnt=n+" note"+(n===1?"":"s");
+  document.getElementById("fbCnt").textContent=cnt;document.getElementById("fbCnt2").textContent=cnt;
+  document.getElementById("fbPage").textContent=p.label;
+  document.getElementById("fbAsk").textContent=fbAck&&fbAck.key===p.key?fbAck.text:fbAsk(p);
+  const here=notes.map((x,i)=>({x:x,i:i})).filter(r=>r.x.key===p.key);
+  document.getElementById("fbList").innerHTML=(here.length?'<div class="fbsub">Your notes on this page</div><div class="list">'+here.map(r=>
+     '<div class="tk fbn"><span class="pill '+fbTone(r.x.kind)+'">'+fbKindLbl(r.x.kind)+'</span><span class="grow">'+esc(r.x.text)+'</span><button class="tkdel" data-act="fbdel" data-i="'+r.i+'" title="Remove this note">'+svg("x")+'</button></div>').join("")+'</div>':'')+
+    (n?'<button class="lnk" data-act="fbend" data-v="review" style="margin-top:6px">All '+cnt+'</button>':'');
+}
+function fbSync(){
+  const d=document.getElementById("fbdock");
+  if(!USER||!authed()||!fbOn()){if(d)d.remove();return;}
+  const s=fbOpenSess();
+  if(!d||d.dataset.state!==(s?"on":"off")||(s&&d.dataset.sid!==s.id))fbBuild();else fbUpdate();
+  /* Hannah signs in to a test session: the welcome pop-up once a day while goals are in test */
+  if(USER==="hannah"&&!s&&!goalCfg().live){const k="autotq_fb_prompt:"+USER+":"+todayStr();let seen=true;try{seen=!!localStorage.getItem(k);if(!seen)localStorage.setItem(k,"1");}catch(e){}
+    if(!seen&&!document.getElementById("scrim").classList.contains("open"))setTimeout(fbWelcome,400);}
+}
+function fbWelcome(){
+  const first=teamById(USER).name.split(" ")[0];
+  const steps=[["Team · Whole team","Everyone’s bars and who’s behind"],["Team · tap a rep’s name","The card a rep sees: their week, bars and man-reps"],["Plan the week","The Zone / Office / Both pop-up on a card"],
+    ["Targets","The numbers per day (button on Team)"],["Home","The Behind this week strip and status cards"],["My test card","Plan your own days, press Log, watch the bars move"]];
+  openSheet('<h2 data-fb="1">Test session</h2><p class="t2" style="white-space:normal;margin:0 0 12px">Hi '+esc(first)+'. This is a test session for the new weekly goals. Go through the CRM the way a rep would, and on every page type what you like and what you’d change in the notes box at the bottom right. Each note is filed under the page you’re on.</p>'+
+   '<div class="list">'+steps.map((x,i)=>'<div class="tk"><span class="ic coral">'+(i+1)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+x[0]+'</p><p class="t2">'+x[1]+'</p></div></div>').join("")+'</div>'+
+   '<p class="t2" style="white-space:normal">When you’re done, press <b>End session</b>. Your notes are saved for Max to work through; nothing you type changes the CRM by itself.</p>'+
+   '<button class="btn coral block" data-act="fbstart">Begin session</button><button class="btn block ghost" data-act="closesheet" style="margin-top:8px">Not now</button>');
+}
+function fbStart(){
+  if(fbOpenSess()){closeSheet();fbMinSet(false);fbSync();return;}
+  DB.feedback=DB.feedback||[];const now=new Date().toISOString();
+  DB.feedback.push({id:"fb_"+USER+"_"+Date.now().toString(36),user:USER,startedAt:now,status:"open",notes:[]});
+  save();closeSheet();fbMinSet(false);fbAck=null;
+  pushNav();view="team";logState.goalWho="team";logState.goalSee=null;teamDrill=null;render();window.scrollTo(0,0);
+  toast("Session started — the notes box is at the bottom right");
+}
+function fbSave(){
+  const s=fbOpenSess(),ta=document.getElementById("fbText");if(!s||!ta)return;
+  const text=ta.value.trim();if(!text){ta.focus();return;}
+  const p=fbPage();
+  s.notes=(s.notes||[]).concat([{at:new Date().toISOString(),key:p.key,page:p.label,view:view,kind:fbKind,text:text}]);s.updatedAt=new Date().toISOString();save();
+  ta.value="";fbAck={key:p.key,text:"Got it, filed under "+p.label+". Anything else on this page?"};fbUpdate();ta.focus();
+}
+function fbDel(i){
+  const s=fbOpenSess();if(!s||!s.notes||!s.notes[i])return;
+  const was=s.notes.slice(),gone=s.notes[i];s.notes=s.notes.filter((x,j)=>j!==i);save();fbUpdate();fbReopenEnd();
+  toast("Note removed: “"+gone.text.slice(0,40)+(gone.text.length>40?"…":"")+"”",()=>{s.notes=was;save();fbUpdate();fbReopenEnd();});
+}
+function fbReopenEnd(){const o=document.getElementById("fbOverall");if(!o)return;const v=o.value;fbEndSheet();const n=document.getElementById("fbOverall");if(n)n.value=v;}
+/* the notes grouped by the page they were made on */
+function fbNotesHTML(s,canDel){
+  const notes=s.notes||[];if(!notes.length)return '<div class="empty" style="padding:14px">No notes yet.</div>';
+  const groups=[],at={};
+  notes.forEach((x,i)=>{const g=x.page||x.key;if(!(g in at)){at[g]=groups.length;groups.push({page:g,rows:[]});}groups[at[g]].rows.push({x:x,i:i});});
+  return groups.map(g=>'<div class="sectlabel" style="margin:14px 2px 8px">'+esc(g.page)+' <span class="cnt">'+g.rows.length+'</span></div><div class="list">'+g.rows.map(r=>
+    '<div class="tk fbn"><span class="pill '+fbTone(r.x.kind)+'">'+fbKindLbl(r.x.kind)+'</span><span class="grow">'+esc(r.x.text)+'</span>'+
+    (canDel?'<button class="tkdel" data-act="fbdel" data-i="'+r.i+'" title="Remove this note">'+svg("x")+'</button>':'')+'</div>').join("")+'</div>').join("");
+}
+function fbEndSheet(){
+  const s=fbOpenSess();if(!s)return;
+  const n=(s.notes||[]).length,pages=new Set((s.notes||[]).map(x=>x.page||x.key)).size;
+  openSheet('<h2 data-fb="1">End test session</h2><p class="t2" style="white-space:normal;margin:0 0 4px">'+n+' note'+(n===1?"":"s")+(n?' on '+pages+' page'+(pages===1?"":"s"):'')+'. Look them over, add anything about the whole thing, then end the session.</p>'+
+   fbNotesHTML(s,true)+
+   '<label class="fl">Anything else, overall?</label><textarea class="f" id="fbOverall" rows="3" placeholder="Optional"></textarea>'+
+   '<button class="btn coral block" data-act="fbendgo" style="margin-top:14px">End session</button><button class="btn block ghost" data-act="closesheet" style="margin-top:8px">Keep testing</button>');
+}
+function fbEndGo(){
+  const s=fbOpenSess();if(!s)return;
+  const o=document.getElementById("fbOverall"),txt=o?o.value.trim():"",now=new Date().toISOString();
+  if(txt)s.notes=(s.notes||[]).concat([{at:now,key:"overall",page:"Overall",view:view,kind:"overall",text:txt}]);
+  s.status="done";s.endedAt=now;s.updatedAt=now;save();closeSheet();fbAck=null;fbSync();
+  const n=(s.notes||[]).length;toast("Session ended — "+n+" note"+(n===1?"":"s")+" saved for Max");
+}
+function fbWhen(s){const f=x=>{const d=new Date(x);return isNaN(d)?"":d.toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});};
+  return f(s.startedAt)+(s.endedAt?" – "+new Date(s.endedAt).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"");}
+/* every session, newest first — what Max reads (and copies to Claude) */
+function fbPastSheet(){
+  const list=(DB.feedback||[]).filter(s=>s&&(s.notes||[]).length).sort((a,b)=>String(b.startedAt).localeCompare(String(a.startedAt)));
+  openSheet('<h2 data-fb="1">Test session notes</h2><p class="t2" style="white-space:normal;margin:0 0 8px">Every test session, newest first. Copy one to hand it on.</p>'+
+   (list.length?list.map((s,i)=>'<details class="fold fbsess"'+(i===0?' open':'')+'><summary><b>'+esc(teamById(s.user).name)+'</b> · '+esc(fbWhen(s))+' · '+s.notes.length+' notes '+
+     '<span class="pill '+(s.status==="open"?"warn":"ok")+'">'+(s.status==="open"?"In progress":"Ended")+'</span></summary>'+
+     '<button class="btn sm" data-act="fbcopy" data-id="'+esc(s.id)+'" style="margin:8px 0 0">'+svg("note")+' Copy as text</button>'+fbNotesHTML(s,false)+'</details>').join("")
+    :'<div class="empty">No notes yet.</div>'));
+}
+function fbCopy(id){
+  const s=(DB.feedback||[]).find(x=>x&&x.id===id);if(!s)return;
+  const groups={};(s.notes||[]).forEach(x=>{(groups[x.page||x.key]=groups[x.page||x.key]||[]).push(x);});
+  const txt="Test session — "+teamById(s.user).name+", "+fbWhen(s)+"\n\n"+Object.keys(groups).map(g=>g+"\n"+groups[g].map(x=>"- ["+fbKindLbl(x.kind)+"] "+x.text).join("\n")).join("\n\n");
+  const done=()=>toast("Copied — paste it anywhere");
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,()=>htmlCopyFallback(txt));else htmlCopyFallback(txt);
+}
+function htmlCopyFallback(txt){const t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");toast("Copied — paste it anywhere");}catch(e){toast("Couldn't copy");}t.remove();}
 function viewToday(){
   if(USER==="laresa")return billingHome(); /* her Home is the billing picture, not the sales floor */
   ensureTasks();ensureOpps();
@@ -7863,6 +8042,17 @@ document.addEventListener("click",e=>{
   if(a==="pipexall"){const v=t.dataset.v;const sel=v==="1"?PIPE_FIELDS.map(f=>f[0]):v==="0"?[]:PIPE_DEFAULT.slice();try{localStorage.setItem("autotq_pipe_fields",JSON.stringify(sel));}catch(e){}document.querySelectorAll("#pipeFields .qchip").forEach(x=>x.classList.toggle("on",sel.includes(x.dataset.v)));return;}
   if(a==="pipexgo"){pipeExportCsv();return;}
   if(a==="pipef"){pipeF.rep=t.dataset.v;if(view!=="opps"){pushNav();view="opps";oppFilter="open";}e.stopPropagation();render();return;}
+  if(a==="fbwelcome"){fbWelcome();return;}
+  if(a==="fbstart"){fbStart();return;}
+  if(a==="fbmax"){fbMinSet(false);const x=document.getElementById("fbText");if(x)x.focus();return;}
+  if(a==="fbmin"){fbMinSet(true);return;}
+  if(a==="fbkind"){fbKind=t.dataset.v;document.querySelectorAll("#fbKinds .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===fbKind));const x=document.getElementById("fbText");if(x){x.placeholder=FB_PH[fbKind]||"";x.focus();}return;}
+  if(a==="fbsave"){fbSave();return;}
+  if(a==="fbdel"){fbDel(+t.dataset.i);return;}
+  if(a==="fbend"){fbEndSheet();return;}
+  if(a==="fbendgo"){fbEndGo();return;}
+  if(a==="fbpast"){fbPastSheet();return;}
+  if(a==="fbcopy"){fbCopy(id);return;}
   if(a==="goalwho"){logState.goalWho=t.dataset.v;logState.goalSee=null;teamDrill=null;render();return;}
   if(a==="goalview"){logState.goalView=t.dataset.v;render();return;}
   if(a==="goalsee"){const u=id;pushNav();view="team";if(u===USER&&goalCardFor(USER)){logState.goalWho="me";logState.goalSee=null;}else logState.goalSee=u;teamDrill=null;render();window.scrollTo(0,0);return;}
