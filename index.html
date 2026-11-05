@@ -547,6 +547,17 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .fbsub{font-size:12px;font-weight:600;color:var(--muted);margin:12px 2px 6px}
 #fbList .list{margin-bottom:4px}
 .fbn{align-items:flex-start}.fbn .pill{flex:none;font-size:11px}.fbn .grow{white-space:pre-wrap;font-size:13.5px;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+.fbdot.ok{background:var(--st-ok);box-shadow:0 0 0 3px rgba(62,125,36,.25)}
+.fbprogw{display:flex;align-items:center;gap:10px;margin:4px 0 2px}.fbprogw b{font-variant-numeric:tabular-nums;font-size:13px;min-width:38px;text-align:right}
+.fbprog{flex:1;height:10px;border-radius:5px;background:var(--sunken);overflow:hidden}
+.fbprog i{display:block;height:100%;border-radius:5px;background:var(--coral);transition:width .5s var(--ease)}
+.fbwl{display:flex;flex-direction:column;gap:6px}
+.fbwi{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.4;color:var(--ink-2)}
+.fbwi .grow{min-width:0;overflow-wrap:anywhere}.fbwi small{display:block;color:var(--muted);font-size:12px}
+.fbwic{width:18px;height:18px;border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;border:1.5px solid var(--line-3);margin-top:1px}
+.fbwic svg.i{width:12px;height:12px}
+.fbwi.done .fbwic{background:var(--st-ok);border-color:var(--st-ok);color:#fff}.fbwi.done>.grow>span{color:var(--muted)}
+.fbwi.skip .fbwic{color:var(--muted)}.fbwi.ask .fbwic{border-color:var(--st-warn);color:var(--warn-t)}
 .fbsess>summary{cursor:pointer;padding:10px 2px;font-size:14px;list-style-position:inside}.fbsess>summary .pill{margin-left:4px}
 @media (max-width:640px){.fbdock{right:12px;bottom:calc(84px + env(safe-area-inset-bottom))}.fbbox{max-height:56vh}.fbhint{display:none}
   .fbdock.insheet{bottom:auto;top:calc(10px + env(safe-area-inset-top))}.fbdock.insheet .fbbox{max-height:44vh}}
@@ -1049,7 +1060,7 @@ async function pullChanges(full){
     SYNC.online=true;saveSyncMeta();
     if(changed){normOppStages();writeCache();
       const ae=document.activeElement;
-      if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();}
+      if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();else try{fbSync();}catch(e){}}
     syncBadge("ok");
   }catch(e){SYNC.online=false;syncBadge("off");}
 }
@@ -2447,8 +2458,14 @@ function fbAsk(p){
 }
 function fbDockEl(){let d=document.getElementById("fbdock");if(!d){d=document.createElement("div");d.id="fbdock";document.body.appendChild(d);}return d;}
 function fbBuild(){
-  const d=fbDockEl(),s=fbOpenSess(),past=(DB.feedback||[]).some(x=>x&&x.notes&&x.notes.length);
-  d.dataset.state=s?"on":"off";d.dataset.sid=s?s.id:"";
+  const d=fbDockEl(),s=fbOpenSess(),past=(DB.feedback||[]).some(x=>x&&x.notes&&x.notes.length),wk=s?null:fbWorkFor(USER);
+  d.dataset.state=s?"on":wk?"work":"off";d.dataset.sid=s?s.id:"";d.dataset.sig=wk?fbWorkSig(wk):"";
+  if(wk){const w=wk.w||{},pct=fbWorkPct(wk.w),newer=w.status==="ready"&&fbVerCmp(w.version,APP_VERSION)>0;
+    d.className="fbdock"+(fbMinGet()?" min":"");
+    d.innerHTML='<div class="fbpills"><button class="fbpill" data-act="fbmax"><span class="fbdot'+(w.status==="ready"?" ok":"")+'"></span>'+
+      (w.status==="ready"?(newer?"New version ready · Refresh":"New version is live"):"Working on your notes · "+pct+"%")+'</button></div>'+
+      '<div class="fbbox" role="status" aria-live="polite">'+fbWorkHTML(wk)+'</div>';
+    fbUpdate();return;}
   if(!s){d.className="fbdock min";
     d.innerHTML='<div class="fbpills"><button class="fbpill" data-act="fbwelcome"><span class="fbdot off"></span>Start a test session</button>'+
      (past?'<button class="fbpill ghost" data-act="fbpast" title="Notes from earlier test sessions">Past notes</button>':'')+'</div>';
@@ -2480,13 +2497,14 @@ function fbUpdate(){
      '<div class="tk fbn"><span class="pill '+fbTone(r.x.kind)+'">'+fbKindLbl(r.x.kind)+'</span><span class="grow">'+esc(r.x.text)+'</span><button class="tkdel" data-act="fbdel" data-i="'+r.i+'" title="Remove this note">'+svg("x")+'</button></div>').join("")+'</div>':'')+
     (n?'<button class="lnk" data-act="fbend" data-v="review" style="margin-top:6px">All '+cnt+'</button>':'');
 }
+function fbWorkSig(wk){return JSON.stringify([wk.s.id,wk.w,APP_VERSION]);}
 function fbSync(){
   const d=document.getElementById("fbdock");
   if(!USER||!authed()||!fbOn()){if(d)d.remove();return;}
-  const s=fbOpenSess();
-  if(!d||d.dataset.state!==(s?"on":"off")||(s&&d.dataset.sid!==s.id))fbBuild();else fbUpdate();
+  const s=fbOpenSess(),wk=s?null:fbWorkFor(USER),state=s?"on":wk?"work":"off";
+  if(!d||d.dataset.state!==state||(s&&d.dataset.sid!==s.id)||(wk&&d.dataset.sig!==fbWorkSig(wk)))fbBuild();else fbUpdate();
   /* Hannah signs in to a test session: the welcome pop-up once a day while goals are in test */
-  if(USER==="hannah"&&!s&&!goalCfg().live){const k="autotq_fb_prompt:"+USER+":"+todayStr();let seen=true;try{seen=!!localStorage.getItem(k);if(!seen)localStorage.setItem(k,"1");}catch(e){}
+  if(USER==="hannah"&&state==="off"&&!goalCfg().live){const k="autotq_fb_prompt:"+USER+":"+todayStr();let seen=true;try{seen=!!localStorage.getItem(k);if(!seen)localStorage.setItem(k,"1");}catch(e){}
     if(!seen&&!document.getElementById("scrim").classList.contains("open"))setTimeout(fbWelcome,400);}
 }
 function fbWelcome(){
@@ -2540,8 +2558,8 @@ function fbEndGo(){
   const s=fbOpenSess();if(!s)return;
   const o=document.getElementById("fbOverall"),txt=o?o.value.trim():"",now=new Date().toISOString();
   if(txt)s.notes=(s.notes||[]).concat([{at:now,key:"overall",page:"Overall",view:view,kind:"overall",text:txt}]);
-  s.status="done";s.endedAt=now;s.updatedAt=now;save();closeSheet();fbAck=null;fbSync();
-  const n=(s.notes||[]).length;toast("Session ended — "+n+" note"+(n===1?"":"s")+" saved for Max");
+  s.status="done";s.endedAt=now;s.updatedAt=now;save();closeSheet();fbAck=null;fbMinSet(false);fbSync();
+  const n=(s.notes||[]).length;toast("Session ended — "+n+" note"+(n===1?"":"s")+" sent. Watch the box at the bottom right for progress.");
 }
 function fbWhen(s){const f=x=>{const d=new Date(x);return isNaN(d)?"":d.toLocaleString("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});};
   return f(s.startedAt)+(s.endedAt?" – "+new Date(s.endedAt).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}):"");}
@@ -2550,16 +2568,50 @@ function fbPastSheet(){
   const list=(DB.feedback||[]).filter(s=>s&&(s.notes||[]).length).sort((a,b)=>String(b.startedAt).localeCompare(String(a.startedAt)));
   openSheet('<h2 data-fb="1">Test session notes</h2><p class="t2" style="white-space:normal;margin:0 0 8px">Every test session, newest first. Copy one to hand it on.</p>'+
    (list.length?list.map((s,i)=>'<details class="fold fbsess"'+(i===0?' open':'')+'><summary><b>'+esc(teamById(s.user).name)+'</b> · '+esc(fbWhen(s))+' · '+s.notes.length+' notes '+
-     '<span class="pill '+(s.status==="open"?"warn":"ok")+'">'+(s.status==="open"?"In progress":"Ended")+'</span></summary>'+
+     '<span class="pill '+(s.status==="open"?"warn":"ok")+'">'+(s.status==="open"?"In progress":"Ended")+'</span>'+fbWorkTag(s)+'</summary>'+
      '<button class="btn sm" data-act="fbcopy" data-id="'+esc(s.id)+'" style="margin:8px 0 0">'+svg("note")+' Copy as text</button>'+fbNotesHTML(s,false)+'</details>').join("")
     :'<div class="empty">No notes yet.</div>'));
 }
+function fbWorkTag(s){const w=(DB.feedback||[]).find(x=>x&&x.id==="fbw_"+s.id);if(!w)return "";
+  return ' <span class="pill '+(w.status==="ready"?"ok":"info")+'">'+(w.status==="ready"?"Changes live":"Changes "+fbWorkPct(w)+"%")+'</span>';}
 function fbCopy(id){
   const s=(DB.feedback||[]).find(x=>x&&x.id===id);if(!s)return;
   const groups={};(s.notes||[]).forEach(x=>{(groups[x.page||x.key]=groups[x.page||x.key]||[]).push(x);});
   const txt="Test session — "+teamById(s.user).name+", "+fbWhen(s)+"\n\n"+Object.keys(groups).map(g=>g+"\n"+groups[g].map(x=>"- ["+fbKindLbl(x.kind)+"] "+x.text).join("\n")).join("\n\n");
   const done=()=>toast("Copied — paste it anywhere");
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(done,()=>htmlCopyFallback(txt));else htmlCopyFallback(txt);
+}
+/* after a session ends (Max: "give her a progress bar while you make changes and then tell her when to refresh"): Claude writes
+   feedback record fbw_<sessionId> {kind:"work",session,forUser,status queued|working|ready,pct,step,items:[{i,status done|skip|ask,reply}],
+   version,msg}; the dock shows the bar and each note's state, and once the new build is out (version newer than APP_VERSION) says Refresh.
+   Bump APP_VERSION on every deploy that answers a session. */
+const APP_VERSION="2026-11-05.2";
+function fbVerCmp(a,b){return String(a||"").localeCompare(String(b||""),undefined,{numeric:true});}
+function fbWorkFor(u){
+  const F=DB.feedback||[];
+  const s=F.filter(x=>x&&x.user===u&&x.status==="done"&&(x.notes||[]).length).sort((a,b)=>String(b.endedAt||"").localeCompare(String(a.endedAt||"")))[0];
+  if(!s)return null;
+  let ack=false;try{ack=!!localStorage.getItem("autotq_fbw_ack:"+s.id);}catch(e){}
+  if(ack)return null;
+  const w=F.find(x=>x&&x.id==="fbw_"+s.id)||null;
+  if(!w&&Date.now()-new Date(s.endedAt).getTime()>3*86400000)return null;
+  return {s:s,w:w};
+}
+function fbWorkPct(w){return !w?0:w.status==="ready"?100:Math.max(0,Math.min(100,Math.round(+w.pct||0)));}
+function fbWorkHTML(x){
+  const s=x.s,w=x.w||{status:"queued"},notes=s.notes||[],pct=fbWorkPct(x.w);
+  const newer=w.status==="ready"&&fbVerCmp(w.version,APP_VERSION)>0,onIt=w.status==="ready"&&!newer;
+  const head=w.status==="ready"?(newer?"Your new test version is ready":"You’re on the new version"):w.status==="working"?"Claude is working on your notes":"Your notes are in";
+  const sub=w.status==="ready"?(newer?"Refresh the page to load it.":(w.msg||"Start a new test session to check the changes.")):w.status==="working"?(w.step||"Making the changes…"):"Claude picks them up shortly. Keep using the CRM; this updates by itself.";
+  const ic={done:svg("check"),skip:"–",ask:"?",todo:""};
+  const rows=notes.map((n,i)=>{const it=(w.items||[]).find(y=>y&&y.i===i)||{},st=it.status||(w.status==="ready"?"done":"todo");
+    return '<div class="fbwi '+st+'"><span class="fbwic">'+(ic[st]||"")+'</span><div class="grow"><span>'+esc(n.text)+'</span>'+(it.reply?'<small>'+esc(it.reply)+'</small>':'')+'</div></div>';}).join("");
+  return '<div class="fbhead"><span class="fbdot'+(w.status==="ready"?" ok":"")+'"></span><b>'+head+'</b><button class="ibtn" data-act="fbmin" title="Make it small" aria-label="Make the box small">'+svg("chevD")+'</button></div>'+
+   '<div class="fbprogw"><div class="fbprog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pct+'" aria-label="Progress on your notes"><i style="width:'+pct+'%"></i></div><b>'+pct+'%</b></div>'+
+   '<p class="fbask">'+esc(sub)+'</p>'+
+   (newer?'<button class="btn coral block" data-act="fbreload">Refresh now</button>':'')+
+   (onIt?'<div class="fbrow"><button class="btn sm coral" data-act="fbwelcome">Start a test session</button><span class="grow"></span><button class="btn sm" data-act="fbwack" data-id="'+esc(s.id)+'">Got it</button></div>':'')+
+   '<div class="fbsub">Your '+notes.length+' note'+(notes.length===1?"":"s")+'</div><div class="fbwl">'+rows+'</div>';
 }
 function htmlCopyFallback(txt){const t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");toast("Copied — paste it anywhere");}catch(e){toast("Couldn't copy");}t.remove();}
 function viewToday(){
@@ -8053,6 +8105,8 @@ document.addEventListener("click",e=>{
   if(a==="fbendgo"){fbEndGo();return;}
   if(a==="fbpast"){fbPastSheet();return;}
   if(a==="fbcopy"){fbCopy(id);return;}
+  if(a==="fbreload"){location.replace(location.pathname+"?v="+Date.now()+location.hash);return;} /* a new URL skips the page cache */
+  if(a==="fbwack"){try{localStorage.setItem("autotq_fbw_ack:"+id,"1");}catch(e){}fbSync();return;}
   if(a==="goalwho"){logState.goalWho=t.dataset.v;logState.goalSee=null;teamDrill=null;render();return;}
   if(a==="goalview"){logState.goalView=t.dataset.v;render();return;}
   if(a==="goalsee"){const u=id;pushNav();view="team";if(u===USER&&goalCardFor(USER)){logState.goalWho="me";logState.goalSee=null;}else logState.goalSee=u;teamDrill=null;render();window.scrollTo(0,0);return;}
