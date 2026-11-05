@@ -453,6 +453,87 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .repbtn .av{width:20px;height:20px;font-size:9px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
 .repbtn small{color:var(--hint);font-weight:500}
 .kpi.warn>span{color:var(--dang-t)}
+/* weekly goals (Hannah's spec, 2026-11-05): status fills are reserved — green 90%+, orange 70–89%, red under 70% — and always sit
+   beside a label or a count; text stays in the ink tokens */
+:root{--st-ok:#3E7D24;--st-warn:#B8720E;--st-dang:#B83A2E}
+.gtest{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--info-b);border:1px solid rgba(31,92,158,.16);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;font-size:13.5px;color:var(--ink-2)}
+.gtest>svg.i{color:var(--info-t);flex:none}.gtest b{color:var(--info-t)}.gtest .grow{min-width:200px}
+.gctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.gctl .seg{margin:0;flex:none}.gctl .grow{flex:1}
+.gcards{display:grid;grid-template-columns:minmax(0,460px);gap:12px;margin-bottom:8px}
+.gviewing{margin:0 2px 10px}
+.goalcard .rephead{padding-bottom:14px}
+.gstat{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#fff;border-radius:999px;padding:2px 10px 2px 8px;font-size:12px;font-weight:650;line-height:18px}
+.gstat::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.gstat.ok{color:var(--ok-t)}.gstat.warn{color:var(--warn-t)}.gstat.dang,.gstat.plan{color:var(--dang-t)}
+.gweek{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:12px 14px;border-top:1px solid var(--line)}
+.gwl{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted);font-weight:550;margin-bottom:2px}
+.gday{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 2px 5px;text-align:center;font:inherit;font-size:11.5px;color:var(--muted);line-height:1.3;cursor:pointer;min-width:0}
+.gday:hover:not([disabled]){border-color:var(--line-3)}.gday[disabled]{cursor:default}
+.gday b{display:block;font-size:12.5px;color:var(--ink);font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gday i{display:block;font-style:normal;font-size:11px;font-variant-numeric:tabular-nums}
+.gday.fut{border-style:dashed}
+.gday.none{border-style:dashed;border-color:var(--coral)}.gday.none b{color:var(--coral-text)}
+.gday.ok{background:var(--ok-b);border-color:var(--st-ok)}.gday.warn{background:var(--warn-b);border-color:var(--st-warn)}.gday.dang{background:var(--dang-b);border-color:var(--st-dang)}
+.gday.ok i,.gday.warn i,.gday.dang i{color:var(--ink-2);font-weight:600}
+.gday.today{box-shadow:0 0 0 2px var(--ink)}
+.gplanc{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--dang-b);color:var(--dang-t);font:inherit;font-weight:650;font-size:14.5px;padding:14px;text-align:center;cursor:pointer}
+.gplanc small{display:block;font-weight:500;font-size:12.5px;color:var(--ink-2);margin-top:2px}.gplanc:hover{filter:brightness(.98)}
+.gnone{border-top:1px solid var(--line);padding:12px 14px;font-size:13.5px;color:var(--muted)}
+.gmet{border-top:1px solid var(--line);padding:10px 14px 12px}
+.gmh{display:flex;align-items:center;gap:10px;font-size:13.5px;margin-bottom:8px}
+.gmh>span:first-child{flex:1;min-width:0;font-weight:600;color:var(--ink)}
+.gmn{font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.gmn small{font-weight:500;color:var(--muted);font-size:12px}.gmn.muted{font-weight:500;color:var(--muted);font-size:12.5px}
+.gbar2{display:flex;gap:2px;height:8px;border-radius:4px;background:var(--sunken);overflow:hidden;min-width:0}
+.gbar2 i{display:block;height:100%;flex:none;background:var(--muted)}
+.gbar2 i:first-child{border-radius:4px 0 0 4px}.gbar2 i:last-child{border-top-right-radius:4px;border-bottom-right-radius:4px}
+.gbar2 i.past{opacity:.55}
+.ok>.gbar2 i,.gsc.ok .gbar2 i{background:var(--st-ok)}.warn>.gbar2 i,.gsc.warn .gbar2 i{background:var(--st-warn)}.dang>.gbar2 i,.gsc.dang .gbar2 i{background:var(--st-dang)}
+.gmr{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.gmri{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:9px;background:var(--surface-2);font-size:13px}
+.gmri.over{background:var(--dang-b)}
+.gmri .grow{min-width:0}.gmri small{display:block;color:var(--muted);font-size:11.5px}.gmri.over small{color:var(--dang-t);font-weight:600}
+.gband{padding:8px 14px;border-top:1px solid var(--line);background:var(--surface-2);font-size:12px;font-weight:600;color:var(--muted)}
+.gtl{max-width:980px}
+.gtm{display:grid;grid-template-columns:minmax(0,250px) minmax(0,1fr);border-top:1px solid var(--line)}.gtm:first-child{border-top:0}
+.gtmn{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:var(--ink);min-width:0}
+.gtmn:hover{background:var(--hover)}
+.gtmn .grow{min-width:0}.gtmn b{display:block;font-size:14px;font-weight:650}.gtmn small{display:block;font-size:12px;color:var(--muted)}
+.gav{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11.5px;flex:none}
+.gav.sm{width:24px;height:24px;font-size:10px}
+.gtmb{padding:11px 14px;display:flex;flex-direction:column;justify-content:center;gap:8px;border-left:1px solid var(--line-2);min-width:0}
+.gtr{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 74px;gap:10px;align-items:center;font-size:13px;color:var(--ink-2)}
+.gtr .gmn{text-align:right}
+.list>.stat.gline{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:10px 14px;font:inherit;font-size:13.5px;color:var(--ink-2);cursor:pointer;text-align:left}
+.list>.stat.gline+.stat.gline{border-top:1px solid var(--line)}.list>.stat.gline:hover{background:var(--hover)}.list>.stat.gline b{font-weight:650;color:var(--ink)}.list>.stat.gline small{color:var(--muted);font-size:12px;margin-left:4px}
+.glegend{white-space:normal;margin:10px 2px 0}
+.ghome{margin-bottom:22px}
+.gstrip{display:flex;gap:10px;align-items:center;border-radius:var(--r-lg);padding:11px 14px;margin-bottom:10px;font-size:14px;border:1px solid;flex-wrap:wrap}
+.gstrip>svg.i{flex:none}.gstrip .grow{min-width:200px}
+.gstrip.dang{background:var(--dang-b);border-color:rgba(167,48,42,.22)}.gstrip.dang>svg.i,.gstrip.dang b{color:var(--dang-t)}
+.gstrip.ok{background:var(--ok-b);border-color:rgba(47,106,25,.2)}.gstrip.ok>svg.i,.gstrip.ok b{color:var(--ok-t)}
+.gboard{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.gsc{display:flex;flex-direction:column;gap:7px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-3);border-radius:var(--r-lg);padding:11px 13px 12px;font:inherit;text-align:left;cursor:pointer;box-shadow:var(--sh-1);color:var(--ink);min-width:0}
+.gsc:hover{border-color:var(--line-3)}
+.gsc.ok{border-left-color:var(--st-ok)}.gsc.warn{border-left-color:var(--st-warn)}.gsc.dang{border-left-color:var(--st-dang)}
+.gsch{display:flex;align-items:center;gap:8px;min-width:0}.gsch b{flex:1;min-width:0;font-size:14px;font-weight:650;line-height:1.25}
+.gsc small{font-size:12px;color:var(--muted)}
+.gplan{display:flex;flex-direction:column;gap:8px}
+.gpr{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:12px}
+.gpr.today{border-color:var(--ink)}
+.gpd{flex:1;min-width:110px;font-size:12.5px;color:var(--muted)}.gpd b{display:block;font-size:14px;color:var(--ink)}
+.gpr .seg{margin:0;flex:none;min-width:210px}
+.gtypes{margin-top:12px;font-size:13px;color:var(--ink-2)}.gtypes p{margin:4px 0}
+.gtgrid{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:8px 10px;align-items:center;font-size:13.5px}
+.gtgrid.one{grid-template-columns:minmax(0,1fr) 92px;margin-top:14px}
+.gtgrid b{font-size:12px;color:var(--muted);font-weight:600}.gtgrid .f{margin:0;width:100%}
+@media (max-width:640px){
+  .gtm{grid-template-columns:1fr}.gtmb{border-left:0;border-top:1px solid var(--line-2)}
+  .gtr{grid-template-columns:minmax(0,108px) minmax(0,1fr) 64px}
+  .gweek{gap:4px;padding:10px 12px}.gday{font-size:11px}.gday b{font-size:11.5px}
+  .gpr .seg{min-width:0;width:100%}
+}
 .chkrow{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink-2);margin:8px 0 2px}
 .chkrow input{width:16px;height:16px;accent-color:var(--coral)}
 .lnk{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--ink);cursor:pointer;text-decoration:underline;text-decoration-color:var(--line-3);text-underline-offset:3px}
@@ -500,7 +581,7 @@ button.rephead:hover{filter:brightness(.95)}
 .chiprow{display:flex;gap:4px;flex-wrap:wrap}
 .chiprow .qchip{min-height:26px;padding:0 8px;font-size:12px}
 .qchip.auto{border-style:dashed;background:transparent}
-.wki .txt{background:none;border:0;padding:0;text-align:left;font:inherit;min-width:0;cursor:pointer}
+.wki>.grow{min-width:0}.wki .txt{background:none;border:0;padding:0;text-align:left;font:inherit;min-width:0;cursor:pointer}
 .wkh{background:none;border:0;border-bottom:1px solid var(--line);width:100%;font:inherit;text-align:left;cursor:pointer;border-radius:6px 6px 0 0}
 .wkh:hover{background:var(--hover)}
 .wkday.past .wkh span{color:var(--muted)}
@@ -521,8 +602,8 @@ button.rephead:hover{filter:brightness(.95)}
 .fold summary::-webkit-details-marker{display:none}
 .fold .fchev{margin-left:auto;display:inline-flex;transition:transform .15s;color:var(--muted)}
 .fold[open] .fchev{transform:rotate(90deg)}
-@media(max-width:900px){.wk{grid-template-columns:1fr 1fr}.actbtns{max-width:none;width:100%;justify-content:flex-start}.act{flex-wrap:wrap}.act .grow{min-width:60%}.lbl{min-width:0}}
-@media(max-width:640px){.wk{grid-template-columns:1fr}.wkday{min-height:0}}
+@media(max-width:900px){.wk{grid-template-columns:repeat(2,minmax(0,1fr))}.actbtns{max-width:none;width:100%;justify-content:flex-start}.act{flex-wrap:wrap}.act .grow{min-width:60%}.lbl{min-width:0}}
+@media(max-width:640px){.wk{grid-template-columns:minmax(0,1fr)}.wkday{min-height:0}}
 .onboard{background:var(--coral-t);border:1px solid rgba(216,90,48,.3);border-radius:var(--r-lg);padding:16px 44px 16px 18px;margin-bottom:14px;position:relative}
 .onboard h3{margin:0 0 8px;font-size:15px}
 .onboard ol{margin:0;padding-left:20px;font-size:13.5px;color:var(--ink);line-height:1.6}
@@ -823,7 +904,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals"];
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1449,11 +1530,11 @@ function render(){
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",activity:"Activity",team:(ownOnly()?"My KPIs":"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
-    team:(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
+    team:goalsOn()?(ownOnly()?"Plan your week and log as you go — green 90%+, orange 70–89%, red under 70%":"This week’s goals for every rep — tap a name for their card"):(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
     teammate:(curRep?"Everything they've logged, and their time in the CRM":""),
     insight:(insightTab==="reports"?"Run, sort & export":insightTab==="insights"?"Units bought & demos picked up, by distributor":"The channel at a glance"),
     campaigns:(function(){const cs=(DB.campaigns||[]);return cs.length?cs.length+" campaign"+(cs.length>1?"s":"")+" · "+cs.reduce((s,c)=>s+(c.leads||[]).length,0)+" contacts":"Your campaigns, their materials and the leads they produced";})(),
@@ -1531,8 +1612,8 @@ function render(){
 }
 /* real navigation history — the back button returns to wherever you actually came from */
 let navStack=[];
-function navState(){return {view:view,curRep:curRep,curPerson:curPerson,curCompany:curCompany,curReport:curReport,curConf:curConf,curList:curList,curCampaign:curCampaign,searchQ:view==="search"?searchQ:"",listQ:listQ,scroll:window.scrollY||0};}
-function sameNav(a,b){return !!a&&!!b&&a.view===b.view&&a.curRep===b.curRep&&a.curPerson===b.curPerson&&a.curCompany===b.curCompany&&a.curReport===b.curReport&&a.curConf===b.curConf&&a.curList===b.curList&&a.curCampaign===b.curCampaign&&a.searchQ===b.searchQ;}
+function navState(){return {view:view,goalSee:logState.goalSee||null,curRep:curRep,curPerson:curPerson,curCompany:curCompany,curReport:curReport,curConf:curConf,curList:curList,curCampaign:curCampaign,searchQ:view==="search"?searchQ:"",listQ:listQ,scroll:window.scrollY||0};}
+function sameNav(a,b){return !!a&&!!b&&a.view===b.view&&(a.goalSee||null)===(b.goalSee||null)&&a.curRep===b.curRep&&a.curPerson===b.curPerson&&a.curCompany===b.curCompany&&a.curReport===b.curReport&&a.curConf===b.curConf&&a.curList===b.curList&&a.curCampaign===b.curCampaign&&a.searchQ===b.searchQ;}
 function pushNav(){
   const st=navState();
   if(sameNav(navStack[navStack.length-1],st))return;
@@ -1550,7 +1631,7 @@ function navValid(st){
   if(st.view==="shipping")return shipAccess();
   return true;
 }
-function restoreNav(st){view=st.view;curRep=st.curRep||null;curPerson=st.curPerson;curCompany=st.curCompany;curReport=st.curReport;curConf=st.curConf;curList=st.curList;curCampaign=st.curCampaign||null;searchQ=st.searchQ||"";listQ=st.listQ||"";if(view==="map")mapState=null;}
+function restoreNav(st){view=st.view;logState.goalSee=st.goalSee||null;curRep=st.curRep||null;curPerson=st.curPerson;curCompany=st.curCompany;curReport=st.curReport;curConf=st.curConf;curList=st.curList;curCampaign=st.curCampaign||null;searchQ=st.searchQ||"";listQ=st.listQ||"";if(view==="map")mapState=null;}
 /* where Back goes when there's no history yet (e.g. a record opened right after sign-in) */
 function backParent(){
   if(view==="export"&&curList)return "export";
@@ -1808,7 +1889,7 @@ function railGroups(u){
   const p=profile(u);
   /* "dumb simple: Home — Activity — Pipeline — Leads — Quotes" (Max, 2026-10-16 evening) */
   /* Field Map + Conferences are back on the sales rail (Max, 2026-10-20: "add the Field Map back… conference leads back") */
-  if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt","My KPIs"]]],
+  if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt",goalsOn()?"My goals":"My KPIs"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
     ["Field",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
   if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
@@ -2038,6 +2119,270 @@ function eodSectionHTML(){
   return '<div class="lvhead" style="margin:4px 0 10px"><div class="sectlabel" style="margin:0">End of day — '+(admin()?'team activity':'your activity')+'</div>'+
    '<button class="btn sm coral" data-act="logfor" style="margin-left:auto">'+svg("phone")+' Log activity</button></div>'+eodRecapHTML();
 }
+/* ---------- weekly goals (Max 2026-11-04 → Hannah's spec 2026-11-05, "autotq-rep-goals"): each rep plans Mon–Fri as Zone / Office /
+   Both (Kellan: Calls / Other) and the week's targets add up the days they planned. Bars: green 90%+ · orange 70–89% · red under 70%,
+   judged on the days that are over — today only helps. Man-reps: each one called every 14 days, 7 with active business (p.activeBiz).
+   Synced goals collection: "targets" (per-day numbers, man-rep cadence, the live switch) and gp_<user>_<Monday> = that week's plan.
+   Until an admin turns it on for the team, only GOAL_TESTERS see any of it (everyone else keeps the old Team page and Home). ---------- */
+const GOAL_TESTERS=["hannah","max"];
+const GOAL_DAY_DEFAULT={zone:{mtg:[3,5],call:[0,0],email:[20,0]},office:{mtg:[0,0],call:[25,0],email:[20,0]},calls:{call:[25,0]}};
+const GOAL_TYPES={sales:[["zone","Zone"],["office","Office"],["both","Both"]],outreach:[["calls","Calls"],["other","Other"]]};
+const GOAL_METRICS={sales:[["mtg","Distributor meetings","visit"],["call","Distributor calls","call"],["email","Outreach emails","email"]],outreach:[["call","Calls","call"]]};
+const GOAL_STATUS={ok:"On track",warn:"Close",dang:"Behind",plan:"Plan your week"};
+const GOAL_HINT={mtg:"Counts toward distributor meetings when it’s with someone at a distributor.",call:"Counts toward distributor calls when it’s with someone at a distributor.",
+  ocall:"Counts toward your calls.",email:"Counts toward your outreach emails."};
+function goalRec(id){return (DB.goals||[]).find(x=>x&&x.id===id);}
+function goalTargetsRec(){DB.goals=DB.goals||[];let r=goalRec("targets");if(!r){r={id:"targets"};DB.goals.push(r);}return r;}
+function goalCfg(){
+  const r=goalRec("targets")||{},d=r.day||{},day={};
+  Object.keys(GOAL_DAY_DEFAULT).forEach(t=>{day[t]={};Object.keys(GOAL_DAY_DEFAULT[t]).forEach(k=>{const v=d[t]&&d[t][k];day[t][k]=Array.isArray(v)?v.map(n=>+n||0):GOAL_DAY_DEFAULT[t][k];});});
+  /* a Both day is half a zone day plus half an office day */
+  day.both={};["mtg","call","email"].forEach(k=>{const z=day.zone[k],o=day.office[k];day.both[k]=[(z[0]+o[0])/2,(Math.max(z[0],z[1])+Math.max(o[0],o[1]))/2];});
+  day.other={};
+  return {day:day,every:+r.mrEvery||14,active:+r.mrActive||7,live:!!r.live};
+}
+function goalsOn(){return goalCfg().live||GOAL_TESTERS.includes(USER);}
+function goalPeople(){return GH_REPS.filter(id=>["sales","outreach"].includes(profile(id))&&TEAM.some(t=>t.id===id));}
+function goalHas(u){return goalPeople().includes(u);}
+/* while it's in test, Hannah and Max get a card of their own to try the planning and the Log buttons on */
+function goalCardFor(u){return goalHas(u)||(u===USER&&!goalCfg().live&&GOAL_TESTERS.includes(u));}
+function goalKind(u){return profile(u)==="outreach"?"outreach":"sales";}
+function goalMonday(day){return weekOf(day||todayStr())[1];} /* Sunday plans the coming week; Saturday still shows the one just finished */
+function goalDays(mon){const p=mon.split("-");return Array.from({length:7},(_,i)=>ymd(new Date(+p[0],+p[1]-1,+p[2]+i)));} /* Mon–Sun; the plan is Mon–Fri */
+function goalPlanId(u,mon){return "gp_"+u+"_"+mon;}
+function goalPlan(u,mon){const r=goalRec(goalPlanId(u,mon));return ((r&&Array.isArray(r.days))?r.days:[]).concat([null,null,null,null,null]).slice(0,5);}
+function goalCanPlan(u){return u===USER||profile()==="admin";}
+function setGoalDay(u,mon,i,type){
+  DB.goals=DB.goals||[];const id=goalPlanId(u,mon);let r=goalRec(id);
+  if(!r){r={id:id,user:u,week:mon};DB.goals.push(r);}
+  const d=goalPlan(u,mon);d[i]=type||null;r.days=d;r.by=USER;r.at=new Date().toISOString();save();
+}
+function goalTypeLbl(kind,t){const x=GOAL_TYPES[kind].find(y=>y[0]===t);return x?x[1]:"";}
+function goalUp(x){return Math.ceil(x-1e-9);}
+function goalRng(t,s){return s&&goalUp(s)>goalUp(t)?goalUp(t)+"–"+goalUp(s):String(goalUp(t));}
+function goalMD(d){return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+d.slice(5,7)-1]+" "+(+d.slice(8,10));}
+function goalBand(p){return p==null?"":p>=90?"ok":p>=70?"warn":"dang";}
+function goalEvery(n){return n===7?"weekly":n===14?"every 2 weeks":"every "+n+" days";}
+function actCo(a){const p=a.pid?person(a.pid):null;return p?company(p.cid):(a.cid?company(a.cid):null);}
+function actIsCall(a){return a.type==="call"||a.type==="voicemail";}
+function actIsMeet(a){return isVisit(a)||a.type==="training"||a.type==="demo";}
+function goalActDist(a){const c=actCo(a);return !!(c&&c.type==="distributor");}
+/* what counts, per day Mon–Sun: the activities they logged. Kellan's calls also take the conference calls logged in the
+   Marketing hub (calls[] on the lead with no CRM activity behind them), so a call is counted once wherever it was logged. */
+function goalTally(u,mon,kind){
+  const days=goalDays(mon),z=()=>[0,0,0,0,0,0,0],out={mtg:z(),call:z(),email:z()},seen={};
+  calActs(u,days[0],days[6]).forEach(a=>{const i=days.indexOf(localDay(a.date));if(i<0)return;
+    if(actIsMeet(a)&&goalActDist(a))out.mtg[i]++;
+    if(a.type==="email")out.email[i]++;
+    if(actIsCall(a)&&(kind==="outreach"||goalActDist(a)))out.call[i]++;
+    if(kind==="outreach"&&actIsCall(a)&&a.refId){const k=a.refId+"|"+i;seen[k]=(seen[k]||0)+1;}});
+  if(kind==="outreach")(DB.confLeads||[]).forEach(l=>(l.calls||[]).forEach(c=>{if(c.by!==u)return;const i=days.indexOf(histDay(c.at));if(i<0)return;
+    const k=l.id+"|"+i;if(seen[k])seen[k]--;else out.call[i]++;}));
+  return out;
+}
+/* man-reps in a seller's territory: any of their states in the seller's region, else their agency's */
+function goalManreps(u){const reg=goalKind(u)==="sales"?userRegion(u):null;if(!reg)return [];
+  return (DB.people||[]).filter(p=>{if(contactType(p)!=="manrep")return false;const c=company(p.cid),st=personStates(p);
+    return st.length?st.some(x=>regionFromState(x)===reg):!!(c&&regionFromState(c.state)===reg);});}
+function goalManrepRows(u){
+  const cfg=goalCfg(),now=Date.now(),last={};
+  (DB.activities||[]).forEach(a=>{if(a&&a.by===u&&a.pid&&(actIsCall(a)||actIsMeet(a))){const t=new Date(a.date).getTime();if(!(last[a.pid]>=t))last[a.pid]=t;}});
+  const far=x=>x.days==null?1e9:x.days,seen={};
+  /* the same person on file twice (same name, same agency) is one man-rep: a call to either record counts */
+  goalManreps(u).forEach(p=>{const k=String(p.name||"").trim().toLowerCase()+"|"+(p.cid||""),t=last[p.id];
+    const g=seen[k]||(seen[k]={p:p,t:0,active:false});if(t>g.t)g.t=t;if(p.activeBiz){g.active=true;g.p=p;}});
+  return Object.values(seen).map(g=>{const every=g.active?cfg.active:cfg.every,days=g.t?Math.floor((now-g.t)/86400000):null;
+    return {p:g.p,every:every,days:days,ok:days!=null&&days<=every};})
+   .sort((a,b)=>(a.ok?1:0)-(b.ok?1:0)||far(b)-far(a)||String(a.p.name).localeCompare(String(b.p.name)));
+}
+function goalState(u,mon){
+  const cfg=goalCfg(),kind=goalKind(u),T=todayStr();mon=mon||goalMonday();
+  const days=goalDays(mon),plan=goalPlan(u,mon),tally=goalTally(u,mon,kind),ti=days.slice(0,5).indexOf(T);
+  const tg=(type,k)=>{const x=type&&cfg.day[type]&&cfg.day[type][k];return x?{t:x[0],s:Math.max(x[0],x[1]||0)}:{t:0,s:0};};
+  const metrics=GOAL_METRICS[kind].map(m=>{
+    let wt=0,ws=0,due=0;
+    const per=plan.map((type,i)=>{const x=tg(type,m[0]);wt+=x.t;ws+=x.s;if(days[i]<T)due+=x.t;return {t:x.t,s:x.s,v:tally[m[0]][i]};});
+    const v=tally[m[0]].reduce((a,b)=>a+b,0),pct=due>0?Math.round(v/goalUp(due)*100):null,td=ti>-1?per[ti]:null;
+    return {k:m[0],label:m[1],logType:m[2],per:per,extra:tally[m[0]][5]+tally[m[0]][6],v:v,wt:wt,ws:ws,due:due,pct:pct,band:goalBand(pct),
+      today:td,todayPct:td&&td.t?Math.round(td.v/goalUp(td.t)*100):null};});
+  /* a day's mark = the average of that day's goals, each capped at 100% */
+  const dayScore=i=>{const ps=metrics.filter(m=>m.per[i].t>0).map(m=>Math.min(100,Math.round(m.per[i].v/goalUp(m.per[i].t)*100)));return ps.length?Math.round(ps.reduce((a,b)=>a+b,0)/ps.length):null;};
+  const mr=kind==="sales"?goalManrepRows(u):[],mrOk=mr.filter(x=>x.ok).length,mrPct=mr.length?Math.round(mrOk/mr.length*100):null;
+  const planned=plan.every(Boolean),parts=metrics.map(m=>m.pct).filter(p=>p!=null);if(mrPct!=null)parts.push(mrPct);
+  const status=!planned?"plan":parts.some(p=>p<70)?"dang":parts.some(p=>p<90)?"warn":"ok";
+  return {u:u,kind:kind,mon:mon,days:days,plan:plan,planned:planned,ti:ti,T:T,metrics:metrics,dayScore:dayScore,mr:mr,mrOk:mrOk,mrPct:mrPct,mrBand:goalBand(mrPct),
+    status:status,avg:parts.length?Math.round(parts.reduce((a,p)=>a+Math.min(100,p),0)/parts.length):null};
+}
+function goalViewCur(){return logState.goalView||(goalDays(goalMonday()).slice(0,5).includes(todayStr())?"today":"week");}
+function goalTodayLbl(g){return g.ti<0?"Weekend":g.plan[g.ti]?"Today: "+goalTypeLbl(g.kind,g.plan[g.ti]):"Today: not planned";}
+function goalPillHTML(g){return '<span class="pill '+({ok:"ok",warn:"warn",dang:"dang",plan:"dang"}[g.status])+'" style="flex:none">'+GOAL_STATUS[g.status]+'</span>';}
+function goalBarHTML(segs,max,title){const m=Math.max(1,max||0);
+  return '<div class="gbar2" role="img" aria-label="'+esc(title)+'" title="'+esc(title)+'">'+segs.filter(x=>x.v>0).map(x=>'<i'+(x.past?' class="past"':'')+' style="width:'+Math.min(100,x.v/m*100).toFixed(1)+'%"></i>').join("")+'</div>';}
+/* one goal for Today or This week: the count, its target and the bar; colour = the band, "idle" = nothing to judge yet */
+function goalMetricView(g,m,view){
+  if(view==="today"){const x=m.today;if(!x||!x.t)return null;
+    return {v:x.v,lbl:goalRng(x.t,x.s),max:goalUp(x.s||x.t),band:m.todayPct!=null&&m.todayPct>=90?"ok":"idle",segs:[{v:x.v}],title:x.v+" of "+goalRng(x.t,x.s)+" today"};}
+  if(!m.wt)return null;
+  return {v:m.v,lbl:goalRng(m.wt,m.ws),max:goalUp(m.ws||m.wt),band:m.band||"idle",
+    segs:m.per.map((x,i)=>({v:x.v,past:g.days[i]<g.T})).concat([{v:m.extra,past:true}]),
+    title:m.pct==null?m.v+" so far this week — judged once a planned day is over":m.pct+"% of the target for the days that are over ("+m.v+" of "+goalUp(m.due)+")"};
+}
+function goalWeekHTML(g,canPlan){
+  const DN=["Mon","Tue","Wed","Thu","Fri"];
+  return '<div class="gweek"><div class="gwl"><span>'+(g.u===USER?"My week":"Their week")+' · '+goalMD(g.days[0])+' – '+goalMD(g.days[4])+'</span>'+
+   (canPlan?'<button class="lnk" data-act="goalplan" data-u="'+g.u+'">'+(g.planned?"Change plan":"Plan the week")+'</button>':'')+'</div>'+
+   g.plan.map((type,i)=>{const d=g.days[i],over=d<g.T,today=i===g.ti,sc=(over||today)&&type?g.dayScore(i):null;
+     const res=over?goalBand(sc):(today&&sc!=null&&sc>=90?"ok":"");
+     const cls=["gday",type?"":"none",res,today?"today":"",!over&&!today?"fut":""].filter(Boolean).join(" ");
+     const sub=over?(sc!=null?sc+"%":"—"):today?"today":String(+d.slice(8,10));
+     return '<button class="'+cls+'"'+(canPlan?' data-act="goalplan" data-u="'+g.u+'"':' disabled')+' title="'+esc(goalMD(d)+(type?" · "+goalTypeLbl(g.kind,type):" · not planned")+(over&&sc!=null?" · "+sc+"% of the day’s goals":""))+'">'+
+      DN[i]+'<b>'+(type?goalTypeLbl(g.kind,type):"Pick")+'</b><i>'+sub+'</i></button>';}).join("")+'</div>';
+}
+function goalMetricHTML(g,m,view,own){
+  const x=goalMetricView(g,m,view);if(!x)return "";
+  return '<div class="gmet '+x.band+'"><div class="gmh"><span>'+esc(m.label)+'</span><span class="gmn">'+x.v+'<small> / '+x.lbl+'</small></span>'+
+   (own?'<button class="btn sm" data-act="goallog" data-v="'+m.logType+'" data-k="'+(g.kind==="outreach"?"ocall":m.k)+'">Log</button>':'')+'</div>'+goalBarHTML(x.segs,x.max,x.title)+'</div>';
+}
+function goalManrepHTML(g,canEdit){
+  const cfg=goalCfg(),own=g.u===USER,open=logState.goalMrOpen===g.u;
+  if(!g.mr.length)return userRegion(g.u)?'<div class="gmet idle"><div class="gmh"><span>Man-rep calls</span><span class="gmn muted">none in the '+esc(userRegion(g.u))+'</span></div></div>':'';
+  let h='<div class="gmet '+(g.mrBand||"idle")+'"><div class="gmh"><span>Man-rep calls</span><span class="gmn">'+g.mrOk+'<small> / '+g.mr.length+'</small></span>'+
+   '<button class="btn sm" data-act="goalmr" data-u="'+g.u+'">'+(open?"Done":"List")+'</button></div>'+
+   goalBarHTML([{v:g.mrOk}],g.mr.length,g.mrOk+" of "+g.mr.length+" man-reps called on time ("+g.mrPct+"%) — each one "+goalEvery(cfg.every)+", "+goalEvery(cfg.active)+" with active business");
+  if(open){const all=logState.goalMrAll===g.u,rows=all?g.mr:g.mr.slice(0,8);
+    h+='<div class="gmr">'+rows.map(x=>{const p=x.p,c=company(p.cid);
+      const when=x.days==null?"not called yet":x.days===0?"called today":"called "+x.days+" day"+(x.days===1?"":"s")+" ago";
+      const tag=p.activeBiz?"Active · "+goalEvery(cfg.active):goalEvery(cfg.every);
+      return '<div class="gmri'+(x.ok?"":" over")+'"><div class="grow"><button class="lnk" data-act="person" data-id="'+p.id+'">'+esc(p.name)+'</button>'+
+       '<small>'+esc((c?c.name+" · ":"")+when)+(x.ok?"":" · due")+'</small></div>'+
+       (canEdit?'<button class="pill '+(p.activeBiz?"warn":"gray")+'" data-act="goalactive" data-id="'+p.id+'" title="Active business = call '+goalEvery(cfg.active)+' instead of '+goalEvery(cfg.every)+'. Tap to switch.">'+esc(tag)+'</button>'
+        :'<span class="pill '+(p.activeBiz?"warn":"gray")+'">'+esc(tag)+'</span>')+
+       (own?'<button class="btn sm" data-act="logfor" data-id="'+p.id+'">Log</button>':'')+'</div>';}).join("")+
+     (g.mr.length>8&&!all?'<button class="lnk" data-act="goalmrall" data-u="'+g.u+'" style="margin:4px 0 0 2px">Show all '+g.mr.length+'</button>':'')+'</div>';}
+  return h+'</div>';
+}
+/* the rep's card: the existing Team tile with the week's plan and goals above the year-to-date rows */
+function goalCardHTML(u,ytd){
+  const g=goalState(u),t=teamById(u),own=u===USER,view=goalViewCur(),canPlan=goalCanPlan(u);
+  const sub=g.kind==="outreach"?"Outreach":(userRegion(u)||(goalHas(u)?"Sales":"Test card"));
+  let h='<div class="reptile goalcard"><div class="rephead" style="background:'+t.c+'"><span class="av">'+initials(t.name)+'</span><b>'+esc(t.name)+'</b><small>'+esc(sub)+'</small>'+
+   '<span class="gstat '+g.status+'">'+GOAL_STATUS[g.status]+'</span></div>'+goalWeekHTML(g,canPlan);
+  if(!g.planned)h+=canPlan?'<button class="gplanc" data-act="goalplan" data-u="'+u+'">'+(own?"Plan your week":"Plan "+esc(shortName(u))+"’s week")+
+     '<small>Pick '+GOAL_TYPES[g.kind].map(x=>x[1]).join(", ").replace(/, ([^,]*)$/," or $1")+' for each day</small></button>'
+    :'<div class="gnone">'+esc(shortName(u))+' hasn’t planned the week yet.</div>';
+  else if(view==="today"&&g.ti<0)h+='<div class="gnone">It’s the weekend — switch to This week for the week’s numbers.</div>';
+  else{const rows=g.metrics.map(m=>goalMetricHTML(g,m,view,own)).join("");h+=rows||'<div class="gnone">'+(view==="today"?"Other work today — nothing to track.":"Nothing to track this week.")+'</div>';}
+  if(g.kind==="sales")h+=goalManrepHTML(g,canPlan);
+  return h+(ytd||"")+'</div>';
+}
+/* the year-to-date rows under a card: your own, or anyone's for the team viewers — a rep never sees another rep's numbers */
+function goalYtdHTML(u){
+  const own=u===USER;if(!own&&!teamAccess())return "";
+  const line=(k,l,v)=>'<button class="stat'+(teamDrill&&teamDrill.rep===u&&teamDrill.k===k?" on":"")+'" data-act="teamdrill" data-rep="'+u+'" data-k="'+k+'"><span>'+l+'</span><b>'+v+'</b></button>';
+  let h='<div class="gband">'+esc(teamRangeLbl())+'</div>';
+  if(goalKind(u)==="outreach"&&goalHas(u)){const os=outreachStats(u);
+    h+=line("oleads","Leads added",os.added.length)+line("ocat","Categorized",os.cat.length)+line("ohanded","Handed to sales",os.handed.length)+line("ocalls","Conf leads called",os.calls.length)+line("otouches","Touches",os.touches.length);}
+  else if(goalHas(u)){const s=teamStats(u);
+    h+=line("sold","Sold <small>"+s.ords.length+" orders</small>",fmtK(s.sold)+(s.soldUnits?' <small>'+s.soldUnits+'u</small>':''))+line("wondeals","Won deals",s.won.length)+
+     line("quoted","Quoted",fmtK(s.quoted)+(s.quotedUnits?' <small>'+s.quotedUnits+'u</small>':''))+line("touches","Touches",s.touches.length)+line("opps","Opportunities",s.open.length)+line("open","Open pipeline",fmtK(s.openAmt));}
+  else return "";
+  return h+(own?'<button class="stat" data-act="nav" data-view="activity"><span>Your activity</span><b>'+chev()+'</b></button>'
+    :'<button class="stat" data-act="teammate" data-id="'+u+'"><span>Activity &amp; time in the CRM</span><b>'+chev()+'</b></button>');
+}
+/* Whole team: one row per person — name, status and the bars, nothing else; tap a name for their card */
+function goalTeamListHTML(view){
+  return '<div class="list gtl">'+goalPeople().map(id=>{const g=goalState(id),t=teamById(id);
+    let rows='';
+    if(!g.planned)rows='<div class="t2">Hasn’t planned the week yet</div>';
+    else if(view==="today"&&g.ti<0)rows='<div class="t2">Weekend</div>';
+    else{rows=g.metrics.map(m=>{const x=goalMetricView(g,m,view);return x?'<div class="gtr '+x.band+'"><span>'+esc(m.label)+'</span>'+goalBarHTML(x.segs,x.max,x.title)+'<span class="gmn">'+x.v+'<small> / '+x.lbl+'</small></span></div>':"";}).join("");
+      if(!rows)rows='<div class="t2">Other work today</div>';}
+    if(g.mr.length)rows+='<div class="gtr '+(g.mrBand||"idle")+'"><span>Man-rep calls</span>'+goalBarHTML([{v:g.mrOk}],g.mr.length,g.mrOk+" of "+g.mr.length+" called on time")+'<span class="gmn">'+g.mrOk+'<small> / '+g.mr.length+'</small></span></div>';
+    return '<div class="gtm"><button class="gtmn" data-act="goalsee" data-id="'+id+'" title="Open '+esc(t.name)+'’s card"><span class="gav" style="background:'+t.c+'">'+initials(t.name)+'</span>'+
+     '<span class="grow"><b>'+esc(t.name)+'</b><small>'+esc(goalTodayLbl(g))+'</small></span>'+goalPillHTML(g)+'</button><div class="gtmb">'+rows+'</div></div>';}).join("")+'</div>';
+}
+/* Home: who is behind, for everyone to see, and a small status card per person */
+function goalHomeHTML(){
+  const ids=goalPeople();if(!ids.length)return "";
+  const cfg=goalCfg(),G=ids.map(id=>goalState(id)),behind=G.filter(g=>g.status==="dang"),noplan=G.filter(g=>g.status==="plan"),nm=g=>esc(teamById(g.u).name);
+  let h='<section class="ghome"><div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">Goals this week'+(cfg.live?'':' <span class="pill info">Test · only Hannah and Max see this</span>')+'</div>'+
+   '<button class="btn sm" data-act="nav" data-view="team" style="margin-left:auto">'+(ownOnly()?"My goals":"Team")+' '+chev()+'</button></div>';
+  h+=behind.length||noplan.length?'<div class="gstrip dang">'+svg("alert")+'<div class="grow">'+(behind.length?'<b>Behind this week:</b> '+behind.map(nm).join(", "):'')+(behind.length&&noplan.length?'<br>':'')+
+     (noplan.length?'<b>No plan yet:</b> '+noplan.map(nm).join(", "):'')+'</div>'+(noplan.some(g=>g.u===USER)?'<button class="btn sm coral" data-act="goalplan" data-u="'+USER+'">Plan your week</button>':'')+'</div>'
+   :'<div class="gstrip ok">'+svg("check")+'<div class="grow"><b>Everyone is on track this week.</b></div></div>';
+  h+='<div class="gboard">'+G.map(g=>{const t=teamById(g.u);
+    return '<button class="gsc '+(g.status==="plan"?"dang":g.status)+'" data-act="goalsee" data-id="'+g.u+'"><span class="gsch"><span class="gav sm" style="background:'+t.c+'">'+initials(t.name)+'</span><b>'+esc(t.name)+'</b>'+goalPillHTML(g)+'</span>'+
+     '<small>'+esc(goalTodayLbl(g))+(g.avg!=null?' · '+g.avg+'% of pace':'')+'</small>'+(g.avg!=null?goalBarHTML([{v:g.avg}],100,g.avg+"% of pace, all goals averaged"):'')+'</button>';}).join("")+'</div></section>';
+  return h;
+}
+/* the Team page while goals are on: Just me (the card) | Whole team (the bars), Today | This week */
+function viewTeamGoals(){
+  const cfg=goalCfg(),adm=profile()==="admin",hasCard=goalCardFor(USER),view=goalViewCur();
+  let who=logState.goalWho||(goalHas(USER)?"me":"team");if(who==="me"&&!hasCard)who="team";
+  const see=logState.goalSee&&goalHas(logState.goalSee)&&logState.goalSee!==USER?logState.goalSee:null;
+  FLT_RESET.team=()=>{teamR={preset:"ytd",from:"",to:""};teamDrill=null;};
+  let h='';
+  if(!cfg.live)h+='<div class="gtest">'+svg("alert")+'<div class="grow"><b>Goals are in test.</b> Only Hannah and Max see them — the reps still see their usual page.</div>'+
+    (adm?'<button class="btn sm" data-act="goaltargets">Targets</button><button class="btn sm coral" data-act="goallive" data-v="1">Turn on for the team</button>':'')+'</div>';
+  h+='<div class="gctl">'+(hasCard?'<div class="seg">'+[["me",goalHas(USER)?"Just me":"My test card"],["team","Whole team"]].map(x=>'<button class="'+(!see&&who===x[0]?"on":"")+'" data-act="goalwho" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>':'')+
+   '<div class="seg">'+[["today","Today"],["week","This week"]].map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="goalview" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+   '<span class="grow"></span>'+(adm&&cfg.live?'<button class="btn sm" data-act="goaltargets">Targets</button>':'')+filterBar("team",[teamDateGroup()])+'</div>';
+  const reps=GH_REPS.filter(id=>profile(id)==="sales").map(id=>Object.assign({id:id,t:teamById(id)},teamStats(id)));
+  if(see)h+='<p class="t2 gviewing">Viewing '+esc(teamById(see).name)+'’s card · <button class="lnk" data-act="goalback">Back to the team</button></p><div class="gcards">'+goalCardHTML(see,goalYtdHTML(see))+'</div>';
+  else if(who==="me")h+=(goalHas(USER)?'':'<p class="t2 gviewing">Your test card — plan the days and press Log to watch the bars move. You aren’t on the team board.</p>')+'<div class="gcards">'+goalCardHTML(USER,goalYtdHTML(USER))+'</div>';
+  else{h+=goalTeamListHTML(view);
+    if(teamAccess()){const hs=repOrders("house"),un=(DB.orders||[]).filter(o=>orderIsSale(o)&&!orderRep(o)&&inTeamRange(o.poDate));
+      h+='<div class="list" style="max-width:640px"><button class="stat gline" data-act="teamdrill" data-rep="house" data-k="sold"><span>House <small>sold before the reps joined · '+hs.length+' orders</small></span><b>'+fmtK(hs.reduce((x,o)=>x+(o.amount||0),0))+'</b></button>'+
+        '<button class="stat gline" data-act="teamdrill" data-rep="house" data-k="unassigned"><span>No territory <small>'+un.length+' orders</small></span><b>'+fmtK(un.reduce((x,o)=>x+(o.amount||0),0))+'</b></button></div>'+
+        teamRuleHTML(false)+teamRankHTML(reps);}}
+  h+='<p class="t2 glegend">Green: 90% or more · orange: 70–89% · red: under 70%. A week is judged on the planned days that are over, so today only counts once you hit it.</p>';
+  return h+teamDrillHTML(reps,[]);
+}
+function formGoalPlan(u){
+  const g=goalState(u),cfg=goalCfg(),types=GOAL_TYPES[g.kind],DN=["Monday","Tuesday","Wednesday","Thursday","Friday"],own=u===USER;
+  openSheet('<h2>'+(own?"Plan your week":"Plan "+esc(teamById(u).name)+"’s week")+'</h2><p class="t2" style="white-space:normal;margin:0 0 12px">'+goalMD(g.days[0])+' – '+goalMD(g.days[4])+
+   ' · tap where '+(own?"you’ll":"they’ll")+' be each day and the targets set themselves. Days that are over are locked.</p><div class="gplan">'+
+   g.plan.map((type,i)=>{const locked=g.days[i]<g.T&&type;
+    return '<div class="gpr'+(i===g.ti?" today":"")+'"><span class="gpd"><b>'+DN[i]+'</b>'+goalMD(g.days[i])+(i===g.ti?" · today":"")+'</span>'+
+     (locked?'<span class="pill gray">'+goalTypeLbl(g.kind,type)+' · day is over</span>'
+      :'<div class="seg">'+types.map(x=>'<button class="'+(type===x[0]?"on":"")+'" data-act="goalday" data-u="'+u+'" data-i="'+i+'" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>')+'</div>';}).join("")+'</div>'+
+   '<div class="gtypes">'+types.map(x=>'<p><b>'+x[1]+'</b> · '+esc(goalTypeDesc(cfg,x[0]))+'</p>').join("")+'</div>'+
+   '<button class="btn coral block" data-act="closesheet" style="margin-top:14px">Done</button>');
+}
+function goalTypeDesc(cfg,type){
+  const d=cfg.day[type]||{},r=k=>d[k]&&d[k][0]?goalRng(d[k][0],Math.max(d[k][0],d[k][1]||0)):"";
+  const parts=[r("mtg")&&r("mtg")+" distributor meetings",r("call")&&r("call")+(type==="calls"?" calls":" distributor calls"),r("email")&&r("email")+" outreach emails"].filter(Boolean);
+  return parts.length?parts.join(" · ")+" a day":"nothing tracked";
+}
+/* admins tune the per-day numbers (and turn goals on for the team); everyone's targets follow at once */
+function formGoalTargets(){
+  const c=goalCfg(),d=c.day,inp=(id,v)=>'<input class="f" id="'+id+'" type="number" min="0" step="0.5" value="'+esc(v)+'">';
+  openSheet('<h2>Targets</h2><p class="t2" style="white-space:normal;margin:0 0 12px">Per day. A rep’s week adds up the days they planned; a Both day is half a zone day plus half an office day.</p>'+
+   '<div class="gtgrid"><span></span><b>Zone day</b><b>Office day</b>'+
+   '<span>Distributor meetings</span>'+inp("gt_zone_mtg",d.zone.mtg[0])+inp("gt_office_mtg",d.office.mtg[0])+
+   '<span>… stretch</span>'+inp("gt_zone_mtgs",d.zone.mtg[1])+inp("gt_office_mtgs",d.office.mtg[1])+
+   '<span>Distributor calls</span>'+inp("gt_zone_call",d.zone.call[0])+inp("gt_office_call",d.office.call[0])+
+   '<span>Outreach emails</span>'+inp("gt_zone_email",d.zone.email[0])+inp("gt_office_email",d.office.email[0])+'</div>'+
+   '<div class="gtgrid one"><span>Kellan · calls on a Calls day</span>'+inp("gt_calls_call",d.calls.call[0])+
+   '<span>Call each man-rep every … days</span>'+inp("gt_mr_every",c.every)+
+   '<span>… with active business</span>'+inp("gt_mr_active",c.active)+'</div>'+
+   '<button class="btn coral block" data-act="savegoaltargets" style="margin-top:16px">Save targets</button>'+
+   '<div class="gtest" style="margin:16px 0 0">'+(c.live?'<div class="grow"><b>Live for the team.</b> Every rep plans and logs against these; everyone sees the board on Home.</div><button class="btn sm" data-act="goallive" data-v="0">Back to test</button>'
+     :'<div class="grow"><b>In test.</b> Only Hannah and Max see goals.</div><button class="btn sm coral" data-act="goallive" data-v="1">Turn on for the team</button>')+'</div>');
+}
+function saveGoalTargets(){
+  const c=goalCfg(),d=c.day,n=(id,def)=>{const el=document.getElementById(id),v=el?parseFloat(el.value):NaN;return isNaN(v)||v<0?def:v;};
+  const day={zone:{mtg:[n("gt_zone_mtg",d.zone.mtg[0]),n("gt_zone_mtgs",d.zone.mtg[1])],call:[n("gt_zone_call",d.zone.call[0]),0],email:[n("gt_zone_email",d.zone.email[0]),0]},
+    office:{mtg:[n("gt_office_mtg",d.office.mtg[0]),n("gt_office_mtgs",d.office.mtg[1])],call:[n("gt_office_call",d.office.call[0]),0],email:[n("gt_office_email",d.office.email[0]),0]},
+    calls:{call:[n("gt_calls_call",d.calls.call[0]),0]}};
+  Object.assign(goalTargetsRec(),{day:day,mrEvery:Math.max(1,Math.round(n("gt_mr_every",c.every))),mrActive:Math.max(1,Math.round(n("gt_mr_active",c.active))),by:USER,at:new Date().toISOString()});
+  save();closeSheet();render();toast("Targets saved — everyone’s goals follow");
+}
+function setGoalsLive(on){
+  if(on&&!confirm("Turn weekly goals on for the whole team?\n\nJohn M., John C., Tim and Kellan will see their goals card and plan their week, and everyone sees who is behind on Home."))return;
+  const r=goalTargetsRec();r.live=!!on;r.liveBy=USER;r.liveAt=new Date().toISOString();save();closeSheet();render();
+  toast(on?"Goals are live for the team":"Goals are back in test — only Hannah and Max see them");
+}
 function viewToday(){
   if(USER==="laresa")return billingHome(); /* her Home is the billing picture, not the sales floor */
   ensureTasks();ensureOpps();
@@ -2058,6 +2403,7 @@ function viewToday(){
   const confs=confLeadLists(),toCall=confs.reduce((s,c)=>s+c.tocall,0);
   const wonMonth=myOpps().filter(o=>o.stage==="Closed Won"&&String(o.closeDate||o.createdAt||"").slice(0,7)===T.slice(0,7));
   let h='';
+  if(goalsOn())h+=goalHomeHTML();
   if(P==="sales")h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["From outreach",forMe.length,"leads you have not touched yet"+(listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length?" · "+listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length+" call list":""),forMe.length?"warn":""]]);
   else if(P==="outreach")h+=kpiRow([["Leads to categorize",toCat.length,"new, uncategorized",toCat.length?"warn":""],["Handed to sales",handedWk.length,"this week"],["Conf leads to call",toCall,confs.length+" show list"+(confs.length===1?"":"s")],["Follow-ups waiting",qMe.todo.length+qMe.old.length,"mine"]]);
   else{
@@ -2204,6 +2550,7 @@ function viewPerson(id){
    '<div><b>Last contact</b><span>'+ago(p.last)+'</span></div><div><b>Units (YTD)</b><span>'+(p.units||0)+'</span></div></div>'+
    (p.note?'<p class="t2" style="white-space:normal;margin-top:10px">'+esc(p.note)+'</p>':'')+
    '<button class="btn sm" data-act="coverage" data-id="'+p.id+'" style="margin-top:12px">'+svg("pin")+' Edit coverage states</button>'+
+   (goalsOn()&&contactType(p)==="manrep"?' <button class="btn sm'+(p.activeBiz?' coral':'')+'" data-act="goalactive" data-id="'+p.id+'" style="margin-top:12px" title="Active business: the rep calls them '+goalEvery(goalCfg().active)+' instead of '+goalEvery(goalCfg().every)+'">'+svg("bolt")+(p.activeBiz?' Active business · call '+goalEvery(goalCfg().active):' Mark active business')+'</button>':'')+
    (p.cardPath?' <button class="btn sm" data-act="cardview" data-id="'+p.id+'" style="margin-top:12px">'+svg("camera")+' Business card</button>':'')+
    (isTop(p)?' <span class="pill coral" style="margin-left:8px">'+svg("flame")+' Top seller</span>':'')+'</div>';
   const trainings=acts.filter(a=>a.type==="training");
@@ -4323,18 +4670,50 @@ function teamKpis(who){
    ["clx","Conf leads connected with",connected.length,"spoke, met or demoed",connected]
   ];
 }
-function viewTeam(){
-  const me=ownOnly(); /* a sales rep: their own tile and KPIs only */
-  if(me){teamSel=USER;if(teamDrill&&teamDrill.rep&&teamDrill.rep!==USER)teamDrill=null;}
+const TEAM_PRESETS=[["month","This month"],["quarter","This quarter"],["ytd","Year to date"],["90","Last 90 days"],["all","All time"]];
+function teamRangeLbl(){return teamR.preset==="custom"?((teamR.from?usDate(teamR.from):"…")+" – "+(teamR.to?usDate(teamR.to):"…")):((TEAM_PRESETS.find(p=>p[0]===teamR.preset)||["",""])[1]);}
+/* the Date range group of the Team filter (old page and goals page) */
+function teamDateGroup(){
   const r=teamRange();
-  const presets=[["month","This month"],["quarter","This quarter"],["ytd","Year to date"],["90","Last 90 days"],["all","All time"]];
-  const presetLbl={};presets.forEach(p=>presetLbl[p[0]]=p[1]);
-  const dateHtml=presets.map(p=>'<button type="button" class="qchip'+(teamR.preset===p[0]?" on":"")+'" data-act="teampreset" data-v="'+p[0]+'">'+p[1]+'</button>').join("")+
+  const dateHtml=TEAM_PRESETS.map(p=>'<button type="button" class="qchip'+(teamR.preset===p[0]?" on":"")+'" data-act="teampreset" data-v="'+p[0]+'">'+p[1]+'</button>').join("")+
    '<div style="display:flex;align-items:center;gap:8px;width:100%;margin-top:4px"><input class="f" type="date" id="teamFrom" value="'+esc(teamR.preset==="custom"?teamR.from:r[0]==="2000-01-01"?"":r[0])+'" style="flex:1;min-width:0"><span class="t2">to</span>'+
    '<input class="f" type="date" id="teamTo" value="'+esc(teamR.preset==="custom"?teamR.to:r[1]==="2999-12-31"?"":r[1])+'" style="flex:1;min-width:0"></div>';
+  return {t:"Date range",cur:teamR.preset,def:"ytd",html:dateHtml,sumOf:v=>teamRangeLbl()};
+}
+/* who gets a sale — your own rule (a rep) or the whole rule */
+function teamRuleHTML(me){return (me?'<p class="t2" style="white-space:normal;margin:4px 2px 0">'+({johnm:"A sale counts for you when it closes in the East from Aug 14, 2026 on.",john:"A sale counts for you when it closes in Central from May 4, 2026 on, or in the West between May 4 and Oct 1, 2026.",tim:"A sale counts for you when it closes in the West from Oct 2, 2026 on."}[USER]||"")+' If a different person is set on the order or the deal, it counts for them.</p>'
+     :'<p class="t2" style="white-space:normal;margin:4px 2px 0">Who gets a sale depends on when it closed: East → John Morrison from Aug 14 · Central → John Cornejo from May 4 · West → John Cornejo May 4 – Oct 1, Tim Ford from Oct 2 · earlier = House. Set a different person on the order or the deal to override.</p>');}
+function teamRankHTML(reps){
+  const top=(k,f)=>{const best=reps.slice().sort((a,b)=>f(b)-f(a))[0];return best&&f(best)>0?best:null;};
+  const mostAct=top("touches",s=>s.touches.length),mostRev=top("sold",s=>s.sold),mostQ=top("quoted",s=>s.quoted);
+  const score=s=>{const rank=(f)=>reps.slice().sort((a,b)=>f(b)-f(a)).findIndex(x=>x.id===s.id);return rank(x=>x.touches.length)+rank(x=>x.sold)+rank(x=>x.quoted)+rank(x=>x.openAmt);};
+  const bestAll=reps.some(s=>s.touches.length||s.sold||s.quoted||s.openAmt)?reps.slice().sort((a,b)=>score(a)-score(b))[0]:null;
+  const worst=reps.some(s=>s.touches.length||s.sold||s.quoted||s.openAmt)?reps.slice().sort((a,b)=>score(b)-score(a))[0]:null;
+  const rk=(l,s,v)=>'<div class="kpi"><b>'+l+'</b><span style="font-size:19px">'+(s?esc(s.t.name):"—")+'</span><small>'+(s?v:"nothing in this range")+'</small></div>';
+  return '<div class="sectlabel">Rank by sales person</div><div class="kpis">'+rk("Most activity",mostAct,mostAct?mostAct.touches.length+" touches":"")+rk("Most revenue",mostRev,mostRev?fmtK(mostRev.sold)+" sold":"")+rk("Most quotes",mostQ,mostQ?fmtK(mostQ.quoted)+" quoted":"")+rk("Best overall",bestAll,bestAll?"activity + revenue + quotes + pipeline":"")+(worst&&worst!==bestAll?rk("Needs attention",worst,"lowest across the board"):"")+'</div>';
+}
+/* the rows behind a tapped tile or line */
+function teamDrillHTML(reps,kp){
+  if(!teamDrill)return "";
+  const os=outreachStats("kellan"),ot=teamById("kellan");let h="";
+    let title="",body="";
+    if(teamDrill.k.indexOf("kpi:")===0){const k=kp.find(x=>"kpi:"+x[0]===teamDrill.k);if(k){title=k[1];body=drillList(k[4]);}}
+    else if(teamDrill.rep==="kellan"){title=ot.name+" — "+{oleads:"Leads added",ocat:"Categorized",ohanded:"Handed to sales",ocalls:"Conf leads called",otouches:"Touches"}[teamDrill.k];
+      const rows={oleads:os.added,ocat:os.cat,ohanded:os.handed,ocalls:os.calls,otouches:os.touches}[teamDrill.k]||[];
+      body=teamDrill.k==="otouches"?drillList(rows):teamDrill.k==="ocalls"?drillList(rows):(rows.length?'<div class="list">'+rows.map(leadHomeRow).join("")+'</div>':'<div class="empty">Nothing in this range.</div>');}
+    else if(teamDrill.rep==="house"){const hs=teamDrill.k==="sold"?repOrders("house"):(DB.orders||[]).filter(o=>orderIsSale(o)&&!orderRep(o)&&inTeamRange(o.poDate));title="House — "+(teamDrill.k==="sold"?"sold before the reps joined":"orders with no territory");body=drillList(hs);}
+    else{const s=reps.find(x=>x.id===teamDrill.rep);if(s){title=s.t.name+" — "+{sold:"Sold",wondeals:"Won deals",quoted:"Quoted",touches:"Touches",opps:"Open opportunities",open:"Open pipeline"}[teamDrill.k];
+      body=teamDrill.k==="sold"?drillList(s.ords):teamDrill.k==="wondeals"?oppTableHTML(s.won,false):teamDrill.k==="quoted"?(s.quotes.length?'<div class="list">'+s.quotes.map(quoteRowHTML).join("")+'</div>':'<div class="empty">No quotes in this range.</div>'):teamDrill.k==="touches"?drillList(s.touches):oppTableHTML(s.open,false);}}
+    h+='<div class="lvhead" style="margin-top:22px"><div class="sech">'+esc(title)+'</div><button class="btn sm ghost" data-act="teamdrill" data-rep="" data-k="" style="margin-left:auto">Clear</button></div>'+body;
+  return h;
+}
+function viewTeam(){
+  if(goalsOn())return viewTeamGoals();
+  const me=ownOnly(); /* a sales rep: their own tile and KPIs only */
+  if(me){teamSel=USER;if(teamDrill&&teamDrill.rep&&teamDrill.rep!==USER)teamDrill=null;}
   FLT_RESET.team=()=>{teamR={preset:"ytd",from:"",to:""};teamSel=me?USER:"";teamDrill=null;};
   let h='<div class="lvhead" style="margin-bottom:14px">'+filterBar("team",[
-     {t:"Date range",cur:teamR.preset,def:"ytd",html:dateHtml,sumOf:v=>v==="custom"?((teamR.from?usDate(teamR.from):"…")+" – "+(teamR.to?usDate(teamR.to):"…")):(presetLbl[v]||"")},
+     teamDateGroup(),
      me?null:fltGroup("KPIs for","teamsel",[["","Whole team"]].concat(GH_REPS.map(id=>[id,shortName(id)])),teamSel,"",{attr:"data-rep",sumOf:(v,o)=>v&&o?"KPIs: "+o[1]:""})])+'</div>';
   const reps=GH_REPS.filter(id=>profile(id)==="sales"&&(!me||id===USER)).map(id=>Object.assign({id:id,t:teamById(id)},teamStats(id)));
   const on=(id,k)=>teamDrill&&teamDrill.rep===id&&teamDrill.k===k?" on":"";
@@ -4347,33 +4726,15 @@ function viewTeam(){
     (me?'':'<div class="reptile outreach'+selCls("kellan")+'"><button class="rephead" data-act="teamsel" data-rep="kellan" style="background:'+ot.c+'" title="Show '+esc(ot.name)+'\'s KPIs"><span class="av">'+initials(ot.name)+'</span><b>'+esc(ot.name)+'</b><small>Outreach'+(teamSel==="kellan"?' · showing':'')+'</small></button>'+
     line("kellan","oleads","Leads added",os.added.length)+line("kellan","ocat","Categorized",os.cat.length)+line("kellan","ohanded","Handed to sales",os.handed.length)+line("kellan","ocalls","Conf leads called",os.calls.length)+line("kellan","otouches","Touches",os.touches.length)+'<button class="stat" data-act="teammate" data-id="kellan"><span>Activity &amp; time in the CRM</span><b>'+chev()+'</b></button></div>')+
     (me?'':(function(){const hs=repOrders("house"),un=(DB.orders||[]).filter(o=>orderIsSale(o)&&!orderRep(o)&&inTeamRange(o.poDate));return '<div class="reptile house"><div class="rephead" style="background:#A9A59C"><span class="av">H</span><b>House</b><small>before the reps joined</small></div>'+
-      line("house","sold","Sold <small>"+hs.length+" orders</small>",fmtK(hs.reduce((x,o)=>x+(o.amount||0),0))+' <small>'+hs.reduce((x,o)=>x+orderUnits(o),0)+'u</small>')+line("house","unassigned","No territory",un.length+' <small>'+fmtK(un.reduce((x,o)=>x+(o.amount||0),0))+'</small>')+'</div>';})())+(me?'':'</div>')+
-    (me?'<p class="t2" style="white-space:normal;margin:4px 2px 0">'+({johnm:"A sale counts for you when it closes in the East from Aug 14, 2026 on.",john:"A sale counts for you when it closes in Central from May 4, 2026 on, or in the West between May 4 and Oct 1, 2026.",tim:"A sale counts for you when it closes in the West from Oct 2, 2026 on."}[USER]||"")+' If a different person is set on the order or the deal, it counts for them.</p>'
-     :'<p class="t2" style="white-space:normal;margin:4px 2px 0">Who gets a sale depends on when it closed: East → John Morrison from Aug 14 · Central → John Cornejo from May 4 · West → John Cornejo May 4 – Oct 1, Tim Ford from Oct 2 · earlier = House. Set a different person on the order or the deal to override.</p>');
-  /* rank by sales person */
-  const top=(k,f)=>{const best=reps.slice().sort((a,b)=>f(b)-f(a))[0];return best&&f(best)>0?best:null;};
-  const mostAct=top("touches",s=>s.touches.length),mostRev=top("sold",s=>s.sold),mostQ=top("quoted",s=>s.quoted);
-  const score=s=>{const rank=(f)=>reps.slice().sort((a,b)=>f(b)-f(a)).findIndex(x=>x.id===s.id);return rank(x=>x.touches.length)+rank(x=>x.sold)+rank(x=>x.quoted)+rank(x=>x.openAmt);};
-  const bestAll=reps.some(s=>s.touches.length||s.sold||s.quoted||s.openAmt)?reps.slice().sort((a,b)=>score(a)-score(b))[0]:null;
-  const worst=reps.some(s=>s.touches.length||s.sold||s.quoted||s.openAmt)?reps.slice().sort((a,b)=>score(b)-score(a))[0]:null;
-  const rk=(l,s,v)=>'<div class="kpi"><b>'+l+'</b><span style="font-size:19px">'+(s?esc(s.t.name):"—")+'</span><small>'+(s?v:"nothing in this range")+'</small></div>';
-  if(!me)h+='<div class="sectlabel">Rank by sales person</div><div class="kpis">'+rk("Most activity",mostAct,mostAct?mostAct.touches.length+" touches":"")+rk("Most revenue",mostRev,mostRev?fmtK(mostRev.sold)+" sold":"")+rk("Most quotes",mostQ,mostQ?fmtK(mostQ.quoted)+" quoted":"")+rk("Best overall",bestAll,bestAll?"activity + revenue + quotes + pipeline":"")+(worst&&worst!==bestAll?rk("Needs attention",worst,"lowest across the board"):"")+'</div>';
+      line("house","sold","Sold <small>"+hs.length+" orders</small>",fmtK(hs.reduce((x,o)=>x+(o.amount||0),0))+' <small>'+hs.reduce((x,o)=>x+orderUnits(o),0)+'u</small>')+line("house","unassigned","No territory",un.length+' <small>'+fmtK(un.reduce((x,o)=>x+(o.amount||0),0))+'</small>')+'</div>';})())+(me?'':'</div>');
+  h+=teamRuleHTML(me);
+  if(!me)h+=teamRankHTML(reps);
   /* Hannah's KPIs */
   const kp=teamKpis(teamSel).filter(k=>!me||(k[0]!=="demo"&&k[0]!=="dsu"));
   h+='<div class="lvhead" style="margin-top:18px"><div class="sectlabel" style="margin:0">'+(me?'Your KPIs — '+esc(teamById(USER).name):'KPIs — '+(teamSel?esc(teamById(teamSel).name):"whole team"))+'</div>'+
    '</div>'+
    '<div class="kpis ktiles">'+kp.map(k=>'<button class="kpi fill'+(teamDrill&&teamDrill.k==="kpi:"+k[0]?" on":"")+'" data-act="teamdrill" data-rep="" data-k="kpi:'+k[0]+'"><span>'+k[2]+'</span><b>'+k[1]+'</b><small>'+k[3]+'</small></button>').join("")+'</div>';
-  if(teamDrill){
-    let title="",body="";
-    if(teamDrill.k.indexOf("kpi:")===0){const k=kp.find(x=>"kpi:"+x[0]===teamDrill.k);if(k){title=k[1];body=drillList(k[4]);}}
-    else if(teamDrill.rep==="kellan"){title=ot.name+" — "+{oleads:"Leads added",ocat:"Categorized",ohanded:"Handed to sales",ocalls:"Conf leads called",otouches:"Touches"}[teamDrill.k];
-      const rows={oleads:os.added,ocat:os.cat,ohanded:os.handed,ocalls:os.calls,otouches:os.touches}[teamDrill.k]||[];
-      body=teamDrill.k==="otouches"?drillList(rows):teamDrill.k==="ocalls"?drillList(rows):(rows.length?'<div class="list">'+rows.map(leadHomeRow).join("")+'</div>':'<div class="empty">Nothing in this range.</div>');}
-    else if(teamDrill.rep==="house"){const hs=teamDrill.k==="sold"?repOrders("house"):(DB.orders||[]).filter(o=>orderIsSale(o)&&!orderRep(o)&&inTeamRange(o.poDate));title="House — "+(teamDrill.k==="sold"?"sold before the reps joined":"orders with no territory");body=drillList(hs);}
-    else{const s=reps.find(x=>x.id===teamDrill.rep);if(s){title=s.t.name+" — "+{sold:"Sold",wondeals:"Won deals",quoted:"Quoted",touches:"Touches",opps:"Open opportunities",open:"Open pipeline"}[teamDrill.k];
-      body=teamDrill.k==="sold"?drillList(s.ords):teamDrill.k==="wondeals"?oppTableHTML(s.won,false):teamDrill.k==="quoted"?(s.quotes.length?'<div class="list">'+s.quotes.map(quoteRowHTML).join("")+'</div>':'<div class="empty">No quotes in this range.</div>'):teamDrill.k==="touches"?drillList(s.touches):oppTableHTML(s.open,false);}}
-    h+='<div class="lvhead" style="margin-top:22px"><div class="sech">'+esc(title)+'</div><button class="btn sm ghost" data-act="teamdrill" data-rep="" data-k="" style="margin-left:auto">Clear</button></div>'+body;
-  }
+  h+=teamDrillHTML(reps,kp);
   return h;
 }
 function drillList(rows){
@@ -5210,12 +5571,12 @@ function saveEditTask(){
   t.title=title;t.type=logState.taskEditType||t.type;t.due=(document.getElementById("tkDue")||{}).value||t.due;
   save();closeSheet();render();toast("Saved");
 }
-function formLog(prefillPid,prefillType){
+function formLog(prefillPid,prefillType,hint){
   const types=LOG_TYPES;
   logState.logType=prefillType||"call";logState.outcome="Interested";logState.logWith="";
   logState.logPid=prefillPid||null;
   logState.logNew=false;logState.logNewCid=null;logState.logNewKind="enduser";
-  openSheet('<h2>Log activity</h2><label class="fl">Type</label><div class="tiles" id="logTiles">'+
+  openSheet('<h2>Log activity</h2>'+(hint?'<p class="t2" style="white-space:normal;margin:-4px 0 6px">'+esc(hint)+'</p>':'')+'<label class="fl">Type</label><div class="tiles" id="logTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.logType?' on':'')+'" data-act="setType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
    '<label class="fl">With</label>'+comboField("logWho2","Type a name — rep, contact, anyone…",personLabel(person(prefillPid)))+
    /* not in the CRM yet? add them right here instead of backing out (Max, 2026-09-17) */
@@ -7502,6 +7863,20 @@ document.addEventListener("click",e=>{
   if(a==="pipexall"){const v=t.dataset.v;const sel=v==="1"?PIPE_FIELDS.map(f=>f[0]):v==="0"?[]:PIPE_DEFAULT.slice();try{localStorage.setItem("autotq_pipe_fields",JSON.stringify(sel));}catch(e){}document.querySelectorAll("#pipeFields .qchip").forEach(x=>x.classList.toggle("on",sel.includes(x.dataset.v)));return;}
   if(a==="pipexgo"){pipeExportCsv();return;}
   if(a==="pipef"){pipeF.rep=t.dataset.v;if(view!=="opps"){pushNav();view="opps";oppFilter="open";}e.stopPropagation();render();return;}
+  if(a==="goalwho"){logState.goalWho=t.dataset.v;logState.goalSee=null;teamDrill=null;render();return;}
+  if(a==="goalview"){logState.goalView=t.dataset.v;render();return;}
+  if(a==="goalsee"){const u=id;pushNav();view="team";if(u===USER&&goalCardFor(USER)){logState.goalWho="me";logState.goalSee=null;}else logState.goalSee=u;teamDrill=null;render();window.scrollTo(0,0);return;}
+  if(a==="goalback"){pushNav();logState.goalSee=null;logState.goalWho="team";teamDrill=null;render();return;}
+  if(a==="goalplan"){formGoalPlan(t.dataset.u||USER);return;}
+  if(a==="goalday"){const u=t.dataset.u;if(!goalCanPlan(u))return;setGoalDay(u,goalMonday(),+t.dataset.i,t.dataset.v);render();formGoalPlan(u);return;}
+  if(a==="goallog"){formLog(null,t.dataset.v,GOAL_HINT[t.dataset.k]||"");return;}
+  if(a==="goalmr"){logState.goalMrOpen=logState.goalMrOpen===t.dataset.u?"":t.dataset.u;render();return;}
+  if(a==="goalmrall"){logState.goalMrAll=t.dataset.u;render();return;}
+  if(a==="goalactive"){const p=person(id);if(p){const c=goalCfg();p.activeBiz=!p.activeBiz;p.activeBizBy=USER;p.activeBizAt=new Date().toISOString();save();render();
+    toast(p.name+(p.activeBiz?" — active business: call "+goalEvery(c.active):" — call "+goalEvery(c.every)));}return;}
+  if(a==="goallive"){setGoalsLive(t.dataset.v==="1");return;}
+  if(a==="goaltargets"){formGoalTargets();return;}
+  if(a==="savegoaltargets"){saveGoalTargets();return;}
   if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on&&x.dataset.v?tm.c:"";x.style.color=on&&x.dataset.v?tm.c:"";});return;}
   if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
