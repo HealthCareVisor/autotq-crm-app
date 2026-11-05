@@ -2058,10 +2058,11 @@ function viewContacts(){
   const scoped=DB.people.filter(p=>regionMatch(personRegion(p)));
   const cnt={manrep:0,distrep:0,enduser:0,sellers:0};
   scoped.forEach(p=>{if(isSellerTier(p)){cnt.sellers++;return;}const t=contactType(p);if(cnt[t]!=null)cnt[t]++;});
-  let pool=contactFilter==="sellers"?scoped.filter(isSellerTier)
-    :contactFilter==="all"?scoped.filter(p=>!isSellerTier(p))
-    :scoped.filter(p=>contactType(p)===contactFilter&&!isSellerTier(p));
-  const stateOpts=[...new Set(pool.flatMap(p=>personStates(p)))].filter(Boolean).sort();
+  /* Grainger sellers keep their own bucket, except once a state is picked: then All / Distributor reps show that state's sellers too */
+  const sellOk=contactFilter==="all"||contactFilter==="distrep";
+  const inPool=(p,sell)=>contactFilter==="sellers"?isSellerTier(p):(sell||!isSellerTier(p))&&(contactFilter==="all"||contactType(p)===contactFilter);
+  const stateOpts=[...new Set(scoped.filter(p=>inPool(p,sellOk)).flatMap(p=>personStates(p)))].filter(Boolean).sort();
+  let pool=scoped.filter(p=>inPool(p,sellOk&&!!contactStateF));
   if(contactStateF)pool=pool.filter(p=>personStates(p).includes(contactStateF));
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(p=>(p.name||"").toLowerCase().includes(q)||(p.email||"").toLowerCase().includes(q)||(p.branch||"").toLowerCase().includes(q)||(p.state||"").toLowerCase().includes(q)||(p.role||"").toLowerCase().includes(q));
