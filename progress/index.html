@@ -1225,6 +1225,18 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 @media (hover:none){.pi-x{opacity:1}}
 .pi-txt{display:block;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:1.45;padding:0 12px 10px;resize:none;overflow:hidden;height:30px}
 .pi-txt:focus{outline:none}
+.pi-wrap{position:relative}
+.pi-tools{position:absolute;top:10px;left:10px;z-index:4;display:inline-flex;gap:2px;padding:3px;border:1px solid var(--rule-3);border-radius:10px;background:var(--paper);box-shadow:0 4px 14px -8px rgba(0,0,0,.3)}
+.pi-tools button{display:inline-flex;align-items:center;gap:7px;min-height:30px;padding:0 11px;border:0;border-radius:7px;background:transparent;color:var(--ink-3);font:inherit;font-size:12.5px;font-weight:600}
+.pi-tools button:hover{color:var(--ink)}.pi-tools button.on{background:var(--rule-2);color:var(--ink)}
+.pi-tools b{font-size:13px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.pi-sw{width:12px;height:10px;border:1.5px solid currentColor;border-radius:3px}
+.pi-head{width:auto;min-width:200px;max-width:520px;background:transparent;border-color:transparent;box-shadow:none}
+.pi-head:hover,.pi-head:focus-within{border-color:var(--rule-3);border-style:dashed;background:color-mix(in srgb,var(--paper) 70%,transparent)}
+.pi-head .pi-grip i{opacity:0}.pi-head:hover .pi-grip i,.pi-head:focus-within .pi-grip i{opacity:1}
+.pi-head .pi-txt{font-size:26px;font-weight:700;letter-spacing:-.022em;line-height:1.15;padding:0 12px 10px;width:420px;max-width:100%}
+.pi-head .pi-txt::placeholder{color:var(--ink-4);font-weight:600}
+@media (max-width:640px){.pi-head .pi-txt{width:280px;font-size:22px}}
 @media (max-width:640px){.pi-canvas{height:calc(100dvh - 150px)}.pi-note{width:200px}}
 .pg-ctxt{flex:1;min-width:0;padding:8px 2px;line-height:1.45;color:var(--ink-2)}.pg-ctxt small{display:block;color:var(--ink-3);font-size:12px;margin-top:1px}
 @media (max-width:640px){.pg-pr{flex-wrap:wrap}.pg-pd{min-width:0;width:calc(100% - 30px)}.pg-acts{width:100%}.pg-date{flex:1}}
@@ -5066,6 +5078,7 @@ function pgHandle(a,t){
   if(a==="pgday"){pgDay=t.dataset.v||todayStr();pgTabSet("prog");return true;}
   if(a==="pgchatopen"){pgOpenChat=pgOpenChat===t.dataset.v?null:t.dataset.v;render();return true;}
   if(a==="pgfile"){if(t.dataset.p)mktOpen(t.dataset.p,t.dataset.n);return true;}
+  if(a==="pgpitool"){piTool=t.dataset.v==="head"?"head":"note";document.querySelectorAll('[data-act="pgpitool"]').forEach(b=>{const on=b.dataset.v===piTool;b.classList.toggle("on",on);b.setAttribute("aria-checked",on);});return true;}
   if(a==="pgnotex"){const r=piRec(),i=r.notes.findIndex(n=>n.id===t.dataset.v);if(i<0)return true;const n=r.notes[i];
     if(n.t&&!confirm("Delete this note?\n\n"+String(n.t).slice(0,120)))return true;r.notes.splice(i,1);piSave(r);render();return true;}
   if(a==="pgck"){const f=pgFind(t.dataset.c,"tasks",t.dataset.id);if(!f)return true;f.it.done=!f.it.done;f.it.doneAt=f.it.done?new Date().toISOString():"";pgSave(f.r);render();return true;}
@@ -5097,17 +5110,18 @@ window.addEventListener("resize",()=>{if(APP==="progress")pgFitAll();});
 /* ---------- Progress › Ideas (2026-11-06, Max: "add ideas to AutoTQ Progress as the first tab… Ideas should just be a blank
    canvas") — one record in progressDays, id "pi_canvas": {id,kind:"canvas",owner,notes:[{id,x,y,t,at}]}. Click empty space to
    write a note, drag a note by its top strip, × deletes; a note left empty disappears. No dates, no categories. ---------- */
-let piDrag=null,piWasEditing=false,piSaveT=null;
+let piDrag=null,piWasEditing=false,piSaveT=null,piTool="note"; // piTool: what a click on the canvas makes — a box (note) or a header (Max: "choose between boxes… and a header box")
 function piRec(){const L=DB.progressDays=DB.progressDays||[];let r=L.find(x=>x&&x.id==="pi_canvas");
   if(!r){r={id:"pi_canvas",kind:"canvas",owner:USER,notes:[]};L.push(r);}r.notes=r.notes||[];return r;}
 function piSave(r){clearTimeout(piSaveT);r.updatedAt=new Date().toISOString();put("progressDays",r);}
 function piSize(){let w=0,h=0;piRec().notes.forEach(n=>{w=Math.max(w,(n.x||0)+300);h=Math.max(h,(n.y||0)+260);});return {w:w+360,h:h+360};}
 function viewIdeas(){const r=piRec(),z=piSize();
-  return '<div class="pi-canvas" id="piCanvas"><div class="pi-surface" id="piSurface" style="min-width:'+z.w+'px;min-height:'+z.h+'px">'+
-   (r.notes.length?'':'<div class="pi-hint">Click anywhere to write</div>')+r.notes.map(piNoteHTML).join("")+'</div></div>';}
-function piNoteHTML(n){return '<div class="pi-note" data-id="'+esc(n.id)+'" style="left:'+(n.x|0)+'px;top:'+(n.y|0)+'px">'+
+  return '<div class="pi-wrap"><div class="pi-tools" role="radiogroup" aria-label="What a click adds">'+[["note","Box"],["head","Header"]].map(o=>'<button role="radio" aria-checked="'+(piTool===o[0])+'" class="'+(piTool===o[0]?"on":"")+'" data-act="pgpitool" data-v="'+o[0]+'">'+(o[0]==="head"?'<b>H</b>':'<i class="pi-sw"></i>')+o[1]+'</button>').join("")+'</div>'+
+   '<div class="pi-canvas" id="piCanvas"><div class="pi-surface" id="piSurface" style="min-width:'+z.w+'px;min-height:'+z.h+'px">'+
+   (r.notes.length?'':'<div class="pi-hint">Pick Box or Header, then click anywhere</div>')+r.notes.map(piNoteHTML).join("")+'</div></div></div>';}
+function piNoteHTML(n){const h=n.k==="head";return '<div class="pi-note'+(h?" pi-head":"")+'" data-id="'+esc(n.id)+'" style="left:'+(n.x|0)+'px;top:'+(n.y|0)+'px">'+
   '<div class="pi-grip" data-pigrip="'+esc(n.id)+'" title="Drag to move"><i></i><button class="pi-x" data-act="pgnotex" data-v="'+esc(n.id)+'" aria-label="Delete note" title="Delete">'+svg("x")+'</button></div>'+
-  '<textarea class="pi-txt" rows="1" data-id="'+esc(n.id)+'" aria-label="Note">'+esc(n.t||"")+'</textarea></div>';}
+  '<textarea class="pi-txt" rows="1" data-id="'+esc(n.id)+'" aria-label="'+(h?"Header":"Note")+'"'+(h?' placeholder="What you’re working towards"':'')+'>'+esc(n.t||"")+'</textarea></div>';}
 function piFitSurface(){const sf=document.getElementById("piSurface");if(!sf)return;const z=piSize();sf.style.minWidth=z.w+"px";sf.style.minHeight=z.h+"px";}
 function piNote(id){return piRec().notes.find(n=>n.id===id);}
 document.addEventListener("pointerdown",e=>{if(APP!=="progress"||view!=="ideas")return;const ae=document.activeElement;
@@ -5122,7 +5136,7 @@ document.addEventListener("pointerup",()=>{if(!piDrag)return;const d=piDrag;piDr
   const sf=d.el.parentElement;if(sf)sf.appendChild(d.el);piFitSurface();if(n.t)piSave(r);});
 document.addEventListener("click",e=>{if(APP!=="progress"||view!=="ideas")return;const s=e.target;if(!s||!s.classList||!(s.id==="piSurface"||s.classList.contains("pi-hint")))return;
   if(piWasEditing){piWasEditing=false;return;}
-  const sf=document.getElementById("piSurface"),b=sf.getBoundingClientRect();const n={id:uid(),x:Math.max(0,Math.round(e.clientX-b.left-14)),y:Math.max(0,Math.round(e.clientY-b.top-12)),t:"",at:new Date().toISOString()};
+  const sf=document.getElementById("piSurface"),b=sf.getBoundingClientRect();const n={id:uid(),x:Math.max(0,Math.round(e.clientX-b.left-14)),y:Math.max(0,Math.round(e.clientY-b.top-12)),t:"",at:new Date().toISOString()};if(piTool==="head")n.k="head";
   piRec().notes.push(n);const hint=sf.querySelector(".pi-hint");if(hint)hint.remove();sf.insertAdjacentHTML("beforeend",piNoteHTML(n));
   const ta=sf.querySelector('.pi-txt[data-id="'+n.id+'"]');if(ta){pgFit(ta);ta.focus();}piFitSurface();});
 document.addEventListener("input",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("pi-txt"))return;pgFit(el);const n=piNote(el.dataset.id);if(!n)return;
