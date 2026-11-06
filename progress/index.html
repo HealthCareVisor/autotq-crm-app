@@ -1204,6 +1204,28 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .pg-pcs{flex:1;display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--ink-2);font-size:12.5px}
 .pg-pc{display:inline-flex;align-items:center;gap:6px}.pg-pc i{width:8px;height:8px;border-radius:2px;background:var(--pgc)}.pg-pc small{color:var(--ink-3);font-size:12px}
 .pg-none{color:var(--ink-3)}
+.pg-cbtn{border:0;background:transparent;text-align:left;font:inherit;cursor:pointer;color:var(--ink-2)}.pg-cbtn:hover{color:var(--ink)}
+.pg-fc{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:var(--rule-2);color:var(--ink-3);font-size:11.5px;font-weight:550;line-height:18px;vertical-align:1px}
+.pg-chat.open .pg-fc{background:var(--coral-wash);color:var(--coral-ink)}
+.pg-files{display:flex;flex-wrap:wrap;gap:6px;padding:2px 14px 12px 40px}
+.pg-file{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-height:30px;padding:0 10px;border:1px solid var(--rule-3);border-radius:8px;background:var(--paper);color:var(--ink-2);font:inherit;font-size:12.5px;text-decoration:none;cursor:pointer}
+.pg-file:hover{border-color:var(--ink-3);color:var(--ink)}.pg-file svg{width:14px;height:14px;flex:none}.pg-file span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Ideas canvas */
+.pi-main{padding-bottom:16px}
+.pi-canvas{position:relative;height:calc(100vh - 118px);height:calc(100dvh - 118px);min-height:420px;overflow:auto;border:1px solid var(--rule);border-radius:var(--r-lg);
+  background-color:var(--paper);background-image:radial-gradient(circle,var(--rule-3) 1px,transparent 1.2px);background-size:22px 22px;background-attachment:local}
+.pi-surface{position:relative;width:100%;height:100%;cursor:text}
+.pi-hint{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);color:var(--ink-4);font-size:14px;cursor:text;user-select:none}
+.pi-note{position:absolute;width:230px;background:var(--panel);border:1px solid var(--rule-3);border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 6px 18px -10px rgba(0,0,0,.25);cursor:default}
+.pi-note:focus-within{border-color:var(--ink-3)}.pi-note.drag{box-shadow:0 14px 34px -12px rgba(0,0,0,.45);z-index:2}
+.pi-grip{position:relative;height:16px;cursor:grab;touch-action:none;border-radius:10px 10px 0 0}.pi-note.drag .pi-grip{cursor:grabbing}
+.pi-grip i{position:absolute;left:50%;top:6px;width:26px;height:4px;margin-left:-13px;border-radius:2px;background:var(--rule-3)}
+.pi-x{position:absolute;right:3px;top:1px;width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--ink-4);display:grid;place-items:center;padding:0;opacity:0;transition:opacity .15s}
+.pi-x svg{width:12px;height:12px}.pi-note:hover .pi-x,.pi-note:focus-within .pi-x{opacity:1}.pi-x:hover{color:var(--bad);background:var(--rule-2)}
+@media (hover:none){.pi-x{opacity:1}}
+.pi-txt{display:block;width:100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:14px;line-height:1.45;padding:0 12px 10px;resize:none;overflow:hidden;height:30px}
+.pi-txt:focus{outline:none}
+@media (max-width:640px){.pi-canvas{height:calc(100dvh - 150px)}.pi-note{width:200px}}
 .pg-ctxt{flex:1;min-width:0;padding:8px 2px;line-height:1.45;color:var(--ink-2)}.pg-ctxt small{display:block;color:var(--ink-3);font-size:12px;margin-top:1px}
 @media (max-width:640px){.pg-pr{flex-wrap:wrap}.pg-pd{min-width:0;width:calc(100% - 30px)}.pg-acts{width:100%}.pg-date{flex:1}}
 </style>
@@ -2146,17 +2168,17 @@ function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   if(APP==="development"&&!devUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Development</div><div class="who">This hub is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
   if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">'+(APP==="marketing"?"This hub is for the marketing team.":APP==="progress"?"This hub is just for Max.":"This hub is for Max and Hannah.")+'</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
-  if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel"&&view!=="projects"&&view!=="tasks")view="cat";if(APP==="marketing"&&!pjInner()&&MKT_FULL_ONLY.includes(view))view="start";if(APP==="development")view="doc";if(APP==="progress")view="prog";
+  if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel"&&view!=="projects"&&view!=="tasks")view="cat";if(APP==="marketing"&&!pjInner()&&MKT_FULL_ONLY.includes(view))view="start";if(APP==="development")view="doc";if(APP==="progress"&&view!=="ideas"&&view!=="prog")view=pgTabDefault();
   const me=teamById(USER);const n=APP!=="marketing"?0:needsMe();
   const titles={calls:"Calls",ind:indSel?indName(indSel):"Industries",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook",spend:"Spend / Expense",intel:"Research"};
   const subs={spend:"Card charges by bucket: Marketing, White-label and Conferences. Send Claude a screenshot of new charges and they land here; change a bucket on any charge and the totals follow.",calls:"One person at a time from the conference lists, set up your way. Log the call and the follow-up email opens ready to send from your own Outlook; replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:indSel?"What this industry has bought and been quoted, who clicked its landing page, and the conference leads in it.":indTab==="pros"?"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.":"Every industry AutoTQ sells into, sized by what it has bought or been quoted. Tap one for its page.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="prog"?viewProg():view==="doc"?viewDoc():view==="intel"?viewIntel():view==="spend"?viewSpend():view==="start"?viewHomeNew():view==="plan"?viewHome():view==="projects"?viewProjects():view==="tasks"?viewTasks():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
-  const crumbs=[APP_NAME].concat(view==="prog"?[pgCrumb()]:view==="doc"?[(docMeta(docSel)||{}).title||"Documents"]:view==="intel"?["Research",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="plan"?["Marketing plan"]:view==="projects"?["Projects"].concat(curProj&&pjFind(curProj)?[pjFind(curProj).title]:[]):view==="tasks"?["My tasks"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"].concat(indSel?[indName(indSel)]:[]):view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const body=view==="ideas"?viewIdeas():view==="prog"?viewProg():view==="doc"?viewDoc():view==="intel"?viewIntel():view==="spend"?viewSpend():view==="start"?viewHomeNew():view==="plan"?viewHome():view==="projects"?viewProjects():view==="tasks"?viewTasks():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
+  const crumbs=[APP_NAME].concat(view==="ideas"?["Ideas"]:view==="prog"?[pgCrumb()]:view==="doc"?[(docMeta(docSel)||{}).title||"Documents"]:view==="intel"?["Research",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="plan"?["Marketing plan"]:view==="projects"?["Projects"].concat(curProj&&pjFind(curProj)?[pjFind(curProj).title]:[]):view==="tasks"?["My tasks"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"].concat(indSel?[indName(indSel)]:[]):view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
    '<div class="right">'+(APP!=="marketing"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">'+(APP==="development"?"Search documents":APP==="progress"?"Search":"Search products")+'</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   (APP==="progress"?"":APP==="development"?docMnav():APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>[f[0],f[1]])).map(([k,lb])=>'<button class="'+(view==="cat"&&catFam===k&&!catPhaseF?"on":"")+'" data-act="catfam" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'<button class="'+(view==="intel"?"on":"")+'" data-act="ivnav" data-v="feed">Research</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button></nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button><button class="'+(view==="tasks"?"on":"")+'" data-act="nav" data-v="tasks">My tasks</button><button class="'+(view==="plan"?"on":"")+'" data-act="nav" data-v="plan">Marketing plan</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button>'+(pjInner()?'<button class="'+(view==="ind"?"on":"")+'" data-act="nav" data-v="ind">Industries</button>':'')+'<button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button>'+(pjInner()?'<button class="'+(view==="spend"?"on":"")+'" data-act="nav" data-v="spend">Spend</button>':'')+'</nav>')+
-   '<main class="main">'+(view==="prog"||view==="start"||view==="li"||view==="limsg"||view==="cat"||view==="calls"||view==="ind"||view==="spend"||view==="intel"||view==="doc"||view==="projects"||view==="tasks"||view==="plan"?'':emailTabsHTML(n))+(view!=="prog"&&view!=="over"&&view!=="start"&&view!=="cat"&&view!=="intel"&&view!=="doc"&&view!=="projects"&&view!=="tasks"&&view!=="plan"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   (APP==="progress"?pgMnav():APP==="development"?docMnav():APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>[f[0],f[1]])).map(([k,lb])=>'<button class="'+(view==="cat"&&catFam===k&&!catPhaseF?"on":"")+'" data-act="catfam" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'<button class="'+(view==="intel"?"on":"")+'" data-act="ivnav" data-v="feed">Research</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button></nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button><button class="'+(view==="tasks"?"on":"")+'" data-act="nav" data-v="tasks">My tasks</button><button class="'+(view==="plan"?"on":"")+'" data-act="nav" data-v="plan">Marketing plan</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button>'+(pjInner()?'<button class="'+(view==="ind"?"on":"")+'" data-act="nav" data-v="ind">Industries</button>':'')+'<button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button>'+(pjInner()?'<button class="'+(view==="spend"?"on":"")+'" data-act="nav" data-v="spend">Spend</button>':'')+'</nav>')+
+   '<main class="main'+(view==="ideas"?" pi-main":"")+'">'+(view==="ideas"||view==="prog"||view==="start"||view==="li"||view==="limsg"||view==="cat"||view==="calls"||view==="ind"||view==="spend"||view==="intel"||view==="doc"||view==="projects"||view==="tasks"||view==="plan"?'':emailTabsHTML(n))+(view!=="ideas"&&view!=="prog"&&view!=="over"&&view!=="start"&&view!=="cat"&&view!=="intel"&&view!=="doc"&&view!=="projects"&&view!=="tasks"&&view!=="plan"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
   mktHydrate();liHydrate();docHydrate();pgHydrate();
@@ -4968,7 +4990,7 @@ function viewPlaybook(){
    {id,date,items:[{key,cat:exp|mkt|crm|other,t,title}],hidden:[key]}. The page only hides lines (x adds the key to hidden). */
 Object.assign(SVG,{pgL:'<polyline points="14.5 6 8.5 12 14.5 18"/>',pgChat:'<path d="M5 5h14a1 1 0 011 1v9a1 1 0 01-1 1h-8l-4 3v-3H5a1 1 0 01-1-1V6a1 1 0 011-1z"/>'});
 const PG_CATS=[["exp","AutoTQ Expansion","New products","var(--l2)","Expansion"],["mkt","Marketing","","var(--coral)","Marketing"],["crm","CRM","Work and progress","var(--l3)","CRM"]];
-let pgDay=todayStr(),pgFocus=null,pgPointer=false;
+let pgDay=todayStr(),pgFocus=null,pgPointer=false,pgOpenChat=null;
 function progUser(){return USER==="max";}
 function pgId(d){return "pd_"+d;}
 function pgChatRec(d){return (DB.progressDays||[]).find(r=>r&&r.id==="pc_"+d);}
@@ -5001,7 +5023,13 @@ function pgCatHTML(c,r){const x=(r&&r[c[0]])||{},T=x.tasks||[],I=x.ideas||[],d=T
    '<div class="pg-sub">Tasks</div>'+T.map(k=>pgRowHTML(c[0],"tasks",k)).join("")+pgAddHTML(c[0],"tasks","Add a task")+
    '<div class="pg-sub">Ideas</div>'+I.map(k=>pgRowHTML(c[0],"ideas",k)).join("")+pgAddHTML(c[0],"ideas","Add an idea")+
    (function(L){return L.length?'<div class="pg-sub">From your Claude chats</div>'+L.map(pgChatRowHTML).join(""):"";})(pgChats(pgDay,c[0]))+'</section>';}
-function pgChatRowHTML(i){return '<div class="pg-row pg-chat"><span class="pg-bul" aria-hidden="true">'+svg("pgChat")+'</span><div class="pg-ctxt">'+esc(i.t)+(i.title&&i.title!==i.t?'<small>'+esc(i.title)+'</small>':'')+'</div><button class="pg-x" data-act="pgchatx" data-v="'+esc(i.key)+'" aria-label="Hide this line" title="Hide this line">'+svg("x")+'</button></div>';}
+function pgChatRowHTML(i){const F=i.files||[],L=i.links||[],open=pgOpenChat===i.key,tip=esc(i.title||"");
+  const cnt=[F.length?F.length+" file"+(F.length===1?"":"s"):"",L.length?L.length+" page"+(L.length===1?"":"s"):""].filter(Boolean).join(" · ");
+  return '<div class="pg-row pg-chat'+(cnt?" has":"")+(open?" open":"")+'"><span class="pg-bul" aria-hidden="true">'+svg("pgChat")+'</span>'+
+   (cnt?'<button class="pg-ctxt pg-cbtn" data-act="pgchatopen" data-v="'+esc(i.key)+'" aria-expanded="'+open+'" title="'+tip+'">'+esc(i.t)+' <span class="pg-fc">'+cnt+'</span></button>':'<div class="pg-ctxt" title="'+tip+'">'+esc(i.t)+'</div>')+
+   '<button class="pg-x" data-act="pgchatx" data-v="'+esc(i.key)+'" aria-label="Hide this line" title="Hide this line">'+svg("x")+'</button></div>'+
+   (open?'<div class="pg-files">'+F.map(f=>'<button class="pg-file" data-act="pgfile" data-p="'+esc(f.p)+'" data-n="'+esc(f.n)+'">'+svg(/\.(png|jpe?g|webp)$/i.test(f.n)?"eye":"file")+'<span>'+esc(f.n)+'</span></button>').join("")+
+     L.map(l=>'<a class="pg-file" href="'+esc(l.u||l)+'" target="_blank" rel="noopener">'+svg("globe")+'<span>'+esc(l.n||"Published page")+'</span></a>').join("")+'</div>':'');}
 function pgRowHTML(c,k,it){const task=k==="tasks",ids='data-c="'+c+'" data-k="'+k+'" data-id="'+esc(it.id)+'"';
   return '<div class="pg-row'+(task&&it.done?" done":"")+'">'+
    (task?'<button class="pg-ck" data-act="pgck" '+ids+' role="checkbox" aria-checked="'+(!!it.done)+'" aria-label="'+(it.done?"Mark not done":"Mark done")+'">'+(it.done?svg("check"):"")+'</button>':'<span class="pg-bul" aria-hidden="true">'+svg("spark")+'</span>')+
@@ -5014,12 +5042,17 @@ function pgPastHTML(){const L=pgDays();let h='<h2 class="sech">Your days</h2>';
     const parts=PG_CATS.concat([["other","Other","","var(--ink-3)","Other"]]).map(c=>{const x=r[c[0]]||{},T=x.tasks||[],I=x.ideas||[],C=pgChats(e.date,c[0]);if(!T.length&&!I.length&&!C.length)return "";
       return '<span class="pg-pc" style="--pgc:'+c[3]+'"><i></i>'+esc(c[4])+(T.length?' <b class="num">'+T.filter(k=>k.done).length+"/"+T.length+'</b>':'')+(I.length?' <small>'+I.length+" idea"+(I.length===1?"":"s")+'</small>':'')+(C.length?' <small>'+C.length+" chat"+(C.length===1?"":"s")+'</small>':'')+'</span>';}).join("");
     return '<button class="pg-pr'+(e.date===pgDay?" on":"")+'" data-act="pgday" data-v="'+esc(e.date)+'"><span class="pg-pd"><b>'+esc(lb.rel||lb.s)+'</b>'+(lb.rel?'<small>'+esc(lb.s)+'</small>':'')+'</span><span class="pg-pcs">'+parts+'</span>'+chev()+'</button>';}).join("")+'</div>';}
-function pgNav(){const t=todayStr(),L=pgDays().filter(e=>e.date!==t).slice(0,14);
-  return sideGrp("Progress",'<button class="sitem'+(pgDay===t?" on":"")+'" data-act="pgtoday" data-tip="Today">'+svg("cal")+'<span class="lbl">Today</span><small>'+(function(n){return n.t?n.d+"/"+n.t:"";})(pgCount(pgRec(t)))+'</small></button>',0)+
+function pgNav(){const t=todayStr(),L=pgDays().filter(e=>e.date!==t).slice(0,14),ni=piRec().notes.filter(n=>n.t).length;
+  return sideGrp("Progress",'<button class="sitem'+(view==="ideas"?" on":"")+'" data-act="pgtab" data-v="ideas" data-tip="Ideas">'+svg("spark")+'<span class="lbl">Ideas</span><small>'+(ni||"")+'</small></button>'+
+   '<button class="sitem'+(view==="prog"&&pgDay===t?" on":"")+'" data-act="pgtoday" data-tip="Today">'+svg("cal")+'<span class="lbl">Today</span><small>'+(function(n){return n.t?n.d+"/"+n.t:"";})(pgCount(pgRec(t)))+'</small></button>',0)+
    (L.length?sideGrp("Recent days",L.map(e=>{const lb=pgLabel(e.date,false),n=pgCount(e.r);
-     return '<button class="sitem'+(pgDay===e.date?" on":"")+'" data-act="pgday" data-v="'+esc(e.date)+'" data-tip="'+esc(lb.s)+'">'+svg("check")+'<span class="lbl">'+esc(lb.rel||lb.s)+'</span><small>'+(n.t?n.d+"/"+n.t:"")+'</small></button>';}).join(""),0):"");}
-function pgPalTabs(){return [["cal","Today","",()=>{pgDay=todayStr();goView("prog");}]].concat(pgDays().filter(e=>e.date!==todayStr()).slice(0,30).map(e=>{const lb=pgLabel(e.date,false);return ["cal",lb.rel||lb.s,lb.rel?lb.s:"",()=>{pgDay=e.date;goView("prog");}];}));}
+     return '<button class="sitem'+(view==="prog"&&pgDay===e.date?" on":"")+'" data-act="pgday" data-v="'+esc(e.date)+'" data-tip="'+esc(lb.s)+'">'+svg("check")+'<span class="lbl">'+esc(lb.rel||lb.s)+'</span><small>'+(n.t?n.d+"/"+n.t:"")+'</small></button>';}).join(""),0):"");}
+function pgMnav(){return '<nav class="mnav" aria-label="Progress"><button class="'+(view==="ideas"?"on":"")+'" data-act="pgtab" data-v="ideas">Ideas</button><button class="'+(view==="prog"?"on":"")+'" data-act="pgtoday">Days</button></nav>';}
+function pgTabDefault(){try{return localStorage.getItem("autotq_prog_tab")==="prog"?"prog":"ideas";}catch(e){return "ideas";}}
+function pgTabSet(v){try{localStorage.setItem("autotq_prog_tab",v);}catch(e){}goView(v);}
+function pgPalTabs(){return [["spark","Ideas","",()=>pgTabSet("ideas")],["cal","Today","",()=>{pgDay=todayStr();pgTabSet("prog");}]].concat(pgDays().filter(e=>e.date!==todayStr()).slice(0,30).map(e=>{const lb=pgLabel(e.date,false);return ["cal",lb.rel||lb.s,lb.rel?lb.s:"",()=>{pgDay=e.date;goView("prog");}];}));}
 function pgPalFind(ql,add){if(!ql)return;let n=0;
+  piRec().notes.forEach(x=>{if(n<25&&String(x.t||"").toLowerCase().includes(ql)){n++;add("What you wrote","spark",String(x.t).split("\n")[0].slice(0,90),"Ideas",()=>pgTabSet("ideas"));}});
   pgDays().forEach(e=>{const r=e.r||{},lb0=pgLabel(e.date,false);pgChats(e.date).forEach(i=>{if(n<25&&(String(i.t)+" "+String(i.title||"")).toLowerCase().includes(ql)){n++;add("What you wrote","pgChat",i.t,(lb0.rel||lb0.s)+" · Claude chat",()=>{pgDay=e.date;goView("prog");});}});PG_CATS.forEach(c=>{const x=r[c[0]]||{};[["tasks","check"],["ideas","spark"]].forEach(([k,ic])=>(x[k]||[]).forEach(it=>{
     if(n<25&&String(it.t||"").toLowerCase().includes(ql)){n++;add("What you wrote",ic,it.t,(lb0.rel||lb0.s)+" · "+c[4]+(k==="ideas"?" idea":""),()=>{pgDay=e.date;goView("prog");});}}));});});}
 function pgFind(c,k,id){const r=pgRec(pgDay);if(!r||!r[c])return null;const arr=r[c][k]||[];const i=arr.findIndex(x=>x.id===id);return i<0?null:{r:r,arr:arr,i:i,it:arr[i]};}
@@ -5028,8 +5061,13 @@ function pgFind(c,k,id){const r=pgRec(pgDay);if(!r||!r[c])return null;const arr=
 function pgLater(){if(pgPointer)document.addEventListener("pointerup",()=>setTimeout(render,0),{once:true});else render();}
 function pgHandle(a,t){
   if(a==="pgshift"){pgDay=pgShift(pgDay,+t.dataset.v||0);render();return true;}
-  if(a==="pgtoday"){pgDay=todayStr();goView("prog");return true;}
-  if(a==="pgday"){pgDay=t.dataset.v||todayStr();goView("prog");return true;}
+  if(a==="pgtab"){pgTabSet(t.dataset.v==="prog"?"prog":"ideas");return true;}
+  if(a==="pgtoday"){pgDay=todayStr();pgTabSet("prog");return true;}
+  if(a==="pgday"){pgDay=t.dataset.v||todayStr();pgTabSet("prog");return true;}
+  if(a==="pgchatopen"){pgOpenChat=pgOpenChat===t.dataset.v?null:t.dataset.v;render();return true;}
+  if(a==="pgfile"){if(t.dataset.p)mktOpen(t.dataset.p,t.dataset.n);return true;}
+  if(a==="pgnotex"){const r=piRec(),i=r.notes.findIndex(n=>n.id===t.dataset.v);if(i<0)return true;const n=r.notes[i];
+    if(n.t&&!confirm("Delete this note?\n\n"+String(n.t).slice(0,120)))return true;r.notes.splice(i,1);piSave(r);render();return true;}
   if(a==="pgck"){const f=pgFind(t.dataset.c,"tasks",t.dataset.id);if(!f)return true;f.it.done=!f.it.done;f.it.doneAt=f.it.done?new Date().toISOString():"";pgSave(f.r);render();return true;}
   if(a==="pgchatx"){const c=pgChatRec(pgDay);if(!c)return true;c.hidden=(c.hidden||[]).concat([t.dataset.v]);pgSave(c);render();return true;}
   if(a==="pgdel"){const f=pgFind(t.dataset.c,t.dataset.k,t.dataset.id);if(!f)return true;f.arr.splice(f.i,1);pgSave(f.r);render();return true;}
@@ -5040,8 +5078,8 @@ function pgAdd(el,refocus){const v=(el.value||"").trim();el.value="";if(!v)retur
 function pgEdit(el){const f=pgFind(el.dataset.c,el.dataset.k,el.dataset.id);if(!f)return;const v=(el.value||"").trim();if(v===f.it.t)return;
   if(!v){f.arr.splice(f.i,1);pgSave(f.r);pgLater();return;}f.it.t=v.slice(0,2000);f.it.editedAt=new Date().toISOString();pgSave(f.r);}
 function pgFit(el){el.style.height="auto";el.style.height=el.scrollHeight+"px";}
-function pgFitAll(){document.querySelectorAll(".pg-txt,.pg-new").forEach(pgFit);}
-function pgHydrate(){if(APP!=="progress"||view!=="prog")return;pgFitAll();requestAnimationFrame(pgFitAll);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pgFitAll);
+function pgFitAll(){document.querySelectorAll(".pg-txt,.pg-new,.pi-txt").forEach(pgFit);}
+function pgHydrate(){if(APP!=="progress"||(view!=="prog"&&view!=="ideas"))return;pgFitAll();requestAnimationFrame(pgFitAll);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pgFitAll);
   if(pgFocus){const p=pgFocus.split("|");pgFocus=null;const el=document.querySelector('.pg-new[data-c="'+p[0]+'"][data-k="'+p[1]+'"]');if(el)el.focus();}}
 document.addEventListener("pointerdown",()=>{pgPointer=true;},true);
 document.addEventListener("pointerup",()=>{pgPointer=false;},true);
@@ -5055,6 +5093,43 @@ document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList)r
   if(el.classList.contains("pg-new")){pgAdd(el,false);return;}
   if(el.id==="pgDate"&&/^\d{4}-\d{2}-\d{2}$/.test(el.value)){pgDay=el.value;render();}});
 window.addEventListener("resize",()=>{if(APP==="progress")pgFitAll();});
+
+/* ---------- Progress › Ideas (2026-11-06, Max: "add ideas to AutoTQ Progress as the first tab… Ideas should just be a blank
+   canvas") — one record in progressDays, id "pi_canvas": {id,kind:"canvas",owner,notes:[{id,x,y,t,at}]}. Click empty space to
+   write a note, drag a note by its top strip, × deletes; a note left empty disappears. No dates, no categories. ---------- */
+let piDrag=null,piWasEditing=false,piSaveT=null;
+function piRec(){const L=DB.progressDays=DB.progressDays||[];let r=L.find(x=>x&&x.id==="pi_canvas");
+  if(!r){r={id:"pi_canvas",kind:"canvas",owner:USER,notes:[]};L.push(r);}r.notes=r.notes||[];return r;}
+function piSave(r){clearTimeout(piSaveT);r.updatedAt=new Date().toISOString();put("progressDays",r);}
+function piSize(){let w=0,h=0;piRec().notes.forEach(n=>{w=Math.max(w,(n.x||0)+300);h=Math.max(h,(n.y||0)+260);});return {w:w+360,h:h+360};}
+function viewIdeas(){const r=piRec(),z=piSize();
+  return '<div class="pi-canvas" id="piCanvas"><div class="pi-surface" id="piSurface" style="min-width:'+z.w+'px;min-height:'+z.h+'px">'+
+   (r.notes.length?'':'<div class="pi-hint">Click anywhere to write</div>')+r.notes.map(piNoteHTML).join("")+'</div></div>';}
+function piNoteHTML(n){return '<div class="pi-note" data-id="'+esc(n.id)+'" style="left:'+(n.x|0)+'px;top:'+(n.y|0)+'px">'+
+  '<div class="pi-grip" data-pigrip="'+esc(n.id)+'" title="Drag to move"><i></i><button class="pi-x" data-act="pgnotex" data-v="'+esc(n.id)+'" aria-label="Delete note" title="Delete">'+svg("x")+'</button></div>'+
+  '<textarea class="pi-txt" rows="1" data-id="'+esc(n.id)+'" aria-label="Note">'+esc(n.t||"")+'</textarea></div>';}
+function piFitSurface(){const sf=document.getElementById("piSurface");if(!sf)return;const z=piSize();sf.style.minWidth=z.w+"px";sf.style.minHeight=z.h+"px";}
+function piNote(id){return piRec().notes.find(n=>n.id===id);}
+document.addEventListener("pointerdown",e=>{if(APP!=="progress"||view!=="ideas")return;const ae=document.activeElement;
+  piWasEditing=!!(ae&&ae.classList&&ae.classList.contains("pi-txt"));
+  const g=e.target.closest&&e.target.closest("[data-pigrip]");if(!g||e.target.closest(".pi-x"))return;
+  const el=g.parentElement;e.preventDefault();piDrag={id:g.dataset.pigrip,el:el,sx:e.clientX,sy:e.clientY,x0:parseInt(el.style.left,10)||0,y0:parseInt(el.style.top,10)||0,x:0,y:0,moved:false};
+  piDrag.x=piDrag.x0;piDrag.y=piDrag.y0;el.classList.add("drag");},true);
+document.addEventListener("pointermove",e=>{if(!piDrag)return;const dx=e.clientX-piDrag.sx,dy=e.clientY-piDrag.sy;if(!piDrag.moved&&Math.abs(dx)+Math.abs(dy)<3)return;
+  piDrag.moved=true;piDrag.x=Math.max(0,piDrag.x0+dx);piDrag.y=Math.max(0,piDrag.y0+dy);piDrag.el.style.left=piDrag.x+"px";piDrag.el.style.top=piDrag.y+"px";});
+document.addEventListener("pointerup",()=>{if(!piDrag)return;const d=piDrag;piDrag=null;d.el.classList.remove("drag");if(!d.moved)return;
+  const r=piRec(),i=r.notes.findIndex(n=>n.id===d.id);if(i<0)return;const n=r.notes.splice(i,1)[0];n.x=Math.round(d.x);n.y=Math.round(d.y);r.notes.push(n);
+  const sf=d.el.parentElement;if(sf)sf.appendChild(d.el);piFitSurface();if(n.t)piSave(r);});
+document.addEventListener("click",e=>{if(APP!=="progress"||view!=="ideas")return;const s=e.target;if(!s||!s.classList||!(s.id==="piSurface"||s.classList.contains("pi-hint")))return;
+  if(piWasEditing){piWasEditing=false;return;}
+  const sf=document.getElementById("piSurface"),b=sf.getBoundingClientRect();const n={id:uid(),x:Math.max(0,Math.round(e.clientX-b.left-14)),y:Math.max(0,Math.round(e.clientY-b.top-12)),t:"",at:new Date().toISOString()};
+  piRec().notes.push(n);const hint=sf.querySelector(".pi-hint");if(hint)hint.remove();sf.insertAdjacentHTML("beforeend",piNoteHTML(n));
+  const ta=sf.querySelector('.pi-txt[data-id="'+n.id+'"]');if(ta){pgFit(ta);ta.focus();}piFitSurface();});
+document.addEventListener("input",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("pi-txt"))return;pgFit(el);const n=piNote(el.dataset.id);if(!n)return;
+  n.t=el.value;n.editedAt=new Date().toISOString();clearTimeout(piSaveT);piSaveT=setTimeout(()=>piSave(piRec()),700);});
+document.addEventListener("focusout",e=>{const el=e.target;if(!el||!el.classList||!el.classList.contains("pi-txt"))return;const r=piRec(),i=r.notes.findIndex(n=>n.id===el.dataset.id);if(i<0)return;
+  const v=el.value.replace(/\s+$/,"");if(!v.trim()){const had=!!(r.notes[i].t||r.notes[i].editedAt);r.notes.splice(i,1);const box=el.closest(".pi-note");if(box)box.remove();if(had)piSave(r);return;}
+  if(v!==r.notes[i].t||piSaveT){r.notes[i].t=v;piSave(r);}});
 
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
