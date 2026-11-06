@@ -1165,6 +1165,46 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 @media (max-width:1100px){.pj-hgrid,.pj-pgrid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:640px){.pj-stat{grid-template-columns:repeat(2,minmax(0,1fr))}.pj-stat>button{border-left:1px solid var(--rule)!important;border-top:1px solid var(--rule)}.pj-stat>button:nth-child(odd){border-left:0!important}.pj-stat>button:nth-child(-n+2){border-top:0}
   .pj-hello h1{font-size:22px}.pj-tbl .hide-s{display:none}.pj-tbl thead{display:none}.pj-tbl tbody tr{display:grid;grid-template-columns:minmax(0,1fr) 116px;align-items:center;border-top:1px solid var(--rule-2)}.pj-tbl tbody tr:first-child{border-top:0}.pj-tbl td{border:0!important;padding:10px 12px}.pj-tbl .pc{min-width:0}.pj-hello .acts{margin-left:0}.pj-tag{max-width:110px}.pj-search{width:100%}.pj-row .pj-tag{display:none}}
+/* ---- Progress hub (/progress/, 2026-11-06): one day page, three categories × tasks + ideas ---- */
+.pg-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:4px 0 18px}
+.pg-nav{display:inline-flex;gap:4px}.pg-nav .ibtn{width:34px;height:34px;border-radius:var(--r)}.pg-nav .ibtn svg{width:16px;height:16px}
+.pg-ttl{flex:1;min-width:200px}.pg-ttl h1{font-size:20px;font-weight:650;margin:0;letter-spacing:-.014em}
+.pg-acts{display:flex;gap:8px;align-items:center}
+.pg-date{min-height:34px;padding:0 10px;border:1px solid var(--rule-3);border-radius:var(--r);background:var(--paper);color:var(--ink);font:inherit}
+:root[data-theme="light"] .pg-date{color-scheme:light}
+.pg-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:1100px){.pg-grid{grid-template-columns:1fr}}
+.pg-cat{background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);overflow:hidden}
+.pg-ch{display:flex;align-items:center;gap:10px;padding:14px 16px 8px}
+.pg-ch b{font-size:14.5px;font-weight:650;letter-spacing:-.01em}.pg-ch small{display:block;color:var(--ink-3);font-size:12px}
+.pg-dot{width:10px;height:10px;border-radius:3px;background:var(--pgc);flex:none}
+.pg-ch .cnt{margin-left:auto;font-size:12.5px;color:var(--ink-3)}
+.pg-sub{padding:12px 16px 6px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.pg-row,.pg-add{display:flex;align-items:flex-start;gap:8px;padding:0 6px 0 14px;border-top:1px solid var(--rule-2)}
+.pg-cat>.pg-add:last-child{border-bottom:0}
+.pg-ck{flex:none;width:18px;height:18px;margin-top:10px;border:1.5px solid var(--ink-3);border-radius:5px;background:transparent;color:#fff;display:grid;place-items:center;padding:0}
+.pg-ck svg{width:12px;height:12px}
+.pg-row.done .pg-ck{background:#00C875;border-color:#00C875}
+.pg-row.done .pg-txt{text-decoration:line-through;color:var(--ink-3)}
+.pg-bul,.pg-add>svg{flex:none;width:18px;height:18px;margin-top:10px;color:var(--pgc)}
+.pg-bul{display:grid;place-items:center}.pg-bul svg{width:15px;height:15px}
+.pg-add>svg{color:var(--ink-4);padding:2px}
+.pg-txt,.pg-new{flex:1;min-width:0;border:0;background:transparent;color:inherit;font:inherit;line-height:1.45;padding:8px 2px;resize:none;overflow:hidden;display:block;height:35px}
+.pg-txt:focus,.pg-new:focus{outline:none}
+.pg-row:focus-within,.pg-add:focus-within{background:var(--rule-2)}
+.pg-new::placeholder{color:var(--ink-4)}
+.pg-x{flex:none;width:28px;height:28px;margin-top:4px;border:0;border-radius:7px;background:transparent;color:var(--ink-4);display:grid;place-items:center;padding:0;opacity:0;transition:opacity .15s}
+.pg-x svg{width:14px;height:14px}
+.pg-row:hover .pg-x,.pg-row:focus-within .pg-x,.pg-x:focus-visible{opacity:1}.pg-x:hover{color:var(--bad);background:var(--panel)}
+@media (hover:none){.pg-x{opacity:1}}
+.pg-past .pg-pr{display:flex;align-items:center;gap:14px;width:100%;padding:11px 16px;border:0;border-top:1px solid var(--rule-2);background:transparent;text-align:left;font:inherit;color:inherit}
+.pg-past .pg-pr:first-child{border-top:0}
+.pg-pr:hover{background:var(--panel)}.pg-pr.on{background:var(--rule-2)}
+.pg-pd{min-width:170px}.pg-pd b{display:block;font-weight:600}.pg-pd small{color:var(--ink-3);font-size:12px}
+.pg-pcs{flex:1;display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--ink-2);font-size:12.5px}
+.pg-pc{display:inline-flex;align-items:center;gap:6px}.pg-pc i{width:8px;height:8px;border-radius:2px;background:var(--pgc)}.pg-pc small{color:var(--ink-3);font-size:12px}
+.pg-none{color:var(--ink-3)}
+@media (max-width:640px){.pg-pr{flex-wrap:wrap}.pg-pd{min-width:0;width:calc(100% - 30px)}.pg-acts{width:100%}.pg-date{flex:1}}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme_v2")||"light";}catch(e){document.documentElement.dataset.theme="light";}</script>
 </head>
@@ -1183,10 +1223,10 @@ const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-"; // publishable 
 // one file, two hubs (2026-10-21, Max: Catalog is "an entirely new hub… just like Marketing and CRM"): the same page is served at
 // /marketing/ and /catalog/. The sign-in is shared; each hub keeps its own data cache, sidebar and name.
 // /development/ (2026-10-27) is the third: R&D documents for Max and Hannah, nothing synced (see the Development hub section).
-const APP=/\/development(\/|$)/.test(location.pathname)||/[?&]app=development\b/.test(location.search)?"development":/\/catalog(\/|$)/.test(location.pathname)||/[?&]app=catalog\b/.test(location.search)?"catalog":"marketing";
-const APP_NAME=APP==="development"?"Development":APP==="catalog"?"Catalog":"Marketing";
-const HUB_URLS={marketing:"https://autotqcrm.goldenhourmedical.com/marketing/",catalog:"https://autotqcrm.goldenhourmedical.com/catalog/",development:"https://autotqcrm.goldenhourmedical.com/development/"};
-const SKEY="autotq_mkt_session_v1", UKEY="autotq_mkt_user", DKEY=APP==="development"?"autotq_dev_db_v1":APP==="catalog"?"autotq_cat_db_v1":"autotq_mkt_db_v1";
+const APP=/\/progress(\/|$)/.test(location.pathname)||/[?&]app=progress\b/.test(location.search)?"progress":/\/development(\/|$)/.test(location.pathname)||/[?&]app=development\b/.test(location.search)?"development":/\/catalog(\/|$)/.test(location.pathname)||/[?&]app=catalog\b/.test(location.search)?"catalog":"marketing";
+const APP_NAME=APP==="progress"?"Progress":APP==="development"?"Development":APP==="catalog"?"Catalog":"Marketing";
+const HUB_URLS={marketing:"https://autotqcrm.goldenhourmedical.com/marketing/",catalog:"https://autotqcrm.goldenhourmedical.com/catalog/",development:"https://autotqcrm.goldenhourmedical.com/development/",progress:"https://autotqcrm.goldenhourmedical.com/progress/"};
+const SKEY="autotq_mkt_session_v1", UKEY="autotq_mkt_user", DKEY=APP==="progress"?"autotq_prog_db_v1":APP==="development"?"autotq_dev_db_v1":APP==="catalog"?"autotq_cat_db_v1":"autotq_mkt_db_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim","carisse@goldenhourmedical.com":"carisse","elvi.levonja@gmail.com":"elvi"};
 const TEAM=[
  {id:"max",name:"Max Herbst",role:"Strategic Account Manager",c:"#D85A30"},
@@ -1200,12 +1240,12 @@ const TEAM=[
  {id:"carisse",name:"Carisse Joseph",role:"Marketing",c:"#B4436C"},
  {id:"elvi",name:"Elvi Levonja",role:"Marketing",c:"#2F7D6D"}]; // 2026-10-28: Carisse + Elvi join Marketing (Max)
 const CAMP_REVIEWERS=["hannah"];const HUB_USERS=["max","hannah"]; // Max 2026-10-16: only Hannah and I have access
-function hubUser(){return (APP==="marketing"?MKT_USERS:HUB_USERS).includes(USER);}; // 2026-10-28: Marketing opens to the marketing team; Catalog + Development stay Max + Hannah
+function hubUser(){if(APP==="progress")return progUser();return (APP==="marketing"?MKT_USERS:HUB_USERS).includes(USER);}; // 2026-10-28: Marketing opens to the marketing team; Catalog + Development stay Max + Hannah
 const SALES_FROM="salessupport@goldenhourmedical.com";
 const REPLY_TO="max@goldenhourmedical.com"; // Max, 2026-10-19: every reply to a hub email goes to him, whichever inbox sent it
 const SITE_URL="https://theautotq.com/";
 const VIDEO_URL=""; // the 90-second confidence VSL landing page — empty until it exists; {{video}} stays unfilled (a hard check) so nothing sends without it
-const PULL_COLLECTIONS=APP==="development"?[]:APP==="catalog"?["catalogItems","intelItems","intelWatch","intelRuns","intelAsks","rdProjects","spend","projects","projUpdates","projectsMax","projUpdatesMax","tasks"]:["projects","projUpdates","projectsMax","projUpdatesMax","mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites","prospects","spend","quotes"]; // orders: the past-buyer guard (pastBuyers) + Industries; quotes: the CRM Quotes tab, for Industries › Quoted; liInvites: LinkedIn › Messenger › Follow invites; prospects: › Prospects by industry
+const PULL_COLLECTIONS=APP==="progress"?["progressDays"]:APP==="development"?[]:APP==="catalog"?["catalogItems","intelItems","intelWatch","intelRuns","intelAsks","rdProjects","spend","projects","projUpdates","projectsMax","projUpdatesMax","tasks"]:["projects","projUpdates","projectsMax","projUpdatesMax","mktPlan","liPosts","liResearch","replies","leads","confLeads","people","companies","orders","lists","campaigns","tasks","suppress","mailEvents","senders","settings","runs","liInvites","prospects","spend","quotes"]; // orders: the past-buyer guard (pastBuyers) + Industries; quotes: the CRM Quotes tab, for Industries › Quoted; liInvites: LinkedIn › Messenger › Follow invites; prospects: › Prospects by industry
 const MAILOUT="/functions/v1/mail-out"; // AutoTQ outbound through Amazon SES (supabase/functions/mail-out) // what this app reads; it writes campaigns, tasks, activities, confLeads (lastEmail), people (p.last)
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" "));
 const CENTRAL_STATES=new Set("ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" "));
@@ -1991,12 +2031,12 @@ function railHTML(n){
   const act=actItems().length,lid=liPosts().filter(p=>p.status==="draft").length;
   const ring=(function(){const r=13,c=2*Math.PI*r,o=c*(1-st.pct/100);return '<svg class="ring" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="var(--rule-3)" stroke-width="3"/><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="'+(st.pct>=90?"var(--coral)":"var(--ink-2)")+'" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+o.toFixed(1)+'" transform="rotate(-90 16 16)"/></svg>';})();
   const catNav=()=>sideGrp("Catalog",'<button class="sitem'+(view==="cat"&&!catFam&&!catSel&&!catPhaseF?" on":"")+'" data-act="catfam" data-v="" data-tip="All products">'+svg("box")+'<span class="lbl">All products</span><small>'+catLive().length+'</small></button>'+CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>{const n=catFamItems(f[0]).length;return '<button class="sitem'+(view==="cat"&&catFam===f[0]&&!catPhaseF?" on":"")+'" data-act="catfam" data-v="'+f[0]+'" data-tip="'+esc(f[1]+" · "+n)+'">'+svg(({Signage:"file",Cabinets:"box",Kits:"spark",Refills:"eye",Training:"book"})[f[0]]||"box")+'<span class="lbl">'+esc(f[1])+'</span><small>'+n+'</small></button>';}).join(""),0)+sideGrp("Research",[["feed","search","Feed"],["watch","eye","Watchlist"],["rd","spark","R&D board"],["runs","chart","Sources & runs"]].map(([k,ic,lb])=>'<button class="sitem'+(view==="intel"&&ivTab===k?" on":"")+'" data-act="ivnav" data-v="'+k+'" data-tip="'+lb+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(k==="feed"?'<small>'+ivItems().filter(x=>!x.mark&&(x.score||0)>=IV_LOW).length+'</small>':k==="rd"?'<small>'+rdList().length+'</small>':'')+'</button>').join(""),0);
-  const nav=APP==="development"?docNav():APP==="catalog"?pjCatTop()+catNav():(function(){const X=pjSideHTML(n);return X.top+sideGrp("Channels",SIDE_TABS.filter(t=>t[0]!=="start"&&(pjInner()||!MKT_FULL_ONLY.includes(t[0]))).map(t=>sideItem(t,n)).join(""),act+n+lid)+X.proj;})(); // 2026-10-28: the running-campaigns list moved off the rail (it lives on Email Campaigns)
+  const nav=APP==="progress"?pgNav():APP==="development"?docNav():APP==="catalog"?pjCatTop()+catNav():(function(){const X=pjSideHTML(n);return X.top+sideGrp("Channels",SIDE_TABS.filter(t=>t[0]!=="start"&&(pjInner()||!MKT_FULL_ONLY.includes(t[0]))).map(t=>sideItem(t,n)).join(""),act+n+lid)+X.proj;})(); // 2026-10-28: the running-campaigns list moved off the rail (it lives on Email Campaigns)
   return '<aside class="side"><div class="sbox">'+
    '<div class="shead"><button class="sws" data-act="sidews" data-tip="'+(mini?"Expand sidebar":"AutoTQ "+APP_NAME)+'" aria-haspopup="menu"><span class="slogo">'+BRAND_MARK+'</span><span class="lbl"><b>AutoTQ</b><small>'+APP_NAME+'</small></span>'+svg("chevD")+'</button>'+
     '<button class="sicon" data-act="sidetoggle" data-tip="Collapse sidebar" aria-label="Collapse sidebar">'+svg("panel")+'</button></div>'+
    '<div class="spop top'+(sidePop==="ws"?" open":"")+'" id="spopWs" role="menu"><div class="phd">Switch to</div>'+
-    [["marketing","AutoTQ Marketing","Campaigns, LinkedIn","var(--coral)",BRAND_MARK.replace('class="mark"','class="mark" style="width:9px;height:14px"')],["catalog","AutoTQ Catalog","New products, makers, quotes","#2D6CC0",svg("box")]].concat(devUser()?[["development","AutoTQ Development","R&D write-ups and patents","#1C8C88",svg("spark")]]:[]).filter(h=>h[0]!=="catalog"||HUB_USERS.includes(USER)).map(h=>
+    [["marketing","AutoTQ Marketing","Campaigns, LinkedIn","var(--coral)",BRAND_MARK.replace('class="mark"','class="mark" style="width:9px;height:14px"')],["catalog","AutoTQ Catalog","New products, makers, quotes","#2D6CC0",svg("box")]].concat(devUser()?[["development","AutoTQ Development","R&D write-ups and patents","#1C8C88",svg("spark")]]:[]).concat(progUser()?[["progress","AutoTQ Progress","Your day to day","#6B4FA3",svg("check")]]:[]).filter(h=>h[0]!=="catalog"||HUB_USERS.includes(USER)).map(h=>
       h[0]===APP?'<button class="sitem on" data-act="sidepopclose"><span class="wsl" style="background:'+h[3]+'">'+h[4]+'</span><span class="lbl">'+h[1]+'<small>'+h[2]+'</small></span>'+svg("check","ck")+'</button>'
                 :'<a class="sitem" href="'+HUB_URLS[h[0]]+'"><span class="wsl" style="background:'+h[3]+'">'+h[4]+'</span><span class="lbl">'+h[1]+'<small>'+h[2]+'</small></span></a>').join("")+
     (crmUser()?'<a class="sitem" href="'+CRM_URL+'"><span class="wsl" style="background:#45433D">'+svg("crm")+'</span><span class="lbl">AutoTQ CRM<small>Accounts, pipeline, quotes</small></span></a>':'')+'</div>'+
@@ -2048,15 +2088,16 @@ function palItems(q){
   q=String(q||"").trim();const ql=q.toLowerCase();
   const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
   const hit=s=>!ql||String(s).toLowerCase().includes(ql);
-  const tabs=APP==="development"?(DOCS||[]).map(d=>[SVG[d.icon]?d.icon:"file",d.title||"Document",d.sub||"",()=>{docSel=d.id;docEnsure(d.id);goView("doc");}]):APP==="catalog"?[["folder","Projects","",()=>goView("projects")],["box","All products","",()=>{catPhaseF="";catSel="";goView("cat");}]].concat(CAT_PH.map(p=>[p[0]==="idea"?"spark":p[0]==="models"?"eye":"file",p[1],"Catalog phase",()=>{catPhaseF=p[0];catSel="";goView("cat");}]))
+  const tabs=APP==="progress"?pgPalTabs():APP==="development"?(DOCS||[]).map(d=>[SVG[d.icon]?d.icon:"file",d.title||"Document",d.sub||"",()=>{docSel=d.id;docEnsure(d.id);goView("doc");}]):APP==="catalog"?[["folder","Projects","",()=>goView("projects")],["box","All products","",()=>{catPhaseF="";catSel="";goView("cat");}]].concat(CAT_PH.map(p=>[p[0]==="idea"?"spark":p[0]==="models"?"eye":"file",p[1],"Catalog phase",()=>{catPhaseF=p[0];catSel="";goView("cat");}]))
     :[["home","Home","",()=>goView("start")],["folder","Projects","",()=>goView("projects")],["check","My tasks","",()=>goView("tasks")],["file","Marketing plan","",()=>goView("plan")]].concat(EMAIL_SECTIONS.map(x=>[NAV_ICON[x[0]]||"mail",x[1],"Email Campaigns › Conferences",()=>goView(x[0])]),[["file","LinkedIn · Post","",()=>goView("li")],["file","LinkedIn · Messenger","",()=>goView("limsg")]]);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2],t[3]));
-  const acts=[APP==="development"?["plus","Add document","",()=>{const f=document.getElementById("docNew");if(f)f.click();}]:APP==="catalog"?["plus","New idea","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],["folder","New project","",()=>pjProjSheet(null)],["check","New task","",()=>pjTaskSheet(null,"")],
+  const acts=[APP==="progress"?["cal","Go to today","",()=>{pgDay=todayStr();goView("prog");}]:APP==="development"?["plus","Add document","",()=>{const f=document.getElementById("docNew");if(f)f.click();}]:APP==="catalog"?["plus","New idea","",()=>{catHandle("catnew",{dataset:{}});}]:["plus","New campaign","",()=>{newCampaign({src:"conf"},"New campaign");}],...(APP==="progress"?[]:[["folder","New project","",()=>pjProjSheet(null)],["check","New task","",()=>pjTaskSheet(null,"")]]),
     ["sun","Light mode",THEME==="light"?"on":"",()=>setTheme("light")],["moon","Dark mode",THEME==="dark"?"on":"",()=>setTheme("dark")],
-    ...(crmUser()?[["crm","Switch to AutoTQ CRM","",()=>{location.href=CRM_URL;}]]:[]),...["marketing","catalog","development"].filter(h=>h!==APP&&(h==="marketing"||HUB_USERS.includes(USER))&&(h!=="development"||devUser())).map(h=>[({marketing:"mail",catalog:"box",development:"spark"})[h],"Switch to AutoTQ "+({marketing:"Marketing",catalog:"Catalog",development:"Development"})[h],"",()=>{location.href=HUB_URLS[h];}]),
+    ...(crmUser()?[["crm","Switch to AutoTQ CRM","",()=>{location.href=CRM_URL;}]]:[]),...["marketing","catalog","development","progress"].filter(h=>h!==APP&&(h==="marketing"||HUB_USERS.includes(USER))&&(h!=="development"||devUser())&&(h!=="progress"||progUser())).map(h=>[({marketing:"mail",catalog:"box",development:"spark",progress:"check"})[h],"Switch to AutoTQ "+({marketing:"Marketing",catalog:"Catalog",development:"Development",progress:"Progress"})[h],"",()=>{location.href=HUB_URLS[h];}]),
     ["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","",()=>sideToggle()],["signout","Sign out","",()=>{if(confirm("Sign out of AutoTQ "+APP_NAME+"?")){saveSession(null);USER=null;localStorage.removeItem(UKEY);render();}}]];
   acts.filter(a=>hit(a[1])).forEach(a=>add("Actions",a[0],a[1],a[2],a[3]));
   if(APP==="development")return out;
+  if(APP==="progress"){pgPalFind(ql,add);return out;}
   pjVisible().filter(p=>hit(p.title)||hit(p.about||"")).slice(0,ql?8:4).forEach(p=>{const c=pjCalc(p);add("Projects","folder",p.title,PJ_HEALTH[c.health][0]+" · "+c.pct+"%",()=>{curProj=p.id;view="projects";sideOpen=false;render();window.scrollTo(0,0);});});
   if(APP==="catalog"){catItems().filter(it=>!ql||[it.name,it.sku,it.category,(it.maker||{}).name,it.summary].join(" ").toLowerCase().includes(ql)).slice(0,ql?10:6).forEach(it=>add("Products","box",it.name,[catPh(catPhase(it))[1],(it.maker||{}).name].filter(Boolean).join(" · "),()=>{catSel=it.id;catEdit=false;catImg=0;goView("cat");}));return out;}
   const cs=campaigns().filter(c=>hit(c.name)||hit(laneShort(c))).slice().sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
@@ -2082,7 +2123,7 @@ function palOpen(){
   tipHide();sidePopSet(null);if(meOpen){meOpen=false;render();}
   let p=document.getElementById("pal");
   if(!p){p=document.createElement("div");p.id="pal";p.className="pal";p.setAttribute("role","dialog");p.setAttribute("aria-label","Search");
-    p.innerHTML='<div class="palbox"><div class="palin">'+svg("search")+'<input id="palQ" placeholder="'+(APP==="development"?"Search documents…":"Search tabs, campaigns, leads…")+'" autocomplete="off" spellcheck="false"><kbd style="font-size:11px;color:var(--ink-3);border:1px solid var(--rule-3);border-radius:5px;padding:1px 6px">Esc</kbd></div><div class="pallist" id="palList"></div>'+
+    p.innerHTML='<div class="palbox"><div class="palin">'+svg("search")+'<input id="palQ" placeholder="'+(APP==="development"?"Search documents…":APP==="progress"?"Search what you wrote…":"Search tabs, campaigns, leads…")+'" autocomplete="off" spellcheck="false"><kbd style="font-size:11px;color:var(--ink-3);border:1px solid var(--rule-3);border-radius:5px;padding:1px 6px">Esc</kbd></div><div class="pallist" id="palList"></div>'+
       '<div class="palk"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>Esc</kbd> close</span></div></div>';
     document.body.appendChild(p);
     p.addEventListener("mousedown",e=>{if(e.target===p)palClose();});
@@ -2103,21 +2144,21 @@ function palKey(e){
 function render(){
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   if(APP==="development"&&!devUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Development</div><div class="who">This hub is for Max and Hannah.</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
-  if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">'+(APP==="marketing"?"This hub is for the marketing team.":"This hub is for Max and Hannah.")+'</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
-  if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel"&&view!=="projects"&&view!=="tasks")view="cat";if(APP==="marketing"&&!pjInner()&&MKT_FULL_ONLY.includes(view))view="start";if(APP==="development")view="doc";
+  if(!hubUser()){document.getElementById("screen").innerHTML='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+APP_NAME+'</div><div class="who">'+(APP==="marketing"?"This hub is for the marketing team.":APP==="progress"?"This hub is just for Max.":"This hub is for Max and Hannah.")+'</div><p class="t2" style="text-align:center">You\'re signed in as '+esc(userEmail(USER)||USER)+'. The CRM is at <a href="https://autotqcrm.goldenhourmedical.com/">autotqcrm.goldenhourmedical.com</a>.</p><button class="btn block ghost" data-act="me" style="margin-top:14px">Sign out</button></div>';return;}
+  if(view==="home")view="start";if(view==="web")view="net";if(APP==="catalog"&&view!=="intel"&&view!=="projects"&&view!=="tasks")view="cat";if(APP==="marketing"&&!pjInner()&&MKT_FULL_ONLY.includes(view))view="start";if(APP==="development")view="doc";if(APP==="progress")view="prog";
   const me=teamById(USER);const n=APP!=="marketing"?0:needsMe();
   const titles={calls:"Calls",ind:indSel?indName(indSel):"Industries",start:"Home",cat:"Catalog",li:"LinkedIn posts",limsg:"LinkedIn Messenger",over:"Overview",net:"The net",camp:curCampaign?(campaignById(curCampaign)||{}).name||"Campaign":"Campaigns",sched:"Schedule",leads:"Leads",playbook:"Playbook",spend:"Spend / Expense",intel:"Research"};
   const subs={spend:"Card charges by bucket: Marketing, White-label and Conferences. Send Claude a screenshot of new charges and they land here; change a bucket on any charge and the totals follow.",calls:"One person at a time from the conference lists, set up your way. Log the call and the follow-up email opens ready to send from your own Outlook; replies are tracked on the lead.",start:"",li:"Monday, Wednesday and Friday at 9:00 AM Eastern. Every draft is reviewed here; nothing posts to LinkedIn by itself.",ind:indSel?"What this industry has bought and been quoted, who clicked its landing page, and the conference leads in it.":indTab==="pros"?"Pick an industry: the companies, where their people are on LinkedIn, and the email format each one uses. Hot accounts are the look-alikes of Toyota Tsusho America: source the person, then call.":"Every industry AutoTQ sells into, sized by what it has bought or been quoted. Tap one for its page.",limsg:"Your LinkedIn InMail lists: paste a results page and everyone on it lands in the list. Follow invites for your own connections are below; the industry prospect lists live under Industries.",over:"",net:"Every running campaign as a line, every inbox a station, today's volume on the move",camp:curCampaign?"":(campaigns().length?campaigns().filter(c=>c.status==="review").length+" in review · "+campaigns().filter(c=>c.status==="active").length+" running · "+campaigns().length+" total":"Reviewed by Hannah before anything sends"),sched:"Who goes out on which day, through which inbox",leads:(DB.confLeads||[]).length+" conference leads · "+(DB.people||[]).length+" contacts, live from the team database",playbook:"How we run outbound"};
-  const body=view==="doc"?viewDoc():view==="intel"?viewIntel():view==="spend"?viewSpend():view==="start"?viewHomeNew():view==="plan"?viewHome():view==="projects"?viewProjects():view==="tasks"?viewTasks():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
-  const crumbs=[APP_NAME].concat(view==="doc"?[(docMeta(docSel)||{}).title||"Documents"]:view==="intel"?["Research",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="plan"?["Marketing plan"]:view==="projects"?["Projects"].concat(curProj&&pjFind(curProj)?[pjFind(curProj).title]:[]):view==="tasks"?["My tasks"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"].concat(indSel?[indName(indSel)]:[]):view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
+  const body=view==="prog"?viewProg():view==="doc"?viewDoc():view==="intel"?viewIntel():view==="spend"?viewSpend():view==="start"?viewHomeNew():view==="plan"?viewHome():view==="projects"?viewProjects():view==="tasks"?viewTasks():view==="cat"?viewCatalog():view==="li"?viewLinkedIn():view==="limsg"?viewLinkedInMsg():view==="ind"?viewIndustries():view==="over"?viewOverview():view==="net"?viewNet():view==="camp"?viewCampaigns():view==="sched"?viewSchedule():view==="leads"?viewLeads():view==="calls"?viewCalls():viewPlaybook();
+  const crumbs=[APP_NAME].concat(view==="prog"?[pgCrumb()]:view==="doc"?[(docMeta(docSel)||{}).title||"Documents"]:view==="intel"?["Research",({feed:"Feed",watch:"Watchlist",rd:"R&D board",runs:"Sources & runs"})[ivTab]||"Feed"]:view==="cat"?(catSel&&catFind(catSel)?[catFamMeta(catFamOf(catFind(catSel)))[1],catFind(catSel).name]:[catFam?catFamMeta(catFam)[1]:"All products"]):view==="start"?["Home"]:view==="plan"?["Marketing plan"]:view==="projects"?["Projects"].concat(curProj&&pjFind(curProj)?[pjFind(curProj).title]:[]):view==="tasks"?["My tasks"]:view==="spend"?["Spend / Expense"]:view==="calls"?["Calls"]:view==="ind"?["Industries"].concat(indSel?[indName(indSel)]:[]):view==="li"?["LinkedIn","Post"]:view==="limsg"?["LinkedIn","Messenger"]:["Email Campaigns","Conferences"].concat(view==="camp"&&curCampaign?["Campaigns",titles.camp]:[titles[view]||"Overview"]));
   const nsEl=document.querySelector(".snavs"),nsTop=nsEl?nsEl.scrollTop:0;tipHide();
   document.getElementById("screen").innerHTML='<div class="app'+(sideOpen?" open":"")+(sideMini()?" mini":"")+'">'+(sideOpen?'<div class="sidescrim" data-act="menu" aria-hidden="true"></div>':'')+railHTML(n)+'<div class="mainwrap"><header class="crumb"><button class="ibtn menu" data-act="menu" aria-label="Menu">'+svg("menu")+'</button><nav class="bc" aria-label="Breadcrumb">'+crumbs.map((c,k)=>'<span'+(k===crumbs.length-1?' class="cur"':'')+'>'+esc(c)+'</span>').join('<i>/</i>')+'</nav>'+
-   '<div class="right">'+(APP!=="marketing"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">'+(APP==="development"?"Search documents":"Search products")+'</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
-   (APP==="development"?docMnav():APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>[f[0],f[1]])).map(([k,lb])=>'<button class="'+(view==="cat"&&catFam===k&&!catPhaseF?"on":"")+'" data-act="catfam" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'<button class="'+(view==="intel"?"on":"")+'" data-act="ivnav" data-v="feed">Research</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button></nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button><button class="'+(view==="tasks"?"on":"")+'" data-act="nav" data-v="tasks">My tasks</button><button class="'+(view==="plan"?"on":"")+'" data-act="nav" data-v="plan">Marketing plan</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button>'+(pjInner()?'<button class="'+(view==="ind"?"on":"")+'" data-act="nav" data-v="ind">Industries</button>':'')+'<button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button>'+(pjInner()?'<button class="'+(view==="spend"?"on":"")+'" data-act="nav" data-v="spend">Spend</button>':'')+'</nav>')+
-   '<main class="main">'+(view==="start"||view==="li"||view==="limsg"||view==="cat"||view==="calls"||view==="ind"||view==="spend"||view==="intel"||view==="doc"||view==="projects"||view==="tasks"||view==="plan"?'':emailTabsHTML(n))+(view!=="over"&&view!=="start"&&view!=="cat"&&view!=="intel"&&view!=="doc"&&view!=="projects"&&view!=="tasks"&&view!=="plan"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
+   '<div class="right">'+(APP!=="marketing"?'<button class="search" data-act="palopen" style="cursor:pointer">'+svg("search")+'<span style="color:var(--ink-3)">'+(APP==="development"?"Search documents":APP==="progress"?"Search":"Search products")+'</span><kbd>'+KEY_K+'</kbd></button>':'<label class="search">'+svg("search")+'<input id="topSearch" placeholder="Search leads" value="'+esc(view==="leads"?leadsQ:"")+'" aria-label="Search leads"><kbd>/</kbd></label>')+'<span class="live" id="syncdot" data-state="'+SYNC.state+'"><i></i><span>'+(SYNC.state==="off"?"Offline":SYNC.state==="up"?"Saving…":"Live")+'</span></span><button class="av" style="background:'+me.c+'" data-act="memenu" aria-haspopup="menu" aria-expanded="'+meOpen+'" title="'+esc(me.name)+'">'+initials(me.name)+'</button>'+meMenuHTML(me)+'</div></header>'+
+   (APP==="progress"?"":APP==="development"?docMnav():APP==="catalog"?'<nav class="mnav" aria-label="Phases">'+[["","All"]].concat(CAT_FAM.filter(f=>catFamItems(f[0]).length).map(f=>[f[0],f[1]])).map(([k,lb])=>'<button class="'+(view==="cat"&&catFam===k&&!catPhaseF?"on":"")+'" data-act="catfam" data-v="'+k+'">'+esc(lb)+'</button>').join("")+'<button class="'+(view==="intel"?"on":"")+'" data-act="ivnav" data-v="feed">Research</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button></nav>':'<nav class="mnav" aria-label="Sections"><button class="'+(view==="start"?"on":"")+'" data-act="nav" data-v="start">Home</button><button class="'+(view==="projects"?"on":"")+'" data-act="nav" data-v="projects">Projects</button><button class="'+(view==="tasks"?"on":"")+'" data-act="nav" data-v="tasks">My tasks</button><button class="'+(view==="plan"?"on":"")+'" data-act="nav" data-v="plan">Marketing plan</button><button class="'+(EMAIL_VIEWS.includes(view)?"on":"")+'" data-act="nav" data-v="over">Email Campaigns</button><button class="'+(view==="calls"?"on":"")+'" data-act="nav" data-v="calls">Calls</button>'+(pjInner()?'<button class="'+(view==="ind"?"on":"")+'" data-act="nav" data-v="ind">Industries</button>':'')+'<button class="'+(view==="li"||view==="limsg"?"on":"")+'" data-act="nav" data-v="li">LinkedIn</button>'+(pjInner()?'<button class="'+(view==="spend"?"on":"")+'" data-act="nav" data-v="spend">Spend</button>':'')+'</nav>')+
+   '<main class="main">'+(view==="prog"||view==="start"||view==="li"||view==="limsg"||view==="cat"||view==="calls"||view==="ind"||view==="spend"||view==="intel"||view==="doc"||view==="projects"||view==="tasks"||view==="plan"?'':emailTabsHTML(n))+(view!=="prog"&&view!=="over"&&view!=="start"&&view!=="cat"&&view!=="intel"&&view!=="doc"&&view!=="projects"&&view!=="tasks"&&view!=="plan"&&!(view==="camp"&&curCampaign)?'<div class="ph"><h1>'+esc(titles[view])+'</h1><p>'+subs[view]+'</p></div>':'')+body+'</main></div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
   placeStaticTrains();if(view==="over")requestAnimationFrame(()=>{fitVolume();mapCardPin();});
-  mktHydrate();liHydrate();docHydrate();
+  mktHydrate();liHydrate();docHydrate();pgHydrate();
 }
 function fitVolume(){const el=document.querySelector("svg.vol");if(!el||!OV_CHART)return;const w=Math.round(el.parentElement.clientWidth);if(!w||Math.abs(w-el.viewBox.baseVal.width)<2)return;el.outerHTML=ovChartSVG(OV_CHART.ser,OV_CHART.st,OV_CHART.cs,OV_CHART.h,w).svg;}
 function campStatusWord(c){return c.paused?"paused":({draft:"draft",review:"in review",approved:"approved",active:"running",done:"done"}[c.status||"draft"]||c.status);}
@@ -4917,10 +4958,97 @@ function viewPlaybook(){
   return h+'<div class="sech">Tokens</div><div class="chips">'+CAMP_TOKENS.map(t=>'<span class="chip">{{'+t+'}}</span>').join("")+'</div>';
 }
 
+/* ---------- Progress hub (2026-11-06, Max: "a self-CRM, super simple, single tab… day by day") ----------
+   /progress/ — Max only (progUser(); RLS: can_see('progressDays') = is_max()). One record per day in `progressDays`,
+   id "pd_YYYY-MM-DD": {id,date,owner, exp|mkt|crm:{tasks:[{id,t,done,doneAt,at}], ideas:[{id,t,at}]}, updatedAt}.
+   Nothing is pre-filled; a day gets a record the first time something is written on it. No weekly view, on purpose. */
+Object.assign(SVG,{pgL:'<polyline points="14.5 6 8.5 12 14.5 18"/>'});
+const PG_CATS=[["exp","AutoTQ Expansion","New products","var(--l2)","Expansion"],["mkt","Marketing","","var(--coral)","Marketing"],["crm","CRM","Work and progress","var(--l3)","CRM"]];
+let pgDay=todayStr(),pgFocus=null,pgPointer=false;
+function progUser(){return USER==="max";}
+function pgId(d){return "pd_"+d;}
+function pgRec(d){return (DB.progressDays||[]).find(r=>r&&r.id===pgId(d));}
+function pgEnsure(d){const r=pgRec(d)||{id:pgId(d),date:d,owner:USER,createdAt:new Date().toISOString()};
+  PG_CATS.forEach(c=>{const x=r[c[0]]=r[c[0]]||{};x.tasks=x.tasks||[];x.ideas=x.ideas||[];});return r;}
+function pgSave(r){r.updatedAt=new Date().toISOString();put("progressDays",r);}
+function pgCount(r){let t=0,d=0,i=0;PG_CATS.forEach(c=>{const x=(r&&r[c[0]])||{};(x.tasks||[]).forEach(k=>{t++;if(k.done)d++;});i+=(x.ideas||[]).length;});return {t:t,d:d,i:i};}
+function pgDays(){return (DB.progressDays||[]).filter(r=>r&&r.date&&(function(n){return n.t+n.i>0;})(pgCount(r))).sort((a,b)=>b.date.localeCompare(a.date));}
+function pgDate(d){const p=String(d).split("-").map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function pgShift(d,n){const x=pgDate(d);x.setDate(x.getDate()+n);return x.getFullYear()+"-"+pad2(x.getMonth()+1)+"-"+pad2(x.getDate());}
+function pgLabel(d,long){const t=todayStr(),x=pgDate(d);const rel=d===t?"Today":d===pgShift(t,-1)?"Yesterday":d===pgShift(t,1)?"Tomorrow":"";
+  const o={weekday:long?"long":"short",month:long?"long":"short",day:"numeric"};if(x.getFullYear()!==new Date().getFullYear())o.year="numeric";
+  return {rel:rel,s:x.toLocaleDateString("en-US",o)};}
+function pgCrumb(){const L=pgLabel(pgDay,false);return L.rel||L.s;}
+function pgSumLine(n){if(!n.t&&!n.i)return "Nothing written yet";return (n.t?n.d+" of "+n.t+" task"+(n.t===1?"":"s")+" done":"No tasks")+(n.i?" · "+n.i+" idea"+(n.i===1?"":"s"):"");}
+function viewProg(){
+  const r=pgRec(pgDay),L=pgLabel(pgDay,true);
+  let h='<div class="pg-top"><div class="pg-nav"><button class="ibtn" data-act="pgshift" data-v="-1" aria-label="Previous day" title="Previous day">'+svg("pgL")+'</button><button class="ibtn" data-act="pgshift" data-v="1" aria-label="Next day" title="Next day">'+svg("chevR")+'</button></div>'+
+   '<div class="pg-ttl"><h1>'+esc(L.rel||L.s)+'</h1><p class="t2">'+(L.rel?esc(L.s)+" · ":"")+esc(pgSumLine(pgCount(r)))+'</p></div>'+
+   '<div class="pg-acts">'+(pgDay!==todayStr()?'<button class="btn" data-act="pgtoday">Today</button>':'')+'<input type="date" class="pg-date" id="pgDate" value="'+esc(pgDay)+'" aria-label="Go to a day"></div></div>';
+  h+='<div class="pg-grid">'+PG_CATS.map(c=>pgCatHTML(c,r)).join("")+'</div>';
+  return h+pgPastHTML();}
+function pgCatHTML(c,r){const x=(r&&r[c[0]])||{},T=x.tasks||[],I=x.ideas||[],d=T.filter(k=>k.done).length;
+  return '<section class="pg-cat" style="--pgc:'+c[3]+'" aria-label="'+esc(c[1])+'"><div class="pg-ch"><span class="pg-dot"></span><div><b>'+esc(c[1])+'</b>'+(c[2]?'<small>'+esc(c[2])+'</small>':'')+'</div><span class="cnt num">'+(T.length?d+" of "+T.length+" done":"")+'</span></div>'+
+   '<div class="pg-sub">Tasks</div>'+T.map(k=>pgRowHTML(c[0],"tasks",k)).join("")+pgAddHTML(c[0],"tasks","Add a task")+
+   '<div class="pg-sub">Ideas</div>'+I.map(k=>pgRowHTML(c[0],"ideas",k)).join("")+pgAddHTML(c[0],"ideas","Add an idea")+'</section>';}
+function pgRowHTML(c,k,it){const task=k==="tasks",ids='data-c="'+c+'" data-k="'+k+'" data-id="'+esc(it.id)+'"';
+  return '<div class="pg-row'+(task&&it.done?" done":"")+'">'+
+   (task?'<button class="pg-ck" data-act="pgck" '+ids+' role="checkbox" aria-checked="'+(!!it.done)+'" aria-label="'+(it.done?"Mark not done":"Mark done")+'">'+(it.done?svg("check"):"")+'</button>':'<span class="pg-bul" aria-hidden="true">'+svg("spark")+'</span>')+
+   '<textarea class="pg-txt" rows="1" '+ids+' aria-label="'+(task?"Task":"Idea")+'">'+esc(it.t)+'</textarea>'+
+   '<button class="pg-x" data-act="pgdel" '+ids+' aria-label="Remove" title="Remove">'+svg("x")+'</button></div>';}
+function pgAddHTML(c,k,ph){return '<div class="pg-add">'+svg("plus")+'<textarea class="pg-new" rows="1" data-c="'+c+'" data-k="'+k+'" placeholder="'+ph+'" aria-label="'+ph+'"></textarea></div>';}
+function pgPastHTML(){const L=pgDays();let h='<h2 class="sech">Your days</h2>';
+  if(!L.length)return h+'<p class="t2">Every day you write something in shows up here, newest first.</p>';
+  return h+'<div class="list pg-past">'+L.map(r=>{const lb=pgLabel(r.date,false);
+    const parts=PG_CATS.map(c=>{const x=r[c[0]]||{},T=x.tasks||[],I=x.ideas||[];if(!T.length&&!I.length)return "";
+      return '<span class="pg-pc" style="--pgc:'+c[3]+'"><i></i>'+esc(c[4])+(T.length?' <b class="num">'+T.filter(k=>k.done).length+"/"+T.length+'</b>':'')+(I.length?' <small>'+I.length+" idea"+(I.length===1?"":"s")+'</small>':'')+'</span>';}).join("");
+    return '<button class="pg-pr'+(r.date===pgDay?" on":"")+'" data-act="pgday" data-v="'+esc(r.date)+'"><span class="pg-pd"><b>'+esc(lb.rel||lb.s)+'</b>'+(lb.rel?'<small>'+esc(lb.s)+'</small>':'')+'</span><span class="pg-pcs">'+parts+'</span>'+chev()+'</button>';}).join("")+'</div>';}
+function pgNav(){const t=todayStr(),L=pgDays().filter(r=>r.date!==t).slice(0,14);
+  return sideGrp("Progress",'<button class="sitem'+(pgDay===t?" on":"")+'" data-act="pgtoday" data-tip="Today">'+svg("cal")+'<span class="lbl">Today</span><small>'+(function(n){return n.t?n.d+"/"+n.t:"";})(pgCount(pgRec(t)))+'</small></button>',0)+
+   (L.length?sideGrp("Recent days",L.map(r=>{const lb=pgLabel(r.date,false),n=pgCount(r);
+     return '<button class="sitem'+(pgDay===r.date?" on":"")+'" data-act="pgday" data-v="'+esc(r.date)+'" data-tip="'+esc(lb.s)+'">'+svg("check")+'<span class="lbl">'+esc(lb.rel||lb.s)+'</span><small>'+(n.t?n.d+"/"+n.t:"")+'</small></button>';}).join(""),0):"");}
+function pgPalTabs(){return [["cal","Today","",()=>{pgDay=todayStr();goView("prog");}]].concat(pgDays().filter(r=>r.date!==todayStr()).slice(0,30).map(r=>{const lb=pgLabel(r.date,false);return ["cal",lb.rel||lb.s,lb.rel?lb.s:"",()=>{pgDay=r.date;goView("prog");}];}));}
+function pgPalFind(ql,add){if(!ql)return;let n=0;
+  pgDays().forEach(r=>PG_CATS.forEach(c=>{const x=r[c[0]]||{};[["tasks","check"],["ideas","spark"]].forEach(([k,ic])=>(x[k]||[]).forEach(it=>{
+    if(n<25&&String(it.t||"").toLowerCase().includes(ql)){n++;const lb=pgLabel(r.date,false);add("What you wrote",ic,it.t,(lb.rel||lb.s)+" · "+c[4]+(k==="ideas"?" idea":""),()=>{pgDay=r.date;goView("prog");});}}));}));}
+function pgFind(c,k,id){const r=pgRec(pgDay);if(!r||!r[c])return null;const arr=r[c][k]||[];const i=arr.findIndex(x=>x.id===id);return i<0?null:{r:r,arr:arr,i:i,it:arr[i]};}
+/* a save that happens on blur can land while a click is half done (mouse down on another button): wait for the click
+   to finish before redrawing, or the redraw swallows it */
+function pgLater(){if(pgPointer)document.addEventListener("pointerup",()=>setTimeout(render,0),{once:true});else render();}
+function pgHandle(a,t){
+  if(a==="pgshift"){pgDay=pgShift(pgDay,+t.dataset.v||0);render();return true;}
+  if(a==="pgtoday"){pgDay=todayStr();goView("prog");return true;}
+  if(a==="pgday"){pgDay=t.dataset.v||todayStr();goView("prog");return true;}
+  if(a==="pgck"){const f=pgFind(t.dataset.c,"tasks",t.dataset.id);if(!f)return true;f.it.done=!f.it.done;f.it.doneAt=f.it.done?new Date().toISOString():"";pgSave(f.r);render();return true;}
+  if(a==="pgdel"){const f=pgFind(t.dataset.c,t.dataset.k,t.dataset.id);if(!f)return true;f.arr.splice(f.i,1);pgSave(f.r);render();return true;}
+  return false;}
+function pgAdd(el,refocus){const v=(el.value||"").trim();el.value="";if(!v)return false;const c=el.dataset.c,k=el.dataset.k;if(!PG_CATS.some(x=>x[0]===c))return false;
+  const r=pgEnsure(pgDay),it={id:uid(),t:v.slice(0,2000),at:new Date().toISOString()};if(k==="tasks"){it.done=false;it.doneAt="";}
+  r[c][k==="ideas"?"ideas":"tasks"].push(it);pgSave(r);if(refocus){pgFocus=c+"|"+k;render();}else pgLater();return true;}
+function pgEdit(el){const f=pgFind(el.dataset.c,el.dataset.k,el.dataset.id);if(!f)return;const v=(el.value||"").trim();if(v===f.it.t)return;
+  if(!v){f.arr.splice(f.i,1);pgSave(f.r);pgLater();return;}f.it.t=v.slice(0,2000);f.it.editedAt=new Date().toISOString();pgSave(f.r);}
+function pgFit(el){el.style.height="auto";el.style.height=el.scrollHeight+"px";}
+function pgFitAll(){document.querySelectorAll(".pg-txt,.pg-new").forEach(pgFit);}
+function pgHydrate(){if(APP!=="progress"||view!=="prog")return;pgFitAll();requestAnimationFrame(pgFitAll);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pgFitAll);
+  if(pgFocus){const p=pgFocus.split("|");pgFocus=null;const el=document.querySelector('.pg-new[data-c="'+p[0]+'"][data-k="'+p[1]+'"]');if(el)el.focus();}}
+document.addEventListener("pointerdown",()=>{pgPointer=true;},true);
+document.addEventListener("pointerup",()=>{pgPointer=false;},true);
+document.addEventListener("keydown",e=>{const el=e.target;if(!el||!el.classList)return;
+  if(el.classList.contains("pg-new")&&e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();pgAdd(el,true);return;}
+  if(el.classList.contains("pg-txt")){if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();el.blur();}
+    else if(e.key==="Escape"){const f=pgFind(el.dataset.c,el.dataset.k,el.dataset.id);if(f)el.value=f.it.t;el.blur();}}});
+document.addEventListener("input",e=>{const el=e.target;if(el&&el.classList&&(el.classList.contains("pg-txt")||el.classList.contains("pg-new")))pgFit(el);});
+document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList)return;
+  if(el.classList.contains("pg-txt")){pgEdit(el);return;}
+  if(el.classList.contains("pg-new")){pgAdd(el,false);return;}
+  if(el.id==="pgDate"&&/^\d{4}-\d{2}-\d{2}$/.test(el.value)){pgDay=el.value;render();}});
+window.addEventListener("resize",()=>{if(APP==="progress")pgFitAll();});
+
 /* ---------- events ---------- */
 document.addEventListener("click",e=>{
   if(sidePop&&!(e.target.closest&&e.target.closest('[data-act="sidews"],[data-act="sideuser"],.spop')))sidePopSet(null);
   const t=e.target.closest("[data-act]");if(!t)return;const a=t.dataset.act,id=t.dataset.id;
+  if(a.startsWith("pg")&&pgHandle(a,t))return;
   if(a==="closesheet"){closeInsp();return;}
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
   if(a==="verifypw"){verifyPw();return;}if(a==="sendotp"){sendOtp(t.dataset.email);return;}if(a==="verifyotp"){verifyOtp();return;}
