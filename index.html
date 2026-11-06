@@ -516,6 +516,59 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .gtmb{padding:11px 13px;display:flex;flex-direction:column;gap:8px;border-left:1px solid var(--line-2);min-width:0}
 .gtr{display:grid;grid-template-columns:minmax(0,150px) minmax(0,1fr) 72px;gap:10px;align-items:center;font-size:13px;color:var(--ink-2)}
 .gtnote{color:var(--muted);font-size:13px}
+/* the standardized KPI goals (2026-11-06): the standard under each goal, the travel-day calls line, CRM logging, the rep Home tiles */
+.ggt>span{min-width:0}.gstd{display:block;font-size:11.5px;font-weight:500;color:var(--muted);margin-top:1px;line-height:1.35}
+.gfree{font-size:12.5px;color:var(--muted);font-style:italic;min-width:0}
+.glog{font-size:12.5px;font-weight:600;min-width:0}.glog.g{color:var(--st-ok)}.glog.r{color:var(--st-dang)}
+.ghweek{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--sh-1);margin-bottom:10px;overflow:hidden}.ghweek .gwk{border-top:0}
+.gkpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.gkpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px 12px;display:flex;flex-direction:column;gap:7px;min-width:0;box-shadow:var(--sh-1)}
+.gkh{display:flex;justify-content:space-between;align-items:center;gap:8px}.gkh b{font-size:13.5px;font-weight:650;color:var(--ink);min-width:0}
+.gkn{font-size:22px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}.gkn small{font-size:13px;font-weight:500;color:var(--muted)}
+.gkn.good{color:var(--st-ok);font-size:18px}.gkn.bad{color:var(--st-dang)}
+.gkz{font-size:12.5px;color:var(--muted)}
+.gkpi .gstd{margin-top:auto}
+@media (max-width:640px){.gkpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.gkpi{padding:10px 11px;gap:6px}.gkn{font-size:19px}.gkh b{font-size:13px}}
+/* rep scorecard (admin Home) + the Analysis page */
+.face{position:relative;width:40px;height:40px;border-radius:50%;overflow:hidden;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.face.lg{width:58px;height:58px;font-size:17px;box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--line)}.face.xl{width:76px;height:76px;font-size:22px;box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--line)}
+.schome{margin:0 0 24px}.scrows{display:flex;flex-direction:column;gap:10px}
+.scrow{display:grid;grid-template-columns:230px minmax(0,1fr);gap:12px;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--sh-1)}
+.scwho{display:flex;align-items:center;gap:12px;font:inherit;color:var(--ink);text-align:left;background:none;border:0;border-radius:10px;padding:4px 6px;cursor:pointer;flex-wrap:wrap;align-content:center}
+.scwho:hover{background:var(--sunken)}.scnm{display:flex;flex-direction:column;gap:3px;min-width:0;align-items:flex-start}.scnm b{font-size:15px;font-weight:700}.scnm small{font-size:12px;color:var(--muted)}
+.scgo{font-size:12.5px;font-weight:650;color:var(--coral-btn);display:inline-flex;align-items:center;gap:2px;flex-basis:100%;padding-left:70px}
+.sctiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.sctiles.wide{margin-bottom:18px}
+.sct{border:1px solid var(--line);border-top:3px solid var(--line);border-radius:9px;padding:9px 10px 10px;display:flex;flex-direction:column;gap:6px;min-width:0;background:var(--surface);animation:scpop .32s cubic-bezier(.2,.8,.3,1.2) both}
+.sct.sg{border-top-color:var(--st-ok)}.sct.sy{border-top-color:var(--st-warn)}.sct.sr{border-top-color:var(--st-dang)}
+.scl{font-size:12px;font-weight:600;color:var(--muted);line-height:1.25}.scv{font-size:24px;font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.05}.scv small{font-size:12.5px;font-weight:500;color:var(--muted)}
+.sct .gtrk{height:6px}.sct .gtrk i{border-radius:3px}.scs{font-size:11.5px;color:var(--muted);line-height:1.3;margin-top:auto}
+.sctiles>.sct:nth-child(2){animation-delay:.04s}.sctiles>.sct:nth-child(3){animation-delay:.08s}.sctiles>.sct:nth-child(4){animation-delay:.12s}.sctiles>.sct:nth-child(5){animation-delay:.16s}.sctiles>.sct:nth-child(6){animation-delay:.2s}
+@keyframes scpop{from{opacity:0;transform:translateY(6px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sct{animation:none}}
+.scnav{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ink)}.scnav .ibtn[disabled]{opacity:.35;pointer-events:none}
+.scupd{font-size:12px;color:var(--muted);margin-left:auto}
+.schead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 6px}.schead h2{margin:0;font-size:22px}.schead .scnav{margin-left:auto}
+.scwks{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-bottom:16px}
+.scwk,.scdb{font:inherit;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:7px 9px;cursor:pointer;display:flex;flex-direction:column;gap:2px;color:var(--ink);min-width:0}
+.scwk b,.scdb b{font-size:13px}.scwk span,.scdb span{font-size:11.5px;color:var(--muted)}.scdb i{font-style:normal;font-weight:600;font-size:11px;color:var(--coral-btn)}
+.scwk.on,.scdb.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.scdb.fut{opacity:.55}
+.scdays{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-bottom:14px}
+.sctools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.sctools .seg{margin:0;flex-wrap:wrap;max-width:100%}.scq{flex:1;min-width:220px;max-width:420px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:0 10px;height:36px;color:var(--muted)}.scq:focus-within{border-color:var(--ink)}.scq input{border:0;outline:0;background:none;font:inherit;font-size:13.5px;color:var(--ink);flex:1;min-width:0;height:100%}
+.scledger{display:flex;flex-direction:column;gap:14px}.scday{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.scdh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:9px 14px;background:var(--sunken);border-bottom:1px solid var(--line)}.scdh b{font-size:14px}.scdh span{font-size:12px;color:var(--muted)}
+.scli{display:grid;grid-template-columns:62px 92px minmax(0,220px) minmax(0,1fr);gap:10px;align-items:start;width:100%;font:inherit;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 14px;cursor:pointer;color:var(--ink)}
+.scday .scli:first-of-type{border-top:0}.scli:hover{background:var(--sunken)}
+.sctm{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.sctag{font-size:11px;font-weight:650;border-radius:10px;padding:2px 8px;justify-self:start;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.sctag.out{background:#E8F0FB;color:#1D4F91}.sctag.in{background:#EEF3EA;color:#3B6D11}.sctag.crm{background:#FBEDE7;color:#9C3D1B}
+.scw,.scx{display:flex;flex-direction:column;gap:2px;min-width:0}.scw b,.scx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.scw small,.scx small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.scprev{white-space:pre-wrap;background:var(--sunken);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;margin:12px 0 8px;overflow-wrap:anywhere}
+@media (max-width:1100px){.scrow{grid-template-columns:1fr}.scgo{flex-basis:auto;padding-left:0;margin-left:auto}.sctiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.sctiles{grid-template-columns:repeat(2,minmax(0,1fr))}.scv{font-size:20px}.scwks{grid-template-columns:repeat(4,minmax(0,1fr))}.scdays{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .scli{grid-template-columns:52px minmax(0,1fr);row-gap:4px}.scli .scw,.scli .scx,.scli .sctag{grid-column:2}.scupd{margin-left:0;flex-basis:100%}}
+@media print{body.scprint .side,body.scprint .tbar,body.scprint .nav,body.scprint #fbdock,body.scprint .scnoprint,body.scprint #toast{display:none!important}
+  body.scprint .work,body.scprint .console{display:block;margin:0;padding:0}body.scprint .content{max-width:none;padding:0}body.scprint .sct,body.scprint .scday{break-inside:avoid}body.scprint .sct{animation:none}}
 .list>.stat.gline{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:10px 14px;font:inherit;font-size:13.5px;color:var(--ink-2);cursor:pointer;text-align:left}
 .list>.stat.gline+.stat.gline{border-top:1px solid var(--line)}.list>.stat.gline:hover{background:var(--hover)}.list>.stat.gline b{font-weight:650;color:var(--ink)}.list>.stat.gline small{color:var(--muted);font-size:12px;margin-left:4px}
 .ghome{margin-bottom:22px}
@@ -1607,6 +1660,7 @@ function render(){
   if(view==="invoicing"&&!invAccess())view="today";
   if(view==="team"&&!teamPageFor(USER))view="today";
   if(ownOnly()&&TEAM_VIEWS.includes(view))view="today";
+  if(view==="repweek"&&!scAccess())view="today";
   if(ownOnly()&&view==="fcast"){view="opps";oppView="fcast";}
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   /* Future CRM: Max only (anyone else holding ?hub=future just gets the CRM), and Pipeline is all it shows */
@@ -1618,12 +1672,13 @@ function render(){
   if(FUT&&!logState.wbHealed)setTimeout(wbHeal,0);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={repweek:(curRep?teamById(curRep).name:"Rep")+" — the week",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
     team:goalsOn()?(ownOnly()?"Plan your week and log as you go — green 90%+, orange 70–89%, red under 70%":"This week’s goals for every rep — tap a name for their card"):(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
     teammate:(curRep?"Everything they've logged, and their time in the CRM":""),
+    repweek:"Emails and CRM work, day by day — tap any line",
     insight:(insightTab==="reports"?"Run, sort & export":insightTab==="insights"?"Units bought & demos picked up, by distributor":"The channel at a glance"),
     campaigns:(function(){const cs=(DB.campaigns||[]);return cs.length?cs.length+" campaign"+(cs.length>1?"s":"")+" · "+cs.reduce((s,c)=>s+(c.leads||[]).length,0)+" contacts":"Your campaigns, their materials and the leads they produced";})(),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -1662,6 +1717,7 @@ function render(){
   else if(view==="activity")body=viewActivity();
   else if(view==="team")body=viewTeam();
   else if(view==="teammate")body=teamAccess()?viewTeammate(curRep):viewToday();
+  else if(view==="repweek")body=viewRepWeek(curRep);
   else if(view==="confleads")body=viewConfLeads();
   else if(view==="camp"||view==="campaigns")body=viewCampaignsHub();
   else if(view==="leads")body=viewLeads();
@@ -1691,7 +1747,7 @@ function render(){
     '<button class="av" style="background:'+me.c+'" data-act="menu" title="Menu" aria-label="Menu">'+initials(me.name)+'</button></div></header>'+
     '<main class="content">'+body+'</main>'+
     (FUT?'<div class="nav">'+navbtn("opps","chart","Pipeline")+'<button class="plus" data-act="'+(view==="board"?"wbadd":"addopp")+'" aria-label="'+(view==="board"?"New note":"New opportunity")+'"><span class="bubble">'+svg("plus")+'</span></button>'+navbtn("board","note","Whiteboard")+'</div>':
-    '<div class="nav">'+(profile(NU)==="admin"?navbtn("team","users","Team"):navbtn("today","home","Home"))+(NU==="laresa"?navbtn("invoicing","file","Invoicing"):profile(NU)==="outreach"?navbtn("leads","spark","Leads"):navbtn("activity","clock","Activity"))+
+    '<div class="nav">'+navbtn("today","home","Home")+(NU==="laresa"?navbtn("invoicing","file","Invoicing"):profile(NU)==="outreach"?navbtn("leads","spark","Leads"):navbtn("activity","clock","Activity"))+
      '<button class="plus" data-act="addhub"><span class="bubble">'+svg("plus")+'</span></button>'+
      (NU==="laresa"?navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts"):profile(NU)==="outreach"?navbtn("export","dl","Lists")+navbtn("activity","clock","Activity"):navbtn("opps","chart","Pipeline")+navbtn("leads","spark","Leads"))+'</div>')+
    '</div></div>';
@@ -1744,7 +1800,7 @@ function goBack(fb){
   }
   restoreNav(st);render();window.scrollTo(0,st.scroll||0);
 }
-function navOn(v){if(v==="team"&&view==="teammate")return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
+function navOn(v){if(v==="team"&&view==="teammate")return true;if(v==="today"&&view==="repweek")return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
 function typeLabel(t){return {distributor:"Distributor",manrep:"Man-rep",partner:"Partner",enduser:"End-user"}[t]||"Account";}
 function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.role;}
@@ -2090,7 +2146,7 @@ function profile(u){u=u||USER;if(u==="laresa")return "billing";if(u==="kellan")r
    team views (Team, a teammate's page, Insight) are closed to them (Max, 2026-10-20: "none of the sales people can
    see the KPIs of other people, just theirs") */
 function ownOnly(){return profile()==="sales";}
-const TEAM_VIEWS=["teammate","insight","dash","reports","report","insights"]; /* Team itself opens for a rep as My KPIs */
+const TEAM_VIEWS=["teammate","repweek","insight","dash","reports","report","insights"]; /* Team itself opens for a rep as My KPIs */
 function railGroups(u){
   const p=profile(u);
   /* "dumb simple: Home — Activity — Pipeline — Leads — Quotes" (Max, 2026-10-16 evening) */
@@ -2135,7 +2191,7 @@ function oppDistLabel(o){return o.distributorId?((company(o.distributorId)||{}).
 function canEditOpp(o){if(admin())return true;if(!o||!o.owner)return true;return o.owner===USER;}
 function oppOwnerName(o){return o&&o.owner?teamById(o.owner).name.split(" ")[0]:"";}
 /* rep landing: reps open on their own pipeline */
-function applyRoleDefaults(){view=profile()==="admin"?"team":"today";oppFilter="open";oppView="list";pipeF.rep=null;actWho=null;quoteRep=null;logState.leadsFInit=false;teamSel="";}
+function applyRoleDefaults(){view="today"; /* admins land on Home again, where the rep scorecard is (Max, 2026-11-06) */oppFilter="open";oppView="list";pipeF.rep=null;actWho=null;quoteRep=null;logState.leadsFInit=false;teamSel="";}
 /* region model — contacts/accounts are East, Central or West (no person owns a contact); Nationwide = multi-region account.
    3-territory map per Max 2026-09-18: East → John Morrison, Central → John Cornejo, West → Tim Ford. */
 const EAST_STATES=new Set("ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" ")); // MI → East per Max 2026-08-14 (John Morrison home state)
@@ -2332,21 +2388,29 @@ function eodSectionHTML(){
    Synced goals collection: "targets" (per-day numbers, man-rep cadence, the live switch) and gp_<user>_<Monday> = that week's plan.
    Until an admin turns it on for the team, only GOAL_TESTERS see any of it (everyone else keeps the old Team page and Home). ---------- */
 const GOAL_TESTERS=["hannah","max"];
+/* the Sales Representative Standardized KPI Goals (Max, 2026-11-06): travel day 3–5 distributor meetings, travel week 12–17;
+   office day a minimum of 25 distributor calls, office week 200; 20 personalized emails a day = 100 a week; man-reps every 2 weeks,
+   weekly with active business; calls keep going between meetings on travel days; 100% of meetings, calls, follow-ups and deals
+   documented. A "zone" day (Hannah's word) is a Travel day on screen. An office day's call goal is [minimum, the week's 200 ÷ 5]. */
 const GOAL_DAY_DEFAULT={zone:{mtg:[3,5],call:[0,0],email:[20,0]},office:{mtg:[0,0],call:[25,0],email:[20,0]},calls:{call:[25,0]}};
-const GOAL_TYPES={sales:[["zone","Zone"],["office","Office"],["both","Both"]],outreach:[["calls","Calls"],["other","Other"]]};
-const GOAL_METRICS={sales:[["mtg","Distributor meetings","visit"],["call","Distributor calls","call"],["email","Outreach emails","email"]],outreach:[["call","Calls","call"]]};
+const GOAL_WEEK_DEFAULT={mtg:[12,17],call:200};
+const GOAL_TYPES={sales:[["zone","Travel"],["office","Office"],["both","Both"]],outreach:[["calls","Calls"],["other","Other"]]};
+const GOAL_METRICS={sales:[["mtg","Distributor meetings","visit"],["call","Distributor calls","call"],["email","Outbound emails","email"]],outreach:[["call","Calls","call"]]};
 const GOAL_STATUS={ok:"On track",warn:"Close",dang:"Behind",plan:"Plan your week"};
 const GOAL_HINT={mtg:"Counts toward distributor meetings when it’s with someone at a distributor.",call:"Counts toward distributor calls when it’s with someone at a distributor.",
-  ocall:"Counts toward your calls.",email:"Counts toward your outreach emails."};
+  ocall:"Counts toward your calls.",email:"Counts toward your outbound emails."};
 function goalRec(id){return (DB.goals||[]).find(x=>x&&x.id===id);}
 function goalTargetsRec(){DB.goals=DB.goals||[];let r=goalRec("targets");if(!r){r={id:"targets"};DB.goals.push(r);}return r;}
 function goalCfg(){
   const r=goalRec("targets")||{},d=r.day||{},day={};
-  Object.keys(GOAL_DAY_DEFAULT).forEach(t=>{day[t]={};Object.keys(GOAL_DAY_DEFAULT[t]).forEach(k=>{const v=d[t]&&d[t][k];day[t][k]=Array.isArray(v)?v.map(n=>+n||0):GOAL_DAY_DEFAULT[t][k];});});
-  /* a Both day is half a zone day plus half an office day */
+  Object.keys(GOAL_DAY_DEFAULT).forEach(t=>{day[t]={};Object.keys(GOAL_DAY_DEFAULT[t]).forEach(k=>{const v=d[t]&&d[t][k];day[t][k]=Array.isArray(v)?v.map(n=>+n||0):GOAL_DAY_DEFAULT[t][k].slice();});});
+  const w=r.week||{},wm=Array.isArray(w.mtg)?w.mtg.map(n=>+n||0):GOAL_WEEK_DEFAULT.mtg,week={mtg:[wm[0],Math.max(wm[0],wm[1]||0)],call:w.call!=null?+w.call||0:GOAL_WEEK_DEFAULT.call};
+  /* an office day aims at a fifth of the week's calls; its minimum is what the day is judged on */
+  day.office.call=[day.office.call[0],Math.max(day.office.call[0],week.call/5)];
+  /* a Both day is half a travel day plus half an office day */
   day.both={};["mtg","call","email"].forEach(k=>{const z=day.zone[k],o=day.office[k];day.both[k]=[(z[0]+o[0])/2,(Math.max(z[0],z[1])+Math.max(o[0],o[1]))/2];});
   day.other={};
-  return {day:day,every:+r.mrEvery||14,active:+r.mrActive||7,live:!!r.live};
+  return {day:day,week:week,every:+r.mrEvery||14,active:+r.mrActive||7,live:!!r.live};
 }
 function goalsOn(){return goalCfg().live||GOAL_TESTERS.includes(USER);}
 function goalPeople(){return GH_REPS.filter(id=>["sales","outreach"].includes(profile(id))&&TEAM.some(t=>t.id===id));}
@@ -2407,8 +2471,12 @@ function goalState(u,mon){
   const days=goalDays(mon),plan=goalPlan(u,mon),tally=goalTally(u,mon,kind),ti=days.slice(0,5).indexOf(T);
   const tg=(type,k)=>{const x=type&&cfg.day[type]&&cfg.day[type][k];return x?{t:x[0],s:Math.max(x[0],x[1]||0)}:{t:0,s:0};};
   const metrics=GOAL_METRICS[kind].map(m=>{
+    /* the week: meetings add up the travel days up to the 12–17 a travel week; calls are judged on the week's 200 (a fifth per
+       office day), a day on its 25 minimum; emails add up (20 a day = 100) */
+    const wkS=kind==="sales"&&m[0]==="call",cap=kind==="sales"&&m[0]==="mtg"?cfg.week.mtg:null;
     let wt=0,ws=0,due=0;
-    const per=plan.map((type,i)=>{const x=tg(type,m[0]);wt+=x.t;ws+=x.s;if(days[i]<T)due+=x.t;return {t:x.t,s:x.s,v:tally[m[0]][i]};});
+    const per=plan.map((type,i)=>{const x=tg(type,m[0]),b=wkS?x.s:x.t;wt+=b;ws+=x.s;if(days[i]<T)due+=b;return {t:x.t,s:x.s,v:tally[m[0]][i]};});
+    if(cap&&wt>0){wt=Math.min(wt,cap[0]);ws=Math.min(ws,cap[1]);due=Math.min(due,wt);}
     const v=tally[m[0]].reduce((a,b)=>a+b,0),pct=due>0?Math.round(v/goalUp(due)*100):null,td=ti>-1?per[ti]:null;
     return {k:m[0],label:m[1],logType:m[2],per:per,extra:tally[m[0]][5]+tally[m[0]][6],v:v,wt:wt,ws:ws,due:due,pct:pct,band:goalBand(pct),
       today:td,todayPct:td&&td.t?Math.round(td.v/goalUp(td.t)*100):null};});
@@ -2418,8 +2486,16 @@ function goalState(u,mon){
   const planned=plan.every(Boolean),parts=metrics.map(m=>m.pct).filter(p=>p!=null);if(mrPct!=null)parts.push(mrPct);
   const status=!planned?"plan":parts.some(p=>p<70)?"dang":parts.some(p=>p<90)?"warn":"ok";
   return {u:u,kind:kind,mon:mon,days:days,plan:plan,planned:planned,ti:ti,T:T,metrics:metrics,dayScore:dayScore,mr:mr,mrOk:mrOk,mrPct:mrPct,mrBand:goalBand(mrPct),
-    status:status,avg:parts.length?Math.round(parts.reduce((a,p)=>a+Math.min(100,p),0)/parts.length):null};
+    log:kind==="sales"?goalLogState(u):null,status:status,avg:parts.length?Math.round(parts.reduce((a,p)=>a+Math.min(100,p),0)/parts.length):null};
 }
+/* "100% of meetings, calls, follow-ups and opportunities documented": every activity already carries its note, so what is left
+   undocumented is a follow-up that went 14+ days with nothing logged and an open deal with no next step or one that slipped */
+function goalLogState(u){
+  const q=actQueueFor(u),T=todayStr();
+  const deals=myOpps().filter(o=>oppIsOpen(o)&&oppGhRep(o)===u&&(!o.nextAction||(o.nextActionDate&&o.nextActionDate<T)));
+  return {stale:q.old.length,deals:deals.length,n:q.old.length+deals.length};
+}
+function goalLogLbl(x){return x.n?[x.stale&&x.stale+" follow-up"+(x.stale===1?"":"s")+" gone stale",x.deals&&x.deals+" deal"+(x.deals===1?"":"s")+" without a next step"].filter(Boolean).join(" · "):"Everything logged and up to date";}
 function goalViewCur(){return logState.goalView||(goalDays(goalMonday()).slice(0,5).includes(todayStr())?"today":"week");}
 function goalTodayLbl(g){return g.ti<0?"Weekend":g.plan[g.ti]?"Today: "+goalTypeLbl(g.kind,g.plan[g.ti]):"No plan";}
 /* the look is Hannah's mockup (Max, 2026-11-05: "pretty much copy how she had it in the .zip"): g = green, y = orange, r = red */
@@ -2429,14 +2505,28 @@ function goalBarHTML(segs,max,title,band){const m=Math.max(1,max||0);
   return '<div class="gtrk '+(band||"")+'" role="img" aria-label="'+esc(title)+'" title="'+esc(title)+'">'+segs.filter(x=>x.v>0).map(x=>'<i'+(x.past?' class="past"':'')+' style="width:calc('+Math.min(100,x.v/m*100).toFixed(1)+'% - 1.5px)"></i>').join("")+'</div>';}
 /* one goal for Today or This week: today's bar is today's count ÷ today's target; the week bar is built from each day's logs */
 function goalMetricView(g,m,view){
-  if(view==="today"){const x=m.today;if(!x||!x.t)return null;
+  /* a travel day has no call number: calls keep going between meetings and still count toward the week */
+  const free=v=>g.kind==="sales"&&m.k==="call"?{free:true,v:v,title:"No set number on a travel day: keep calling distributors between meetings"}:null;
+  if(view==="today"){const x=m.today;if(!x||!x.t)return x&&g.plan[g.ti]==="zone"?free(x.v):null;
     return {v:x.v,lbl:goalRng(x.t,x.s),max:goalUp(x.s||x.t),band:GB[goalBand(m.todayPct)]||"",segs:[{v:x.v}],title:x.v+" of "+goalRng(x.t,x.s)+" today"+(m.todayPct!=null?" ("+m.todayPct+"%)":"")};}
-  if(!m.wt)return null;
+  if(!m.wt)return g.plan.includes("zone")?free(m.v):null;
   return {v:m.v,lbl:goalRng(m.wt,m.ws),max:goalUp(m.ws||m.wt),band:GB[m.band]||"",
     segs:m.per.map((x,i)=>({v:x.v,past:g.days[i]<g.T})).concat([{v:m.extra,past:true}]),
     title:m.pct==null?m.v+" so far this week":m.pct+"% of the target for the days that are over ("+m.v+" of "+goalUp(m.due)+")"};
 }
-/* My week: tap a day to switch it (Zone → Office → Both); days that are over are locked; each day turns green / orange / red */
+/* the bar and the count for one goal row; a travel day's calls get a line instead of a bar */
+function goalRowBits(x){
+  return x.free?'<span class="gfree" title="'+esc(x.title)+'">Keep calling between meetings</span><span class="gn">'+x.v+'<small> calls</small></span>'
+    :goalBarHTML(x.segs,x.max,x.title,x.band)+'<span class="gn">'+x.v+'<small> / '+x.lbl+'</small></span>';
+}
+/* the standard each goal comes from, in the KPI sheet's words (numbers follow Targets) */
+function goalStdTxt(k){
+  const c=goalCfg(),d=c.day,r=(a)=>goalRng(a[0],Math.max(a[0],a[1]||0));
+  return {mtg:r(d.zone.mtg)+" a travel day · "+r(c.week.mtg)+" a travel week",call:goalUp(d.office.call[0])+"+ an office day · "+goalUp(c.week.call)+" an office week",
+    email:goalUp(d.office.email[0])+" personalized a day · "+goalUp(d.office.email[0]*5)+" a week",mr:"Each one "+goalEvery(c.every)+" · "+goalEvery(c.active)+" with active business",
+    log:"100% of meetings, calls, follow-ups and deals"}[k]||"";
+}
+/* My week: tap a day to switch it (Travel → Office → Both); days that are over are locked; each day turns green / orange / red */
 function goalWeekHTML(g,canPlan){
   const DN=["Mon","Tue","Wed","Thu","Fri"];
   return '<div class="gwk"><div class="gwl2"><span>'+(g.u===USER?"My week":"Their week")+'</span><span>'+(g.planned?"":canPlan?"pick each day":"not planned")+'</span></div><div class="gwds">'+
@@ -2447,15 +2537,22 @@ function goalWeekHTML(g,canPlan){
 }
 function goalMetricHTML(g,m,view,own){
   const x=goalMetricView(g,m,view);if(!x)return "";
-  return '<div class="gs2"><div class="ggt"><span>'+esc(m.label)+'</span>'+(own?'<button class="glogb" data-act="goallog" data-v="'+m.logType+'" data-k="'+(g.kind==="outreach"?"ocall":m.k)+'">Log</button>':'')+'</div>'+
-   '<div class="gpb">'+goalBarHTML(x.segs,x.max,x.title,x.band)+'<span class="gn">'+x.v+'<small> / '+x.lbl+'</small></span></div></div>';
+  return '<div class="gs2"><div class="ggt"><span>'+esc(m.label)+(g.kind==="sales"?'<small class="gstd">'+esc(goalStdTxt(m.k))+'</small>':'')+'</span>'+(own?'<button class="glogb" data-act="goallog" data-v="'+m.logType+'" data-k="'+(g.kind==="outreach"?"ocall":m.k)+'">Log</button>':'')+'</div>'+
+   '<div class="gpb">'+goalRowBits(x)+'</div></div>';
+}
+/* CRM logging: green when nothing is waiting to be written up, red with what is */
+function goalLogHTML(g){
+  const x=g.log;if(!x)return "";
+  return '<div class="gs2"><div class="ggt"><span>CRM logging<small class="gstd">'+esc(goalStdTxt("log"))+'</small></span>'+
+   (x.n?'<button class="glogb" data-act="nav" data-view="'+(x.stale?"activity":"opps")+'">'+(g.u===USER?"Fix":"See")+'</button>':'')+'</div>'+
+   '<div class="glog '+(x.n?"r":"g")+'">'+esc(goalLogLbl(x))+'</div></div>';
 }
 function goalManrepHTML(g,canEdit){
   const cfg=goalCfg(),own=g.u===USER,open=logState.goalMrOpen===g.u;
-  if(!g.mr.length)return userRegion(g.u)?'<div class="gs2"><div class="ggt"><span>Man-rep calls</span></div><div class="gn0">None on file in the '+esc(userRegion(g.u))+' yet</div></div>':'';
-  let h='<div class="gs2"><div class="ggt"><span>Man-rep calls</span><button class="glogb" data-act="goalmr" data-u="'+g.u+'">'+(open?"Done":own?"Log":"List")+'</button></div>'+
+  if(!g.mr.length)return userRegion(g.u)?'<div class="gs2"><div class="ggt"><span>Man-rep contact</span></div><div class="gn0">None on file in the '+esc(userRegion(g.u))+' yet</div></div>':'';
+  let h='<div class="gs2"><div class="ggt"><span>Man-rep contact<small class="gstd">'+esc(goalStdTxt("mr"))+'</small></span><button class="glogb" data-act="goalmr" data-u="'+g.u+'">'+(open?"Done":own?"Log":"List")+'</button></div>'+
    '<div class="gpb">'+goalBarHTML([{v:g.mrOk}],g.mr.length,g.mrOk+" of "+g.mr.length+" man-reps called on time ("+g.mrPct+"%) — each one "+goalEvery(cfg.every)+", "+goalEvery(cfg.active)+" with active business",GB[g.mrBand]||"")+
-   '<span class="gn">'+g.mrOk+'<small> / '+g.mr.length+'</small></span></div>';
+   '<span class="gn">'+g.mrOk+'<small> / '+g.mr.length+' on time</small></span></div>';
   if(open){const all=logState.goalMrAll===g.u,rows=all?g.mr:g.mr.slice(0,8);
     h+='<div class="gmrl">'+rows.map(x=>{const p=x.p,c=company(p.cid);
       const st=x.days===0?"Called today":x.ok?"On time":"Overdue",det=x.days==null?"not called yet":x.days===0?"":"last "+x.days+" day"+(x.days===1?"":"s")+" ago";
@@ -2472,11 +2569,11 @@ function goalCardHTML(u,ytd){
   const sub=g.kind==="outreach"?"Outreach":(userRegion(u)||(goalHas(u)?"Sales":"Test card"));
   let h='<article class="reptile gcard"><div class="ghd" style="background:'+t.c+'"><div class="gav2">'+initials(t.name)+'</div><div class="gnm">'+esc(t.name)+'</div><div class="gtr2">'+esc(sub)+'</div>'+
    '<span class="gstat '+GB[g.status]+'">'+GOAL_STATUS[g.status]+'</span></div>'+goalWeekHTML(g,canPlan);
-  if(!g.planned)h+='<div class="gpick">'+(own?"Plan your week":esc(shortName(u))+" hasn’t planned the week")+'<span>'+(canPlan?(g.kind==="outreach"?"Pick Calls or Other for each day above.":"Pick Zone, Office or Both for each day above."):"Nothing to show until they do.")+'</span></div>';
+  if(!g.planned)h+='<div class="gpick">'+(own?"Plan your week":esc(shortName(u))+" hasn’t planned the week")+'<span>'+(canPlan?(g.kind==="outreach"?"Pick Calls or Other for each day above.":"Pick Travel, Office or Both for each day above."):"Nothing to show until they do.")+'</span></div>';
   else{
     if(view==="today"&&g.ti<0)h+='<div class="gnomode">It’s the weekend. Switch to This week for the week’s numbers.</div>';
     else{const rows=g.metrics.map(m=>goalMetricHTML(g,m,view,own)).join("");h+=rows||'<div class="gnomode">Other work today. Nothing to track.</div>';}
-    if(g.kind==="sales")h+=goalManrepHTML(g,canPlan);}
+    if(g.kind==="sales")h+=goalManrepHTML(g,canPlan)+goalLogHTML(g);}
   return h+(ytd||"")+'</article>';
 }
 /* the year-to-date rows under a card: your own, or anyone's for the team viewers — a rep never sees another rep's numbers */
@@ -2498,8 +2595,9 @@ function goalTeamListHTML(view){
   return '<div class="gtl">'+goalPeople().map(id=>{const g=goalState(id),t=teamById(id);
     let rows='';
     if(!g.planned)rows='<div class="gtnote">Hasn’t planned the week yet</div>';
-    else{rows=view==="today"&&g.ti<0?'':g.metrics.map(m=>{const x=goalMetricView(g,m,view);return x?'<div class="gtr"><span>'+esc(m.label)+'</span>'+goalBarHTML(x.segs,x.max,x.title,x.band)+'<span class="gn">'+x.v+'<small> / '+x.lbl+'</small></span></div>':"";}).join("");
-      if(g.mr.length)rows+='<div class="gtr"><span>Man-rep calls</span>'+goalBarHTML([{v:g.mrOk}],g.mr.length,g.mrOk+" of "+g.mr.length+" called on time",GB[g.mrBand]||"")+'<span class="gn">'+g.mrOk+'<small> / '+g.mr.length+'</small></span></div>';
+    else{rows=view==="today"&&g.ti<0?'':g.metrics.map(m=>{const x=goalMetricView(g,m,view);return x?'<div class="gtr"><span>'+esc(m.label)+'</span>'+goalRowBits(x)+'</div>':"";}).join("");
+      if(g.mr.length)rows+='<div class="gtr"><span>Man-rep contact</span>'+goalBarHTML([{v:g.mrOk}],g.mr.length,g.mrOk+" of "+g.mr.length+" called on time",GB[g.mrBand]||"")+'<span class="gn">'+g.mrOk+'<small> / '+g.mr.length+'</small></span></div>';
+      if(g.log)rows+='<div class="gtr"><span>CRM logging</span><span class="glog '+(g.log.n?"r":"g")+'">'+esc(goalLogLbl(g.log))+'</span><span class="gn">'+(g.log.n?g.log.n+'<small> to fix</small>':'✓')+'</span></div>';
       if(!rows)rows='<div class="gtnote">'+(g.ti<0?"Weekend":"Other work today")+'</div>';}
     return '<div class="gtm"><button class="gtmn" data-act="goalsee" data-id="'+id+'" title="Open '+esc(t.name)+'’s card"><span class="gav" style="background:'+t.c+'">'+initials(t.name)+'</span>'+
      '<span class="gtmt"><b>'+esc(t.name)+'</b><small>'+esc(goalTodayLbl(g))+'</small></span>'+goalPillHTML(g)+'</button><div class="gtmb">'+rows+'</div></div>';}).join("")+'</div>';
@@ -2516,6 +2614,223 @@ function goalHomeHTML(){
     return '<button class="gbc s'+GB[g.status]+'" data-act="goalsee" data-id="'+g.u+'"><span class="gbt"><b>'+esc(teamById(g.u).name)+'</b>'+goalPillHTML(g)+'</span>'+
      '<div class="gtrk '+GB[g.status]+'" role="img" aria-label="'+w+'% of pace" title="'+esc(goalTodayLbl(g))+' · '+w+'% of pace"><i style="width:'+w+'%"></i></div></button>';}).join("")+'</div></section>';
   return h;
+}
+/* ---------- Rep scorecard (Max, 2026-11-06: "for Jamie, Hannah, Max … single metric KPIs that pop up with their face next to it;
+   Analysis will open up a page that basically mirrors this Tim report … CRM activity as well as email activity … update at the end
+   of the day"). Admin Home: a row per seller — face, name, one tile per standard for the week (‹ › looks back). CRM numbers are live
+   from the activities; email numbers come from public.rep_mail, which AutoTQ_CRM_scripts/rep_mail/rep_mail_sync.py fills every
+   evening on Max's PC (RLS: only rep_mail_readers — Max, Hannah, Jamie — can read it). A day's type is the rep's plan when there is
+   one, else a weekday with a distributor meeting is a Travel day and any other weekday an Office day. ---------- */
+const SC_REPS=["johnm","john","tim"];
+function scAccess(){return ["max","hannah","jamie"].includes(USER);}
+function faceHTML(id,cls){const t=teamById(id);
+  return '<span class="face '+(cls||"")+'" style="background:'+t.c+'"><b>'+initials(t.name)+'</b><img src="'+assetUrl("face_"+id+".jpg")+'" alt="" onerror="this.remove()"></span>';}
+const RM={weeks:{},at:{},busy:{},days:{},run:null,last:null,err:""};
+/* the week's emails (all reps), loaded once and kept 30 minutes; null while loading */
+function rmWeek(mon){
+  if(!scAccess())return [];
+  if(!(RM.weeks[mon]&&Date.now()-(RM.at[mon]||0)<30*60000)&&!RM.busy[mon]){RM.busy[mon]=true;rmLoad(mon);}
+  return RM.weeks[mon]||null;
+}
+async function rmLoad(mon){
+  const d=goalDays(mon),p=s=>s.split("-").map(Number),a=p(d[0]),b=p(d[6]);
+  const from=new Date(a[0],a[1]-1,a[2]),to=new Date(b[0],b[1]-1,b[2]+1);
+  try{let all=[];
+    for(let off=0;;off+=1000){
+      const r=await supa("/rest/v1/rep_mail?select=mailbox,imid,rep,dir,at,subject,from_addr,from_name,to_addrs,cc_addrs,outside,preview,conv,kind,web"+
+        "&at=gte."+encodeURIComponent(from.toISOString())+"&at=lt."+encodeURIComponent(to.toISOString())+"&order=at.asc&limit=1000&offset="+off);
+      if(!r.ok)throw new Error("rep_mail "+r.status);
+      const j=await r.json();all=all.concat(j);if(j.length<1000)break;}
+    RM.weeks[mon]=all;RM.at[mon]=Date.now();RM.err="";
+    const r2=await supa("/rest/v1/rep_mail_runs?select=at,ok,added,src,note&order=at.desc&limit=10");
+    if(r2.ok){const runs=await r2.json();RM.run=runs.find(x=>x.src==="sync")||null;RM.last=runs[0]||null;}
+  }catch(e){RM.weeks[mon]=RM.weeks[mon]||[];RM.at[mon]=Date.now();RM.err="The email numbers didn’t load — refresh in a minute.";}
+  RM.busy[mon]=false;
+  if(view==="today"||view==="repweek")render();
+}
+/* emails per rep per day for the Analysis week ribbon */
+function rmDays(from,to){const k=from+"|"+to;
+  if(RM.days[k])return RM.days[k];
+  if(!RM.busy[k]){RM.busy[k]=true;supa("/rest/v1/rpc/rep_mail_days",{method:"POST",body:JSON.stringify({p_from:from,p_to:to})})
+    .then(r=>r.ok?r.json():[]).catch(()=>[]).then(j=>{RM.days[k]=j||[];RM.busy[k]=false;if(view==="repweek")render();});}
+  return null;}
+function rmUpdLine(){
+  if(RM.err)return RM.err;
+  const f=iso=>{const d=new Date(iso);return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+", "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});};
+  return "CRM live · email "+(RM.run?"updated "+f(RM.run.at)+(RM.run.ok?"":" (with a problem)"):"updates every evening");
+}
+/* who an outside address is: a CRM contact by email, else the account whose website or contacts share the domain */
+let RMI=null;
+const FREE_MAIL=new Set("gmail.com yahoo.com outlook.com hotmail.com aol.com icloud.com me.com msn.com live.com comcast.net att.net verizon.net sbcglobal.net protonmail.com ymail.com".split(" "));
+function rmIndex(){
+  const n=(DB.people||[]).length+":"+(DB.companies||[]).length;if(RMI&&RMI.n===n)return RMI;
+  const em={},dom={},byId={};(DB.companies||[]).forEach(c=>{byId[c.id]=c;});
+  (DB.companies||[]).forEach(c=>{const w=String(c.website||"").toLowerCase().replace(/^https?:\/\//,"").replace(/^www\./,"").split("/")[0];if(w.includes(".")&&!FREE_MAIL.has(w)&&!dom[w])dom[w]=c;});
+  (DB.people||[]).forEach(p=>{const e=String(p.email||"").trim().toLowerCase();if(!e.includes("@"))return;if(!em[e])em[e]=p;const d=e.split("@")[1],c=byId[p.cid];if(c&&!FREE_MAIL.has(d)&&!dom[d])dom[d]=c;});
+  RMI={n:n,em:em,dom:dom,byId:byId};return RMI;}
+function rmWho(addr){addr=String(addr||"").toLowerCase();const I=rmIndex(),p=I.em[addr]||null,c=p?(I.byId[p.cid]||null):(I.dom[addr.split("@")[1]||""]||null);
+  return {addr:addr,p:p,c:c,name:p?p.name:addr,co:c?c.name:"",dist:!!(c&&c.type==="distributor")};}
+/* one rep's emails for the week: sent / received per day, and how many went to distributors (calendar replies and auto-replies left out) */
+function rmStats(u,mon){const rows=rmWeek(mon);if(!rows)return null;
+  const days=goalDays(mon),out=[0,0,0,0,0,0,0],inn=[0,0,0,0,0,0,0],mine=rows.filter(r=>r.rep===u&&!r.kind);let dist=0;
+  mine.forEach(r=>{const i=days.indexOf(localDay(r.at));if(i<0)return;if(r.dir==="out"){out[i]++;if((r.outside||[]).some(a=>rmWho(a).dist))dist++;}else inn[i]++;});
+  return {out:out,inn:inn,sent:out.reduce((a,b)=>a+b,0),recv:inn.reduce((a,b)=>a+b,0),dist:dist,rows:mine};}
+/* man-reps reached on time as of a day (the goal card's rule, at the end of a past week) */
+function scManrep(u,end){
+  const cfg=goalCfg(),endT=new Date(end+"T23:59:59").getTime(),last={},seen={};
+  (DB.activities||[]).forEach(a=>{if(a&&a.by===u&&a.pid&&(actIsCall(a)||actIsMeet(a))){const t=new Date(a.date).getTime();if(t<=endT&&!(last[a.pid]>=t))last[a.pid]=t;}});
+  goalManreps(u).forEach(p=>{const k=String(p.name||"").trim().toLowerCase()+"|"+(p.cid||""),t=last[p.id]||0,g=seen[k]||(seen[k]={t:0,active:false});if(t>g.t)g.t=t;if(p.activeBiz)g.active=true;});
+  const all=Object.values(seen);
+  return {ok:all.filter(g=>g.t&&Math.floor((endT-g.t)/86400000)<=(g.active?cfg.active:cfg.every)).length,n:all.length};}
+function scFmt(n){return n==null?"—":String(Math.round(n*10)/10);}
+function scState(u,mon){
+  const cfg=goalCfg(),T=todayStr(),days=goalDays(mon),plan=goalPlan(u,mon),tally=goalTally(u,mon,"sales");
+  const acts=calActs(u,days[0],days[6]),allCalls=acts.filter(actIsCall).length;
+  const W=[0,1,2,3,4],sum=(arr,ix)=>ix.reduce((s,i)=>s+arr[i],0),pc=(v,d)=>d>0?Math.round(v/d*100):null,pl=(n,w)=>n+" "+w+(n===1?"":"s");
+  const typ=W.map(i=>plan[i]||(days[i]>T?null:(tally.mtg[i]>0?"zone":"office")));
+  const tw=t=>t==="zone"?1:t==="both"?.5:0,ow=t=>t==="office"?1:t==="both"?.5:0;
+  /* judged on the weekdays that are over; on the first day of a week, on today */
+  const over=W.filter(i=>days[i]<T),judge=over.length?over:W.filter(i=>days[i]===T);
+  const tJ=judge.filter(i=>tw(typ[i])>0),oJ=judge.filter(i=>ow(typ[i])>0);
+  const dz=cfg.day.zone.mtg,wk=cfg.week.mtg,dOff=cfg.day.office.call[0],eDay=cfg.day.office.email[0];
+  const mtg=tally.mtg.reduce((a,b)=>a+b,0),tWeek=W.reduce((s,i)=>s+tw(typ[i]),0),tDue=Math.min(dz[0]*judge.reduce((s,i)=>s+tw(typ[i]),0),wk[0]);
+  const perT=tJ.length?sum(tally.mtg,tJ)/tJ.length:null,perO=oJ.length?sum(tally.call,oJ)/oJ.length:null;
+  const call=tally.call.reduce((a,b)=>a+b,0),oWeek=W.reduce((s,i)=>s+(typ[i]===null?1:ow(typ[i])),0),oDue=cfg.week.call/5*judge.reduce((s,i)=>s+ow(typ[i]),0);
+  const mail=rmStats(u,mon),eDue=eDay*judge.length,mr=scManrep(u,days[6]<T?days[6]:T);
+  const tiles=[
+    {k:"mtg",label:"Distributor meetings",v:mtg,tgt:tWeek?"/ "+goalRng(Math.min(dz[0]*tWeek,wk[0]),Math.min(Math.max(dz[0],dz[1])*tWeek,wk[1])):"",pct:tWeek?pc(mtg,tDue):null,
+      sub:tWeek?pl(Math.ceil(tWeek),"travel day")+" · 12–17 a travel week":"No travel days this week",title:"Visits, trainings and demos with a distributor"},
+    {k:"mtgday",label:"Meetings per travel day",v:scFmt(perT),tgt:"/ "+goalRng(dz[0],dz[1]),pct:perT==null?null:Math.round(perT/dz[0]*100),
+      sub:tJ.length?"Average of "+pl(tJ.length,"travel day"):"No travel days yet",title:"Distributor meetings ÷ travel days that are over"},
+    {k:"callday",label:"Distributor calls per office day",v:scFmt(perO),tgt:"/ "+goalUp(dOff),pct:perO==null?null:Math.round(perO/dOff*100),
+      sub:oJ.length?"Average of "+pl(oJ.length,"office day"):"No office days yet",title:"Calls to someone at a distributor ÷ office days that are over"},
+    {k:"call",label:"Distributor calls this week",v:call,tgt:oWeek?"/ "+Math.round(cfg.week.call*oWeek/5):"",pct:oWeek?pc(call,oDue):null,
+      sub:pl(allCalls,"call")+" in all",title:"200 an office week · calls on travel days count too"},
+    {k:"email",label:"Outbound emails",v:mail?mail.sent:"…",tgt:"/ "+eDay*5,pct:mail?pc(mail.sent,eDue):null,
+      sub:mail?mail.dist+" to distributors · "+mail.recv+" received":"Loading email…",title:"Emails sent to someone outside the company (calendar replies left out) · 100 a week"},
+    {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
+  const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
+  const status=!parts.length?null:parts.some(p=>p<70)?"dang":parts.some(p=>p<90)?"warn":"ok";
+  const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
+  return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
+}
+function scTileHTML(x){const b=x.pct==null?"":GB[goalBand(x.pct)];
+  return '<div class="sct'+(b?" s"+b:"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+x.v+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
+   '<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div><small class="scs">'+esc(x.sub||"")+'</small></div>';}
+function scWeekNavHTML(mon){const cur=goalMonday(),d=goalDays(mon);
+  return '<div class="scnav"><button class="ibtn" data-act="scweek" data-v="-1" title="Previous week" aria-label="Previous week">'+svg("chevL")+'</button>'+
+   '<span>'+(mon===cur?"This week · ":"")+goalMD(d[0])+' – '+goalMD(d[6])+'</span>'+
+   '<button class="ibtn" data-act="scweek" data-v="1" title="Next week" aria-label="Next week"'+(mon>=cur?' disabled':'')+'>'+svg("chevR")+'</button>'+
+   (mon!==cur?'<button class="btn sm" data-act="scweek" data-v="0">This week</button>':'')+'</div>';}
+function scHomeHTML(){
+  if(!scAccess())return "";
+  const mon=logState.scWeek||goalMonday();
+  return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">Rep scorecard</div>'+scWeekNavHTML(mon)+
+   '<span class="scupd">'+esc(rmUpdLine())+'</span></div><div class="scrows">'+SC_REPS.map(u=>{const s=scState(u,mon),t=teamById(u);
+    return '<div class="scrow"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
+     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
+     '<span class="scgo">Analysis '+chev()+'</span></button><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+'</div>'+
+   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 90%+ of the pace</span><span style="--c:var(--st-warn)">Orange: 70–89%</span><span style="--c:var(--st-dang)">Red: under 70%</span><span>Judged on the days that are over · tap a name for the analysis</span></p></section>';
+}
+/* the Analysis page: one rep's week, email and CRM side by side, day by day (mirrors the Tim Ford report) */
+function scTime(iso){const s=String(iso||"");if(s.length<=10)return "";const d=new Date(s);return isNaN(d)?"":d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).replace(/\s?([AP])M/i,(m,x)=>x.toLowerCase());}
+function scItems(u,mon){const days=goalDays(mon),mail=rmStats(u,mon),items=[];
+  (mail?mail.rows:[]).forEach(r=>items.push({k:"mail",day:localDay(r.at),at:r.at,r:r}));
+  calActs(u,days[0],days[6]).forEach(a=>items.push({k:"crm",day:localDay(a.date),at:String(a.date).length<=10?a.date+"T12:00:00":a.date,a:a}));
+  return items.sort((x,y)=>new Date(x.at)-new Date(y.at));}
+function scMatch(it,q){if(!q)return true;let s;
+  if(it.k==="mail"){const r=it.r;s=[r.subject,r.preview,r.from_name,r.from_addr].concat(r.outside||[]).concat((r.outside||[]).map(a=>{const w=rmWho(a);return w.name+" "+w.co;})).join(" ");}
+  else{const a=it.a,c=actCo(a);s=[actLabel(a.type,a),actWhoName(a),c&&c.name,a.note,a.company].join(" ");}
+  return s.toLowerCase().includes(q);}
+function scItemHTML(it){
+  if(it.k==="mail"){const r=it.r,w=(r.dir==="out"?(r.outside||[]):[r.from_addr]).map(rmWho),f=w[0]||rmWho("");
+    const nm=f.p?f.name:(r.dir==="in"&&r.from_name?r.from_name:f.name);
+    return '<button class="scli" data-act="scmail" data-id="'+esc(r.mailbox+"|"+r.imid)+'"><span class="sctm">'+scTime(r.at)+'</span><span class="sctag '+(r.dir==="out"?"out":"in")+'">'+(r.dir==="out"?"Sent":"Received")+'</span>'+
+     '<span class="scw"><b>'+esc(nm)+(w.length>1?' <small>+'+(w.length-1)+'</small>':'')+'</b><small>'+esc(f.co)+(f.dist?' · distributor':'')+'</small></span>'+
+     '<span class="scx"><b>'+esc(r.subject||"(no subject)")+'</b><small>'+esc(String(r.preview||"").replace(/\s+/g," ").slice(0,170))+'</small></span></button>';}
+  const a=it.a,c=actCo(a),ty=c?(c.type==="distributor"?" · distributor":c.type==="manrep"||c.type==="partner"?" · man-rep":""):"";
+  return '<button class="scli" data-act="scact" data-id="'+esc(a.id)+'"><span class="sctm">'+scTime(a.date)+'</span><span class="sctag crm">'+esc(actLabel(a.type,a))+'</span>'+
+   '<span class="scw"><b>'+esc(actWhoName(a)||(c?c.name:a.company||"—"))+'</b><small>'+esc(c?c.name:"")+ty+'</small></span>'+
+   '<span class="scx"><small>'+esc(String(a.note||"").replace(/\s+/g," ").slice(0,200))+'</small></span></button>';
+}
+function scLedgerHTML(u,mon){
+  const f=logState.scF||"all",q=String(logState.scQ||"").trim().toLowerCase(),day=logState.scDay||null,s=scState(u,mon);
+  const items=scItems(u,mon).filter(it=>(!day||it.day===day)&&(f==="all"||(f==="crm"?it.k==="crm":it.k==="mail"&&it.r.dir===f))&&scMatch(it,q));
+  if(!items.length)return '<div class="empty" style="padding:18px">'+(s.mail===null?"Loading email…":q?"Nothing matches “"+esc(q)+"” this week.":"Nothing logged or emailed "+(day?"that day":"this week")+".")+'</div>';
+  const DN=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  return s.days.map((d,i)=>{const its=items.filter(it=>it.day===d);if(!its.length)return "";
+    const t=i<5?s.typ[i]:null,lbl=t?goalTypeLbl("sales",t)+" day":"";
+    const n=its.reduce((c,it)=>{if(it.k==="crm")c.c++;else if(it.r.dir==="out")c.s++;else c.r++;return c;},{s:0,r:0,c:0});
+    return '<div class="scday"><div class="scdh"><b>'+DN[i]+', '+goalMD(d)+'</b><span>'+[lbl,n.s&&n.s+" sent",n.r&&n.r+" received",n.c&&n.c+" in the CRM"].filter(Boolean).join(" · ")+'</span></div>'+its.map(scItemHTML).join("")+'</div>';}).join("");
+}
+function viewRepWeek(u){
+  if(!scAccess()||!SC_REPS.includes(u))return viewToday();
+  const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
+  let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.mix)+'</p></div>'+
+    scWeekNavHTML(mon)+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
+  h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(scTileHTML).join("")+'</div>';
+  /* the last eight weeks: emails sent and CRM actions — tap one to open it */
+  const mons=[];for(let i=7;i>=0;i--){const p=cur.split("-").map(Number);mons.push(ymd(new Date(p[0],p[1]-1,p[2]-7*i)));}
+  const last=goalDays(mons[7])[6],md=rmDays(mons[0],last)||[];
+  h+='<div class="sectlabel">Weeks</div><div class="scwks">'+mons.map(m=>{const dd=goalDays(m),sent=md.filter(x=>x.rep===u&&x.day>=dd[0]&&x.day<=dd[6]).reduce((a,x)=>a+(+x.sent||0),0),crm=calActs(u,dd[0],dd[6]).length;
+    return '<button class="scwk'+(m===mon?" on":"")+'" data-act="scwk" data-v="'+m+'"><b>'+goalMD(m)+'</b><span>'+sent+' sent · '+crm+' CRM</span></button>';}).join("")+'</div>';
+  /* the days of the week */
+  const DN=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],mail=s.mail;
+  h+='<div class="sectlabel">Days</div><div class="scdays"><button class="scdb'+(!logState.scDay?" on":"")+'" data-act="scday" data-v=""><b>Whole week</b><span>'+(mail?mail.sent:"…")+' sent · '+calActs(u,s.days[0],s.days[6]).length+' CRM</span></button>'+
+   s.days.map((d,i)=>{const acts=calActs(u,d,d),calls=acts.filter(actIsCall).length,mt=s.tally.mtg[i],fut=d>T;
+    return '<button class="scdb'+(logState.scDay===d?" on":"")+(fut?" fut":"")+'" data-act="scday" data-v="'+d+'"><b>'+DN[i]+' '+goalMD(d).split(" ")[1]+(i<5&&s.typ[i]?' <i>'+goalTypeLbl("sales",s.typ[i])+'</i>':'')+'</b>'+
+     '<span>'+(mail?mail.out[i]:"…")+' sent · '+calls+' calls'+(mt?' · '+mt+' mtg':'')+'</span></button>';}).join("")+'</div>';
+  const F=[["all","All"],["out","Emails sent"],["in","Received"],["crm","CRM"]],f=logState.scF||"all";
+  h+='<div class="sctools scnoprint"><div class="seg">'+F.map(x=>'<button class="'+(f===x[0]?"on":"")+'" data-act="scf" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+   '<label class="scq">'+svg("search")+'<input id="scQ" placeholder="Search this week — a name, company or subject" value="'+esc(logState.scQ||"")+'" autocomplete="off"></label></div>';
+  return h+'<div id="scLedger" class="scledger">'+scLedgerHTML(u,mon)+'</div>';
+}
+function scFindMail(key){const i=key.indexOf("|"),mb=key.slice(0,i),im=key.slice(i+1);
+  for(const m in RM.weeks){const r=(RM.weeks[m]||[]).find(x=>x.mailbox===mb&&x.imid===im);if(r)return r;}return null;}
+function scMailSheet(key){
+  const r=scFindMail(key);if(!r)return;
+  const line=(l,arr)=>arr&&arr.length?'<div><b>'+l+'</b><span>'+arr.map(a=>{const w=rmWho(a);return esc(w.p?w.name+" <"+a+">":a)+(w.co?' <small class="muted">'+esc(w.co)+(w.dist?" · distributor":"")+'</small>':'');}).join("<br>")+'</span></div>':'';
+  const when=new Date(r.at).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"});
+  openSheet('<h2>'+esc(r.subject||"(no subject)")+'</h2><p class="t2">'+(r.dir==="out"?"Sent by ":"Received by ")+esc(teamById(r.rep).name)+' · '+esc(when)+'</p>'+
+   '<div class="facts">'+line("From",[r.from_addr])+line("To",r.to_addrs)+line("Cc",r.cc_addrs)+'</div>'+
+   '<div class="scprev">'+esc(r.preview||"No preview")+'</div><p class="t2" style="white-space:normal">Outlook keeps the start of the email here; the whole email stays in '+esc(teamById(r.rep).name.split(" ")[0])+'’s mailbox.</p>'+
+   (r.conv?'<div class="sectlabel">The thread</div><div id="scThread" class="list"><div class="empty" style="padding:12px">Loading…</div></div>':'')+
+   (r.web?'<a class="btn sm" style="margin-top:12px;text-decoration:none" href="'+esc(r.web)+'" target="_blank" rel="noopener" data-act="extlink">Open in Outlook</a>':''));
+  if(r.conv)supa("/rest/v1/rep_mail?select=mailbox,imid,rep,dir,at,subject,from_addr,from_name,outside,preview,kind&conv=eq."+encodeURIComponent(r.conv)+"&order=at.asc&limit=60")
+    .then(x=>x.ok?x.json():[]).catch(()=>[]).then(rows=>{const el=document.getElementById("scThread");if(!el)return;
+      el.innerHTML=rows.length?rows.map(x=>'<div class="tk"><div class="grow"><p class="t1" style="font-size:13.5px">'+(x.dir==="out"?esc(teamById(x.rep).name.split(" ")[0])+" → "+esc((x.outside||[]).map(a=>rmWho(a).name).join(", ")):esc(x.from_name||x.from_addr)+" → "+esc(teamById(x.rep).name.split(" ")[0]))+
+        (x.imid===r.imid?' <span class="pill info">this one</span>':'')+'</p><p class="t2" style="white-space:normal">'+esc(new Date(x.at).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))+' · '+esc(String(x.preview||"").replace(/\s+/g," ").slice(0,140))+'</p></div></div>').join("")
+       :'<div class="empty" style="padding:12px">Only this email.</div>';});
+}
+function scActSheet(id){
+  const a=(DB.activities||[]).find(x=>x&&x.id===id);if(!a)return;const p=a.pid?person(a.pid):null,c=actCo(a);
+  openSheet('<h2>'+esc(actLabel(a.type,a))+'</h2><p class="t2">'+esc(teamById(a.by).name)+' · '+esc(fmtDay(a.date))+(scTime(a.date)?' · '+scTime(a.date):'')+'</p><div class="facts">'+
+   (p?'<div><b>With</b><span><button class="lnk" data-act="actperson" data-id="'+p.id+'">'+esc(p.name)+'</button>'+(p.role?' · '+esc(p.role):'')+'</span></div>':a.name?'<div><b>With</b><span>'+esc(a.name)+'</span></div>':'')+
+   (c?'<div><b>Company</b><span>'+esc(c.name)+' · '+esc(typeLabel(c.type))+'</span></div>':a.company?'<div><b>Company</b><span>'+esc(a.company)+'</span></div>':'')+
+   (a.outcome?'<div><b>Outcome</b><span>'+esc(a.outcome)+'</span></div>':'')+'</div><div class="scprev">'+esc(a.note||"No note")+'</div>');
+}
+/* a rep's Home leads with their own KPI goals (Max, 2026-11-06: "redraft the home to have these KPIs as their goals"): the week to
+   plan, then one tile per standard for Today | This week. A rep never sees another rep's numbers here. */
+function goalRepHomeHTML(){
+  const g=goalState(USER),view=goalViewCur(),wkend=view==="today"&&g.ti<0;
+  let h='<section class="ghome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0;display:flex;gap:8px;align-items:center">My goals '+goalPillHTML(g)+'</div>'+
+   '<div class="seg" style="margin:0 0 0 auto">'+[["today","Today"],["week","This week"]].map(x=>'<button class="'+(view===x[0]?"on":"")+'" data-act="goalview" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+   '<button class="btn sm" data-act="nav" data-view="team">Details '+chev()+'</button></div>';
+  h+='<div class="ghweek">'+goalWeekHTML(g,true)+'</div>';
+  if(!g.planned)h+='<div class="galert"><div><b>Plan your week.</b> Tap each day above: Travel, Office or Both. Your targets set themselves.</div></div>';
+  else if(wkend)h+='<p class="t2" style="margin:0 2px 10px">It’s the weekend. This week shows the week’s numbers.</p>';
+  const tile=(label,std,body,btn)=>'<div class="gkpi"><div class="gkh"><b>'+label+'</b>'+(btn||"")+'</div>'+body+'<small class="gstd">'+esc(std)+'</small></div>';
+  const none=t=>'<div class="gkn muted">—</div><div class="gkz">'+t+'</div>';
+  h+='<div class="gkpis">'+g.metrics.map(m=>{const x=wkend?null:goalMetricView(g,m,view),log='<button class="glogb" data-act="goallog" data-v="'+m.logType+'" data-k="'+m.k+'">Log</button>';
+    if(!x)return tile(esc(m.label),goalStdTxt(m.k),none(!g.planned?"Plan the week first":view==="today"?(m.k==="mtg"?"No meetings planned today":"Nothing set for today"):"Not on this week’s plan"),log);
+    if(x.free)return tile(esc(m.label),goalStdTxt(m.k),'<div class="gkn">'+x.v+'<small> calls</small></div><div class="gkz">Travel day: keep calling between meetings</div>',log);
+    return tile(esc(m.label),goalStdTxt(m.k),'<div class="gkn">'+x.v+'<small> / '+x.lbl+'</small></div>'+goalBarHTML(x.segs,x.max,x.title,x.band),log);}).join("");
+  h+=g.mr.length?tile("Man-rep contact",goalStdTxt("mr"),'<div class="gkn">'+g.mrOk+'<small> / '+g.mr.length+' on time</small></div>'+goalBarHTML([{v:g.mrOk}],g.mr.length,g.mrOk+" of "+g.mr.length+" man-reps called on time",GB[g.mrBand]||""),
+      '<button class="glogb" data-act="goalmrgo">List</button>')
+    :tile("Man-rep contact",goalStdTxt("mr"),none(userRegion(USER)?"None on file in the "+esc(userRegion(USER))+" yet":"No territory set"));
+  if(g.log)h+=tile("CRM logging",goalStdTxt("log"),'<div class="gkn '+(g.log.n?"bad":"good")+'">'+(g.log.n?g.log.n+'<small> to fix</small>':'All logged')+'</div><div class="gkz">'+esc(goalLogLbl(g.log))+'</div>',
+      g.log.n?'<button class="glogb" data-act="nav" data-view="'+(g.log.stale?"activity":"opps")+'">Fix</button>':'');
+  return h+'</div></section>';
 }
 /* the Team page while goals are on: Just me (the card) | Whole team (the bars), Today | This week */
 function viewTeamGoals(){
@@ -2556,18 +2871,22 @@ function formGoalPlan(u){
 }
 function goalTypeDesc(cfg,type){
   const d=cfg.day[type]||{},r=k=>d[k]&&d[k][0]?goalRng(d[k][0],Math.max(d[k][0],d[k][1]||0)):"";
-  const parts=[r("mtg")&&r("mtg")+" distributor meetings",r("call")&&r("call")+(type==="calls"?" calls":" distributor calls"),r("email")&&r("email")+" outreach emails"].filter(Boolean);
-  return parts.length?parts.join(" · ")+" a day":"nothing tracked";
+  const parts=[r("mtg")&&r("mtg")+" distributor meetings",r("call")&&r("call")+(type==="calls"?" calls":" distributor calls"),r("email")&&r("email")+" outbound emails"].filter(Boolean);
+  return parts.length?parts.join(" · ")+" a day"+(type==="zone"?", and keep calling between meetings":""):"nothing tracked";
 }
 /* admins tune the per-day numbers (and turn goals on for the team); everyone's targets follow at once */
 function formGoalTargets(){
   const c=goalCfg(),d=c.day,inp=(id,v)=>'<input class="f" id="'+id+'" type="number" min="0" step="0.5" value="'+esc(v)+'">';
-  openSheet('<h2>Targets</h2><p class="t2" style="white-space:normal;margin:0 0 12px">Per day. A rep’s week adds up the days they planned; a Both day is half a zone day plus half an office day.</p>'+
-   '<div class="gtgrid"><span></span><b>Zone day</b><b>Office day</b>'+
+  openSheet('<h2>Targets</h2><p class="t2" style="white-space:normal;margin:0 0 12px">From the standardized KPI goals. A rep’s week adds up the days they planned, up to the week numbers below; a Both day is half a travel day plus half an office day.</p>'+
+   '<div class="gtgrid"><span></span><b>Travel day</b><b>Office day</b>'+
    '<span>Distributor meetings</span>'+inp("gt_zone_mtg",d.zone.mtg[0])+inp("gt_office_mtg",d.office.mtg[0])+
-   '<span>… stretch</span>'+inp("gt_zone_mtgs",d.zone.mtg[1])+inp("gt_office_mtgs",d.office.mtg[1])+
-   '<span>Distributor calls</span>'+inp("gt_zone_call",d.zone.call[0])+inp("gt_office_call",d.office.call[0])+
-   '<span>Outreach emails</span>'+inp("gt_zone_email",d.zone.email[0])+inp("gt_office_email",d.office.email[0])+'</div>'+
+   '<span>… up to</span>'+inp("gt_zone_mtgs",d.zone.mtg[1])+inp("gt_office_mtgs",d.office.mtg[1])+
+   '<span>Distributor calls (minimum)</span>'+inp("gt_zone_call",d.zone.call[0])+inp("gt_office_call",d.office.call[0])+
+   '<span>Outbound emails</span>'+inp("gt_zone_email",d.zone.email[0])+inp("gt_office_email",d.office.email[0])+'</div>'+
+   '<div class="gtgrid" style="margin-top:14px"><span></span><b>Travel week</b><b>Office week</b>'+
+   '<span>Distributor meetings</span>'+inp("gt_wk_mtg",c.week.mtg[0])+'<span class="t2">—</span>'+
+   '<span>… up to</span>'+inp("gt_wk_mtgs",c.week.mtg[1])+'<span class="t2">—</span>'+
+   '<span>Distributor calls</span><span class="t2" title="No set number: keep calling between meetings">—</span>'+inp("gt_wk_call",c.week.call)+'</div>'+
    '<div class="gtgrid one"><span>Kellan · calls on a Calls day</span>'+inp("gt_calls_call",d.calls.call[0])+
    '<span>Call each man-rep every … days</span>'+inp("gt_mr_every",c.every)+
    '<span>… with active business</span>'+inp("gt_mr_active",c.active)+'</div>'+
@@ -2580,7 +2899,8 @@ function saveGoalTargets(){
   const day={zone:{mtg:[n("gt_zone_mtg",d.zone.mtg[0]),n("gt_zone_mtgs",d.zone.mtg[1])],call:[n("gt_zone_call",d.zone.call[0]),0],email:[n("gt_zone_email",d.zone.email[0]),0]},
     office:{mtg:[n("gt_office_mtg",d.office.mtg[0]),n("gt_office_mtgs",d.office.mtg[1])],call:[n("gt_office_call",d.office.call[0]),0],email:[n("gt_office_email",d.office.email[0]),0]},
     calls:{call:[n("gt_calls_call",d.calls.call[0]),0]}};
-  Object.assign(goalTargetsRec(),{day:day,mrEvery:Math.max(1,Math.round(n("gt_mr_every",c.every))),mrActive:Math.max(1,Math.round(n("gt_mr_active",c.active))),by:USER,at:new Date().toISOString()});
+  const wm=n("gt_wk_mtg",c.week.mtg[0]),week={mtg:[wm,Math.max(wm,n("gt_wk_mtgs",c.week.mtg[1]))],call:n("gt_wk_call",c.week.call)};
+  Object.assign(goalTargetsRec(),{day:day,week:week,mrEvery:Math.max(1,Math.round(n("gt_mr_every",c.every))),mrActive:Math.max(1,Math.round(n("gt_mr_active",c.active))),by:USER,at:new Date().toISOString()});
   save();closeSheet();render();toast("Targets saved — everyone’s goals follow");
 }
 function setGoalsLive(on){
@@ -2678,7 +2998,7 @@ function fbSync(){
 }
 function fbWelcome(){
   const first=teamById(USER).name.split(" ")[0];
-  const steps=[["Team · Whole team","Everyone’s bars and who’s behind"],["Team · tap a rep’s name","The card a rep sees: their week, bars and man-reps"],["Plan the week","Tap a day on a card to switch Zone / Office / Both"],
+  const steps=[["Team · Whole team","Everyone’s bars and who’s behind"],["Team · tap a rep’s name","The card a rep sees: their week, bars and man-reps"],["Plan the week","Tap a day on a card to switch Travel / Office / Both"],
     ["Targets","The numbers per day (button on Team)"],["Home","The Behind this week strip and status cards"],["My test card","Plan your own days, press Log, watch the bars move"]];
   openSheet('<h2 data-fb="1">Test session</h2><p class="t2" style="white-space:normal;margin:0 0 12px">Hi '+esc(first)+'. This is a test session for the new weekly goals. Go through the CRM the way a rep would, and on every page type what you like and what you’d change in the notes box at the bottom right. Each note is filed under the page you’re on.</p>'+
    '<div class="list">'+steps.map((x,i)=>'<div class="tk"><span class="ic coral">'+(i+1)+'</span><div class="grow"><p class="t1" style="font-size:14px">'+x[0]+'</p><p class="t2">'+x[1]+'</p></div></div>').join("")+'</div>'+
@@ -2803,8 +3123,12 @@ function viewToday(){
   const confs=confLeadLists(),toCall=confs.reduce((s,c)=>s+c.tocall,0);
   const wonMonth=myOpps().filter(o=>o.stage==="Closed Won"&&String(o.closeDate||o.createdAt||"").slice(0,7)===T.slice(0,7));
   let h='';
-  if(goalsOn())h+=goalHomeHTML();
-  if(P==="sales")h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["From outreach",forMe.length,"leads you have not touched yet"+(listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length?" · "+listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length+" call list":""),forMe.length?"warn":""]]);
+  /* with goals on, a rep's Home leads with their own KPI goals in place of the pipeline tiles; everyone else keeps the team board */
+  const repGoals=goalsOn()&&P==="sales"&&goalHas(USER);
+  if(repGoals)h+=goalRepHomeHTML();
+  else if(scAccess())h+=scHomeHTML(); /* Max, Hannah, Jamie: the rep scorecard (the goals board stays on Team) */
+  else if(goalsOn())h+=goalHomeHTML();
+  if(P==="sales"){if(!repGoals)h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["From outreach",forMe.length,"leads you have not touched yet"+(listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length?" · "+listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length+" call list":""),forMe.length?"warn":""]]);}
   else if(P==="outreach")h+=kpiRow([["Leads to categorize",toCat.length,"new, uncategorized",toCat.length?"warn":""],["Handed to sales",handedWk.length,"this week"],["Conf leads to call",toCall,confs.length+" show list"+(confs.length===1?"":"s")],["Follow-ups waiting",qMe.todo.length+qMe.old.length,"mine"]]);
   else{
     /* admins see the team's actions, not a pipeline (Max, 2026-10-16); the pipeline has its own tab */
@@ -8292,6 +8616,7 @@ document.addEventListener("click",e=>{
     setGoalDay(u,mon,i,c[(c.indexOf(cur)+1)%c.length]);render();return;}
   if(a==="goalday"){const u=t.dataset.u;if(!goalCanPlan(u))return;setGoalDay(u,goalMonday(),+t.dataset.i,t.dataset.v);render();formGoalPlan(u);return;}
   if(a==="goallog"){formLog(null,t.dataset.v,GOAL_HINT[t.dataset.k]||"");return;}
+  if(a==="goalmrgo"){pushNav();view="team";logState.goalWho="me";logState.goalSee=null;logState.goalMrOpen=USER;teamDrill=null;render();window.scrollTo(0,0);return;}
   if(a==="goalmr"){logState.goalMrOpen=logState.goalMrOpen===t.dataset.u?"":t.dataset.u;render();return;}
   if(a==="goalmrall"){logState.goalMrAll=t.dataset.u;render();return;}
   if(a==="goalactive"){const p=person(id);if(p){const c=goalCfg();p.activeBiz=!p.activeBiz;p.activeBizBy=USER;p.activeBizAt=new Date().toISOString();save();render();
@@ -8521,6 +8846,17 @@ document.addEventListener("click",e=>{
   if(a==="listbuild"){listBuildNow();return;}
   if(a==="listall"){const R=logState.listResults;if(R){if(R.excluded.size)R.excluded=new Set();else R.objs.forEach((o,i)=>R.excluded.add(i));render();}return;}
   /* Activity tab */
+  /* rep scorecard + its Analysis page (Max, Hannah, Jamie) */
+  if(a==="scweek"){const v=+t.dataset.v,cur=goalMonday();let m=logState.scWeek||cur;
+    if(!v)m=cur;else{const p=m.split("-").map(Number);m=ymd(new Date(p[0],p[1]-1,p[2]+7*v));}if(m>cur)m=cur;
+    logState.scWeek=m===cur?null:m;logState.scDay=null;render();return;}
+  if(a==="scwk"){logState.scWeek=t.dataset.v===goalMonday()?null:t.dataset.v;logState.scDay=null;render();return;}
+  if(a==="scopen"){pushNav();curRep=id;view="repweek";logState.scDay=null;logState.scF="all";logState.scQ="";render();window.scrollTo(0,0);return;}
+  if(a==="scday"){logState.scDay=t.dataset.v||null;render();return;}
+  if(a==="scf"){logState.scF=t.dataset.v;render();return;}
+  if(a==="scmail"){scMailSheet(id);return;}
+  if(a==="scact"){scActSheet(id);return;}
+  if(a==="scprint"){document.body.classList.add("scprint");setTimeout(()=>{window.print();document.body.classList.remove("scprint");},50);return;}
   if(a==="teammate"){pushNav();curRep=id;logState.tmDay=null;view="teammate";render();window.scrollTo(0,0);return;}
   if(a==="tmnav"){const v=t.dataset.v;if(v.indexOf("day:")===0){pushNav();actDate=v.slice(4);actMode="day";actWho=curRep;view="activity";render();window.scrollTo(0,0);return;}logState.tmDay=v==="today"?todayStr():dAdd(logState.tmDay||todayStr(),parseInt(v,10));render();return;}
   if(a==="homerep"){logState.homeRep=t.dataset.v;render();return;}
@@ -8610,6 +8946,7 @@ document.addEventListener("click",e=>{
     if(l&&confirm('Delete list "'+l.name+'"?')){l.removed=true;save();curList=null;render();}return;}
 });
 document.addEventListener("input",e=>{
+  if(e.target.id==="scQ"){logState.scQ=e.target.value;const el=document.getElementById("scLedger");if(el&&curRep)el.innerHTML=scLedgerHTML(curRep,logState.scWeek||goalMonday());return;}
   if(e.target.classList&&e.target.classList.contains("wbtext")){const n=wbNote(e.target.dataset.wb);if(!n)return; /* whiteboard note: saved as you type */
     n.text=e.target.value;n.editedAt=new Date().toISOString();wbGrow(e.target);clearTimeout(wbSaveT);wbSaveT=setTimeout(save,600);return;}
   if(e.target.classList&&e.target.classList.contains("pncell")){
