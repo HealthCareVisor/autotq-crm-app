@@ -1456,6 +1456,7 @@ function sideHTML(NU,me){
    (can?'<div class="spop top'+(sidePop==="ws"?" open":"")+'" id="spopWs" role="menu"><div class="phd">Switch to</div>'+
      (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+wsl("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a>'+
      '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+wsl("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
+     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+wsl("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
      (FUT?'<button class="sitem" data-act="hubcrm">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+crmProf+'</small></span></button>'
          :'<button class="sitem on" data-act="sidepopclose">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button>')+
      (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+futIco+'<span class="lbl">Future CRM<small>The new version · only you</small></span>'+svg("check","ck")+'</button>'
@@ -1471,6 +1472,7 @@ function sideHTML(NU,me){
    '<div class="spop bottom'+(sidePop==="user"?" open":"")+'" id="spopUser" role="menu">'+
     '<div class="phd">'+esc(me.name)+' · '+esc(roleShort(me))+'</div>'+
     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+svg("box")+'<span class="lbl">Switch to AutoTQ Catalog</span></a>':'')+
+    (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+svg("check")+'<span class="lbl">Switch to AutoTQ Progress</span></a>':'')+
     (futureAccess()?(FUT?'<button class="sitem" data-act="hubcrm">'+svg("chart")+'<span class="lbl">Switch to AutoTQ CRM</span></button>':'<button class="sitem" data-act="hubfuture">'+svg("spark")+'<span class="lbl">Switch to Future CRM</span></button>'):'')+
     (can?'<div class="sep"></div>':'')+
     '<button class="sitem" data-act="chpw">'+svg("user")+'<span class="lbl">Change my password</span></button>'+
@@ -1493,6 +1495,7 @@ function hubMenuHTML(){if(!hubSwitchAccess())return "";const ic=(c,p)=>'<span cl
         :'<button class="sitem on" data-act="sidepopclose">'+crmIco+'<span class="lbl">AutoTQ CRM<small>You are here</small></span></button>')+
     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+ic("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, calls, to do</small></span></a>'+
     '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+ic("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
+    (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+ic("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
     (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>You are here</small></span></button>'
         :'<button class="sitem" data-act="hubfuture">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>The new version · only you</small></span></button>'):'')+
     '</div></div>';}
@@ -1534,6 +1537,7 @@ function palItems(q){
    :[["plus","New quote","Quotes",()=>{formQuote(null,null);}],["clock","Log activity","Activity",()=>{formLog();}],["chart","New opportunity","Pipeline",()=>{formOpp(null);}],["user","New contact","Contacts",()=>{formCard();}],
     ["help","How this CRM works","Help",()=>{helpSheet();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]];
   if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}],["box","Switch to AutoTQ Catalog","Catalog",()=>{location.href=CAT_URL;}]);
+  if(progAccess())acts.push(["check","Switch to AutoTQ Progress","Progress",()=>{location.href=PROG_URL;}]);
   if(futureAccess())acts.push(FUT?["chart","Switch to AutoTQ CRM","CRM",()=>{switchHub("crm");}]:["spark","Switch to Future CRM","Future",()=>{switchHub("future");}]);
   const hit=s=>!q||String(s).toLowerCase().includes(q);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2]===t[1]?"":t[2],t[3]));
@@ -2066,6 +2070,8 @@ document.addEventListener("dblclick",e=>{
   const b=e.target.closest&&e.target.closest("#wboard");if(!b||e.target!==b)return;
   const r=b.getBoundingClientRect();wbAdd(e.clientX-r.left-WB_W/2,e.clientY-r.top-14);
 });
+const PROG_URL="progress/"; /* AutoTQ Progress (2026-11-06): Max's own day-by-day hub (tasks + ideas: Expansion / Marketing / CRM), the Marketing hub page served at /progress/ */
+function progAccess(){return USER==="max";}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
    Kellan = outreach (finds + categorizes leads, works the lists, hands off), admins direct it all, Laresa = billing. */
 function profile(u){u=u||USER;if(u==="laresa")return "billing";if(u==="kellan")return "outreach";if(u==="max"||u==="hannah"||u==="jamie")return "admin";return "sales";}
@@ -6066,6 +6072,7 @@ function menu(){const FUT=inFuture();openSheet('<h2>'+esc(teamById(USER).name)+'
  '</div><div class="list">'+
  (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>'+
    '<a class="hub" href="'+CAT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("box")+'<b class="grow">Switch to AutoTQ Catalog</b>'+chev()+'</a>':'')+
+ (progAccess()?'<a class="hub" href="'+PROG_URL+'" data-act="extlink" style="text-decoration:none">'+svg("check")+'<b class="grow">Switch to AutoTQ Progress</b>'+chev()+'</a>':'')+
  (futureAccess()?(FUT?'<button class="hub" data-act="hubcrm">'+svg("chart")+'<b class="grow">Switch to AutoTQ CRM</b>'+chev()+'</button>':'<button class="hub" data-act="hubfuture">'+svg("spark")+'<b class="grow">Switch to Future CRM</b>'+chev()+'</button>'):'')+
  (FUT?'':'<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>')+
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
