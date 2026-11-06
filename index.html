@@ -898,6 +898,25 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 .hubm{display:none;position:relative;flex:none}
 .hubm .spop{left:0;right:auto;top:42px;width:270px;max-width:calc(100vw - 28px)}
 @media(max-width:640px){.hubm{display:block;margin-left:-6px}.hubm .hubbtn{width:36px;height:36px}}
+/* Future CRM whiteboard (2026-11-06): sticky notes on a dotted board */
+.wbbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.wbbar .t2{margin:0;color:var(--muted);font-size:13px}
+.wbwrap{position:relative;height:calc(100vh - 200px);min-height:420px;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface-2);box-shadow:var(--sh-1)}
+.wboard{position:relative;background-image:radial-gradient(circle,rgba(26,25,22,.14) 1px,transparent 1.3px);background-size:22px 22px}
+.wbempty{position:absolute;left:0;right:0;top:38%;text-align:center;color:var(--muted);font-size:14px;line-height:1.5;pointer-events:none;z-index:0}
+.wbempty b{display:block;color:var(--ink);font-size:16px;font-weight:650;margin-bottom:4px}
+.wbnote{position:absolute;width:220px;border-radius:10px;box-shadow:0 1px 2px rgba(26,25,22,.08),0 8px 18px -10px rgba(26,25,22,.3);display:flex;flex-direction:column}
+.wbnote.drag{box-shadow:0 2px 4px rgba(26,25,22,.1),0 20px 32px -12px rgba(26,25,22,.38);transform:rotate(-1.2deg)}
+.wbgrip{display:flex;align-items:center;gap:2px;height:28px;padding:0 4px 0 10px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;border-radius:10px 10px 0 0}
+.wbnote.drag .wbgrip{cursor:grabbing}
+.wbgrip .grow{flex:1;height:100%}
+.wbgrip button{width:26px;height:26px;border:none;background:none;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:rgba(26,25,22,.5);cursor:pointer;padding:0}
+.wbgrip button:hover{background:rgba(26,25,22,.08);color:var(--ink)}
+.wbgrip button svg{width:14px;height:14px}
+.wbdot{width:13px;height:13px;border-radius:50%;background:conic-gradient(#F4D35E 0 20%,#F2A07B 0 40%,#7FB2EA 0 60%,#8CCB82 0 80%,#B79BE3 0);box-shadow:inset 0 0 0 1px rgba(26,25,22,.2)}
+.wbtext{border:none;background:transparent;resize:none;font:inherit;font-size:14px;line-height:1.45;color:#1A1916;padding:0 12px 12px;min-height:66px;outline:none;overflow:hidden;width:100%;box-sizing:border-box}
+.wbtext::placeholder{color:rgba(26,25,22,.4)}
+@media(max-width:640px){.wbwrap{height:calc(100vh - 250px)}.wbhd{display:none}}
 @media(max-width:640px){.tbar .backbtn{width:34px;padding:0;margin-left:-6px}.tbar .backbtn span.t{display:none}}
 @media(max-width:640px){
   .side{display:none}
@@ -943,7 +962,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback"];
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard"]; /* whiteboard = Future CRM notes, Max only (2026-11-06) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1057,6 +1076,7 @@ async function pullChanges(full){
         const k=syncKey(r.collection,r.id);
         if(r.updated_at>maxTs)maxTs=r.updated_at;
         if(SYNC.dirty[k])return; // local unpushed edit wins until pushed
+        if(r.collection==="whiteboard"&&!futureAccess())return; // Max's Future CRM notes never land on anyone else's device
         if(SYNC_COLLECTIONS.includes(r.collection)&&applyRemote(r.collection,r.id,r.data,r.deleted))changed=true;
       });
       if(rows.length<1000)break;
@@ -1379,6 +1399,7 @@ function sideBadge(v){
   return 0;
 }
 function sideGroups(NU){
+  if(inFuture())return [["Sell",[["opps","chart","Pipeline"]]],["Plan",[["board","note","Whiteboard"]]]]; /* Future CRM: Pipeline + the Whiteboard (Max, 2026-11-06) */
   const groups=NU==="laresa"
    ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["opps","chart","Pipeline"]]],
      ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
@@ -1413,12 +1434,13 @@ function sideItem(n){
   return h;
 }
 function sideHTML(NU,me){
-  const groups=sideGroups(NU);
-  const can=mktAccess(),mini=sideMini();
-  const prof=NU==="laresa"?"Billing":profile(NU)==="outreach"?"Outreach":profile(NU)==="admin"?"Admin":"Channel CRM";
-  const wk=sideWeek(),rec=recentList();
+  const groups=sideGroups(NU),FUT=inFuture();
+  const can=hubSwitchAccess(),mini=sideMini();
+  const prof=FUT?"Future CRM":NU==="laresa"?"Billing":profile(NU)==="outreach"?"Outreach":profile(NU)==="admin"?"Admin":"Channel CRM";
+  const crmProf=NU==="laresa"?"Billing":profile(NU)==="outreach"?"Outreach":profile(NU)==="admin"?"Admin":"Channel CRM";
+  const wk=sideWeek(),rec=FUT?[]:recentList();
   const ring=(function(){const r=13,c=2*Math.PI*r,o=c*(1-wk.pct/100);return '<svg class="ring" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="var(--line-2)" stroke-width="3"/><circle cx="16" cy="16" r="'+r+'" fill="none" stroke="#3E9B4F" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+o.toFixed(1)+'" transform="rotate(-90 16 16)"/></svg>';})();
-  let nav=(VIEWAS&&admin()
+  let nav=(VIEWAS&&admin()&&!FUT
     ?'<div class="sgrp"><div class="sgrp-h" style="cursor:default"><span class="lbl sviewas">Rail: '+esc(shortName(VIEWAS))+'</span></div></div><button class="sitem sviewas" data-act="viewasoff" data-tip="Back to my view">'+svg("back")+'<span class="lbl">My view</span></button>'
     :'');
   nav+=groups.map(g=>{const closed=!!SIDE.closed[g[0]];const sum=g[1].reduce((s,n)=>s+sideBadge(n[0]),0);
@@ -1427,29 +1449,37 @@ function sideHTML(NU,me){
   if(rec.length){const closed=!!SIDE.closed.Recent;
     nav+='<div class="sgrp srec'+(closed?" closed":"")+'" data-g="Recent"><button class="sgrp-h" data-act="sidegrp" data-g="Recent" aria-expanded="'+(!closed)+'"><span class="lbl">Recent</span>'+svg("chevD")+'</button><div class="sgrp-b"><div>'+
      rec.map(r=>'<button class="sitem'+((r.k==="c"&&view==="roster"&&curCompany===r.id)||(r.k==="p"&&view==="person"&&curPerson===r.id)?" on":"")+'" data-act="'+(r.k==="c"?"roster":"person")+'" data-id="'+r.id+'" data-tip="'+esc(r.name)+'"><span class="rdot">'+esc(initials(r.name||"?"))+'</span><span class="lbl">'+esc(r.name)+'</span></button>').join("")+'</div></div></div>';}
+  const wsl=(c,p)=>'<span class="wsl" style="background:'+c+'"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+p+'</svg></span>';
+  const crmIco=wsl("#45433D",'<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="19.5"/>'),futIco=wsl(FUTURE_TINT,SVG.spark);
   return '<aside class="side"><div class="sbox">'+
-   '<div class="shead"><button class="sws'+(can||SIDE.mini?" can":"")+'" data-act="sidews" data-tip="'+(SIDE.mini&&!sideForced()?"Expand sidebar":"AutoTQ CRM")+'" aria-haspopup="'+(can?"menu":"false")+'"><span class="slogo">'+BRAND_MARK+'</span><span class="lbl"><b>AutoTQ</b><small>'+prof+'</small></span>'+(can?svg("chevD"):'')+'</button>'+
+   '<div class="shead"><button class="sws'+(can||SIDE.mini?" can":"")+'" data-act="sidews" data-tip="'+(SIDE.mini&&!sideForced()?"Expand sidebar":(FUT?"Future CRM":"AutoTQ CRM"))+'" aria-haspopup="'+(can?"menu":"false")+'"><span class="slogo">'+BRAND_MARK+'</span><span class="lbl"><b>AutoTQ</b><small>'+prof+'</small></span>'+(can?svg("chevD"):'')+'</button>'+
     '<button class="sicon" data-act="sidetoggle" data-tip="Collapse sidebar" aria-label="Collapse sidebar">'+svg("panel")+'</button></div>'+
    (can?'<div class="spop top'+(sidePop==="ws"?" open":"")+'" id="spopWs" role="menu"><div class="phd">Switch to</div>'+
-     '<a class="sitem" href="'+MKT_URL+'" data-act="extlink"><span class="wsl" style="background:var(--coral-btn)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.mail+'</svg></span><span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a>'+
-     '<a class="sitem" href="'+CAT_URL+'" data-act="extlink"><span class="wsl" style="background:#2D6CC0"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.box+'</svg></span><span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>'+
-     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink"><span class="wsl" style="background:#6B4FA3"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+SVG.check+'</svg></span><span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
-     '<button class="sitem on" data-act="sidepopclose"><span class="wsl" style="background:#45433D"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff"><rect x="3.5" y="4.5" width="17" height="15" rx="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5"/><line x1="9" y1="9.5" x2="9" y2="19.5"/></svg></span><span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button></div>':'')+
+     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+wsl("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a>'+
+     '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+wsl("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
+     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+wsl("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
+     (FUT?'<button class="sitem" data-act="hubcrm">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+crmProf+'</small></span></button>'
+         :'<button class="sitem on" data-act="sidepopclose">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button>')+
+     (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+futIco+'<span class="lbl">Future CRM<small>The new version · only you</small></span>'+svg("check","ck")+'</button>'
+         :'<button class="sitem" data-act="hubfuture">'+futIco+'<span class="lbl">Future CRM<small>The new version · only you</small></span></button>'):'')+'</div>':'')+
    '<button class="ssearch" data-act="palopen" data-tip="Search  '+KEY_K+'">'+svg("search")+'<span class="lbl">Search</span><kbd>'+KEY_K+'</kbd></button>'+
    '<nav class="snavs" aria-label="Sections">'+nav+'</nav>'+
    '<div class="sfoot">'+
-    '<button class="sitem" data-act="help" data-tip="How this CRM works">'+svg("help")+'<span class="lbl">How this CRM works</span></button>'+
+    (FUT?'':'<button class="sitem" data-act="help" data-tip="How this CRM works">'+svg("help")+'<span class="lbl">How this CRM works</span></button>')+
     '<button class="sitem" data-act="sideuser" data-tip="Settings">'+svg("gear")+'<span class="lbl">Settings</span></button>'+
-    '<button class="sweek" data-act="sideweek" data-tip="'+wk.n+' action'+(wk.n===1?"":"s")+' this week · last week '+wk.p+'"><div class="row1"><span class="lbl">This week</span><b class="lbl">'+wk.n+' <span style="color:var(--muted);font-weight:500">/ '+wk.p+' last wk</span></b></div><div class="bar"><i style="width:'+wk.pct+'%"></i></div>'+ring+'</button>'+
+    (FUT?'':'<button class="sweek" data-act="sideweek" data-tip="'+wk.n+' action'+(wk.n===1?"":"s")+' this week · last week '+wk.p+'"><div class="row1"><span class="lbl">This week</span><b class="lbl">'+wk.n+' <span style="color:var(--muted);font-weight:500">/ '+wk.p+' last wk</span></b></div><div class="bar"><i style="width:'+wk.pct+'%"></i></div>'+ring+'</button>')+
     '<button class="suser" data-act="sideuser" data-tip="'+esc(me.name)+'" aria-haspopup="menu"><span class="av" style="background:'+me.c+'">'+initials(me.name)+'<i class="'+(SYNC.online?"":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline")+'"></i></span><span class="lbl"><b>'+esc(me.name)+'</b><small>'+esc(userEmail(USER)||roleShort(me))+'</small></span>'+svg("updown")+'</button>'+
    '</div>'+
    '<div class="spop bottom'+(sidePop==="user"?" open":"")+'" id="spopUser" role="menu">'+
     '<div class="phd">'+esc(me.name)+' · '+esc(roleShort(me))+'</div>'+
-    (can?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+svg("box")+'<span class="lbl">Switch to AutoTQ Catalog</span></a>'+(progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+svg("check")+'<span class="lbl">Switch to AutoTQ Progress</span></a>':'')+'<div class="sep"></div>':'')+
+    (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+svg("box")+'<span class="lbl">Switch to AutoTQ Catalog</span></a>':'')+
+    (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+svg("check")+'<span class="lbl">Switch to AutoTQ Progress</span></a>':'')+
+    (futureAccess()?(FUT?'<button class="sitem" data-act="hubcrm">'+svg("chart")+'<span class="lbl">Switch to AutoTQ CRM</span></button>':'<button class="sitem" data-act="hubfuture">'+svg("spark")+'<span class="lbl">Switch to Future CRM</span></button>'):'')+
+    (can?'<div class="sep"></div>':'')+
     '<button class="sitem" data-act="chpw">'+svg("user")+'<span class="lbl">Change my password</span></button>'+
     '<button class="sitem" data-act="backup">'+svg("dl")+'<span class="lbl">Back up my data</span></button>'+
     '<button class="sitem" data-act="restorepick">'+svg("box")+'<span class="lbl">Restore from backup</span></button>'+
-    (admin()?'<button class="sitem" data-act="viewaspick">'+svg("users")+'<span class="lbl">See a teammate&#39;s tabs</span></button>':'')+
+    (admin()&&!FUT?'<button class="sitem" data-act="viewaspick">'+svg("users")+'<span class="lbl">See a teammate&#39;s tabs</span></button>':'')+
     (admin()?'<button class="sitem" data-act="impsellers">'+svg("ware")+'<span class="lbl">Import Grainger sellers (CSV)</span></button>':'')+
     '<div class="sep"></div>'+
     '<button class="sitem" data-act="switch">'+svg("back")+'<span class="lbl">Sign out</span></button>'+
@@ -1458,20 +1488,24 @@ function sideHTML(NU,me){
 }
 /* Phone hub switcher (Max, 2026-10-27: "I should have top left hamburger to switch hubs on iPhone"): the sidebar (and its switcher) is
    hidden on phones, so a hamburger at the top left of the header opens the same Switch to list. Phones only; Max and Hannah only. */
-function hubMenuHTML(){if(!mktAccess())return "";const ic=(c,p)=>'<span class="wsl" style="background:'+c+'"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+p+'</svg></span>';
+function hubMenuHTML(){if(!hubSwitchAccess())return "";const ic=(c,p)=>'<span class="wsl" style="background:'+c+'"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:14px;height:14px;color:#fff">'+p+'</svg></span>';
+  const FUT=inFuture(),crmIco=ic("#45433D",'<rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5" stroke="currentColor" stroke-width="2"/>');
   return '<div class="hubm"><button class="ibtn hubbtn" data-act="hubmenu" aria-label="Switch hub" aria-haspopup="menu"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>'+
     '<div class="spop'+(sidePop==="hub"?" open":"")+'" id="spopHub" role="menu"><div class="phd">Switch to</div>'+
-    '<button class="sitem on" data-act="sidepopclose">'+ic("#45433D",'<rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3.5" y1="9.5" x2="20.5" y2="9.5" stroke="currentColor" stroke-width="2"/>')+'<span class="lbl">AutoTQ CRM<small>You are here</small></span></button>'+
-    '<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+ic("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, calls, to do</small></span></a>'+
-    '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+ic("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>'+
+    (FUT?'<button class="sitem" data-act="hubcrm">'+crmIco+'<span class="lbl">AutoTQ CRM<small>The CRM the team uses</small></span></button>'
+        :'<button class="sitem on" data-act="sidepopclose">'+crmIco+'<span class="lbl">AutoTQ CRM<small>You are here</small></span></button>')+
+    (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+ic("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, calls, to do</small></span></a>'+
+    '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+ic("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+ic("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
+    (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>You are here</small></span></button>'
+        :'<button class="sitem" data-act="hubfuture">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>The new version · only you</small></span></button>'):'')+
     '</div></div>';}
 function sidePopSet(p){sidePop=p;const a=document.getElementById("spopWs"),b=document.getElementById("spopUser");const hb=document.getElementById("spopHub");if(hb)hb.classList.toggle("open",p==="hub");if(a)a.classList.toggle("open",p==="ws");if(b)b.classList.toggle("open",p==="user");}
 function sideApplyMini(){
   const c=document.querySelector(".console");if(!c)return;
   c.classList.toggle("mini",sideMini());
   const t=document.querySelector('.shead .sicon');if(t){t.dataset.tip=SIDE.mini?"Expand sidebar":"Collapse sidebar";t.setAttribute("aria-label",t.dataset.tip);}
-  const w=document.querySelector('.shead .sws');if(w){w.dataset.tip=SIDE.mini&&!sideForced()?"Expand sidebar":"AutoTQ CRM";w.classList.toggle("can",mktAccess()||SIDE.mini);}
+  const w=document.querySelector('.shead .sws');if(w){w.dataset.tip=SIDE.mini&&!sideForced()?"Expand sidebar":(inFuture()?"Future CRM":"AutoTQ CRM");w.classList.toggle("can",hubSwitchAccess()||SIDE.mini);}
   tipHide();
 }
 /* the label beside an icon on the folded rail (one floating element, so the scrolling nav cannot clip it) */
@@ -1499,14 +1533,19 @@ function palItems(q){
   const out=[],add=(g,icon,label,sub,run)=>out.push({g:g,icon:icon,label:label,sub:sub||"",run:run});
   const NU=(admin()&&VIEWAS)?VIEWAS:USER;
   const tabs=[];sideGroups(NU).forEach(g=>g[1].forEach(n=>{tabs.push([n[1],n[2],g[0],palGoto(n[0])]);(SIDE_SUBS[n[0]]||[]).forEach(k=>tabs.push([n[1],k[0],n[2],palGoto(n[0],k[2])]));}));
-  const acts=[["plus","New quote","Quotes",()=>{formQuote(null,null);}],["clock","Log activity","Activity",()=>{formLog();}],["chart","New opportunity","Pipeline",()=>{formOpp(null);}],["user","New contact","Contacts",()=>{formCard();}],
+  const FUT=inFuture();
+  const acts=FUT?[["chart","New opportunity","Pipeline",()=>{formOpp(null);}],["note","New note","Whiteboard",()=>{if(view!=="board")goView("board");wbAdd();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]]
+   :[["plus","New quote","Quotes",()=>{formQuote(null,null);}],["clock","Log activity","Activity",()=>{formLog();}],["chart","New opportunity","Pipeline",()=>{formOpp(null);}],["user","New contact","Contacts",()=>{formCard();}],
     ["help","How this CRM works","Help",()=>{helpSheet();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]];
-  if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}],["box","Switch to AutoTQ Catalog","Catalog",()=>{location.href=CAT_URL;}]);if(progAccess())acts.push(["check","Switch to AutoTQ Progress","Progress",()=>{location.href=PROG_URL;}]);
+  if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}],["box","Switch to AutoTQ Catalog","Catalog",()=>{location.href=CAT_URL;}]);
+  if(progAccess())acts.push(["check","Switch to AutoTQ Progress","Progress",()=>{location.href=PROG_URL;}]);
+  if(futureAccess())acts.push(FUT?["chart","Switch to AutoTQ CRM","CRM",()=>{switchHub("crm");}]:["spark","Switch to Future CRM","Future",()=>{switchHub("future");}]);
   const hit=s=>!q||String(s).toLowerCase().includes(q);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2]===t[1]?"":t[2],t[3]));
   acts.filter(a=>hit(a[1])||hit(a[2])).forEach(a=>add("Actions",a[0],a[1],"",a[3]));
-  if(!q){recentList().forEach(r=>add("Recent",r.k==="c"?"ware":"user",r.name,"",()=>openRec(r.k,r.id)));return out;}
+  if(!q){if(!FUT)recentList().forEach(r=>add("Recent",r.k==="c"?"ware":"user",r.name,"",()=>openRec(r.k,r.id)));return out;}
   if(q.length<2)return out;
+  if(FUT){oppsForPick().filter(o=>[o.name,oppAcctLabel(o),oppDistLabel(o)].join(" ").toLowerCase().includes(q)).slice(0,8).forEach(o=>add("Deals","chart",o.name,oppAcctLabel(o)+" · "+(OPP_SHORT[o.stage]||o.stage),()=>{closeSheet();formOpp(o.id);}));return out;} /* Future CRM: deals only */
   DB.companies.filter(c=>[c.name,c.state,c.city].join(" ").toLowerCase().includes(q)).slice(0,6).forEach(c=>add("Accounts","ware",c.name,[typeLabel(c.type),c.state].filter(Boolean).join(" · "),()=>openRec("c",c.id)));
   DB.people.filter(p=>[p.name,p.email,p.branch].join(" ").toLowerCase().includes(q)).slice(0,6).forEach(p=>add("Contacts","user",p.name,[(company(p.cid)||{}).name||p.branch,p.state].filter(Boolean).join(" · "),()=>openRec("p",p.id)));
   oppsForPick().filter(o=>[o.name,oppAcctLabel(o),oppDistLabel(o)].join(" ").toLowerCase().includes(q)).slice(0,5).forEach(o=>add("Deals","chart",o.name,oppAcctLabel(o)+" · "+(OPP_SHORT[o.stage]||o.stage),()=>{closeSheet();formOpp(o.id);}));
@@ -1535,7 +1574,7 @@ function palOpen(){
     p.addEventListener("mousedown",e=>{if(e.target===p)palClose();});
     p.addEventListener("mousemove",e=>{const b=e.target.closest(".palit");if(b){const i=+b.dataset.i;if(i!==PAL.sel){PAL.sel=i;p.querySelectorAll(".palit").forEach((x,k)=>{x.classList.toggle("sel",k===i);const kk=x.querySelector(".k");if(k===i&&!kk)x.insertAdjacentHTML("beforeend",'<span class="k">↵</span>');if(k!==i&&kk)kk.remove();});}}});
     document.getElementById("palQ").addEventListener("input",e=>{PAL.q=e.target.value;PAL.sel=0;palDraw();});}
-  PAL.q="";PAL.sel=0;const i=document.getElementById("palQ");i.value="";
+  PAL.q="";PAL.sel=0;const i=document.getElementById("palQ");i.value="";i.placeholder=inFuture()?"Search deals…":"Search tabs, accounts, contacts, deals, quotes…";
   p.classList.add("open");palDraw();setTimeout(()=>i.focus(),0);
 }
 function palClose(){const p=document.getElementById("pal");if(p)p.classList.remove("open");}
@@ -1570,9 +1609,16 @@ function render(){
   if(ownOnly()&&TEAM_VIEWS.includes(view))view="today";
   if(ownOnly()&&view==="fcast"){view="opps";oppView="fcast";}
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
+  /* Future CRM: Max only (anyone else holding ?hub=future just gets the CRM), and Pipeline is all it shows */
+  if(HUB==="future"&&!futureAccess()){HUB="crm";try{history.replaceState(null,"",hubUrl("crm"));}catch(e){}}
+  const FUT=inFuture();
+  if(FUT&&view==="fcast"){view="opps";oppView="fcast";}
+  if(FUT&&!FUTURE_VIEWS.includes(view))view="opps";
+  if(!FUT&&view==="board")view="today";
+  if(FUT&&!logState.wbHealed)setTimeout(wbHeal,0);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
@@ -1584,6 +1630,7 @@ function render(){
     contacts:(userRegion(USER)?userRegion(USER)+" territory":DB.people.length+" contacts"),
     opps:(function(){const op=myOpps().filter(o=>oppIsOpen(o)&&(!ownOnly()||oppGhRep(o)===USER));return (ownOnly()?"Your deals · ":"")+op.length+" open · "+fmtK(op.reduce((s,o)=>s+(o.amount||0),0))+" pipeline";})(),
     fcast:"Committed + best case by quarter — tap any cell",
+    board:"Ideas for the new system — only you see this board",
     dash:(userRegion(USER)?userRegion(USER)+" territory":"Whole channel"),
     reports:"Run, sort & export",
     report:rep?rep.desc:"",
@@ -1627,6 +1674,7 @@ function render(){
   else if(view==="invoicing")body=invAccess()?viewInvoicing():viewToday();
   else if(view==="shipping")body=shipAccess()?viewShipping():viewToday();
   else if(view==="quotes")body=viewQuotes();
+  else if(view==="board")body=viewBoard();
   else body=viewToday();
   const NU=(admin()&&VIEWAS)?VIEWAS:USER; /* rail preview: admin sees another seat's left nav */
   if(view==="person"&&pn)recentPush("p",pn.id);if(view==="roster"&&cc)recentPush("c",cc.id);
@@ -1634,19 +1682,21 @@ function render(){
   document.getElementById("screen").innerHTML=
   '<div class="console'+(sideMini()?" mini":"")+'">'+sideHTML(NU,me)+
    '<div class="work"><header class="tbar">'+hubMenuHTML()+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
-    '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+subs[view]+'</div></div>'+
-    '<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts, contacts & leads…" value="'+esc(searchQ)+'" autocomplete="off"></div>'+
+    '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+(FUT?'<span style="color:'+FUTURE_TINT+';font-weight:600">Future CRM</span> · ':'')+subs[view]+'</div></div>'+
+    (FUT?'':'<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts, contacts & leads…" value="'+esc(searchQ)+'" autocomplete="off"></div>')+
     '<div class="tact"><button class="ibtn psearch" data-act="palopen" title="Search" aria-label="Search">'+svg("search")+'</button>'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
-    '<button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>'+
+    (FUT?'<button class="btn coral" data-act="'+(view==="board"?"wbadd":"addopp")+'" title="'+(view==="board"?"New note":"New opportunity")+'">'+svg("plus")+'<span class="t">New</span></button>':'<button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>')+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline — changes will sync when you\'re back")+'">'+(SYNC.online?"":"Offline")+'</span>'+
-    '<button class="ibtn" data-act="help" title="How this CRM works" aria-label="How this CRM works">'+svg("help")+'</button>'+
+    (FUT?'':'<button class="ibtn" data-act="help" title="How this CRM works" aria-label="How this CRM works">'+svg("help")+'</button>')+
     '<button class="av" style="background:'+me.c+'" data-act="menu" title="Menu" aria-label="Menu">'+initials(me.name)+'</button></div></header>'+
     '<main class="content">'+body+'</main>'+
+    (FUT?'<div class="nav">'+navbtn("opps","chart","Pipeline")+'<button class="plus" data-act="'+(view==="board"?"wbadd":"addopp")+'" aria-label="'+(view==="board"?"New note":"New opportunity")+'"><span class="bubble">'+svg("plus")+'</span></button>'+navbtn("board","note","Whiteboard")+'</div>':
     '<div class="nav">'+(profile(NU)==="admin"?navbtn("team","users","Team"):navbtn("today","home","Home"))+(NU==="laresa"?navbtn("invoicing","file","Invoicing"):profile(NU)==="outreach"?navbtn("leads","spark","Leads"):navbtn("activity","clock","Activity"))+
      '<button class="plus" data-act="addhub"><span class="bubble">'+svg("plus")+'</span></button>'+
-     (NU==="laresa"?navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts"):profile(NU)==="outreach"?navbtn("export","dl","Lists")+navbtn("activity","clock","Activity"):navbtn("opps","chart","Pipeline")+navbtn("leads","spark","Leads"))+'</div>'+
+     (NU==="laresa"?navbtn("accounts","ware","Accounts")+navbtn("contacts","users","Contacts"):profile(NU)==="outreach"?navbtn("export","dl","Lists")+navbtn("activity","clock","Activity"):navbtn("opps","chart","Pipeline")+navbtn("leads","spark","Leads"))+'</div>')+
    '</div></div>';
   {const ns2=document.querySelector(".snavs");if(ns2&&nsTop)ns2.scrollTop=nsTop;}
+  if(view==="board")wbAfter();
   applyColW();
   topScrollSync();
   fitZoom();
@@ -1920,6 +1970,117 @@ function campAccess(){return campAccessFor(USER);}
 const MKT_URL="marketing/";
 const CAT_URL="catalog/"; /* AutoTQ Catalog (2026-10-21): the Marketing hub served at /catalog/ — new products, makers, quotes; Max + Hannah, like Marketing */
 function mktAccess(){return USER==="max"||USER==="hannah";}
+/* Future CRM (Max, 2026-11-06: "a separate hub… called Future CRM, only give me access to it so I can view it and begin working
+   on the new version… the only categorization tab should be PIPELINE"). A mode of this page, not a page of its own: same sign-in,
+   same synced records, so its Pipeline is the real one (viewOpps / myOpps, the deal form, Forecast, Excel). Max only — every other
+   seat never sees it in a switcher, and ?hub=future does nothing for them. ?hub=future in the address keeps Max there on reload.
+   The redesign gets built under inFuture(); the CRM everyone else uses is untouched by it. */
+let HUB=(function(){try{return new URLSearchParams(location.search).get("hub")==="future"?"future":"crm";}catch(e){return "crm";}})();
+let hubPrevNav=null; /* where Max was in the CRM when he switched over — Back to AutoTQ CRM returns there */
+const FUTURE_VIEWS=["opps","board","roster","person"]; /* Pipeline + Whiteboard, plus the account / contact a deal links to */
+function futureAccess(){return USER==="max";}
+function inFuture(){return HUB==="future"&&futureAccess();}
+function hubSwitchAccess(){return mktAccess()||futureAccess();}
+function hubUrl(h){const u=new URLSearchParams(location.search);if(h==="future")u.set("hub","future");else u.delete("hub");const s=u.toString();return location.pathname+(s?"?"+s:"")+location.hash;}
+function switchHub(h){
+  if(h==="future"&&!futureAccess())return;
+  closeSheet();sidePopSet(null);palClose();if(fltOpen){fltOpen=null;fltSync();}
+  if(h==="future"){if(HUB!=="future")hubPrevNav=navState();HUB="future";view="opps";}
+  else{HUB="crm";if(hubPrevNav){restoreNav(hubPrevNav);hubPrevNav=null;}else applyRoleDefaults();}
+  navStack=[];listQ="";searchQ="";
+  try{history.replaceState(null,"",hubUrl(HUB));}catch(e){}
+  render();window.scrollTo(0,0);
+}
+const FUTURE_TINT="#5B4A9E";
+/* ---------- Future CRM whiteboard (Max, 2026-11-06: "a blank whiteboard on a tab… an idea hivemind for the new system; super simple,
+   built perfectly for our business"). Sticky notes on a dotted board: + Note (or double-click the board) adds one, drag it by its top
+   strip, type straight into it, the colour dot cycles its colour, × removes it (Undo in the toast). Synced collection "whiteboard",
+   one record per note {id:"wb_…",x,y,z,text,color,by,at,editedAt} — so it follows Max to every device; nobody else has the tab. ---------- */
+const WB_COLORS=["#FFF0B0","#FFDCCB","#D8E8FB","#DCF0D5","#E7DEF6"],WB_W=220;
+let WB_DRAG=null,wbSaveT=null;
+function wbNotes(){DB.whiteboard=DB.whiteboard||[];return DB.whiteboard.filter(n=>n&&n.id);}
+function wbNote(id){return wbNotes().find(n=>n.id===id);}
+function wbTopZ(){return wbNotes().reduce((m,n)=>Math.max(m,n.z||0),0);}
+function wbNoteHTML(n){
+  return '<div class="wbnote" data-wb="'+esc(n.id)+'" style="left:'+(n.x||0)+'px;top:'+(n.y||0)+'px;z-index:'+(n.z||1)+';background:'+esc(n.color||WB_COLORS[0])+'">'+
+   '<div class="wbgrip" title="Drag to move"><span class="grow"></span>'+
+   '<button data-act="wbcolor" data-id="'+esc(n.id)+'" title="Change colour" aria-label="Change colour"><span class="wbdot"></span></button>'+
+   '<button data-act="wbdel" data-id="'+esc(n.id)+'" title="Remove note" aria-label="Remove note">'+svg("x")+'</button></div>'+
+   '<textarea class="wbtext" data-wb="'+esc(n.id)+'" placeholder="An idea…" rows="3" aria-label="Note">'+esc(n.text||"")+'</textarea></div>';
+}
+function viewBoard(){
+  const ns=wbNotes();
+  const W=Math.max(2400,...ns.map(n=>(n.x||0)+WB_W+600)),H=Math.max(1600,...ns.map(n=>(n.y||0)+700));
+  return '<div class="wbbar"><button class="btn sm coral" data-act="wbadd">'+svg("plus")+' Note</button>'+
+    '<span class="t2">'+(ns.length?ns.length+' note'+(ns.length>1?'s':'')+' · ':'')+'<span class="wbhd">Double-click the board to add a note · </span>drag a note by its top strip</span></div>'+
+   '<div class="wbwrap" id="wbwrap">'+(ns.length?'':'<div class="wbempty"><b>A blank board for the new system</b>Add a note for every idea — drag them into groups as they take shape.</div>')+
+   '<div class="wboard" id="wboard" style="width:'+W+'px;height:'+H+'px">'+ns.slice().sort((a,b)=>(a.z||0)-(b.z||0)).map(wbNoteHTML).join("")+'</div></div>';
+}
+/* once per page load in Future CRM: fetch the notes straight from the server (pulls skip "whiteboard" for anyone but Max, so a pull
+   that ran before the app knew who was signed in — e.g. a sign-in link — would otherwise leave them behind until the next edit) */
+async function wbHeal(){
+  if(logState.wbHealed||!futureAccess()||!authed())return;logState.wbHealed=true;
+  try{const res=await supa("/rest/v1/records?collection=eq.whiteboard&select=collection,id,data,deleted");if(!res.ok)return;
+    let ch=false;(await res.json()).forEach(r=>{if(!SYNC.dirty[syncKey(r.collection,r.id)]&&applyRemote(r.collection,r.id,r.data,r.deleted))ch=true;});
+    if(ch){writeCache();const ae=document.activeElement;if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();}
+  }catch(e){}
+}
+function wbGrow(t){t.style.height="auto";t.style.height=t.scrollHeight+"px";}
+/* after render(): put the board back where it was scrolled, size the notes to their text, focus a new note */
+function wbAfter(){
+  const w=document.getElementById("wbwrap");if(!w)return;
+  if(logState.wbScroll){w.scrollLeft=logState.wbScroll[0];w.scrollTop=logState.wbScroll[1];}
+  w.addEventListener("scroll",()=>{logState.wbScroll=[w.scrollLeft,w.scrollTop];},{passive:true});
+  w.querySelectorAll(".wbtext").forEach(wbGrow);
+  if(logState.wbFocus){const t=w.querySelector('.wbtext[data-wb="'+logState.wbFocus+'"]');logState.wbFocus=null;if(t)t.focus({preventScroll:true});}
+}
+/* x/y = board position; none → the middle of what's showing, nudged so repeated adds don't stack exactly */
+function wbAdd(x,y){
+  const w=document.getElementById("wbwrap");
+  if(x==null){const k=wbNotes().length%6;
+    x=(w?w.scrollLeft:0)+Math.max(16,(w?w.clientWidth:900)/2-WB_W/2)+k*18;
+    y=(w?w.scrollTop:0)+Math.max(16,(w?w.clientHeight:500)/2-80)+k*18;}
+  if(w)logState.wbScroll=[w.scrollLeft,w.scrollTop];
+  const n={id:"wb_"+uid()+uid(),x:Math.max(0,Math.round(x)),y:Math.max(0,Math.round(y)),z:wbTopZ()+1,text:"",color:WB_COLORS[0],by:USER,at:new Date().toISOString()};
+  DB.whiteboard=DB.whiteboard||[];DB.whiteboard.push(n);save();logState.wbFocus=n.id;render();
+}
+function wbDel(id){
+  const i=(DB.whiteboard||[]).findIndex(n=>n&&n.id===id);if(i<0)return;
+  const n=DB.whiteboard[i];DB.whiteboard.splice(i,1);save();render();
+  if(String(n.text||"").trim())toast("Note removed",()=>{if(!wbNote(n.id)){DB.whiteboard.push(n);save();render();}});else toast("Note removed");
+}
+function wbColor(id){
+  const n=wbNote(id);if(!n)return;
+  n.color=WB_COLORS[(WB_COLORS.indexOf(n.color||WB_COLORS[0])+1)%WB_COLORS.length];n.editedAt=new Date().toISOString();
+  const el=document.querySelector('.wbnote[data-wb="'+id+'"]');if(el)el.style.background=n.color;save();
+}
+/* drag a note by its top strip (mouse, pen or finger) */
+document.addEventListener("pointerdown",e=>{
+  const g=e.target.closest&&e.target.closest(".wbgrip");if(!g||e.target.closest("button"))return;
+  const el=g.closest(".wbnote"),n=el&&wbNote(el.dataset.wb);if(!n)return;
+  e.preventDefault();
+  n.z=wbTopZ()+1;el.style.zIndex=n.z;el.classList.add("drag");
+  WB_DRAG={el:el,n:n,sx:e.clientX,sy:e.clientY,x0:n.x||0,y0:n.y||0,nx:n.x||0,ny:n.y||0,moved:false};
+  try{g.setPointerCapture(e.pointerId);}catch(_){}
+});
+document.addEventListener("pointermove",e=>{
+  const d=WB_DRAG;if(!d)return;if(!d.el.isConnected){WB_DRAG=null;return;}
+  d.nx=Math.max(0,d.x0+e.clientX-d.sx);d.ny=Math.max(0,d.y0+e.clientY-d.sy);d.moved=true;
+  d.el.style.left=d.nx+"px";d.el.style.top=d.ny+"px";
+});
+function wbDrop(){
+  const d=WB_DRAG;if(!d)return;WB_DRAG=null;d.el.classList.remove("drag");
+  if(d.moved){d.n.x=Math.round(d.nx);d.n.y=Math.round(d.ny);d.n.editedAt=new Date().toISOString();}
+  const b=document.getElementById("wboard");
+  if(b){if(d.n.x+WB_W+600>parseInt(b.style.width,10))b.style.width=(d.n.x+WB_W+600)+"px";if(d.n.y+700>parseInt(b.style.height,10))b.style.height=(d.n.y+700)+"px";}
+  save(); /* the new stacking order is saved even on a plain tap */
+}
+document.addEventListener("pointerup",wbDrop);
+document.addEventListener("pointercancel",wbDrop);
+document.addEventListener("dblclick",e=>{
+  const b=e.target.closest&&e.target.closest("#wboard");if(!b||e.target!==b)return;
+  const r=b.getBoundingClientRect();wbAdd(e.clientX-r.left-WB_W/2,e.clientY-r.top-14);
+});
 const PROG_URL="progress/"; /* AutoTQ Progress (2026-11-06): Max's own day-by-day hub (tasks + ideas: Expansion / Marketing / CRM), the Marketing hub page served at /progress/ */
 function progAccess(){return USER==="max";}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
@@ -4671,7 +4832,7 @@ function trackUsage(force){
   const r=usageRec(USER,todayStr());
   const gap=usageLastPing?(now-usageLastPing)/60000:0;
   if(gap>0&&gap<=6)r.mins=Math.round((r.mins+gap)*10)/10;
-  if(usageLastView!==view){r.views=r.views||{};r.views[view]=(r.views[view]||0)+1;usageLastView=view;}
+  if(usageLastView!==view){if(!inFuture()){r.views=r.views||{};r.views[view]=(r.views[view]||0)+1;}usageLastView=view;} /* Future CRM: the minutes count, its tabs aren't listed for admins */
   usageLastPing=now;r.last=new Date().toISOString();r.pings=(r.pings||0)+1;
   save();
 }
@@ -5916,17 +6077,19 @@ function renderTravel(){
   box.innerHTML=h;
 }
 
-function menu(){openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list" style="margin-top:12px">'+
- railGroups(USER).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today")
+function menu(){const FUT=inFuture();openSheet('<h2>'+esc(teamById(USER).name)+'</h2><div class="list" style="margin-top:12px">'+
+ (FUT?sideGroups(USER):railGroups(USER)).reduce((a,g)=>a.concat(g[1]),[]).filter(n=>n[0]!=="today")
   .map(n=>'<button class="hub" data-act="nav" data-view="'+n[0]+'">'+svg(n[1])+'<b class="grow">'+n[2]+'</b>'+chev()+'</button>').join("")+
  '</div><div class="list">'+
  (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>'+
-   '<a class="hub" href="'+CAT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("box")+'<b class="grow">Switch to AutoTQ Catalog</b>'+chev()+'</a>'+(progAccess()?'<a class="hub" href="'+PROG_URL+'" data-act="extlink" style="text-decoration:none">'+svg("check")+'<b class="grow">Switch to AutoTQ Progress</b>'+chev()+'</a>':''):'')+
- '<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>'+
+   '<a class="hub" href="'+CAT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("box")+'<b class="grow">Switch to AutoTQ Catalog</b>'+chev()+'</a>':'')+
+ (progAccess()?'<a class="hub" href="'+PROG_URL+'" data-act="extlink" style="text-decoration:none">'+svg("check")+'<b class="grow">Switch to AutoTQ Progress</b>'+chev()+'</a>':'')+
+ (futureAccess()?(FUT?'<button class="hub" data-act="hubcrm">'+svg("chart")+'<b class="grow">Switch to AutoTQ CRM</b>'+chev()+'</button>':'<button class="hub" data-act="hubfuture">'+svg("spark")+'<b class="grow">Switch to Future CRM</b>'+chev()+'</button>'):'')+
+ (FUT?'':'<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>')+
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
  '<button class="hub" data-act="backup">'+svg("dl")+'<b>Back up my data</b></button>'+
  '<button class="hub" data-act="restorepick">'+svg("box")+'<b>Restore from backup</b></button>'+
- (admin()?'<button class="hub" data-act="viewaspick">'+svg("users")+'<b>See a teammate\'s tabs</b></button>':'')+
+ (admin()&&!FUT?'<button class="hub" data-act="viewaspick">'+svg("users")+'<b>See a teammate\'s tabs</b></button>':'')+
  (admin()?'<button class="hub" data-act="impsellers">'+svg("ware")+'<b>Import Grainger sellers (CSV)</b></button>':'')+
  '<button class="hub" data-act="switch">'+svg("users")+'<b>Sign out</b></button>'+
  '<button class="hub" data-act="reset">'+svg("clock")+'<b>Reset local data (reseed)</b></button></div>');}
@@ -7934,7 +8097,12 @@ document.addEventListener("click",e=>{
   if(a==="nav"){closeSheet();const to=t.dataset.view;if(SIDE_SUBS[to]&&SIDE.open[to]===false){delete SIDE.open[to];sideSave();}goView(to);return;}
   if(a==="sidetoggle"){sideToggle();return;}
   if(a==="hubmenu"){sidePopSet(sidePop==="hub"?null:"hub");return;}
-  if(a==="sidews"){if(SIDE.mini&&!sideForced()){sideToggle();return;}if(mktAccess())sidePopSet(sidePop==="ws"?null:"ws");return;}
+  if(a==="sidews"){if(SIDE.mini&&!sideForced()){sideToggle();return;}if(hubSwitchAccess())sidePopSet(sidePop==="ws"?null:"ws");return;}
+  if(a==="hubfuture"){switchHub("future");return;} /* Future CRM, Max only (switchHub checks) */
+  if(a==="hubcrm"){switchHub("crm");return;}
+  if(a==="wbadd"){wbAdd();return;}
+  if(a==="wbcolor"){wbColor(id);return;}
+  if(a==="wbdel"){wbDel(id);return;}
   if(a==="sideuser"){sidePopSet(sidePop==="user"?null:"user");return;}
   if(a==="sidepopclose"){sidePopSet(null);return;}
   if(a==="sidegrp"){const g=t.dataset.g,box=t.closest(".sgrp");SIDE.closed[g]=!SIDE.closed[g];sideSave();
@@ -8442,6 +8610,8 @@ document.addEventListener("click",e=>{
     if(l&&confirm('Delete list "'+l.name+'"?')){l.removed=true;save();curList=null;render();}return;}
 });
 document.addEventListener("input",e=>{
+  if(e.target.classList&&e.target.classList.contains("wbtext")){const n=wbNote(e.target.dataset.wb);if(!n)return; /* whiteboard note: saved as you type */
+    n.text=e.target.value;n.editedAt=new Date().toISOString();wbGrow(e.target);clearTimeout(wbSaveT);wbSaveT=setTimeout(save,600);return;}
   if(e.target.classList&&e.target.classList.contains("pncell")){
     const c=company(e.target.dataset.cid);if(!c)return;
     ensurePnGrid(c);
