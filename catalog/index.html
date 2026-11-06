@@ -5980,7 +5980,7 @@ function mk2LitCard(l,cn){const s=MK2_LIT_ST[l.st]||["",""],first=mk2Camps().som
   return '<button class="mk2-lit" data-act="mk2lit" data-v="'+esc(l.id)+'"><span class="im"><img data-mkt="'+esc(l.thumb)+'" alt=""></span>'+(cn?'<span class="klm up">'+esc(cn)+'</span>':'')+'<span class="klt">'+esc(l.title)+'</span><span class="klm">'+(first?'<span class="mk2-pill co">Send first</span>':'')+'<span class="mk2-pill '+s[1]+'">'+s[0]+'</span>'+(l.date?esc(mk2Short(l.date).replace(/^\w+, /,"")):'')+(l.n>1?' · '+l.n+' pages':'')+'</span></button>';}
 const mk2CampEmails=c=>c.em?campaigns().filter(x=>new RegExp(c.em,"i").test(x.name||"")):[];
 const mk2CampPosts=c=>c.posts?liPosts().filter(p=>p.status!=="rejected"&&String(p.slotAt||"")>=todayStr()&&new RegExp(c.posts,"i").test((p.topic||"")+" "+(p.hook||""))).sort((a,b)=>String(a.slotAt).localeCompare(String(b.slotAt))).slice(0,4):[];
-const mk2CampNotes=c=>(DB.projUpdates||[]).filter(u=>u&&u.kind==="session"&&(c.cl||[]).includes(u.project)).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+const mk2CampNotes=c=>(DB.projUpdates||[]).filter(u=>u&&u.kind==="session"&&!u.removed&&(u.camp===c.id||(c.cl||[]).includes(u.project))).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
 function mk2CampCard(c){const L=mk2LitOf(c.id).filter(l=>["customer","distributor","push"].includes(l.aud)),E=mk2CampEmails(c),nx=(c.next||[]).find(x=>!x.done);
   return '<button class="mk2-camp" data-act="mk2camp" data-v="'+esc(c.id)+'"><div class="hd"><h3>'+esc(c.name)+'</h3><span class="mk2-pill '+(c.stc||"")+'">'+esc(c.st||"")+'</span></div><div class="gl">'+esc(c.goal||"")+'</div>'+
    (L.length?'<div class="thumbs">'+L.slice(0,5).map(l=>'<img data-mkt="'+esc(l.thumb)+'" alt="">').join("")+'</div>':'')+
