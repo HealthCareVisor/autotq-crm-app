@@ -1204,6 +1204,7 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .pg-pcs{flex:1;display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--ink-2);font-size:12.5px}
 .pg-pc{display:inline-flex;align-items:center;gap:6px}.pg-pc i{width:8px;height:8px;border-radius:2px;background:var(--pgc)}.pg-pc small{color:var(--ink-3);font-size:12px}
 .pg-none{color:var(--ink-3)}
+.pg-ctxt{flex:1;min-width:0;padding:8px 2px;line-height:1.45;color:var(--ink-2)}.pg-ctxt small{display:block;color:var(--ink-3);font-size:12px;margin-top:1px}
 @media (max-width:640px){.pg-pr{flex-wrap:wrap}.pg-pd{min-width:0;width:calc(100% - 30px)}.pg-acts{width:100%}.pg-date{flex:1}}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme_v2")||"light";}catch(e){document.documentElement.dataset.theme="light";}</script>
@@ -4961,36 +4962,46 @@ function viewPlaybook(){
 /* ---------- Progress hub (2026-11-06, Max: "a self-CRM, super simple, single tab… day by day") ----------
    /progress/ — Max only (progUser(); RLS: can_see('progressDays') = is_max()). One record per day in `progressDays`,
    id "pd_YYYY-MM-DD": {id,date,owner, exp|mkt|crm:{tasks:[{id,t,done,doneAt,at}], ideas:[{id,t,at}]}, updatedAt}.
-   Nothing is pre-filled; a day gets a record the first time something is written on it. No weekly view, on purpose. */
-Object.assign(SVG,{pgL:'<polyline points="14.5 6 8.5 12 14.5 18"/>'});
+   Nothing is pre-filled; a day gets a record the first time something is written on it. No weekly view, on purpose.
+   Chat lines (Max, same day: "every hour... a one line fill of what I've done"): a separate record per day, id "pc_YYYY-MM-DD" in
+   the same collection, written hourly by AutoTQ_Marketing/tools/progress_chats.py (scheduled task progress-chat-lines):
+   {id,date,items:[{key,cat:exp|mkt|crm|other,t,title}],hidden:[key]}. The page only hides lines (x adds the key to hidden). */
+Object.assign(SVG,{pgL:'<polyline points="14.5 6 8.5 12 14.5 18"/>',pgChat:'<path d="M5 5h14a1 1 0 011 1v9a1 1 0 01-1 1h-8l-4 3v-3H5a1 1 0 01-1-1V6a1 1 0 011-1z"/>'});
 const PG_CATS=[["exp","AutoTQ Expansion","New products","var(--l2)","Expansion"],["mkt","Marketing","","var(--coral)","Marketing"],["crm","CRM","Work and progress","var(--l3)","CRM"]];
 let pgDay=todayStr(),pgFocus=null,pgPointer=false;
 function progUser(){return USER==="max";}
 function pgId(d){return "pd_"+d;}
+function pgChatRec(d){return (DB.progressDays||[]).find(r=>r&&r.id==="pc_"+d);}
+function pgChats(d,cat){const c=pgChatRec(d);if(!c)return [];const hid=new Set(c.hidden||[]),main=PG_CATS.map(x=>x[0]);
+  return (c.items||[]).filter(i=>i&&i.t&&!hid.has(i.key)&&(!cat||(cat==="other"?!main.includes(i.cat):i.cat===cat)));}
 function pgRec(d){return (DB.progressDays||[]).find(r=>r&&r.id===pgId(d));}
 function pgEnsure(d){const r=pgRec(d)||{id:pgId(d),date:d,owner:USER,createdAt:new Date().toISOString()};
   PG_CATS.forEach(c=>{const x=r[c[0]]=r[c[0]]||{};x.tasks=x.tasks||[];x.ideas=x.ideas||[];});return r;}
 function pgSave(r){r.updatedAt=new Date().toISOString();put("progressDays",r);}
 function pgCount(r){let t=0,d=0,i=0;PG_CATS.forEach(c=>{const x=(r&&r[c[0]])||{};(x.tasks||[]).forEach(k=>{t++;if(k.done)d++;});i+=(x.ideas||[]).length;});return {t:t,d:d,i:i};}
-function pgDays(){return (DB.progressDays||[]).filter(r=>r&&r.date&&(function(n){return n.t+n.i>0;})(pgCount(r))).sort((a,b)=>b.date.localeCompare(a.date));}
+function pgDays(){const m={};(DB.progressDays||[]).forEach(x=>{if(!x||!x.date)return;const e=m[x.date]=m[x.date]||{date:x.date,r:null,c:null};if(String(x.id).indexOf("pc_")===0)e.c=x;else e.r=x;});
+  return Object.keys(m).map(k=>m[k]).filter(e=>{const n=pgCount(e.r);return n.t+n.i+pgChats(e.date).length>0;}).sort((a,b)=>b.date.localeCompare(a.date));}
 function pgDate(d){const p=String(d).split("-").map(Number);return new Date(p[0],p[1]-1,p[2]);}
 function pgShift(d,n){const x=pgDate(d);x.setDate(x.getDate()+n);return x.getFullYear()+"-"+pad2(x.getMonth()+1)+"-"+pad2(x.getDate());}
 function pgLabel(d,long){const t=todayStr(),x=pgDate(d);const rel=d===t?"Today":d===pgShift(t,-1)?"Yesterday":d===pgShift(t,1)?"Tomorrow":"";
   const o={weekday:long?"long":"short",month:long?"long":"short",day:"numeric"};if(x.getFullYear()!==new Date().getFullYear())o.year="numeric";
   return {rel:rel,s:x.toLocaleDateString("en-US",o)};}
 function pgCrumb(){const L=pgLabel(pgDay,false);return L.rel||L.s;}
-function pgSumLine(n){if(!n.t&&!n.i)return "Nothing written yet";return (n.t?n.d+" of "+n.t+" task"+(n.t===1?"":"s")+" done":"No tasks")+(n.i?" · "+n.i+" idea"+(n.i===1?"":"s"):"");}
+function pgSumLine(n,ch){if(!n.t&&!n.i&&!ch)return "Nothing written yet";return (n.t?n.d+" of "+n.t+" task"+(n.t===1?"":"s")+" done":"No tasks")+(n.i?" · "+n.i+" idea"+(n.i===1?"":"s"):"")+(ch?" · "+ch+" Claude chat"+(ch===1?"":"s"):"");}
 function viewProg(){
   const r=pgRec(pgDay),L=pgLabel(pgDay,true);
   let h='<div class="pg-top"><div class="pg-nav"><button class="ibtn" data-act="pgshift" data-v="-1" aria-label="Previous day" title="Previous day">'+svg("pgL")+'</button><button class="ibtn" data-act="pgshift" data-v="1" aria-label="Next day" title="Next day">'+svg("chevR")+'</button></div>'+
-   '<div class="pg-ttl"><h1>'+esc(L.rel||L.s)+'</h1><p class="t2">'+(L.rel?esc(L.s)+" · ":"")+esc(pgSumLine(pgCount(r)))+'</p></div>'+
+   '<div class="pg-ttl"><h1>'+esc(L.rel||L.s)+'</h1><p class="t2">'+(L.rel?esc(L.s)+" · ":"")+esc(pgSumLine(pgCount(r),pgChats(pgDay).length))+'</p></div>'+
    '<div class="pg-acts">'+(pgDay!==todayStr()?'<button class="btn" data-act="pgtoday">Today</button>':'')+'<input type="date" class="pg-date" id="pgDate" value="'+esc(pgDay)+'" aria-label="Go to a day"></div></div>';
-  h+='<div class="pg-grid">'+PG_CATS.map(c=>pgCatHTML(c,r)).join("")+'</div>';
+  const oth=pgChats(pgDay,"other");
+  h+='<div class="pg-grid">'+PG_CATS.map(c=>pgCatHTML(c,r)).join("")+(oth.length?'<section class="pg-cat" style="--pgc:var(--ink-3)" aria-label="Other chats"><div class="pg-ch"><span class="pg-dot"></span><div><b>Other</b><small>Claude chats outside the three</small></div></div>'+oth.map(pgChatRowHTML).join("")+'</section>':'')+'</div>';
   return h+pgPastHTML();}
 function pgCatHTML(c,r){const x=(r&&r[c[0]])||{},T=x.tasks||[],I=x.ideas||[],d=T.filter(k=>k.done).length;
   return '<section class="pg-cat" style="--pgc:'+c[3]+'" aria-label="'+esc(c[1])+'"><div class="pg-ch"><span class="pg-dot"></span><div><b>'+esc(c[1])+'</b>'+(c[2]?'<small>'+esc(c[2])+'</small>':'')+'</div><span class="cnt num">'+(T.length?d+" of "+T.length+" done":"")+'</span></div>'+
    '<div class="pg-sub">Tasks</div>'+T.map(k=>pgRowHTML(c[0],"tasks",k)).join("")+pgAddHTML(c[0],"tasks","Add a task")+
-   '<div class="pg-sub">Ideas</div>'+I.map(k=>pgRowHTML(c[0],"ideas",k)).join("")+pgAddHTML(c[0],"ideas","Add an idea")+'</section>';}
+   '<div class="pg-sub">Ideas</div>'+I.map(k=>pgRowHTML(c[0],"ideas",k)).join("")+pgAddHTML(c[0],"ideas","Add an idea")+
+   (function(L){return L.length?'<div class="pg-sub">From your Claude chats</div>'+L.map(pgChatRowHTML).join(""):"";})(pgChats(pgDay,c[0]))+'</section>';}
+function pgChatRowHTML(i){return '<div class="pg-row pg-chat"><span class="pg-bul" aria-hidden="true">'+svg("pgChat")+'</span><div class="pg-ctxt">'+esc(i.t)+(i.title&&i.title!==i.t?'<small>'+esc(i.title)+'</small>':'')+'</div><button class="pg-x" data-act="pgchatx" data-v="'+esc(i.key)+'" aria-label="Hide this line" title="Hide this line">'+svg("x")+'</button></div>';}
 function pgRowHTML(c,k,it){const task=k==="tasks",ids='data-c="'+c+'" data-k="'+k+'" data-id="'+esc(it.id)+'"';
   return '<div class="pg-row'+(task&&it.done?" done":"")+'">'+
    (task?'<button class="pg-ck" data-act="pgck" '+ids+' role="checkbox" aria-checked="'+(!!it.done)+'" aria-label="'+(it.done?"Mark not done":"Mark done")+'">'+(it.done?svg("check"):"")+'</button>':'<span class="pg-bul" aria-hidden="true">'+svg("spark")+'</span>')+
@@ -4999,18 +5010,18 @@ function pgRowHTML(c,k,it){const task=k==="tasks",ids='data-c="'+c+'" data-k="'+
 function pgAddHTML(c,k,ph){return '<div class="pg-add">'+svg("plus")+'<textarea class="pg-new" rows="1" data-c="'+c+'" data-k="'+k+'" placeholder="'+ph+'" aria-label="'+ph+'"></textarea></div>';}
 function pgPastHTML(){const L=pgDays();let h='<h2 class="sech">Your days</h2>';
   if(!L.length)return h+'<p class="t2">Every day you write something in shows up here, newest first.</p>';
-  return h+'<div class="list pg-past">'+L.map(r=>{const lb=pgLabel(r.date,false);
-    const parts=PG_CATS.map(c=>{const x=r[c[0]]||{},T=x.tasks||[],I=x.ideas||[];if(!T.length&&!I.length)return "";
-      return '<span class="pg-pc" style="--pgc:'+c[3]+'"><i></i>'+esc(c[4])+(T.length?' <b class="num">'+T.filter(k=>k.done).length+"/"+T.length+'</b>':'')+(I.length?' <small>'+I.length+" idea"+(I.length===1?"":"s")+'</small>':'')+'</span>';}).join("");
-    return '<button class="pg-pr'+(r.date===pgDay?" on":"")+'" data-act="pgday" data-v="'+esc(r.date)+'"><span class="pg-pd"><b>'+esc(lb.rel||lb.s)+'</b>'+(lb.rel?'<small>'+esc(lb.s)+'</small>':'')+'</span><span class="pg-pcs">'+parts+'</span>'+chev()+'</button>';}).join("")+'</div>';}
-function pgNav(){const t=todayStr(),L=pgDays().filter(r=>r.date!==t).slice(0,14);
+  return h+'<div class="list pg-past">'+L.map(e=>{const r=e.r||{},lb=pgLabel(e.date,false);
+    const parts=PG_CATS.concat([["other","Other","","var(--ink-3)","Other"]]).map(c=>{const x=r[c[0]]||{},T=x.tasks||[],I=x.ideas||[],C=pgChats(e.date,c[0]);if(!T.length&&!I.length&&!C.length)return "";
+      return '<span class="pg-pc" style="--pgc:'+c[3]+'"><i></i>'+esc(c[4])+(T.length?' <b class="num">'+T.filter(k=>k.done).length+"/"+T.length+'</b>':'')+(I.length?' <small>'+I.length+" idea"+(I.length===1?"":"s")+'</small>':'')+(C.length?' <small>'+C.length+" chat"+(C.length===1?"":"s")+'</small>':'')+'</span>';}).join("");
+    return '<button class="pg-pr'+(e.date===pgDay?" on":"")+'" data-act="pgday" data-v="'+esc(e.date)+'"><span class="pg-pd"><b>'+esc(lb.rel||lb.s)+'</b>'+(lb.rel?'<small>'+esc(lb.s)+'</small>':'')+'</span><span class="pg-pcs">'+parts+'</span>'+chev()+'</button>';}).join("")+'</div>';}
+function pgNav(){const t=todayStr(),L=pgDays().filter(e=>e.date!==t).slice(0,14);
   return sideGrp("Progress",'<button class="sitem'+(pgDay===t?" on":"")+'" data-act="pgtoday" data-tip="Today">'+svg("cal")+'<span class="lbl">Today</span><small>'+(function(n){return n.t?n.d+"/"+n.t:"";})(pgCount(pgRec(t)))+'</small></button>',0)+
-   (L.length?sideGrp("Recent days",L.map(r=>{const lb=pgLabel(r.date,false),n=pgCount(r);
-     return '<button class="sitem'+(pgDay===r.date?" on":"")+'" data-act="pgday" data-v="'+esc(r.date)+'" data-tip="'+esc(lb.s)+'">'+svg("check")+'<span class="lbl">'+esc(lb.rel||lb.s)+'</span><small>'+(n.t?n.d+"/"+n.t:"")+'</small></button>';}).join(""),0):"");}
-function pgPalTabs(){return [["cal","Today","",()=>{pgDay=todayStr();goView("prog");}]].concat(pgDays().filter(r=>r.date!==todayStr()).slice(0,30).map(r=>{const lb=pgLabel(r.date,false);return ["cal",lb.rel||lb.s,lb.rel?lb.s:"",()=>{pgDay=r.date;goView("prog");}];}));}
+   (L.length?sideGrp("Recent days",L.map(e=>{const lb=pgLabel(e.date,false),n=pgCount(e.r);
+     return '<button class="sitem'+(pgDay===e.date?" on":"")+'" data-act="pgday" data-v="'+esc(e.date)+'" data-tip="'+esc(lb.s)+'">'+svg("check")+'<span class="lbl">'+esc(lb.rel||lb.s)+'</span><small>'+(n.t?n.d+"/"+n.t:"")+'</small></button>';}).join(""),0):"");}
+function pgPalTabs(){return [["cal","Today","",()=>{pgDay=todayStr();goView("prog");}]].concat(pgDays().filter(e=>e.date!==todayStr()).slice(0,30).map(e=>{const lb=pgLabel(e.date,false);return ["cal",lb.rel||lb.s,lb.rel?lb.s:"",()=>{pgDay=e.date;goView("prog");}];}));}
 function pgPalFind(ql,add){if(!ql)return;let n=0;
-  pgDays().forEach(r=>PG_CATS.forEach(c=>{const x=r[c[0]]||{};[["tasks","check"],["ideas","spark"]].forEach(([k,ic])=>(x[k]||[]).forEach(it=>{
-    if(n<25&&String(it.t||"").toLowerCase().includes(ql)){n++;const lb=pgLabel(r.date,false);add("What you wrote",ic,it.t,(lb.rel||lb.s)+" · "+c[4]+(k==="ideas"?" idea":""),()=>{pgDay=r.date;goView("prog");});}}));}));}
+  pgDays().forEach(e=>{const r=e.r||{},lb0=pgLabel(e.date,false);pgChats(e.date).forEach(i=>{if(n<25&&(String(i.t)+" "+String(i.title||"")).toLowerCase().includes(ql)){n++;add("What you wrote","pgChat",i.t,(lb0.rel||lb0.s)+" · Claude chat",()=>{pgDay=e.date;goView("prog");});}});PG_CATS.forEach(c=>{const x=r[c[0]]||{};[["tasks","check"],["ideas","spark"]].forEach(([k,ic])=>(x[k]||[]).forEach(it=>{
+    if(n<25&&String(it.t||"").toLowerCase().includes(ql)){n++;add("What you wrote",ic,it.t,(lb0.rel||lb0.s)+" · "+c[4]+(k==="ideas"?" idea":""),()=>{pgDay=e.date;goView("prog");});}}));});});}
 function pgFind(c,k,id){const r=pgRec(pgDay);if(!r||!r[c])return null;const arr=r[c][k]||[];const i=arr.findIndex(x=>x.id===id);return i<0?null:{r:r,arr:arr,i:i,it:arr[i]};}
 /* a save that happens on blur can land while a click is half done (mouse down on another button): wait for the click
    to finish before redrawing, or the redraw swallows it */
@@ -5020,6 +5031,7 @@ function pgHandle(a,t){
   if(a==="pgtoday"){pgDay=todayStr();goView("prog");return true;}
   if(a==="pgday"){pgDay=t.dataset.v||todayStr();goView("prog");return true;}
   if(a==="pgck"){const f=pgFind(t.dataset.c,"tasks",t.dataset.id);if(!f)return true;f.it.done=!f.it.done;f.it.doneAt=f.it.done?new Date().toISOString():"";pgSave(f.r);render();return true;}
+  if(a==="pgchatx"){const c=pgChatRec(pgDay);if(!c)return true;c.hidden=(c.hidden||[]).concat([t.dataset.v]);pgSave(c);render();return true;}
   if(a==="pgdel"){const f=pgFind(t.dataset.c,t.dataset.k,t.dataset.id);if(!f)return true;f.arr.splice(f.i,1);pgSave(f.r);render();return true;}
   return false;}
 function pgAdd(el,refocus){const v=(el.value||"").trim();el.value="";if(!v)return false;const c=el.dataset.c,k=el.dataset.k;if(!PG_CATS.some(x=>x[0]===c))return false;
