@@ -607,9 +607,11 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .radir{font-size:10.5px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:4px}.radir.s{background:var(--coral-t);color:var(--coral-text)}.radir.r{background:#E8EEF3;color:#3E5C76}
 .ramini4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 4px}.ramini4 div{background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;min-width:0}.ramini4 b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.ramini4 span{font-size:12px;color:var(--muted)}
 .rafoot{font-size:12px;color:var(--muted);margin:26px 2px 0;white-space:normal;line-height:1.55}
-.raentry{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 2px 0;font-size:12.5px;color:var(--muted)}
-.raechip{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 12px 3px 3px;cursor:pointer}
-.raechip:hover{border-color:var(--coral-btn);color:var(--coral-text)}.raechip .face{width:26px;height:26px;font-size:10px}.raechip b{font-weight:600}
+.btn.rabig{min-height:46px;padding:0 20px;font-size:15.5px;font-weight:650;border-radius:11px;gap:9px;box-shadow:var(--sh-2)}.btn.rabig svg.i{width:19px;height:19px}
+.scwhocol{display:flex;flex-direction:column;gap:10px;min-width:0;justify-content:center}.scwhocol .rabig{width:100%}
+.raentry{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--sh-1)}
+.raentry .scnm{flex:1;min-width:180px}.raentry .rabig{min-width:220px}
+@media (max-width:640px){.raentry .rabig,.rahead .rabig,.schead .rabig,.reccard .rabig{width:100%}}
 /* Day by day (the Nov 2 report) */
 .rawks{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin:0 0 16px}
 .rawk{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px 8px;display:flex;flex-direction:column;gap:6px;min-width:0;cursor:pointer}
@@ -2816,11 +2818,12 @@ function scHomeHTML(){
   const mon=logState.scWeek||goalMonday();
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">Rep scorecard</div>'+scWeekNavHTML(mon)+
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div><div class="scrows">'+SC_REPS.map(u=>{const s=scState(u,mon),t=teamById(u);
-    return '<div class="scrow"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
+    return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">Analysis '+chev()+'</span></button><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+'</div>'+
-   '<div class="raentry"><span>View analysis — every email and everything in the CRM:</span>'+RA_REPS.map(u=>'<button class="raechip" data-act="raopenrep" data-id="'+u+'">'+faceHTML(u)+'<b>'+esc(shortName(u))+'</b></button>').join("")+'</div>'+
-   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 90%+ of the pace</span><span style="--c:var(--st-warn)">Orange: 70–89%</span><span style="--c:var(--st-dang)">Red: under 70%</span><span>Judged on the days that are over · tap a name for the analysis</span></p></section>';
+     '<span class="scgo">The week '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+
+   RA_REPS.filter(u=>!SC_REPS.includes(u)).map(u=>{const t=teamById(u);
+    return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
+   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 90%+ of the pace</span><span style="--c:var(--st-warn)">Orange: 70–89%</span><span style="--c:var(--st-dang)">Red: under 70%</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
 }
 /* the Analysis page: one rep's week, email and CRM side by side, day by day (mirrors the Tim Ford report) */
 function scTime(iso){const s=String(iso||"");if(s.length<=10)return "";const d=new Date(s);return isNaN(d)?"":d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).replace(/\s?([AP])M/i,(m,x)=>x.toLowerCase());}
@@ -2857,7 +2860,7 @@ function viewRepWeek(u){
   if(!scAccess()||!SC_REPS.includes(u))return viewToday();
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
   let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.mix)+'</p></div>'+
-    scWeekNavHTML(mon)+'<button class="btn sm coral scnoprint" data-act="raopenrep" data-id="'+u+'">View analysis</button><button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
+    scWeekNavHTML(mon)+raBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
   h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(scTileHTML).join("")+'</div>';
   /* the last eight weeks: emails sent and CRM actions — tap one to open it */
   const mons=[];for(let i=7;i>=0;i--){const p=cur.split("-").map(Number);mons.push(ymd(new Date(p[0],p[1]-1,p[2]-7*i)));}
@@ -2915,6 +2918,8 @@ const RA_CAT={dist:["Distributor","#C4502A"],man:["Man-rep","#7A5AC8"],cust:["En
 const RA_SEL="mailbox,imid,rep,dir,at,subject,from_addr,from_name,to_addrs,cc_addrs,outside,preview,conv,kind,web,att";
 const RA={c:{},busy:{},body:{},bodyBusy:{},conv:{},convBusy:{},hits:{},hitBusy:{},open:{},byId:{},byK:{},n:0,model:null,err:""};
 function raAccess(u){return scAccess()&&RA_REPS.includes(u);}
+/* the big coral View analysis button (Max, 2026-11-10: "make the analysis button bigger") — scorecard rows, the week page, the teammate page */
+function raBigBtn(u,cls){return '<button class="btn coral rabig'+(cls?" "+cls:"")+'" data-act="raopenrep" data-id="'+u+'" title="Every email and everything in the CRM for '+esc(teamById(u).name)+'">'+svg("chart")+'View analysis</button>';}
 function raFirst(u){return teamById(u).name.split(" ")[0];}
 function raRange(){const T=todayStr(),r=logState.raRange||"14",f=r==="all"?RA_START:dAdd(T,-(+r-1));return {from:f<RA_START?RA_START:f,to:T,r:r};}
 function raMon(d){const p=d.split("-").map(Number),off=(new Date(p[0],p[1]-1,p[2]).getDay()+6)%7;return dAdd(d,-off);}
@@ -3682,7 +3687,7 @@ function viewTeammate(id){
   let h='<div class="reccard" style="margin-bottom:14px"><div class="row" style="gap:14px"><span class="av" style="background:'+t.c+';width:52px;height:52px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;flex:none">'+initials(t.name)+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:19px">'+esc(t.name)+'</p><p class="t2">'+esc(t.role)+(userRegion(id)?' · '+userRegion(id):'')+(REP_START[id]?' · since '+esc(fmtDay(REP_START[id])):'')+'</p></div>'+
    (GH_REPS.includes(id)&&profile(id)==="sales"?'<button class="btn sm" data-act="pipef" data-k="rep" data-v="'+id+'">Pipeline</button>':'')+
-   (raAccess(id)?'<button class="btn sm coral" data-act="raopenrep" data-id="'+id+'">View analysis</button>':'')+'</div>'+
+   (raAccess(id)?raBigBtn(id):'')+'</div>'+
    '<div class="facts"><div><b>Last active</b><span>'+esc(lastActive(id))+'</span></div><div><b>Today</b><span>'+fmtMins(uT.mins)+'</span></div><div><b>This week</b><span>'+fmtMins(uW.mins)+' · '+uW.days+' day'+(uW.days===1?"":"s")+'</span></div><div><b>All time</b><span>'+fmtMins(uAll.mins)+' · '+uAll.days+' day'+(uAll.days===1?"":"s")+(uAll.first?' · first seen '+esc(fmtDay(uAll.first)):'')+'</span></div></div></div>';
   h+=kpiRow([["Actions this week",wk.length,""],["This month",mo.length,""],["All time",all.length,Object.keys(kinds).map(k=>kinds[k]+" "+k).join(" · ")],["Follow-ups waiting",q.todo.length+q.old.length,q.old.length+" stale",q.old.length?"warn":""]]);
   h+='<section style="margin:4px 0 18px">'+weekStripHTML(id,logState.tmDay||T,{title:t.name.split(" ")[0]+"\u2019s week",nav:"tmnav",dayNav:"tmnav"})+'</section>';
