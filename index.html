@@ -569,6 +569,93 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
   .scli{grid-template-columns:52px minmax(0,1fr);row-gap:4px}.scli .scw,.scli .scx,.scli .sctag{grid-column:2}.scupd{margin-left:0;flex-basis:100%}}
 @media print{body.scprint .side,body.scprint .tbar,body.scprint .nav,body.scprint #fbdock,body.scprint .scnoprint,body.scprint #toast{display:none!important}
   body.scprint .work,body.scprint .console{display:block;margin:0;padding:0}body.scprint .content{max-width:none;padding:0}body.scprint .sct,body.scprint .scday{break-inside:avoid}body.scprint .sct{animation:none}}
+/* rep analysis — "View analysis" (the Tim Ford report layout, any rep) */
+.sheet.rawide{max-width:760px}
+.rahead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 10px}.rahead h2{margin:0;font-size:22px}.rahead .grow{min-width:200px}.rahead .t2{white-space:normal}
+.ratools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 6px}.ratools .seg{margin:0;flex-wrap:wrap;max-width:100%}
+.raupd{font-size:12.5px;color:var(--muted);margin:2px 2px 0}
+.ratabs{display:flex;flex-wrap:wrap;gap:2px;border-bottom:1px solid var(--line);margin:10px 0 18px}
+.ratabs button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 12px;font:inherit;font-size:14px;font-weight:550;color:var(--muted);white-space:nowrap;cursor:pointer}
+.ratabs button:hover{color:var(--ink)}.ratabs button.on{color:var(--ink);border-bottom-color:var(--coral-btn)}.ratabs .n{font-weight:500;color:var(--faint);margin-left:6px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.rakpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.rakpi{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0;box-shadow:var(--sh-1);transition:border-color .15s}
+.rakpi:hover{border-color:var(--line-3)}.rakpi b{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}.rakpi span{font-size:13px;color:var(--ink-2);margin-top:3px}.rakpi small{font-size:12px;color:var(--muted)}
+.rakpi.accent b{color:var(--coral-text)}.rakpi.good b{color:var(--ok-t)}.rakpi.bad b{color:var(--dang-t)}.rakpi.warn b{color:var(--warn-t)}
+.ragrid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.rastack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.racard0{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--sh-1);min-width:0}
+.rah2{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px}.rah2 h3{margin:0;font-size:16px;font-weight:650}.rah2>span{font-size:12.5px;color:var(--muted)}
+.raleg{display:inline-flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0}.raleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.rachart{display:block}.rachart text{font-family:var(--font)}.rachart .rabar{cursor:pointer}.rachart .rabar:hover rect[fill="transparent"]{fill:rgba(26,25,22,.04)}
+.rabars{display:flex;flex-direction:column}
+.rbr{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr) 64px;gap:10px;align-items:center;padding:6px 6px;border:0;background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer;border-radius:6px}
+.rbr:hover{background:var(--sunken)}.rbr .nm{font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}
+.rbr .trk{display:flex;height:14px;border-radius:3px;overflow:hidden;background:var(--line-2)}.rbr .trk i{display:block}.rbr .num{text-align:right;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.ralist{display:flex;flex-direction:column}
+.rali{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:12px;align-items:start;padding:10px 4px;border:0;border-top:1px solid var(--line-2);background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer;width:100%}
+.rali:first-child{border-top:0}.rali:hover{background:var(--surface-2)}.rali.static{cursor:default}.rali.static:hover{background:none}
+.rali .w{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.rali .w small{font-size:12px}.rali .w b.dang{color:var(--dang-t);font-size:18px}
+.rali .m{min-width:0;display:flex;flex-direction:column;gap:2px;font-size:14px}.rali .m b{font-weight:600}.rali .m small{color:var(--muted);font-size:12.5px}.rali .m small.d{overflow-wrap:anywhere}
+.rause{display:grid;grid-template-columns:86px minmax(0,1fr) 64px;gap:10px;align-items:start;width:100%;border:0;border-top:1px solid var(--line-2);background:none;font:inherit;font-size:13px;color:var(--ink);text-align:left;padding:8px 14px;cursor:pointer}
+.rause:first-child{border-top:0}.rause:hover{background:var(--surface-2)}.rause .m{color:var(--ink-2);min-width:0}.rause .m i{display:block;height:5px;border-radius:3px;background:#2D6CC0;margin-top:5px;opacity:.75}.rause .num{text-align:right;font-variant-numeric:tabular-nums}
+.racat{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:550;padding:2px 8px;border-radius:999px;white-space:nowrap;color:var(--c);background:color-mix(in srgb,var(--c) 11%,white)}
+.racat i{width:7px;height:7px;border-radius:50%;background:var(--c);display:inline-block}
+.rachips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.rachips .qchip small{opacity:.7;font-size:11.5px}
+.ratbl tbody tr{cursor:pointer}.ratbl tbody tr:hover{background:var(--surface-2)}
+.rasortb{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-align:inherit;white-space:nowrap}
+.rarate{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);min-width:100px}.rarate i{flex:1;height:6px;background:var(--line-2);border-radius:3px;overflow:hidden;min-width:40px}.rarate i b{display:block;height:100%;background:var(--ok-t)}
+.radir{font-size:10.5px;font-weight:650;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:4px}.radir.s{background:var(--coral-t);color:var(--coral-text)}.radir.r{background:#E8EEF3;color:#3E5C76}
+.ramini4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0 4px}.ramini4 div{background:var(--surface);border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;min-width:0}.ramini4 b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.ramini4 span{font-size:12px;color:var(--muted)}
+.rafoot{font-size:12px;color:var(--muted);margin:26px 2px 0;white-space:normal;line-height:1.55}
+.raentry{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 2px 0;font-size:12.5px;color:var(--muted)}
+.raechip{display:inline-flex;align-items:center;gap:7px;font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px 12px 3px 3px;cursor:pointer}
+.raechip:hover{border-color:var(--coral-btn);color:var(--coral-text)}.raechip .face{width:26px;height:26px;font-size:10px}.raechip b{font-weight:600}
+/* Day by day (the Nov 2 report) */
+.rawks{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px;margin:0 0 16px}
+.rawk{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px 8px;display:flex;flex-direction:column;gap:6px;min-width:0;cursor:pointer}
+.rawk:hover{border-color:var(--line-3)}.rawk.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}.rawk>b{font-size:12px;font-weight:650;white-space:nowrap}
+.ramini{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;height:42px;align-items:end;border-bottom:1px solid var(--line)}
+.ramini .col{display:flex;flex-direction:column-reverse;gap:1px;height:100%;justify-content:flex-start}.ramini i{display:block;border-radius:1.5px}
+.ramini .s{background:#C4502A}.ramini .r{background:#3E5C76;opacity:.6}.ramini .c{background:#7FA36F}
+.rawk .cnt{font-size:11.5px;color:var(--muted);display:flex;flex-direction:column;line-height:1.3}.rawk .cnt b{font-weight:650;color:var(--ink-2)}.rawk .cnt b.s{color:#B8481F}.rawk .cnt b.c{color:#3C6B35}
+.raled{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--sh-1)}
+.raph{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line-2)}.raph h3{margin:2px 0 0;font-size:18px}
+.ranav{display:flex;gap:6px;align-items:center}.ranav .ibtn[disabled]{opacity:.35;pointer-events:none}
+.radays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:12px 16px;border-bottom:1px solid var(--line-2)}
+.radb{font:inherit;text-align:left;color:var(--ink);border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:7px 8px 6px;display:flex;flex-direction:column;gap:2px;min-width:0;cursor:pointer}
+.radb .dn{font-size:11px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.radb .dd{font-size:19px;font-weight:700;line-height:1.05}
+.radb .dc{display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}.radb .dc b{font-weight:650}.radb .dc em{font-style:normal}.radb .dc .s b{color:#B8481F}.radb .dc .c b{color:#3C6B35}
+.radb.empty{opacity:.5}.radb.out{visibility:hidden}.radb.on{background:var(--ink);border-color:var(--ink);color:#fff}.radb.on .dn,.radb.on .dc,.radb.on .dc .s b,.radb.on .dc .c b{color:#fff}
+.ratools2{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line-2);background:var(--surface-2)}.ratools2 .chips{display:flex;gap:6px;flex-wrap:wrap}
+.radh{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding:14px 16px 6px}.radh h4{margin:0;font-size:14px;font-weight:700}.radh span{font-size:12.5px;color:var(--muted)}
+.rait{border-top:1px solid var(--line-2)}.raled>.rait:first-child{border-top:0}
+.rarow{display:grid;grid-template-columns:62px 92px minmax(0,1fr) auto;gap:12px;align-items:start;width:100%;padding:10px 16px;background:none;border:0;text-align:left;font:inherit;color:var(--ink);cursor:pointer}
+.rarow:hover{background:var(--surface-2)}.rarow[aria-expanded="true"]{background:var(--surface-2)}
+.ratm{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;padding-top:2px}
+.rabadge{display:inline-flex;align-items:center;font-size:11.5px;font-weight:650;border-radius:6px;padding:3px 7px;white-space:nowrap;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.rabadge.s{background:var(--coral-t);color:var(--coral-text)}.rabadge.r{background:#E8EEF3;color:#3E5C76}.rabadge.c{background:#EAF1E7;color:#3C6B35}.rabadge.x{background:var(--gray-b);color:var(--gray-t)}.rabadge.b{background:var(--dang-b);color:var(--dang-t)}
+.ramain{min-width:0;display:flex;flex-direction:column}
+.rawho{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rawho b{color:var(--ink-2);font-weight:600}
+.rasubj{font-size:14.5px;font-weight:600;margin-top:1px;overflow-wrap:anywhere}
+.rasnip{font-size:13px;color:var(--muted);margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.ratags{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}.ratag{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
+.raclip{display:inline-flex;color:var(--muted)}.raclip .i{width:15px;height:15px}
+.raopen{padding:2px 16px 16px 182px}
+.racd{background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.rahdr{display:grid;grid-template-columns:56px minmax(0,1fr);gap:4px 10px;font-size:13px;margin:0}.rahdr dt{color:var(--muted)}.rahdr dd{margin:0;overflow-wrap:anywhere}
+.rabody{white-space:pre-wrap;font-size:14px;line-height:1.55;max-width:78ch;overflow-wrap:anywhere}
+.raq summary{cursor:pointer;font-size:12.5px;color:var(--muted)}.raq .rabody{color:var(--ink-2);font-size:13px;border-left:2px solid var(--line);padding-left:12px;margin-top:8px}
+.rathr h5{margin:0 0 6px;font-size:11.5px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rathr button{display:flex;width:100%;text-align:left;border:0;background:none;padding:5px 0;font:inherit;font-size:13px;border-top:1px dashed var(--line);color:var(--ink);cursor:pointer;min-width:0}
+.rathr button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rathr button:hover span{text-decoration:underline}.rathr .cur{font-weight:700}
+.raacts{display:flex;gap:8px;flex-wrap:wrap}
+.sheet .rarow{grid-template-columns:76px minmax(0,1fr);gap:4px 10px;padding:10px 12px}.sheet .rarow .rabadge{grid-column:2}.sheet .rarow .ramain,.sheet .rarow .ratags{grid-column:1/-1}.sheet .rarow .ratags{justify-content:flex-start}.sheet .raopen{padding:2px 12px 14px}
+@media (max-width:1100px){.ragrid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.rakpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.rarow{grid-template-columns:64px minmax(0,1fr);gap:4px 10px;padding:10px 14px}.rarow .rabadge{grid-column:2;grid-row:1}.rarow .ramain{grid-column:1/-1}.rarow .ratags{grid-column:1/-1;justify-content:flex-start}.raopen{padding:2px 12px 14px}
+  .rbr{grid-template-columns:minmax(0,110px) minmax(0,1fr) 54px}.rali{grid-template-columns:62px minmax(0,1fr)}.rali>.pill{grid-column:2;justify-self:start}.ramini4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .radays{gap:4px;padding:10px}.radb{padding:6px 5px}.radb .dd{font-size:16px}.radb .dc em{display:none}.rakpi b{font-size:24px}}
+@media print{body.scprint .rawks,body.scprint .radays,body.scprint .ratools,body.scprint .ratools2{display:none!important}body.scprint .racard0,body.scprint .raled{box-shadow:none;break-inside:auto}}
 .list>.stat.gline{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:10px 14px;font:inherit;font-size:13.5px;color:var(--ink-2);cursor:pointer;text-align:left}
 .list>.stat.gline+.stat.gline{border-top:1px solid var(--line)}.list>.stat.gline:hover{background:var(--hover)}.list>.stat.gline b{font-weight:650;color:var(--ink)}.list>.stat.gline small{color:var(--muted);font-size:12px;margin-left:4px}
 .ghome{margin-bottom:22px}
@@ -1317,7 +1404,7 @@ function chev(){return svg("chevR","chev");}
 function toast(m,undo){const t=document.getElementById("toast");t.textContent=m;
   if(undo){const b=document.createElement("button");b.type="button";b.className="tundo";b.textContent="Undo";b.onclick=e=>{e.stopPropagation();t.classList.remove("show");undo();};t.appendChild(b);}
   t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?5000:1900);}
-function openSheet(html){document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");try{fbUpdate();}catch(e){}}
+function openSheet(html){document.getElementById("sheet").classList.remove("rawide");document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");try{fbUpdate();}catch(e){}}
 function closeSheet(){document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}}
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
@@ -1660,7 +1747,7 @@ function render(){
   if(view==="invoicing"&&!invAccess())view="today";
   if(view==="team"&&!teamPageFor(USER))view="today";
   if(ownOnly()&&TEAM_VIEWS.includes(view))view="today";
-  if(view==="repweek"&&!scAccess())view="today";
+  if((view==="repweek"||view==="repan")&&!scAccess())view="today";
   if(ownOnly()&&view==="fcast"){view="opps";oppView="fcast";}
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   /* Future CRM: Max only (anyone else holding ?hub=future just gets the CRM), and Pipeline is all it shows */
@@ -1672,13 +1759,14 @@ function render(){
   if(FUT&&!logState.wbHealed)setTimeout(wbHeal,0);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={repweek:(curRep?teamById(curRep).name:"Rep")+" — the week",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={repweek:(curRep?teamById(curRep).name:"Rep")+" — the week",repan:(curRep?teamById(curRep).name:"Rep")+" — analysis",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
     team:goalsOn()?(ownOnly()?"Plan your week and log as you go — green 90%+, orange 70–89%, red under 70%":"This week’s goals for every rep — tap a name for their card"):(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
     teammate:(curRep?"Everything they've logged, and their time in the CRM":""),
     repweek:"Emails and CRM work, day by day — tap any line",
+    repan:"Every outside email and everything in the CRM — tap any line",
     insight:(insightTab==="reports"?"Run, sort & export":insightTab==="insights"?"Units bought & demos picked up, by distributor":"The channel at a glance"),
     campaigns:(function(){const cs=(DB.campaigns||[]);return cs.length?cs.length+" campaign"+(cs.length>1?"s":"")+" · "+cs.reduce((s,c)=>s+(c.leads||[]).length,0)+" contacts":"Your campaigns, their materials and the leads they produced";})(),
     accounts:(userRegion(USER)?userRegion(USER)+" territory":"All accounts"),
@@ -1718,6 +1806,7 @@ function render(){
   else if(view==="team")body=viewTeam();
   else if(view==="teammate")body=teamAccess()?viewTeammate(curRep):viewToday();
   else if(view==="repweek")body=viewRepWeek(curRep);
+  else if(view==="repan")body=viewRepAnalysis(curRep);
   else if(view==="confleads")body=viewConfLeads();
   else if(view==="camp"||view==="campaigns")body=viewCampaignsHub();
   else if(view==="leads")body=viewLeads();
@@ -1800,7 +1889,7 @@ function goBack(fb){
   }
   restoreNav(st);render();window.scrollTo(0,st.scroll||0);
 }
-function navOn(v){if(v==="team"&&view==="teammate")return true;if(v==="today"&&view==="repweek")return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
+function navOn(v){if(v==="team"&&view==="teammate")return true;if(v==="today"&&(view==="repweek"||view==="repan"))return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
 function typeLabel(t){return {distributor:"Distributor",manrep:"Man-rep",partner:"Partner",enduser:"End-user"}[t]||"Account";}
 function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.role;}
@@ -2146,7 +2235,7 @@ function profile(u){u=u||USER;if(u==="laresa")return "billing";if(u==="kellan")r
    team views (Team, a teammate's page, Insight) are closed to them (Max, 2026-10-20: "none of the sales people can
    see the KPIs of other people, just theirs") */
 function ownOnly(){return profile()==="sales";}
-const TEAM_VIEWS=["teammate","repweek","insight","dash","reports","report","insights"]; /* Team itself opens for a rep as My KPIs */
+const TEAM_VIEWS=["teammate","repweek","repan","insight","dash","reports","report","insights"]; /* Team itself opens for a rep as My KPIs */
 function railGroups(u){
   const p=profile(u);
   /* "dumb simple: Home — Activity — Pipeline — Leads — Quotes" (Max, 2026-10-16 evening) */
@@ -2730,6 +2819,7 @@ function scHomeHTML(){
     return '<div class="scrow"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
      '<span class="scgo">Analysis '+chev()+'</span></button><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+'</div>'+
+   '<div class="raentry"><span>View analysis — every email and everything in the CRM:</span>'+RA_REPS.map(u=>'<button class="raechip" data-act="raopenrep" data-id="'+u+'">'+faceHTML(u)+'<b>'+esc(shortName(u))+'</b></button>').join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 90%+ of the pace</span><span style="--c:var(--st-warn)">Orange: 70–89%</span><span style="--c:var(--st-dang)">Red: under 70%</span><span>Judged on the days that are over · tap a name for the analysis</span></p></section>';
 }
 /* the Analysis page: one rep's week, email and CRM side by side, day by day (mirrors the Tim Ford report) */
@@ -2767,7 +2857,7 @@ function viewRepWeek(u){
   if(!scAccess()||!SC_REPS.includes(u))return viewToday();
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
   let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.mix)+'</p></div>'+
-    scWeekNavHTML(mon)+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
+    scWeekNavHTML(mon)+'<button class="btn sm coral scnoprint" data-act="raopenrep" data-id="'+u+'">View analysis</button><button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
   h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(scTileHTML).join("")+'</div>';
   /* the last eight weeks: emails sent and CRM actions — tap one to open it */
   const mons=[];for(let i=7;i>=0;i--){const p=cur.split("-").map(Number);mons.push(ymd(new Date(p[0],p[1]-1,p[2]-7*i)));}
@@ -2809,6 +2899,404 @@ function scActSheet(id){
    (c?'<div><b>Company</b><span>'+esc(c.name)+' · '+esc(typeLabel(c.type))+'</span></div>':a.company?'<div><b>Company</b><span>'+esc(a.company)+'</span></div>':'')+
    (a.outcome?'<div><b>Outcome</b><span>'+esc(a.outcome)+'</span></div>':'')+'</div><div class="scprev">'+esc(a.note||"No note")+'</div>');
 }
+/* ---------- Rep analysis — "View analysis" (Max, 2026-11-10: "the same see-everything-he's-doing layout inside the rep view … for
+   every rep; email content is private: admins only"). view="repan", curRep = johnm | john | tim | kellan; Max, Hannah, Jamie only
+   (scAccess(); RLS on rep_mail enforces it too). Laid out like _local/Tim_Ford_Dashboard_2026-11-06.html — Overview (KPIs, every
+   day, organizations, needs a follow-up, coming up, deals) / Organizations / Conversations (one row per outside person) / All email /
+   CRM / Calendar, search + drawers — plus the Nov 2 report's Day by day (week ribbon → days → every email and CRM entry; tap one for
+   the full text and its thread). Email rows come from public.rep_mail for the picked range without their text; the text is fetched
+   when an email is opened (raBodyGet), and the search box also asks the server which emails' text matches (raBodySearch). ---------- */
+const RA_REPS=["johnm","john","tim","kellan"];
+const RA_MAILBOX={johnm:"johnmorrison@goldenhourmedical.com",john:"john@goldenhourmedical.com",tim:"timford@goldenhourmedical.com",kellan:"kellan@goldenhourmedical.com"};
+const RA_START="2026-09-01"; /* rep_mail starts here */
+const RA_RANGES=[["14","2 weeks"],["30","30 days"],["56","8 weeks"],["all","Since Sep 1"]];
+const RA_COLS={s:"#C4502A",r:"#3E5C76",c:"#7FA36F"};
+const RA_CAT={dist:["Distributor","#C4502A"],man:["Man-rep","#7A5AC8"],cust:["End user / customer","#2D6CC0"],lead:["Lead","#2F7D4F"],other:["Not in the CRM","#8C7A4A"]};
+const RA_SEL="mailbox,imid,rep,dir,at,subject,from_addr,from_name,to_addrs,cc_addrs,outside,preview,conv,kind,web,att";
+const RA={c:{},busy:{},body:{},bodyBusy:{},conv:{},convBusy:{},hits:{},hitBusy:{},open:{},byId:{},byK:{},n:0,model:null,err:""};
+function raAccess(u){return scAccess()&&RA_REPS.includes(u);}
+function raFirst(u){return teamById(u).name.split(" ")[0];}
+function raRange(){const T=todayStr(),r=logState.raRange||"14",f=r==="all"?RA_START:dAdd(T,-(+r-1));return {from:f<RA_START?RA_START:f,to:T,r:r};}
+function raMon(d){const p=d.split("-").map(Number),off=(new Date(p[0],p[1]-1,p[2]).getDay()+6)%7;return dAdd(d,-off);}
+function raLong(d){const p=d.split("-").map(Number);return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});}
+function raFlip(n){const m=/^([^,]+),\s*(.+)$/.exec(String(n||"").trim());return m?m[2]+" "+m[1]:String(n||"").trim();}
+function raAct(id){return (DB.activities||[]).find(a=>a&&a.id===id)||null;}
+/* the rep's emails for the range (all kinds), loaded once and kept 10 minutes; null while loading */
+function raRows(u){const g=raRange(),k=u+"|"+g.from+"|"+g.to,c=RA.c[k];
+  if(!(c&&Date.now()-c.at<10*60000)&&!RA.busy[k]){RA.busy[k]=true;raLoad(u,g.from,g.to,k);}
+  return c?c.rows:null;}
+function raKey(r){const id=r.mailbox+"|"+r.imid,o=RA.byId[id];r._k=o?o._k:"e"+(++RA.n);RA.byId[id]=r;RA.byK[r._k]=r;return r;}
+function raUtc(d,plus){const p=d.split("-").map(Number);return new Date(p[0],p[1]-1,p[2]+(plus||0)).toISOString();}
+async function raLoad(u,from,to,k){
+  try{let all=[];
+    for(let off=0;;off+=1000){
+      const r=await supa("/rest/v1/rep_mail?select="+RA_SEL+"&rep=eq."+encodeURIComponent(u)+"&at=gte."+encodeURIComponent(raUtc(from))+
+        "&at=lt."+encodeURIComponent(raUtc(to,1))+"&order=at.asc&limit=1000&offset="+off);
+      if(!r.ok)throw new Error("rep_mail "+r.status);
+      const j=await r.json();all=all.concat(j);if(j.length<1000)break;}
+    all.forEach(raKey);RA.c[k]={rows:all,at:Date.now()};RA.err="";
+    if(!RM.run){const r2=await supa("/rest/v1/rep_mail_runs?select=at,ok,added,src,note&order=at.desc&limit=10");
+      if(r2.ok){const runs=await r2.json();RM.run=runs.find(x=>x.src==="sync")||null;RM.last=runs[0]||null;}}
+  }catch(e){RA.c[k]={rows:[],at:Date.now()-9*60000};RA.err="The emails didn’t load — refresh in a minute.";}
+  RA.busy[k]=false;RA.model=null;
+  if(view==="repan")render();
+}
+/* the email's full text, fetched when it's opened */
+function raBodyGet(r){const k=r._k;if(k in RA.body)return RA.body[k];
+  if(!RA.bodyBusy[k]){RA.bodyBusy[k]=true;
+    supa("/rest/v1/rep_mail?select=body,att&mailbox=eq."+encodeURIComponent(r.mailbox)+"&imid=eq."+encodeURIComponent(r.imid)+"&limit=1")
+      .then(x=>x.ok?x.json():[]).catch(()=>[]).then(j=>{RA.body[k]=(j&&j[0]&&j[0].body)||"";RA.bodyBusy[k]=false;raRefresh(k);});}
+  return null;}
+/* every email in the same thread (this rep's mailbox), wherever it falls in time */
+function raConvGet(r){const c=r.conv;if(!c)return [r];
+  if(RA.conv[c])return RA.conv[c];
+  if(!RA.convBusy[c]){RA.convBusy[c]=true;
+    supa("/rest/v1/rep_mail?select="+RA_SEL+"&rep=eq."+encodeURIComponent(r.rep)+"&conv=eq."+encodeURIComponent(c)+"&order=at.asc&limit=200")
+      .then(x=>x.ok?x.json():[]).catch(()=>[]).then(j=>{RA.conv[c]=(j&&j.length?j:[r]).map(raKey);RA.convBusy[c]=false;raRefresh(r._k);});}
+  const m=RA.model;return m?m.rows.filter(x=>x.conv===c):[r];}
+/* the search box also matches the text of the email (server side) */
+function raBodySearch(u,q){const g=raRange(),k=u+"|"+g.from+"|"+g.to+"|"+q;
+  if(RA.hits[k])return RA.hits[k];
+  if(q.length>=3&&!RA.hitBusy[k]){RA.hitBusy[k]=true;
+    supa("/rest/v1/rep_mail?select=mailbox,imid&rep=eq."+encodeURIComponent(u)+"&at=gte."+encodeURIComponent(raUtc(g.from))+"&at=lt."+encodeURIComponent(raUtc(g.to,1))+
+      "&body=ilike."+encodeURIComponent("*"+q.replace(/[*,()]/g," ")+"*")+"&limit=1000")
+      .then(x=>x.ok?x.json():[]).catch(()=>[]).then(j=>{RA.hits[k]=new Set((j||[]).map(x=>x.mailbox+"|"+x.imid));RA.hitBusy[k]=false;
+        if(view==="repan"&&String(logState.raQ||"").trim().toLowerCase()===q)raRedraw();});}
+  return null;}
+/* who an outside address is: a CRM contact (rmWho) or a lead by email, else the company by domain */
+let RAL=null;
+function raLeadIdx(){const n=(DB.leads||[]).length+":"+(DB.confLeads||[]).length;if(RAL&&RAL.n===n)return RAL;
+  const em={};(DB.leads||[]).concat(DB.confLeads||[]).forEach(l=>{const e=String(l&&l.email||"").trim().toLowerCase();if(e.includes("@")&&!em[e])em[e]=l;});
+  RAL={n:n,em:em};return RAL;}
+function raWho(addr){addr=String(addr||"").trim().toLowerCase();
+  const w=rmWho(addr),l=w.p?null:(raLeadIdx().em[addr]||null),dom=addr.split("@")[1]||"",t=w.c?w.c.type:"";
+  const cat=t==="distributor"?"dist":(t==="manrep"||t==="partner")?"man":w.c?"cust":l?"lead":"other";
+  return {addr:addr,p:w.p,c:w.c,l:l,cat:cat,name:w.p?w.p.name:(l&&l.name)||"",org:w.c?w.c.name:(l&&l.company)?l.company:(dom&&!FREE_MAIL.has(dom)?dom:"")};}
+function raCatChip(c){const x=RA_CAT[c]||RA_CAT.other;return '<span class="racat" style="--c:'+x[1]+'"><i></i>'+x[0]+'</span>';}
+const RA_ST={two:["Two-way","ok"],none:["No reply yet","warn"],ooo:["No reply (out of office)","gray"],bounce:["Bounced","dang"],rep:["Waiting on","coral"],in:["Inbound only","info"]};
+function raStLbl(s,u){return s==="rep"?"Waiting on "+raFirst(u):RA_ST[s][0];}
+function raStChip(s,u){return '<span class="pill '+RA_ST[s][1]+'">'+esc(raStLbl(s,u))+'</span>';}
+/* everything the rep did in the CRM in the range: activities (lead touches and conference calls log one too), conference calls
+   logged without one, leads added / categorized / handed off, to-dos, quotes and deals */
+function raCrm(u,from,to){
+  const out=[],inR=d=>!!d&&d>=from&&d<=to,T=x=>String(x||"").length<=10?x+"T12:00:00":x;
+  const acts=calActs(u,from,to),ref={};
+  acts.forEach(a=>{const c=actCo(a);if(a.refId)ref[a.refId+"|"+localDay(a.date)]=1;
+    out.push({t:T(a.date),day:localDay(a.date),allday:String(a.date).length<=10,area:a.leadId?"Lead":(a.refId&&a.conf?"Conference lead":"Activity"),
+      what:actLabel(a.type,a)+(a.vm?" · left voicemail":""),person:actWhoName(a),co:c?c.name:(a.company||""),det:a.note||"",pid:a.pid||null,act:a.id});});
+  (DB.confLeads||[]).forEach(l=>{if(!l)return;(l.calls||[]).forEach(c=>{const d=localDay(c.at);if(c.by!==u||!inR(d)||ref[l.id+"|"+d])return;
+    out.push({t:c.at,day:d,area:"Conference lead",what:"Call"+(c.out?" · "+callOutLabel(c.out):""),person:l.name||"",co:l.company||"",det:c.note||"",conf:l.conf||""});});});
+  const CAT={};LEAD_CATS.forEach(x=>{CAT[x[0]]=x[1];});
+  (DB.leads||[]).forEach(l=>{if(!l)return;const base={person:l.name||"",co:l.company||"",lead:l.id};
+    if(l.by===u&&inR(localDay(l.createdAt)))out.push(Object.assign({t:l.createdAt,day:localDay(l.createdAt),area:"Lead",what:"Lead added",det:[l.title,l.conf,l.state].filter(Boolean).join(" · ")},base));
+    if(l.catBy===u&&inR(localDay(l.catAt)))out.push(Object.assign({t:l.catAt,day:localDay(l.catAt),area:"Lead",what:"Categorized: "+(CAT[l.cat]||l.cat||""),det:""},base));
+    if(l.handedBy===u&&inR(localDay(l.handedAt)))out.push(Object.assign({t:l.handedAt,day:localDay(l.handedAt),area:"Lead",what:"Handed to "+(l.assignee?shortName(l.assignee):"sales"),det:""},base));
+    (l.touches||[]).forEach(t=>{if(t&&t.by===u&&!t.actId&&inR(t.date))out.push(Object.assign({t:T(t.date),day:t.date,allday:true,area:"Lead",what:titlecase(t.method||"note"),det:t.note||""},base));});});
+  (DB.tasks||[]).forEach(t=>{if(!t)return;const by=t.createdBy||t.owner,dn=t.completedAt||t.doneAt;
+    if(by===u&&inR(localDay(t.createdAt)))out.push({t:t.createdAt,day:localDay(t.createdAt),area:"To-do",what:"To-do added"+(t.due?" · due "+goalMD(t.due):""),person:"",co:"",det:t.title||""});
+    if(t.done&&dn&&(t.doneBy||t.owner)===u&&inR(localDay(dn)))out.push({t:dn,day:localDay(dn),area:"To-do",what:"To-do done",person:"",co:"",det:t.title||""});});
+  quotesAll().forEach(q=>{const at=q.createdAt||T(q.date);if(q.by===u&&inR(localDay(at)))out.push({t:at,day:localDay(at),area:"Quote",what:"Quote "+q.no+" · "+money(quoteTotal(q)),person:q.contactName||"",co:q.account||"",det:quoteItemsSummary(q)});});
+  (DB.opps||[]).forEach(o=>{if(o&&o.ghRep===u&&inR(localDay(o.createdAt)))out.push({t:o.createdAt,day:localDay(o.createdAt),area:"Deal",what:"Deal added · "+money(o.amount||0),person:"",co:oppAcctLabel(o),det:o.name||"",opp:o.id});});
+  out.sort((a,b)=>String(a.t)<String(b.t)?-1:String(a.t)>String(b.t)?1:0);
+  out.forEach((c,i)=>{c.k="c"+i;});
+  return out;
+}
+/* people, organizations and statuses for the range */
+function raModel(u){
+  const rows=raRows(u);if(!rows)return null;
+  const g=raRange(),key=[u,g.from,g.to,rows.length,(DB.activities||[]).length,(DB.people||[]).length,(DB.companies||[]).length,(DB.leads||[]).length,(DB.tasks||[]).length,(DB.quotes||[]).length].join("|");
+  if(RA.model&&RA.model.key===key)return RA.model;
+  const people={};
+  const get=a=>{a=String(a||"").trim().toLowerCase();if(!a.includes("@"))return null;
+    if(!people[a]){const w=raWho(a);people[a]={addr:a,w:w,name:w.name,cat:w.cat,org:w.org,msgs:[],sent:0,recv:0,bounced:false,ooo:false,inName:""};}return people[a];};
+  rows.forEach(r=>{(r.dir==="out"||r.kind==="bounce"?(r.outside||[]):[r.from_addr]).forEach(a=>{const p=get(a);if(!p)return;p.msgs.push(r);
+    if(r.kind==="bounce")p.bounced=true;else if(r.kind==="auto"){if(r.dir==="in")p.ooo=true;}
+    else if(!r.kind){if(r.dir==="out")p.sent++;else{p.recv++;if(r.from_name&&!p.inName)p.inName=r.from_name;}}});});
+  const crm=raCrm(u,g.from,g.to);
+  /* the rep's own personal / test addresses aren't outside people (the Tim report's rule) */
+  const me=teamById(u).name.toLowerCase(),mp=me.split(" "),self=p=>{const n=String(p.w.name||raFlip(p.inName)||"").toLowerCase(),loc=p.addr.split("@")[0];
+    return n===me||(loc.includes(mp[0])&&loc.includes(mp[mp.length-1]));};
+  const P=Object.values(people).filter(p=>(p.sent||p.recv||p.bounced)&&!self(p));
+  Object.values(people).forEach(p=>{if(!P.includes(p))delete people[p.addr];});
+  P.forEach(p=>{const rl=p.msgs.filter(m=>!m.kind),last=rl[rl.length-1]||p.msgs[p.msgs.length-1];
+    p.last=last.at;p.lastR=last;p.name=p.name||raFlip(p.inName)||p.addr;
+    if(!p.org)p.org=p.name===p.addr?p.addr:p.name+" (personal email)";
+    p.status=p.bounced?"bounce":(p.sent&&!last.kind&&last.dir==="in")?"rep":(p.sent&&p.recv)?"two":p.sent?(p.ooo?"ooo":"none"):"in";
+    p.inCrm=p.w.p?"Contact":p.w.l?"Lead":"";
+    p.crm=p.w.p?crm.filter(c=>c.pid===p.w.p.id).length:0;});
+  const orgs={};
+  P.forEach(p=>{const o=orgs[p.org]||(orgs[p.org]={name:p.org,cat:p.cat,c:null,people:[],sent:0,recv:0,last:"",reached:0,two:0,bounced:0});
+    if(p.w.c&&!o.c){o.c=p.w.c;o.cat=p.cat;}
+    o.people.push(p);o.sent+=p.sent;o.recv+=p.recv;if(p.last>o.last)o.last=p.last;if(p.sent)o.reached++;if(p.sent&&p.recv)o.two++;if(p.bounced)o.bounced++;});
+  const O=Object.values(orgs);
+  O.forEach(o=>{o.crm=crm.filter(c=>c.act&&c.co&&c.co===o.name).length;o.rate=o.reached?o.two/Math.max(1,o.reached-o.bounced):null;});
+  const items=rows.map(r=>({k:r._k,mail:true,r:r,t:r.at,day:localDay(r.at)})).concat(crm.map(c=>({k:c.k,c:c,t:c.t,day:c.day}))).sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0);
+  const byDay={};items.forEach(it=>{(byDay[it.day]=byDay[it.day]||[]).push(it);});
+  const byK={};items.forEach(it=>{byK[it.k]=it;});
+  const real=rows.filter(r=>!r.kind&&(r.dir==="out"?(r.outside||[]).some(a=>people[String(a).toLowerCase()]):!!people[String(r.from_addr||"").toLowerCase()]));
+  RA.model={key:key,u:u,g:g,rows:rows,real:real,people:people,P:P,O:O,orgs:orgs,crm:crm,items:items,byDay:byDay,byK:byK};
+  return RA.model;
+}
+/* ----- search ----- */
+function raQ(){return String(logState.raQ||"").trim().toLowerCase();}
+function raHit(r,q,hits){if(!q)return true;if(hits&&hits.has(r.mailbox+"|"+r.imid))return true;
+  const m=RA.model,ads=(r.outside||[]).concat([r.from_addr]);
+  return [r.subject,r.preview,r.from_name].concat(ads).concat(ads.map(a=>{const p=m&&m.people[String(a||"").toLowerCase()];return p?p.name+" "+p.org:"";})).join(" ").toLowerCase().includes(q);}
+function raCHit(c,q){return !q||[c.area,c.what,c.person,c.co,c.det,c.conf].join(" ").toLowerCase().includes(q);}
+function raItHit(it,q,hits){return it.mail?raHit(it.r,q,hits):raCHit(it.c,q);}
+/* ----- one line in a ledger (email or CRM entry); tap to open it in place ----- */
+function raWhoLine(it){
+  if(!it.mail){const c=it.c;return '<b>'+esc(c.person||c.co||"—")+'</b>'+(c.person&&c.co?' · '+esc(c.co):'');}
+  const r=it.r,m=RA.model,nm=a=>{const p=m&&m.people[String(a||"").toLowerCase()];return p?p.name:(raWho(a).name||a);},
+    co=a=>{const p=m&&m.people[String(a||"").toLowerCase()];return p?p.org:raWho(a).org;};
+  if(r.dir==="out"||r.kind==="bounce"){const o=r.outside||[];return (r.kind==="bounce"?"Didn’t reach ":"To ")+'<b>'+esc(o.slice(0,3).map(nm).join(", ")||"(no one outside)")+'</b>'+(o.length>3?' +'+(o.length-3):'')+(o[0]&&co(o[0])?' · '+esc(co(o[0])):'');}
+  return 'From <b>'+esc(nm(r.from_addr)||r.from_name||r.from_addr)+'</b>'+(co(r.from_addr)?' · '+esc(co(r.from_addr)):'');}
+function raBadge(it){
+  if(!it.mail)return '<span class="rabadge c">'+esc(it.c.area==="Activity"?"CRM":it.c.area)+'</span>';
+  const r=it.r;if(r.kind==="bounce")return '<span class="rabadge b">Bounced</span>';
+  if(r.kind)return '<span class="rabadge x">'+(r.kind==="calendar"?"Calendar":"Auto-reply")+'</span>';
+  return r.dir==="out"?'<span class="rabadge s">Sent</span>':'<span class="rabadge r">Received</span>';}
+function raRowHTML(it,showDay){
+  const open=!!RA.open[it.k],c=it.c,r=it.r;
+  const time=(showDay?goalMD(it.day)+(it.mail||!c.allday?" ":""):"")+(it.mail?scTime(r.at):(c.allday?(showDay?"":"Day"):scTime(c.t)));
+  let tags="";
+  if(it.mail){const a=(r.dir==="out"||r.kind==="bounce"?(r.outside||[]):[r.from_addr])[0],p=RA.model&&RA.model.people[String(a||"").toLowerCase()];
+    if(r.att)tags+='<span class="raclip" title="Has an attachment">'+svg("file")+'</span>';
+    if(p)tags+=raCatChip(p.cat);}
+  else if(c.area!=="Activity")tags+='<span class="ratag">'+esc(c.what.split(" · ")[0])+'</span>';
+  const title=it.mail?(r.subject||"(no subject)"):c.what,snip=it.mail?String(r.preview||"").replace(/\s+/g," ").trim():String(c.det||"").replace(/\s+/g," ").trim();
+  return '<div class="rait" data-rak="'+esc(it.k)+'" data-sd="'+(showDay?1:0)+'"><button class="rarow" data-act="raopen" data-id="'+esc(it.k)+'" aria-expanded="'+open+'"><span class="ratm">'+esc(time)+'</span>'+raBadge(it)+
+    '<span class="ramain"><span class="rawho">'+raWhoLine(it)+'</span><span class="rasubj">'+esc(title)+'</span>'+(open||!snip?'':'<span class="rasnip">'+esc(snip.slice(0,240))+'</span>')+'</span>'+
+    '<span class="ratags">'+tags+'</span></button>'+(open?'<div class="raopen">'+(it.mail?raMailDetailHTML(r):raCrmDetailHTML(c))+'</div>':'')+'</div>';}
+function raAddrLine(arr){return (arr||[]).map(a=>{const w=raWho(a),p=RA.model&&RA.model.people[String(a||"").toLowerCase()],nm=(p&&p.name!==a?p.name:w.name)||"";
+  return esc(nm&&nm!==a?nm+" <"+a+">":a)+(w.p||w.l||w.c?' <small class="muted">· '+esc(w.org||"")+(w.p?"":w.l?" · lead":"")+'</small>':'');}).join("<br>");}
+function raSplitQuote(t){const m=/\n(?:-{2,}\s*Original Message\s*-{2,}|_{8,}\s*\n\s*From:|From: [^\n]+\n\s*Sent: |On [^\n]{6,200}wrote:\s*\n)/i.exec("\n"+t);
+  if(!m||m.index<2)return [t,""];return [t.slice(0,m.index-1).trimEnd(),t.slice(m.index-1).trim()];}
+function raMailDetailHTML(r){
+  const u=r.rep,fn=raFirst(u),b=raBodyGet(r),when=new Date(r.at).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"});
+  let h='<div class="racd"><dl class="rahdr"><dt>From</dt><dd>'+(r.dir==="out"?esc(teamById(u).name+" <"+r.from_addr+">"):r.kind==="bounce"?esc(r.from_name||"Microsoft Outlook")+' <small class="muted">· delivery-failure notice</small>':raAddrLine([r.from_addr]))+'</dd>'+
+    '<dt>To</dt><dd>'+(raAddrLine(r.to_addrs)||"—")+'</dd>'+((r.cc_addrs||[]).length?'<dt>Cc</dt><dd>'+raAddrLine(r.cc_addrs)+'</dd>':'')+
+    '<dt>Date</dt><dd>'+esc(when)+(r.att?' · has an attachment':'')+'</dd>'+(r.kind?'<dt>Kind</dt><dd>'+(r.kind==="bounce"?"Delivery failure — "+esc((r.outside||[]).join(", "))+" didn’t get the email":r.kind==="calendar"?"Calendar invite or reply (not counted)":"Automatic reply (not counted)")+'</dd>':'')+'</dl>';
+  if(b===null)h+='<div class="rabody">'+esc(r.preview||"")+'</div><p class="t2" style="margin:0">Loading the whole email…</p>';
+  else if(!b)h+='<div class="rabody">'+esc(r.preview||"(no text)")+'</div>';
+  else{const sp=raSplitQuote(b);h+='<div class="rabody">'+esc(sp[0]||"(no new text — see the quoted email below)")+'</div>'+
+    (sp[1]?'<details class="raq"'+(sp[0]?'':' open')+'><summary>Show the earlier emails quoted below</summary><div class="rabody">'+esc(sp[1])+'</div></details>':'');}
+  const th=raConvGet(r).slice().sort((a,b2)=>a.at<b2.at?-1:1);
+  if(th.length>1)h+='<div class="rathr"><h5>Same conversation · '+th.length+' emails</h5>'+th.map(x=>{
+    const who=x.dir==="out"?fn+" → "+((x.outside||[]).map(a=>{const p=RA.model&&RA.model.people[a];return p?p.name:(raWho(a).name||a);}).slice(0,2).join(", ")||"—"):(raFlip(x.from_name)||x.from_addr)+" → "+fn;
+    return '<button data-act="rajump" data-id="'+esc(x._k)+'"'+(x._k===r._k?' class="cur"':'')+'><span>'+esc(goalMD(localDay(x.at))+" "+scTime(x.at)+" · "+who+(x.kind?" ("+x.kind+")":"")+" · "+String(x.preview||"").replace(/\s+/g," ").slice(0,90))+'</span></button>';}).join("")+'</div>';
+  const a0=(r.dir==="out"||r.kind==="bounce"?(r.outside||[]):[r.from_addr])[0];
+  h+='<div class="raacts">'+(a0?'<button class="btn sm" data-act="raperson" data-id="'+esc(a0)+'">Everything with '+esc((RA.model&&RA.model.people[a0]||{}).name||a0)+'</button>':'')+
+    (r.web?'<a class="btn sm" style="text-decoration:none" href="'+esc(r.web)+'" target="_blank" rel="noopener" data-act="extlink">Open in Outlook</a>':'')+'</div>';
+  return h+'</div>';}
+function raCrmDetailHTML(c){
+  return '<div class="racd"><dl class="rahdr"><dt>What</dt><dd>'+esc(c.what)+'</dd><dt>Where</dt><dd>'+esc(c.area)+(c.conf?' · '+esc(c.conf):'')+'</dd>'+(c.person?'<dt>Person</dt><dd>'+esc(c.person)+'</dd>':'')+(c.co?'<dt>Company</dt><dd>'+esc(c.co)+'</dd>':'')+
+    '<dt>When</dt><dd>'+esc(raLong(c.day))+(c.allday?'':' · '+scTime(c.t))+'</dd></dl>'+(c.det?'<div class="rabody">'+esc(c.det)+'</div>':'')+
+    '<div class="raacts">'+(c.act?'<button class="btn sm" data-act="scact" data-id="'+esc(c.act)+'">Open the activity</button>':'')+(c.pid?'<button class="btn sm" data-act="actperson" data-id="'+esc(c.pid)+'">The contact</button>':'')+
+    (c.lead?'<button class="btn sm" data-act="openlead" data-id="'+esc(c.lead)+'">The lead</button>':'')+(c.opp?'<button class="btn sm" data-act="editopp" data-id="'+esc(c.opp)+'">The deal</button>':'')+'</div></div>';}
+/* redraw every copy of one line (page and sheet) after it opens or its text arrives */
+function raRefresh(k){const m=RA.model;if(!m)return;const it=m.byK[k]||(RA.byK[k]?{k:k,mail:true,r:RA.byK[k],t:RA.byK[k].at,day:localDay(RA.byK[k].at)}:null);if(!it)return;
+  document.querySelectorAll(".rait").forEach(el=>{if(el.dataset.rak===k)el.outerHTML=raRowHTML(it,el.dataset.sd==="1");});}
+/* ----- the page ----- */
+function raTabs(m){const q=raQ();
+  return [["overview","Overview"],["days","Day by day"],["orgs","Organizations",m&&m.O.length],["people","Conversations",m&&m.P.length],["email","All email",m&&m.rows.length],["crm","CRM",m&&m.crm.length],["cal","Calendar"]];}
+function viewRepAnalysis(u){
+  if(!raAccess(u))return viewToday();
+  const t=teamById(u),g=raRange(),m=raModel(u),tab=logState.raTab||"overview",fn=raFirst(u),uU=usageFor(u,g.from,g.to);
+  let h='<div class="rahead">'+faceHTML(u,"xl")+'<div class="grow"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+(userRegion(u)?' · '+esc(userRegion(u)):'')+' · '+esc(RA_MAILBOX[u])+'</p></div>'+
+    (SC_REPS.includes(u)?'<button class="btn sm scnoprint" data-act="scopen" data-id="'+u+'">Week & KPIs</button>':'')+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
+  h+='<div class="ratools scnoprint"><div class="seg">'+RA_RANGES.map(x=>'<button class="'+(g.r===x[0]?"on":"")+'" data-act="rarange" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+    '<label class="scq">'+svg("search")+'<input id="raQ" placeholder="Search people, companies, subjects and email text" value="'+esc(logState.raQ||"")+'" autocomplete="off"></label></div>';
+  h+='<p class="raupd">Email &amp; CRM · '+esc(goalMD(g.from))+' – '+esc(goalMD(g.to))+(uU.mins?' · CRM open '+fmtMins(uU.mins)+' over '+uU.days+' day'+(uU.days===1?"":"s"):' · CRM not opened in this range')+' · '+esc(RA.err||rmUpdLine())+'</p>';
+  h+='<div class="ratabs scnoprint">'+raTabs(m).map(x=>'<button class="'+(tab===x[0]?"on":"")+'" data-act="ratab" data-v="'+x[0]+'">'+x[1]+(x[2]!=null?'<span class="n">'+x[2]+'</span>':'')+'</button>').join("")+'</div>';
+  h+='<div id="raMain">'+raMainHTML(u)+'</div>';
+  h+='<p class="rafoot">Email: '+esc(fn)+'’s mailbox (Inbox, Sent, Archive, Deleted; drafts left out), outside people only — anyone not at Golden Hour Medical or its bookkeeper; purely internal email is never stored. Calendar replies, automatic replies and bounce notices are listed but not counted. A conversation = one outside person. Two-way = '+esc(fn)+' wrote and they wrote back; Waiting on '+esc(fn)+' = they wrote last. Email updates every evening; the CRM is live. Only Max, Hannah and Jamie can see this page.</p>';
+  return h;}
+function raMainHTML(u){
+  const m=raModel(u);if(!m)return '<div class="empty" style="padding:24px">Loading '+esc(raFirst(u))+'’s email…</div>';
+  const tab=logState.raTab||"overview";
+  return tab==="days"?raDaysHTML(m):tab==="orgs"?raOrgsHTML(m):tab==="people"?raPeopleHTML(m):tab==="email"?raEmailHTML(m):tab==="crm"?raCrmHTML(m):tab==="cal"?raCalHTML(m):raOverviewHTML(m);}
+function raRedraw(){const el=document.getElementById("raMain");if(el&&curRep)el.innerHTML=raMainHTML(curRep);}
+/* Overview */
+function raOverviewHTML(m){const u=m.u,fn=raFirst(u),P=m.P;
+  const em=P.filter(p=>p.sent),two=P.filter(p=>p.sent&&p.recv),multi=two.filter(p=>p.msgs.filter(x=>!x.kind).length>=3),live=em.filter(p=>!p.bounced);
+  const wait=P.filter(p=>p.status==="none"||p.status==="ooo"),acts=m.crm.filter(c=>c.act).map(c=>raAct(c.act)).filter(Boolean);
+  const K=[["Organizations "+fn+" emailed",new Set(em.map(p=>p.org)).size,m.O.length+" organizations in touch overall","orgs","accent"],
+    ["People "+fn+" emailed",em.length,m.real.filter(r=>r.dir==="out").length+" outside emails sent","people:all",""],
+    ["Two-way conversations",two.length,multi.length+" with 3+ emails back and forth","people:two","good"],
+    ["Reply rate",(live.length?Math.round(100*two.length/live.length):0)+"%",two.length+" of "+live.length+" people who got "+fn+"’s email","people:two",""],
+    ["Waiting on a reply",wait.length,"people "+fn+" emailed who haven’t answered","people:none",""],
+    ["Waiting on "+fn,P.filter(p=>p.status==="rep").length,"they wrote last — "+fn+"’s turn","people:rep","warn"],
+    ["Bounced",P.filter(p=>p.bounced).length,"addresses that came back undeliverable","people:bounce","bad"],
+    ["CRM activities logged",acts.length,acts.filter(actIsMeet).length+" visits, trainings & demos · "+acts.filter(actIsCall).length+" calls","crm",""]];
+  let h='<div class="rakpis">'+K.map(k=>'<button class="rakpi '+k[4]+'" data-act="rago" data-v="'+k[3]+'"><b>'+k[1]+'</b><span>'+esc(k[0])+'</span><small>'+esc(k[2])+'</small></button>').join("")+'</div>';
+  h+='<div class="ragrid"><div class="racard0"><div class="rah2"><h3>Every day</h3><span class="raleg"><span><i style="background:'+RA_COLS.s+'"></i>Outside sent</span><span><i style="background:'+RA_COLS.r+'"></i>Outside received</span><span><i style="background:'+RA_COLS.c+'"></i>CRM activities</span></span></div>'+raDayChart(m)+'</div>'+
+    '<div class="racard0"><div class="rah2"><h3>Organizations '+esc(fn)+'’s hitting</h3><span>sent / received · tap for detail</span></div>'+raTopOrgs(m)+'</div></div>';
+  h+='<div class="ragrid"><div class="racard0"><div class="rah2"><h3>Needs a follow-up</h3><span>oldest first</span></div>'+raAttention(m)+'</div>'+
+    '<div class="rastack"><div class="racard0"><div class="rah2"><h3>Coming up</h3><span>'+esc(fn)+'’s to-dos in the CRM</span></div>'+raUpcoming(m)+'</div>'+
+    '<div><div class="rah2"><h3>Deals, quotes &amp; orders with '+esc(fn)+'</h3></div>'+raDeals(m)+'</div>'+raUsage(m)+'</div></div>';
+  return h;}
+function raDayChart(m){
+  const days=[];for(let d=m.g.from;d<=m.g.to;d=dAdd(d,1))days.push(d);
+  const by={};days.forEach(d=>{by[d]={s:0,r:0,c:0};});
+  m.real.forEach(r=>{const x=by[localDay(r.at)];if(x)r.dir==="out"?x.s++:x.r++;});m.crm.forEach(c=>{if(c.act&&by[c.day])by[c.day].c++;});
+  const W=760,H=230,pl=30,pb=34,pt=16,bw=(W-pl)/days.length,mx=Math.max(1,...days.map(d=>Math.max(by[d].s+by[d].r,by[d].c))),y=v=>pt+(H-pt-pb)*(1-v/mx);
+  const step=days.length>40?7:days.length>20?3:1;let g='';
+  [0,.5,1].forEach(f=>{const v=Math.round(mx*f);g+='<line x1="'+pl+'" x2="'+W+'" y1="'+y(v)+'" y2="'+y(v)+'" stroke="#EFECE5"/><text x="'+(pl-6)+'" y="'+(y(v)+4)+'" font-size="11" text-anchor="end" fill="#8C877C">'+v+'</text>';});
+  days.forEach((d,i)=>{const x0=pl+i*bw,x=x0+bw*.16,w=bw*.42,o=by[d],p=d.split("-").map(Number),dd=new Date(p[0],p[1]-1,p[2]),wk=dd.getDay()===0||dd.getDay()===6;
+    const tip=goalMD(d)+": "+o.s+" sent, "+o.r+" received, "+o.c+" CRM";
+    g+='<g class="rabar" data-act="raday" data-v="'+d+'"><title>'+esc(tip)+'</title><rect x="'+x0+'" y="'+pt+'" width="'+bw+'" height="'+(H-pt-pb)+'" fill="transparent"/>';
+    if(o.s)g+='<rect x="'+x+'" y="'+y(o.s)+'" width="'+w+'" height="'+(H-pb-y(o.s))+'" fill="'+RA_COLS.s+'" rx="2"/>';
+    if(o.r)g+='<rect x="'+x+'" y="'+y(o.s+o.r)+'" width="'+w+'" height="'+(y(o.s)-y(o.s+o.r))+'" fill="'+RA_COLS.r+'" rx="2"/>';
+    if(o.c)g+='<rect x="'+(x+w+Math.min(2,bw*.04))+'" y="'+y(o.c)+'" width="'+(bw*.24)+'" height="'+(H-pb-y(o.c))+'" fill="'+RA_COLS.c+'" rx="2"/>';
+    const tot=o.s+o.r;if(tot&&days.length<=31)g+='<text x="'+(x+w/2)+'" y="'+(y(tot)-4)+'" font-size="11" text-anchor="middle" fill="#5C584F">'+tot+'</text>';
+    if(step===1)g+='<text x="'+(x+w/2)+'" y="'+(H-pb+15)+'" font-size="11" text-anchor="middle" fill="'+(wk?"#B8B3A8":"#5C584F")+'">'+"SMTWTFS"[dd.getDay()]+'</text>';
+    if(i%step===0)g+='<text x="'+(x+w/2)+'" y="'+(H-pb+(step===1?28:16))+'" font-size="10" text-anchor="middle" fill="#8C877C">'+(step===1?dd.getDate():goalMD(d))+'</text>';
+    g+='</g>';});
+  return '<svg class="rachart" viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Outside email and CRM activity by day">'+g+'</svg>';}
+function raTopOrgs(m){const rows=m.O.filter(o=>o.sent+o.recv>0).sort((a,b)=>(b.sent+b.recv)-(a.sent+a.recv)).slice(0,10);
+  if(!rows.length)return '<div class="empty" style="padding:14px">No outside email in this range.</div>';
+  const mx=Math.max(...rows.map(o=>o.sent+o.recv));
+  return '<div class="rabars">'+rows.map(o=>'<button class="rbr" data-act="raorg" data-id="'+esc(o.name)+'"><span class="nm">'+esc(o.name)+'</span><span class="trk" style="width:'+Math.max(4,100*(o.sent+o.recv)/mx)+'%"><i style="flex:'+o.sent+';background:'+RA_COLS.s+'"></i><i style="flex:'+o.recv+';background:'+RA_COLS.r+'"></i></span><span class="num">'+o.sent+' / '+o.recv+'</span></button>').join("")+'</div>';}
+function raAttention(m){const u=m.u,its=[];
+  m.P.filter(p=>p.status==="rep").forEach(p=>its.push([p.last,p,"rep"]));
+  m.P.filter(p=>p.status==="bounce").forEach(p=>its.push([p.last,p,"bounce"]));
+  m.P.filter(p=>(p.status==="none"||p.status==="ooo")&&p.cat!=="dist").forEach(p=>its.push([p.last,p,p.status]));
+  const gr=m.P.filter(p=>(p.status==="none"||p.status==="ooo")&&p.cat==="dist");
+  its.sort((a,b)=>a[0]<b[0]?-1:1);
+  if(!its.length&&!gr.length)return '<div class="empty" style="padding:14px">Nothing waiting.</div>';
+  const cos={};gr.forEach(p=>{cos[p.org]=(cos[p.org]||0)+1;});
+  return '<div class="ralist">'+its.slice(0,40).map(([t,p,s])=>'<button class="rali" data-act="raperson" data-id="'+esc(p.addr)+'"><span class="w">'+esc(goalMD(localDay(t)))+'<br><small>'+esc(ago(t))+'</small></span>'+
+    '<span class="m"><b>'+esc(p.name)+'</b> <small>· '+esc(p.org)+'</small><small class="d">'+esc(p.lastR.subject||"")+(p.lastR.preview?' — '+esc(String(p.lastR.preview).replace(/\s+/g," ").slice(0,120)):'')+'</small></span>'+raStChip(s,u)+'</button>').join("")+
+    (gr.length?'<button class="rali" data-act="rago" data-v="people:none"><span class="w"><b>'+gr.length+'</b></span><span class="m"><b>Distributor reps with no reply yet</b><small class="d">'+esc(Object.keys(cos).map(c=>c+" "+cos[c]).join(" · "))+'</small></span><span class="pill warn">See all</span></button>':'')+'</div>';}
+function raUpcoming(m){const T=todayStr(),ts=(DB.tasks||[]).filter(t=>t&&!t.removed&&!t.done&&taskFor(t,m.u)).sort((a,b)=>String(a.due||"").localeCompare(String(b.due||"")));
+  const late=ts.filter(t=>t.due&&t.due<T),next=ts.filter(t=>!t.due||t.due>=T).slice(0,8);
+  if(!ts.length)return '<div class="empty" style="padding:14px">No open to-dos.</div>';
+  return '<div class="ralist">'+(late.length?'<div class="rali static"><span class="w"><b class="dang">'+late.length+'</b></span><span class="m"><b>Overdue</b><small class="d">'+esc(late.slice(0,3).map(t=>t.title).join(" · "))+(late.length>3?" …":"")+'</small></span></div>':'')+
+    next.map(t=>'<div class="rali static"><span class="w">'+(t.due?esc(goalMD(t.due))+'<br><small>'+(t.due===T?"today":esc(new Date(t.due+"T12:00").toLocaleDateString(undefined,{weekday:"short"})))+'</small>':'—')+'</span><span class="m"><b>'+esc(t.title||"To-do")+'</b>'+(t.owner!==m.u?'<small class="d">from '+esc(shortName(t.owner))+'</small>':'')+'</span></div>').join("")+'</div>';}
+function raDeals(m){const u=m.u,g=m.g,inR=d=>!!d&&d>=g.from&&d<=g.to;
+  const opps=(DB.opps||[]).filter(o=>o&&oppGhRep(o)===u&&(oppIsOpen(o)||inR(localDay(o.closeDate||o.createdAt)))).sort((a,b)=>(b.amount||0)-(a.amount||0));
+  const qs=quotesAll().filter(q=>q.by===u&&inR(localDay(q.createdAt||q.date))),os=ordersAll().filter(o=>orderRep(o)===u&&inR(o.poDate)&&orderIsSale(o));
+  if(!opps.length&&!qs.length&&!os.length)return '<div class="empty" style="padding:14px">No deals, quotes or orders.</div>';
+  return '<div class="tablewrap"><table class="lv"><thead><tr><th>Deal</th><th>Stage</th><th class="num">Amount</th><th>Next</th></tr></thead><tbody>'+
+    opps.map(o=>'<tr data-act="editopp" data-id="'+esc(o.id)+'" style="cursor:pointer"><td><b style="font-weight:600">'+esc(o.name||oppAcctLabel(o))+'</b><div class="muted" style="font-size:12px">'+esc(oppAcctLabel(o))+(o.units?' · '+o.units+' kits':'')+(o.ghRep?'':' · territory')+'</div></td><td>'+esc(OPP_SHORT[o.stage]||o.stage)+'</td><td class="num">'+money(o.amount||0)+'</td><td class="muted">'+esc(o.nextAction||"")+(o.nextActionDate?' · '+esc(goalMD(o.nextActionDate)):'')+'</td></tr>').join("")+
+    qs.map(q=>'<tr><td><b style="font-weight:600">Quote '+esc(q.no)+'</b><div class="muted" style="font-size:12px">'+esc(q.account||"")+'</div></td><td>Quote · '+esc(quoteState(q))+'</td><td class="num">'+money(quoteTotal(q))+'</td><td class="muted">'+esc(goalMD(localDay(q.createdAt||q.date)))+'</td></tr>').join("")+
+    os.map(o=>'<tr><td><b style="font-weight:600">Order '+esc(o.poNo||"")+'</b><div class="muted" style="font-size:12px">'+esc(o.account||"")+'</div></td><td>Sold · '+esc(o.status||"")+'</td><td class="num">'+money(o.amount||0)+'</td><td class="muted">'+esc(goalMD(o.poDate))+'</td></tr>').join("")+'</tbody></table></div>';}
+function raUsage(m){const x=usageFor(m.u,m.g.from,m.g.to);if(!x.rows.length)return "";
+  const V={today:"Home",opps:"Pipeline",activity:"Activity",leads:"Leads",quotes:"Quotes",accounts:"Accounts",contacts:"Contacts",export:"Lists",team:"Team",person:"Contact pages",roster:"Account pages",invoicing:"Invoicing",map:"Field Map",conf:"Conferences",confleads:"Conference leads",search:"Search"};
+  const mx=Math.max(1,...x.rows.map(r=>r.mins||0));
+  return '<div><div class="rah2"><h3>Time the CRM was open</h3><span>'+fmtMins(x.mins)+' total · counts while the tab is showing</span></div><div class="racard0" style="padding:4px 0">'+x.rows.slice(0,21).map(r=>{const vs=Object.keys(r.views||{}).sort((a,b)=>r.views[b]-r.views[a]).slice(0,4).map(v=>V[v]||v);
+    return '<button class="rause" data-act="raday" data-v="'+esc(r.day)+'"><span>'+esc(new Date(r.day+"T12:00").toLocaleDateString(undefined,{weekday:"short"})+" "+goalMD(r.day))+'</span><span class="m">'+esc(vs.join(", ")||"—")+'<i style="width:'+Math.max(2,Math.round((r.mins||0)/mx*100))+'%"></i></span><span class="num">'+fmtMins(r.mins)+'</span></button>';}).join("")+'</div></div>';}
+/* Day by day — the Nov 2 report: weeks → days → the ledger */
+function raDaysHTML(m){
+  const q=raQ(),hits=q?raBodySearch(m.u,q):null,f=logState.raF||"all";
+  const okF=it=>f==="all"||(f==="crm"?!it.mail:it.mail&&!it.r.kind&&it.r.dir===f);
+  const cnt=list=>{const c={s:0,r:0,c:0};(list||[]).forEach(it=>{if(!it.mail)c.c++;else if(!it.r.kind){if(it.r.dir==="out")c.s++;else c.r++;}});return c;};
+  const mons=[];for(let w=raMon(m.g.from);w<=m.g.to;w=dAdd(w,7))mons.push(w);
+  let day=logState.raDay;if(!day||day<m.g.from||day>m.g.to){day=null;for(let d=m.g.to;d>=m.g.from;d=dAdd(d,-1))if((m.byDay[d]||[]).length){day=d;break;}day=day||m.g.to;}
+  const wk=raMon(day),mode=logState.raMode||"day";
+  let mxd=1;Object.keys(m.byDay).forEach(d=>{const c=cnt(m.byDay[d]);mxd=Math.max(mxd,c.s+c.r+c.c);});
+  let h='<div class="sectlabel" style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline">Week by week <span class="raleg"><span><i style="background:'+RA_COLS.s+'"></i>Sent</span><span><i style="background:'+RA_COLS.r+';opacity:.6"></i>Received</span><span><i style="background:'+RA_COLS.c+'"></i>CRM</span></span></div>';
+  h+='<div class="rawks scnoprint">'+mons.map(w=>{let s=0,r=0,c=0,cols="";
+    for(let i=0;i<7;i++){const d=dAdd(w,i),x=cnt(m.byDay[d]);s+=x.s;r+=x.r;c+=x.c;const hh=n=>n?Math.max(2,Math.round(n/mxd*40)):0;
+      cols+='<span class="col">'+(x.c?'<i class="c" style="height:'+hh(x.c)+'px"></i>':'')+(x.r?'<i class="r" style="height:'+hh(x.r)+'px"></i>':'')+(x.s?'<i class="s" style="height:'+hh(x.s)+'px"></i>':'')+'</span>';}
+    return '<button class="rawk'+(w===wk&&!q?" on":"")+'" data-act="rawk" data-v="'+w+'"><b>'+esc(goalMD(w))+' – '+esc(goalMD(dAdd(w,6)))+'</b><span class="ramini">'+cols+'</span><span class="cnt"><span><b class="s">'+s+'</b> sent</span><span><b>'+r+'</b> received</span><span><b class="c">'+c+'</b> CRM</span></span></button>';}).join("")+'</div>';
+  const idx=mons.indexOf(wk);
+  h+='<div class="raled"><div class="raph"><div><div class="sectlabel" style="margin:0">'+(q?"Search":mode==="day"?"Day":"Week")+'</div><h3>'+(q?'Results for “'+esc(logState.raQ.trim())+'”':mode==="day"?esc(raLong(day)):'Week of '+esc(goalMD(wk))+' – '+esc(goalMD(dAdd(wk,6))))+'</h3></div>'+
+    '<div class="ranav scnoprint"><div class="seg" style="margin:0">'+[["day","Day"],["week","Whole week"]].map(x=>'<button class="'+(mode===x[0]?"on":"")+'" data-act="ramode" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>'+
+    '<button class="ibtn" data-act="rawknav" data-v="-1" aria-label="Previous week"'+(idx<=0?' disabled':'')+'>'+svg("chevL")+'</button><button class="ibtn" data-act="rawknav" data-v="1" aria-label="Next week"'+(idx>=mons.length-1?' disabled':'')+'>'+svg("chevR")+'</button></div></div>';
+  h+='<div class="radays scnoprint">'+[0,1,2,3,4,5,6].map(i=>{const d=dAdd(wk,i),x=cnt(m.byDay[d]),out=d<m.g.from||d>m.g.to,p=d.split("-").map(Number),dt=new Date(p[0],p[1]-1,p[2]);
+    return '<button class="radb'+(x.s+x.r+x.c?"":" empty")+(out?" out":"")+(mode==="day"&&d===day&&!q?" on":"")+'" data-act="raday" data-v="'+d+'"'+(out?' disabled':'')+'><span class="dn">'+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dt.getDay()]+'</span><span class="dd">'+dt.getDate()+'</span>'+
+      '<span class="dc"><span class="s"><b>'+x.s+'</b><em> sent</em></span><span><b>'+x.r+'</b><em> recd</em></span><span class="c"><b>'+x.c+'</b><em> CRM</em></span></span></button>';}).join("")+'</div>';
+  h+='<div class="ratools2 scnoprint"><div class="chips">'+[["all","Everything"],["out","Sent by "+raFirst(m.u)],["in","Received"],["crm","CRM only"]].map(x=>'<button class="qchip'+(f===x[0]?" on":"")+'" data-act="raf" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>'+
+    (q&&q.length>=3&&!hits?'<span class="t2">Searching the email text…</span>':'')+'</div>';
+  let days,body="";
+  if(q){const hit=m.items.filter(it=>okF(it)&&raItHit(it,q,hits));days=[...new Set(hit.map(it=>it.day))].sort().reverse();
+    if(!hit.length)body='<div class="empty" style="padding:22px">Nothing matches “'+esc(logState.raQ.trim())+'” in this range.</div>';
+    else body='<div class="radh"><span>'+hit.length+' match'+(hit.length===1?"":"es")+', newest first</span></div>';}
+  else days=mode==="day"?[day]:[6,5,4,3,2,1,0].map(i=>dAdd(wk,i));
+  (days||[]).forEach(d=>{const all=m.byDay[d]||[],list=all.filter(it=>okF(it)&&(!q||raItHit(it,q,hits)));
+    if((mode==="week"||q)&&!list.length)return;
+    const c=cnt(list),u=(DB.usage||[]).find(x=>x&&x.user===m.u&&x.day===d),meta=[];
+    if(list.length)meta.push(c.s+" sent · "+c.r+" received · "+c.c+" CRM");if(u&&u.mins>=1)meta.push("in the CRM "+fmtMins(u.mins));
+    body+='<div class="radh">'+(mode==="week"||q?'<h4>'+esc(raLong(d))+'</h4>':'')+'<span>'+esc(meta.join(" · "))+'</span></div>';
+    if(!list.length)body+='<div class="empty" style="padding:18px">'+(all.length?"Nothing on this day matches the filter.":"No email and no CRM work on this day.")+'</div>';
+    list.slice().reverse().forEach(it=>{body+=raRowHTML(it,false);});});
+  if(!q&&mode==="week"&&!body)body='<div class="empty" style="padding:22px">No email and no CRM work this week.</div>';
+  return h+body+'</div>';}
+/* Organizations */
+function raSortRows(key,rows,cols){const s=(logState.raSort||{})[key];if(!s)return rows;const f=cols[s.c][2];
+  return rows.slice().sort((a,b)=>{const x=f(a),y=f(b);return (x<y?-1:x>y?1:0)*s.d;});}
+function raTh(key,cols){const s=(logState.raSort||{})[key];return cols.map((c,i)=>'<th class="'+(c[3]||"")+'"><button class="rasortb" data-act="rasort" data-v="'+key+':'+i+'">'+c[0]+(s&&s.c===i?(s.d>0?" ↑":" ↓"):"")+'</button></th>').join("");}
+function raOrgsHTML(m){const q=raQ(),of=logState.raOf||"all",cats=["all"].concat(Object.keys(RA_CAT).filter(c=>m.O.some(o=>o.cat===c)));
+  let rows=m.O.filter(o=>(of==="all"||o.cat===of)&&(!q||[o.name].concat(o.people.map(p=>p.name+" "+p.addr)).join(" ").toLowerCase().includes(q)));
+  const cols=[["Organization",0,o=>o.name.toLowerCase()],["Type",0,o=>o.cat],["People reached",0,o=>o.reached,"num"],["Replied",0,o=>o.two,"num"],["Reply rate",0,o=>o.rate==null?-1:o.rate],
+    ["Sent",0,o=>o.sent,"num"],["Received",0,o=>o.recv,"num"],["CRM logged",0,o=>o.crm,"num"],["Last touch",0,o=>o.last]];
+  rows=(logState.raSort||{}).orgs?raSortRows("orgs",rows,cols):rows.sort((a,b)=>(b.sent+b.recv)-(a.sent+a.recv));
+  return '<div class="chips rachips">'+cats.map(c=>'<button class="qchip'+(of===c?" on":"")+'" data-act="raof" data-v="'+c+'">'+(c==="all"?"All":RA_CAT[c][0])+' <small>'+(c==="all"?m.O.length:m.O.filter(o=>o.cat===c).length)+'</small></button>').join("")+'</div>'+
+    '<div class="tablewrap"><table class="lv ratbl"><thead><tr>'+raTh("orgs",cols)+'</tr></thead><tbody>'+(rows.map(o=>'<tr data-act="raorg" data-id="'+esc(o.name)+'"><td><b style="font-weight:600">'+esc(o.name)+'</b><div class="muted" style="font-size:12px">'+o.people.length+' '+(o.people.length===1?"person":"people")+(o.bounced?' · <span style="color:var(--dang-t)">'+o.bounced+' bounced</span>':'')+'</div></td>'+
+      '<td>'+raCatChip(o.cat)+'</td><td class="num">'+o.reached+'</td><td class="num">'+o.two+'</td><td>'+(o.rate==null?'<span class="muted">inbound only</span>':'<span class="rarate"><i><b style="width:'+Math.round(o.rate*100)+'%"></b></i>'+Math.round(o.rate*100)+'%</span>')+'</td>'+
+      '<td class="num">'+o.sent+'</td><td class="num">'+o.recv+'</td><td class="num">'+(o.crm||'<span class="muted">0</span>')+'</td><td>'+esc(goalMD(localDay(o.last)))+'<div class="muted" style="font-size:12px">'+esc(ago(o.last))+'</div></td></tr>').join("")||'<tr><td colspan="9" class="empty">Nothing matches</td></tr>')+'</tbody></table></div>';}
+/* Conversations — one row per outside person */
+function raPeopleHTML(m){const u=m.u,q=raQ(),pf=logState.raPf||"all";
+  const fs=[["all","All"],["two","Two-way"],["none","No reply yet"],["ooo","Out of office"],["rep","Waiting on "+raFirst(u)],["bounce","Bounced"],["in","Inbound only"]];
+  let rows=m.P.filter(p=>(pf==="all"||p.status===pf)&&(!q||[p.name,p.addr,p.org].concat(p.msgs.map(x=>x.subject+" "+x.preview)).join(" ").toLowerCase().includes(q)));
+  const cols=[["Person",0,p=>p.name.toLowerCase()],["Organization",0,p=>p.org.toLowerCase()],["Type",0,p=>p.cat],["Sent",0,p=>p.sent,"num"],["Received",0,p=>p.recv,"num"],["Status",0,p=>p.status],["Last email",0,p=>p.last],["CRM",0,p=>p.crm]];
+  rows=(logState.raSort||{}).people?raSortRows("people",rows,cols):rows.sort((a,b)=>a.last<b.last?1:-1);
+  return '<div class="chips rachips">'+fs.map(x=>'<button class="qchip'+(pf===x[0]?" on":"")+'" data-act="rapf" data-v="'+x[0]+'">'+esc(x[1])+' <small>'+(x[0]==="all"?m.P.length:m.P.filter(p=>p.status===x[0]).length)+'</small></button>').join("")+'</div>'+
+    '<div class="tablewrap"><table class="lv ratbl"><thead><tr>'+raTh("people",cols)+'</tr></thead><tbody>'+(rows.map(p=>{const l=p.lastR;
+      return '<tr data-act="raperson" data-id="'+esc(p.addr)+'"><td><b style="font-weight:600">'+esc(p.name)+'</b><div class="muted brk" style="font-size:12px">'+esc(p.addr)+'</div></td><td>'+esc(p.org)+'</td><td>'+raCatChip(p.cat)+'</td>'+
+        '<td class="num">'+p.sent+'</td><td class="num">'+p.recv+'</td><td>'+raStChip(p.status,u)+'</td>'+
+        '<td>'+esc(goalMD(localDay(p.last)))+' <span class="radir '+(l.dir==="out"?"s":"r")+'">'+(l.dir==="out"?esc(raFirst(u)):"Them")+'</span><div class="muted" style="font-size:12px">'+esc(l.subject||"")+'</div></td>'+
+        '<td>'+(p.inCrm?esc(p.inCrm):'<span class="muted">Not in the CRM</span>')+(p.crm?'<div class="muted" style="font-size:12px">'+p.crm+' logged</div>':'')+'</td></tr>';}).join("")||'<tr><td colspan="8" class="empty">Nothing matches</td></tr>')+'</tbody></table></div>';}
+/* All email */
+function raEmailHTML(m){const q=raQ(),hits=q?raBodySearch(m.u,q):null,ef=logState.raEf||"all";
+  const fs=[["all","Everything"],["out","Sent"],["in","Received"],["cal","Calendar & auto-replies"],["bounce","Bounced"]];
+  const ok=r=>ef==="all"||(ef==="out"?!r.kind&&r.dir==="out":ef==="in"?!r.kind&&r.dir==="in":ef==="cal"?(r.kind==="calendar"||r.kind==="auto"):r.kind==="bounce");
+  const rows=m.rows.filter(r=>ok(r)&&raHit(r,q,hits)).slice().reverse();
+  const shown=rows.slice(0,logState.raMore?2000:300);
+  return '<div class="chips rachips">'+fs.map(x=>'<button class="qchip'+(ef===x[0]?" on":"")+'" data-act="raef" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'<span class="t2" style="align-self:center;margin-left:6px">'+rows.length+' email'+(rows.length===1?"":"s")+(q&&q.length>=3&&!hits?' · searching the email text…':'')+'</span></div>'+
+    '<div class="raled">'+(shown.map(r=>raRowHTML(m.byK[r._k],true)).join("")||'<div class="empty" style="padding:22px">Nothing matches</div>')+'</div>'+
+    (rows.length>shown.length?'<p style="text-align:center"><button class="btn sm" data-act="ramore">Show all '+rows.length+'</button></p>':'');}
+/* CRM */
+function raCrmHTML(m){const q=raQ(),cf=logState.raCf||"all",areas=["all"].concat([...new Set(m.crm.map(c=>c.area))]);
+  const rows=m.crm.filter(c=>(cf==="all"||c.area===cf)&&raCHit(c,q)).slice().reverse();
+  return '<div class="chips rachips">'+areas.map(a=>'<button class="qchip'+(cf===a?" on":"")+'" data-act="racf" data-v="'+esc(a)+'">'+esc(a==="all"?"All":a)+' <small>'+(a==="all"?m.crm.length:m.crm.filter(c=>c.area===a).length)+'</small></button>').join("")+'</div>'+
+    '<div class="raled">'+(rows.map(c=>raRowHTML(m.byK[c.k],true)).join("")||'<div class="empty" style="padding:22px">Nothing in the CRM in this range'+(q?' matches':'')+'.</div>')+'</div>';}
+/* Calendar — what the CRM knows of the rep's schedule (Outlook calendars aren't synced) */
+function raCalHTML(m){const T=todayStr(),q=raQ();
+  const meet=m.crm.filter(c=>{const a=c.act&&raAct(c.act);return a&&actIsMeet(a);}).filter(c=>raCHit(c,q)).slice().reverse();
+  const cal=m.rows.filter(r=>r.kind==="calendar"&&raHit(r,q,null)).slice().reverse();
+  return '<div class="rastack"><div class="racard0"><div class="rah2"><h3>Coming up</h3><span>to-dos and follow-ups in the CRM</span></div>'+raUpcoming(m)+'</div>'+
+    '<div><div class="sectlabel">Visits, trainings &amp; demos logged <span class="cnt">'+meet.length+'</span></div><div class="raled">'+(meet.map(c=>raRowHTML(m.byK[c.k],true)).join("")||'<div class="empty" style="padding:18px">None in this range.</div>')+'</div></div>'+
+    '<div><div class="sectlabel">Calendar invites &amp; replies by email <span class="cnt">'+cal.length+'</span></div><div class="raled">'+(cal.map(r=>raRowHTML(m.byK[r._k],true)).join("")||'<div class="empty" style="padding:18px">None in this range.</div>')+'</div></div>'+
+    '<p class="t2" style="white-space:normal">'+esc(raFirst(m.u))+'’s Outlook calendar isn’t copied into the CRM; this is the CRM’s own schedule and the calendar emails with outside people.</p></div>';}
+/* drawers: a person, an organization */
+function raSheet(html){openSheet(html);document.getElementById("sheet").classList.add("rawide");}
+function raTimeline(msgs,crm){
+  const its=msgs.map(r=>RA.model.byK[r._k]||{k:r._k,mail:true,r:r,t:r.at,day:localDay(r.at)}).concat(crm.map(c=>RA.model.byK[c.k])).filter(Boolean).sort((a,b)=>a.t<b.t?1:-1);
+  return '<div class="raled">'+(its.map(it=>raRowHTML(it,true)).join("")||'<div class="empty" style="padding:16px">Nothing in this range.</div>')+'</div>';}
+function raPersonSheet(addr){const m=RA.model;if(!m)return;addr=String(addr||"").toLowerCase();const p=m.people[addr],u=m.u,fn=raFirst(u);
+  if(!p){const w=raWho(addr);if(w.p){openSheet(personSheetHTML(w.p.id));}return;}
+  const crm=p.w.p?m.crm.filter(c=>c.pid===p.w.p.id):[];
+  raSheet('<h2>'+esc(p.name)+'</h2><p class="t2">'+esc(p.addr)+' · <button class="lnk" data-act="raorg" data-id="'+esc(p.org)+'">'+esc(p.org)+'</button></p>'+
+    '<div class="chips" style="margin:8px 0 4px">'+raCatChip(p.cat)+' '+raStChip(p.status,u)+' '+(p.inCrm?'<span class="pill info">In the CRM: '+p.inCrm+'</span>':'<span class="pill gray">Not in the CRM</span>')+'</div>'+
+    '<div class="ramini4"><div><b>'+p.sent+'</b><span>'+esc(fn)+' sent</span></div><div><b>'+p.recv+'</b><span>they sent</span></div><div><b>'+p.crm+'</b><span>CRM logs</span></div><div><b>'+esc(String(ago(p.last)).replace(" ago",""))+'</b><span>since the last email</span></div></div>'+
+    (p.w.p?'<div class="raacts" style="margin:10px 0"><button class="btn sm" data-act="actperson" data-id="'+esc(p.w.p.id)+'">Contact card</button></div>':'')+
+    '<div class="sectlabel">The conversation, newest first</div>'+raTimeline(p.msgs,crm));}
+function raOrgSheet(name){const m=RA.model;if(!m)return;const o=m.orgs[name],u=m.u,fn=raFirst(u);
+  const crm=m.crm.filter(c=>c.co&&c.co===name),msgs=o?[...new Set([].concat(...o.people.map(p=>p.msgs)))]:[];
+  if(!o&&!crm.length)return;
+  const ppl=o?o.people.slice().sort((a,b)=>a.last<b.last?1:-1):[];
+  raSheet('<h2>'+esc(name)+'</h2><div class="chips" style="margin:6px 0 4px">'+(o?raCatChip(o.cat):'')+(o&&o.c?' <button class="lnk" data-act="roster" data-id="'+esc(o.c.id)+'">Account page</button>':'')+'</div>'+
+    (o?'<div class="ramini4"><div><b>'+o.reached+'</b><span>people emailed</span></div><div><b>'+o.two+'</b><span>wrote back</span></div><div><b>'+o.sent+' / '+o.recv+'</b><span>sent / received</span></div><div><b>'+crm.length+'</b><span>CRM entries</span></div></div>':'')+
+    (ppl.length?'<div class="sectlabel">People</div><div class="ralist">'+ppl.map(p=>'<button class="rali" data-act="raperson" data-id="'+esc(p.addr)+'"><span class="w">'+p.sent+' / '+p.recv+'</span><span class="m"><b>'+esc(p.name)+'</b><small class="d">'+esc(p.addr)+'</small></span>'+raStChip(p.status,u)+'</button>').join("")+'</div>':'')+
+    '<div class="sectlabel">Everything, newest first</div>'+raTimeline(msgs,crm));}
+/* a thread line pointing at another email: open it in place on Day by day (or in a sheet when it's outside the range) */
+function raJump(k){const m=RA.model,r=RA.byK[k];if(!m||!r)return;
+  if(m.byK[k]){closeSheet();logState.raTab="days";logState.raDay=localDay(r.at);logState.raMode="day";logState.raQ="";logState.raF="all";RA.open={};RA.open[k]=true;render();
+    setTimeout(()=>{const el=[...document.querySelectorAll(".rait")].find(x=>x.dataset.rak===k);if(el)el.scrollIntoView({block:"center"});},30);return;}
+  RA.open[k]=true;raSheet('<div class="raled">'+raRowHTML({k:k,mail:true,r:r,t:r.at,day:localDay(r.at)},true)+'</div>');}
 /* a rep's Home leads with their own KPI goals (Max, 2026-11-06: "redraft the home to have these KPIs as their goals"): the week to
    plan, then one tile per standard for Today | This week. A rep never sees another rep's numbers here. */
 function goalRepHomeHTML(){
@@ -3193,7 +3681,8 @@ function viewTeammate(id){
   const kinds={};all.forEach(a=>{const g=actTypeGroup(a.type);kinds[g]=(kinds[g]||0)+1;});
   let h='<div class="reccard" style="margin-bottom:14px"><div class="row" style="gap:14px"><span class="av" style="background:'+t.c+';width:52px;height:52px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;flex:none">'+initials(t.name)+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:19px">'+esc(t.name)+'</p><p class="t2">'+esc(t.role)+(userRegion(id)?' · '+userRegion(id):'')+(REP_START[id]?' · since '+esc(fmtDay(REP_START[id])):'')+'</p></div>'+
-   (GH_REPS.includes(id)&&profile(id)==="sales"?'<button class="btn sm" data-act="pipef" data-k="rep" data-v="'+id+'">Pipeline</button>':'')+'</div>'+
+   (GH_REPS.includes(id)&&profile(id)==="sales"?'<button class="btn sm" data-act="pipef" data-k="rep" data-v="'+id+'">Pipeline</button>':'')+
+   (raAccess(id)?'<button class="btn sm coral" data-act="raopenrep" data-id="'+id+'">View analysis</button>':'')+'</div>'+
    '<div class="facts"><div><b>Last active</b><span>'+esc(lastActive(id))+'</span></div><div><b>Today</b><span>'+fmtMins(uT.mins)+'</span></div><div><b>This week</b><span>'+fmtMins(uW.mins)+' · '+uW.days+' day'+(uW.days===1?"":"s")+'</span></div><div><b>All time</b><span>'+fmtMins(uAll.mins)+' · '+uAll.days+' day'+(uAll.days===1?"":"s")+(uAll.first?' · first seen '+esc(fmtDay(uAll.first)):'')+'</span></div></div></div>';
   h+=kpiRow([["Actions this week",wk.length,""],["This month",mo.length,""],["All time",all.length,Object.keys(kinds).map(k=>kinds[k]+" "+k).join(" · ")],["Follow-ups waiting",q.todo.length+q.old.length,q.old.length+" stale",q.old.length?"warn":""]]);
   h+='<section style="margin:4px 0 18px">'+weekStripHTML(id,logState.tmDay||T,{title:t.name.split(" ")[0]+"\u2019s week",nav:"tmnav",dayNav:"tmnav"})+'</section>';
@@ -8856,6 +9345,28 @@ document.addEventListener("click",e=>{
   if(a==="scf"){logState.scF=t.dataset.v;render();return;}
   if(a==="scmail"){scMailSheet(id);return;}
   if(a==="scact"){scActSheet(id);return;}
+  /* View analysis (any rep, Max / Hannah / Jamie) */
+  if(a==="raopenrep"){if(!raAccess(id))return;closeSheet();pushNav();curRep=id;view="repan";logState.raTab="overview";logState.raQ="";logState.raDay=null;logState.raMore=false;RA.open={};render();window.scrollTo(0,0);return;}
+  if(a==="ratab"){logState.raTab=t.dataset.v;logState.raMore=false;render();return;}
+  if(a==="rago"){const p=t.dataset.v.split(":");logState.raTab=p[0];if(p[0]==="people")logState.raPf=p[1]||"all";logState.raQ="";render();window.scrollTo(0,0);return;}
+  if(a==="rarange"){logState.raRange=t.dataset.v;logState.raDay=null;RA.model=null;render();return;}
+  if(a==="raopen"){RA.open[id]=!RA.open[id];raRefresh(id);return;}
+  if(a==="rajump"){raJump(id);return;}
+  if(a==="raperson"){raPersonSheet(id);return;}
+  if(a==="raorg"){raOrgSheet(id);return;}
+  if(a==="raday"){closeSheet();logState.raTab="days";logState.raDay=t.dataset.v;logState.raMode="day";logState.raQ="";render();return;}
+  if(a==="rawk"||a==="rawknav"){const m=RA.model;if(!m)return;const g=m.g;
+    let w=a==="rawk"?t.dataset.v:dAdd(raMon(logState.raDay&&logState.raDay>=g.from&&logState.raDay<=g.to?logState.raDay:g.to),7*(+t.dataset.v));
+    let d=null;for(let i=6;i>=0;i--){const x=dAdd(w,i);if(x>=g.from&&x<=g.to&&(m.byDay[x]||[]).length){d=x;break;}}
+    if(!d)d=dAdd(w,6)>g.to?g.to:(w<g.from?g.from:dAdd(w,6));logState.raDay=d;logState.raQ="";render();return;}
+  if(a==="ramode"){logState.raMode=t.dataset.v;render();return;}
+  if(a==="raf"){logState.raF=t.dataset.v;raRedraw();return;}
+  if(a==="rapf"){logState.raPf=t.dataset.v;raRedraw();return;}
+  if(a==="raof"){logState.raOf=t.dataset.v;raRedraw();return;}
+  if(a==="raef"){logState.raEf=t.dataset.v;logState.raMore=false;raRedraw();return;}
+  if(a==="racf"){logState.raCf=t.dataset.v;raRedraw();return;}
+  if(a==="ramore"){logState.raMore=true;raRedraw();return;}
+  if(a==="rasort"){const p=t.dataset.v.split(":"),k=p[0],c=+p[1],S=logState.raSort=logState.raSort||{},s=S[k];S[k]={c:c,d:s&&s.c===c?-s.d:(c===0||c===1?1:-1)};raRedraw();return;}
   if(a==="scprint"){document.body.classList.add("scprint");setTimeout(()=>{window.print();document.body.classList.remove("scprint");},50);return;}
   if(a==="teammate"){pushNav();curRep=id;logState.tmDay=null;view="teammate";render();window.scrollTo(0,0);return;}
   if(a==="tmnav"){const v=t.dataset.v;if(v.indexOf("day:")===0){pushNav();actDate=v.slice(4);actMode="day";actWho=curRep;view="activity";render();window.scrollTo(0,0);return;}logState.tmDay=v==="today"?todayStr():dAdd(logState.tmDay||todayStr(),parseInt(v,10));render();return;}
@@ -8946,6 +9457,9 @@ document.addEventListener("click",e=>{
     if(l&&confirm('Delete list "'+l.name+'"?')){l.removed=true;save();curList=null;render();}return;}
 });
 document.addEventListener("input",e=>{
+  if(e.target.id==="raQ"){logState.raQ=e.target.value;clearTimeout(RA.qt);RA.qt=setTimeout(()=>{if(view!=="repan")return;
+    if((logState.raTab||"overview")==="overview"&&raQ()){logState.raTab="email";render();const i=document.getElementById("raQ");if(i){i.focus();const n=i.value.length;i.setSelectionRange(n,n);}}
+    else raRedraw();},180);return;}
   if(e.target.id==="scQ"){logState.scQ=e.target.value;const el=document.getElementById("scLedger");if(el&&curRep)el.innerHTML=scLedgerHTML(curRep,logState.scWeek||goalMonday());return;}
   if(e.target.classList&&e.target.classList.contains("wbtext")){const n=wbNote(e.target.dataset.wb);if(!n)return; /* whiteboard note: saved as you type */
     n.text=e.target.value;n.editedAt=new Date().toISOString();wbGrow(e.target);clearTimeout(wbSaveT);wbSaveT=setTimeout(save,600);return;}
