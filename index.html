@@ -113,8 +113,10 @@ button.pill{border:0;cursor:pointer;font-family:inherit;font-size:11.5px}
 .chip.on,.qchip.on{background:var(--coral-t);border-color:rgba(216,90,48,.45);color:var(--coral-tt)}
 .segchip.on,.segchip.on:hover{background:var(--coral-btn);border-color:var(--coral-btn);color:#fff}
 .qa-types{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.ostep{display:none}.ostep.on{display:block}.ostepbar{margin:2px 0 0}.ostepbar .chip{min-height:30px;padding:0 11px;font-size:12.5px}
-.ostepmiss{color:var(--dang-t);font-size:13px;margin:8px 0 0}.ostepmiss:empty{display:none}.ostepmiss a{color:var(--dang-t);font-weight:600}
+.oq{display:none}.oq.on{display:block}
+.oprog{height:4px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:2px}.oprog i{display:block;height:100%;width:0;background:var(--coral);border-radius:4px;transition:width .25s}
+.oguide{display:flex;gap:10px;align-items:flex-start;margin:14px 0 12px}.oguide .av{flex:none;width:32px;height:32px;border-radius:50%;background:var(--coral-t);display:grid;place-items:center;color:var(--coral)}.oguide .av svg.mark{width:13px;height:19px}
+.oguide p{margin:0;background:var(--surface-2);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:10px 13px;font-size:14.5px;line-height:1.45;color:var(--ink)}.oguide p.nudge{background:var(--coral-t);border-color:rgba(216,90,48,.45)}
 .lvtabs{display:flex;gap:6px;flex-wrap:wrap}
 .lvtabs button{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border:1px solid var(--line);background:var(--surface);border-radius:999px;
   font-size:13px;font-weight:550;color:var(--ink-2);white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
@@ -6401,11 +6403,15 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
    (o?'<button class="btn block" data-act="delopp" data-id="'+o.id+'" style="margin-top:8px;color:var(--dang-t)">Delete opportunity</button>':""));
   oppAmtHint();
 }
-/* ----- New opportunity = five short steps (Max, 2026-11-10: "when they press the plus button and then opportunity make the entire
-   process easier while still requiring all the data"). Every field the deal form has is required on a new deal; chips, type-ahead and
-   prefills do the typing — the customer's state, who they buy from, their last logged touch, their people and quotes; kits × price;
-   the name; the rep. The steps are one form with the deal form's ids, so saveOpp stays the one save path. Editing keeps the full form. */
-const OPP_STEPS=["Customer","Distributor","Size","Status","People"];
+/* ----- New opportunity, one box at a time with a guide (Max, 2026-11-10: "simplify how the reps add opportunity, apparently it's too
+   hard" → "make the entire process easier while still requiring all the data" → "text box by text box with an agent that walks them
+   through what's going on"). Every field the deal form has is required on a new deal. A guide bubble asks for one thing at a time and
+   says what it filled in and why (the customer's state, who they buy from, their last logged touch, kits × price, the name, the rep).
+   Tapping a chip answers and moves on; Enter does too. A review screen lists every answer before Add. Same ids as the deal form, so
+   saveOpp stays the one save path; editing a deal keeps the full form. The guide is scripted (no AI call). */
+const OPP_Q=[["cust","Customer"],["state","State"],["type","Deal type"],["dist","Closing distributor"],["kits","Kits"],["amt","Amount"],
+ ["close","Expected close"],["stage","Stage"],["why","Why"],["last","Last contact"],["next","Next step"],["when","When"],
+ ["people","People"],["quote","Quote"],["rep","Sales person"],["name","Name"],["notes","Notes"],["review","Review"]];
 const OPP_WHY={"Prospecting":["First conversation","Inbound interest","Met at a show","Referral"],
  "Qualification":["Need confirmed","Checking budget","Demo booked","Found the decision maker"],
  "Proposal/Price Quote":["Quote sent","Demo done","Asked for pricing"],
@@ -6414,38 +6420,41 @@ const OPP_WHY={"Prospecting":["First conversation","Inbound interest","Met at a 
 const OPP_NEXT=["Send quote","Follow-up call","Book a demo","Visit","Email pricing","Check with distributor"];
 const OPP_NOTE=["Met at a conference","Inbound web lead","Distributor referral","Reorder","Cold outreach"];
 function oppAddDays(n){return ymd(new Date(Date.now()+n*86400000));}
+function oppDayLabel(d){if(!d)return "";const x=new Date(String(d).slice(0,10)+"T12:00:00");return isNaN(x)?String(d):x.toLocaleDateString(undefined,{month:"short",day:"numeric"});}
+function oppQi(k){return typeof k==="number"?k:Math.max(0,OPP_Q.findIndex(q=>q[0]===k));}
 function formOppSteps(pre,selCid,distLabel,amt0,units0,repChips,dtypes,lbl){
-  logState.oppStep=0;logState.oppTried=false;logState.oppNameHand=!!pre.name;logState.oppQuoteNext="";
+  logState.oppStep=0;logState.oppNudge="";logState.oppToReview=false;logState.oppNameHand=!!pre.name;logState.oppQuoteNext="";
   const chip=(act,v,txt,on)=>'<span class="chip'+(on?" on":"")+'" data-act="'+act+'" data-v="'+esc(String(v))+'">'+txt+'</span>';
-  const sec=(i,html)=>'<div class="ostep'+(i===0?" on":"")+'" data-s="'+i+'">'+html+'</div>';
-  const pick=(id,list)=>'<div class="chips" id="'+id+'" style="margin-bottom:8px">'+list+'</div>';
-  openSheet('<h2>New opportunity</h2><div class="chips ostepbar" id="oSteps"></div><p class="ostepmiss" id="oStepMiss"></p>'+
-   sec(0,lbl("Customer")+comboField("oCidQ","Company, end user or a person there",selCid?((company(selCid)||{}).name||""):(pre.acct||""))+
-     lbl("State")+'<input class="f" id="oLoc" value="'+esc(String(pre.state||"").toUpperCase().slice(0,2))+'" placeholder="TN" maxlength="2" autocomplete="off" style="max-width:110px;text-transform:uppercase">'+
-     lbl("Deal type")+pick("oTypeChips",dtypes.map(t=>chip("oppTypePick",t,esc(t),t==="End User Order")).join(""))+
-     '<input type="hidden" id="oType" value="End User Order">')+
-   sec(1,lbl("Closing distributor")+pick("oDistChips","")+comboField("oDistQ","Someone else — type a distributor",distLabel)+'<input type="checkbox" id="oDirect" hidden>')+
-   sec(2,lbl("Kits")+pick("oKitChips",[5,10,25,50,100].map(n=>chip("oppKitsPick",n,String(n),false)).join(""))+
-     '<div class="row" style="gap:10px;align-items:flex-start"><div style="flex:1;min-width:0"><input class="f" id="oUnits" type="number" min="0" inputmode="numeric" value="'+esc(String(units0))+'" placeholder="Kits"></div>'+
-     '<div style="flex:1;min-width:0"><input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="Amount ($)"><div id="oAmtHint" class="t2" style="margin-top:4px;min-height:16px"></div></div></div>'+
-     lbl("Expected close")+pick("oCloseChips",oppCloseChipsHTML(""))+'<input class="f" id="oClose" type="date">')+
-   sec(3,lbl("Stage")+pick("oStage",OPP_STAGES.map(st=>chip("setOppStage",st,esc(OPP_SHORT[st]),logState.oppStage===st)).join(""))+
-     lbl("Why")+pick("oWhyChips","")+'<input class="f" id="oProbWhy" placeholder="Or type it" autocomplete="off">'+
-     lbl("Last contact")+pick("oLastChips",[["Today",todayStr()],["Yesterday",oppAddDays(-1)],["Last week",oppAddDays(-7)]].map(x=>chip("oppLastPick",x[1],x[0],false)).join(""))+'<input class="f" id="oLastC" type="date" value="'+esc(pre.last||"")+'">'+
-     lbl("Next step")+pick("oNextChips",OPP_NEXT.map(x=>chip("oppNextPick",x,esc(x),false)).join(""))+'<input class="f" id="oNextA" placeholder="Or type it" autocomplete="off">'+
-     lbl("When")+pick("oWhenChips",[["Tomorrow",oppAddDays(1)],["In 3 days",oppAddDays(3)],["Next week",oppAddDays(7)]].map(x=>chip("oppWhenPick",x[1],x[0],false)).join(""))+'<input class="f" id="oNextAD" type="date">')+
-   sec(4,lbl("People on this deal")+'<div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+pick("oConSug","")+
+  const q=(k,html)=>'<div class="oq'+(k==="cust"?" on":"")+'" data-q="'+k+'">'+html+'</div>';
+  const pick=(id,list)=>'<div class="chips" id="'+id+'" style="margin-bottom:10px">'+list+'</div>';
+  openSheet('<h2>New opportunity</h2><div class="oprog"><i id="oProgBar"></i></div><div class="t2" id="oProgTxt" style="margin-top:6px"></div>'+
+   '<div class="oguide"><span class="av">'+BRAND_MARK+'</span><p id="oSay"></p></div><div id="oSteps" hidden></div>'+
+   q("cust",comboField("oCidQ","Company, end user or a person there",selCid?((company(selCid)||{}).name||""):(pre.acct||"")))+
+   q("state",'<input class="f" id="oLoc" value="'+esc(String(pre.state||"").toUpperCase().slice(0,2))+'" placeholder="TX" maxlength="2" autocomplete="off" style="max-width:120px;text-transform:uppercase">')+
+   q("type",pick("oTypeChips",dtypes.map(t=>chip("oppTypePick",t,esc(t),t==="End User Order")).join(""))+'<input type="hidden" id="oType" value="End User Order">')+
+   q("dist",pick("oDistChips","")+comboField("oDistQ","Someone else — type a distributor",distLabel)+'<input type="checkbox" id="oDirect" hidden>')+
+   q("kits",pick("oKitChips",[5,10,25,50,100].map(n=>chip("oppKitsPick",n,String(n),false)).join(""))+
+     '<input class="f" id="oUnits" type="number" min="0" inputmode="numeric" value="'+esc(String(units0))+'" placeholder="Kits" style="max-width:160px">')+
+   q("amt",'<input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="Amount ($)" style="max-width:200px"><div id="oAmtHint" hidden></div>')+
+   q("close",pick("oCloseChips",oppCloseChipsHTML(""))+'<input class="f" id="oClose" type="date">')+
+   q("stage",pick("oStage",OPP_STAGES.map(st=>chip("setOppStage",st,esc(OPP_SHORT[st]),logState.oppStage===st)).join("")))+
+   q("why",pick("oWhyChips","")+'<input class="f" id="oProbWhy" placeholder="Or type it" autocomplete="off">')+
+   q("last",pick("oLastChips",[["Today",todayStr()],["Yesterday",oppAddDays(-1)],["Last week",oppAddDays(-7)]].map(x=>chip("oppLastPick",x[1],x[0],false)).join(""))+'<input class="f" id="oLastC" type="date" value="'+esc(pre.last||"")+'">')+
+   q("next",pick("oNextChips",OPP_NEXT.map(x=>chip("oppNextPick",x,esc(x),false)).join(""))+'<input class="f" id="oNextA" placeholder="Or type it" autocomplete="off">')+
+   q("when",pick("oWhenChips",[["Tomorrow",oppAddDays(1)],["In 3 days",oppAddDays(3)],["Next week",oppAddDays(7)]].map(x=>chip("oppWhenPick",x[1],x[0],false)).join(""))+'<input class="f" id="oNextAD" type="date">')+
+   q("people",'<div id="oppCons" style="margin:2px 0 10px">'+oppConChips()+'</div>'+pick("oConSug","")+
      '<div class="row" style="gap:8px;align-items:flex-start"><div style="flex:2;min-width:0">'+comboField("oConQ","Someone else…","")+'</div>'+
      '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
-     '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>'+
-     lbl("Quote")+'<div id="oppQts" style="margin:2px 0 8px">'+oppQuoteChips()+'</div>'+pick("oQtSug","")+comboField("oQuoteQ","Find a quote — number or customer","")+
-     lbl("Golden Hour sales person")+'<div class="chips" id="oGhRep">'+repChips+'</div>'+
-     lbl("Opportunity name")+'<input class="f" id="oName" value="'+esc(pre.name||"")+'" autocomplete="off">'+
-     lbl("Notes")+pick("oNoteChips",OPP_NOTE.map(x=>chip("oppNotePick",x,esc(x),false)).join(""))+
-     '<textarea class="f" id="oNotes" placeholder="What\'s the opportunity?">'+esc(pre.note||"")+'</textarea>')+
-   '<div class="row" style="gap:8px;margin-top:18px"><button class="btn" data-act="oppStepBack" id="oBack">Back</button><button class="btn coral" data-act="oppStepNext" id="oNext" style="flex:1">Next</button></div>');
+     '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>')+
+   q("quote",'<div id="oppQts" style="margin:2px 0 10px">'+oppQuoteChips()+'</div>'+pick("oQtSug","")+comboField("oQuoteQ","Find a quote — number or customer",""))+
+   q("rep",'<div class="chips" id="oGhRep">'+repChips+'</div>')+
+   q("name",'<input class="f" id="oName" value="'+esc(pre.name||"")+'" autocomplete="off">')+
+   q("notes",pick("oNoteChips",OPP_NOTE.map(x=>chip("oppNotePick",x,esc(x),false)).join(""))+'<textarea class="f" id="oNotes" placeholder="What\'s the opportunity?">'+esc(pre.note||"")+'</textarea>')+
+   q("review",'<div class="list" id="oReview"></div>')+
+   '<div class="row" style="gap:8px;margin-top:16px"><button class="btn" data-act="oppStepBack" id="oBack">Back</button><button class="btn coral" data-act="oppStepNext" id="oNext" style="flex:1">Next</button></div>');
   if(selCid)oppCustPicked();
   oppStepsSync();
+  oppFocusQ();
 }
 /* a customer was picked (or came with the page): fill what it tells us — the distributor and last contact only when still empty */
 function oppCustPicked(){
@@ -6466,7 +6475,7 @@ function oppCustLastTouch(cid){
 function oppSetType(t){const i=document.getElementById("oType");if(i)i.value=t;document.querySelectorAll("#oTypeChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t));}
 function oppSetDist(cid,name){logState.oppDistCid=cid||null;const i=document.getElementById("oDistQ");if(i)i.value=name||"";const d=document.getElementById("oDirect");if(d)d.checked=false;}
 function oppGhRepSet(v){logState.oppGhRep=v;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on&&x.dataset.v?tm.c:"";x.style.color=on&&x.dataset.v?tm.c:"";});}
-/* distributor chips: who the customer buys from (first choice starred), then our set-up distributors with the most reps in that state */
+/* distributor chips: who the customer buys from (first choice starred), then our set-up distributors and the ones with reps in that state */
 function oppDistChoices(){
   const c=logState.oppCid?company(logState.oppCid):null,st=val("oLoc").toUpperCase(),out=[],seen=new Set();
   const add=(cid,name,star)=>{const k=cid||("t:"+String(name||"").toLowerCase());if(!name||seen.has(k))return;seen.add(k);out.push({cid:cid||null,name:name,star:!!star});};
@@ -6482,7 +6491,7 @@ function oppDistChipsHTML(){
     return '<span class="chip'+(on?" on":"")+'" data-act="oppDistPick" data-id="'+esc(x.cid||"")+'" data-v="'+esc(x.name)+'">'+(x.star?svg("star")+" ":"")+esc(shortAcct(x.name))+'</span>';}).join("")+
    '<span class="chip'+(direct?" on":"")+'" data-act="oppDirectPick">Direct sale</span>';
 }
-/* people chips: the customer's own people, the distributor's reps in that state, man-reps covering it — one tap adds them with a role */
+/* people chips: the customer's own people, the distributor's reps in that state, a man-rep covering it — one tap adds them with a role */
 function oppConSuggest(){
   const have=new Set((logState.oppContacts||[]).map(x=>x.pid)),st=val("oLoc").toUpperCase(),out=[],cid=logState.oppCid;
   const add=(p,role)=>{if(p&&!have.has(p.id)&&!out.some(x=>x.p.id===p.id))out.push({p:p,role:role});};
@@ -6494,39 +6503,104 @@ function oppConSuggest(){
 }
 function oppConSugHTML(){return oppConSuggest().map(x=>'<span class="chip" data-act="oppConAdd" data-id="'+x.p.id+'" data-v="'+esc(x.role)+'">'+svg("plus")+' '+esc(x.p.name)+' <small style="opacity:.7">'+esc(x.role)+'</small></span>').join("");}
 /* quote chips: the customer's quotes that aren't on a deal yet, or make / add the quote right after saving */
+function oppQtSugList(){
+  const ids=logState.oppQuoteIds||[],cid=logState.oppCid,acc=val("oCidQ").toLowerCase();
+  return quotesForPick().filter(q=>!ids.includes(q.id)&&!q.oppId&&q.status!=="lost"&&((cid&&q.cid===cid)||(acc&&String(q.account||"").toLowerCase()===acc))).slice(0,4);
+}
 function oppQtSugHTML(){
-  const ids=logState.oppQuoteIds||[],cid=logState.oppCid,acc=val("oCidQ").toLowerCase(),nx=logState.oppQuoteNext;
-  const qs=quotesForPick().filter(q=>!ids.includes(q.id)&&!q.oppId&&q.status!=="lost"&&((cid&&q.cid===cid)||(acc&&String(q.account||"").toLowerCase()===acc))).slice(0,4);
-  return qs.map(q=>'<span class="chip" data-act="pickOppQuote" data-id="'+q.id+'">'+svg("tag")+' '+esc(q.no)+' · '+fmtC(quoteTotal(q))+'</span>').join("")+
+  const ids=logState.oppQuoteIds||[],nx=logState.oppQuoteNext;
+  return oppQtSugList().map(q=>'<span class="chip" data-act="pickOppQuote" data-id="'+q.id+'">'+svg("tag")+' '+esc(q.no)+' · '+fmtC(quoteTotal(q))+'</span>').join("")+
    (ids.length?'':'<span class="chip'+(nx==="newquote"?" on":"")+'" data-act="oppQtNext" data-v="newquote">'+svg("plus")+' Make the quote next</span>'+
     '<span class="chip'+(nx==="extquote"?" on":"")+'" data-act="oppQtNext" data-v="extquote">Add a quote file next</span>');
 }
 function oppWhyChipsHTML(){const cur=val("oProbWhy");return (OPP_WHY[logState.oppStage||"Prospecting"]||[]).map(x=>'<span class="chip'+(cur===x?" on":"")+'" data-act="oppWhyPick" data-v="'+esc(x)+'">'+esc(x)+'</span>').join("");}
-/* what a new deal still needs, by step */
+/* what a new deal still needs, by question */
 function oppMissing(){
-  const m=[],add=(s,id,l)=>m.push({s:s,id:id,l:l});
-  if(!val("oCidQ"))add(0,"oCidQ","Customer");
-  if(!/^[A-Za-z]{2}$/.test(val("oLoc")))add(0,"oLoc","State");
-  if(!val("oType"))add(0,"oTypeChips","Deal type");
-  if(!(logState.oppDistCid||val("oDistQ")||(document.getElementById("oDirect")||{}).checked))add(1,"oDistQ","Closing distributor");
-  if(!(parseInt(val("oUnits"),10)>0))add(2,"oUnits","Kits");
-  if(!(parseFloat(val("oAmt"))>0))add(2,"oAmt","Amount");
-  if(!val("oClose"))add(2,"oClose","Expected close");
-  if(!logState.oppStage)add(3,"oStage","Stage");
-  if(!val("oProbWhy"))add(3,"oProbWhy","Why");
-  if(!val("oLastC"))add(3,"oLastC","Last contact");
-  if(!val("oNextA"))add(3,"oNextA","Next step");
-  if(!val("oNextAD"))add(3,"oNextAD","When");
-  if(!(logState.oppContacts||[]).length)add(4,"oConQ","People on this deal");
-  if(!((logState.oppQuoteIds||[]).some(id=>quoteById(id))||logState.oppQuoteNext))add(4,"oQuoteQ","Quote");
-  if(!logState.oppGhRep&&!oppNoAutoRep(null))add(4,"oGhRep","Sales person");
-  if(!val("oName"))add(4,"oName","Opportunity name");
-  if(!val("oNotes"))add(4,"oNotes","Notes");
+  const m=[],add=(k,id,l)=>m.push({k:k,id:id,l:l});
+  if(!val("oCidQ"))add("cust","oCidQ","the customer");
+  if(!/^[A-Za-z]{2}$/.test(val("oLoc")))add("state","oLoc","the state");
+  if(!val("oType"))add("type","oTypeChips","the deal type");
+  if(!(logState.oppDistCid||val("oDistQ")||(document.getElementById("oDirect")||{}).checked))add("dist","oDistQ","the closing distributor");
+  if(!(parseInt(val("oUnits"),10)>0))add("kits","oUnits","the number of kits");
+  if(!(parseFloat(val("oAmt"))>0))add("amt","oAmt","the amount");
+  if(!val("oClose"))add("close","oClose","an expected close date");
+  if(!logState.oppStage)add("stage","oStage","the stage");
+  if(!val("oProbWhy"))add("why","oProbWhy","why it's at that stage");
+  if(!val("oLastC"))add("last","oLastC","the last contact date");
+  if(!val("oNextA"))add("next","oNextA","the next step");
+  if(!val("oNextAD"))add("when","oNextAD","when the next step happens");
+  if(!(logState.oppContacts||[]).length)add("people","oConQ","at least one person");
+  if(!((logState.oppQuoteIds||[]).some(id=>quoteById(id))||logState.oppQuoteNext))add("quote","oQuoteQ","the quote");
+  if(!logState.oppGhRep&&!oppNoAutoRep(null))add("rep","oGhRep","the sales person");
+  if(!val("oName"))add("name","oName","a name");
+  if(!val("oNotes"))add("notes","oNotes","a note");
   return m;
 }
+/* what the guide says on each question — what it needs, and what it filled in and why */
+function oppSay(k){
+  const c=logState.oppCid?company(logState.oppCid):null,cn=c?esc(shortAcct(c.name)):esc(val("oCidQ")),st=val("oLoc").toUpperCase(),reg=regionFromState(st);
+  const b=s=>'<b>'+s+'</b>',first=String((teamById(USER)||{}).name||"").split(" ")[0];
+  const distName=logState.oppDistCid?((company(logState.oppDistCid)||{}).name||""):val("oDistQ"),direct=!!(document.getElementById("oDirect")||{}).checked;
+  const n=parseInt(val("oUnits"),10)||0;
+  if(k==="cust"){if(c)return 'This one\'s for '+b(esc(c.name))+'. Tap Next — or type a different customer.';
+    if(val("oCidQ"))return b(cn)+' isn\'t in the CRM yet — that\'s fine, I\'ll use the name as typed. Or pick a match from the list.';
+    return 'Hi '+esc(first)+' — let\'s add a deal. Who\'s it for? Type the company, or a person there and I\'ll find their company.';}
+  if(k==="state"){if(c&&c.state&&st===String(c.state).toUpperCase().slice(0,2))return cn+' is in '+b(st)+' — that\'s from their account'+(reg?', so it\'s '+reg+' territory':'')+'. Change it if the deal is somewhere else.';
+    return st.length===2?b(st)+(reg?' — '+reg+' territory.':''):'What state is this deal in? Two letters, like TX.';}
+  if(k==="type"){if(c&&c.type==="distributor")return cn+' is a distributor, so I set '+b("Stocking order")+'. Change it if not.';
+    return 'What kind of order? '+b("End user")+' = they buy for their own people. '+b("Stocking")+' = a distributor buying to stock.';}
+  if(k==="dist"){if(direct)return b("Direct sale")+' — no distributor on this one.';
+    if(distName){const f=c?quoteFirstDist(c):null;
+      if(c&&c.type==="distributor"&&logState.oppDistCid===c.id)return cn+' closes it themselves. Tap another if the PO comes through someone else.';
+      if(f&&((f.cid&&f.cid===logState.oppDistCid)||(!f.cid&&String(f.name).toLowerCase()===distName.toLowerCase())))return cn+' buys through '+b(esc(distName))+' — their first choice — so I picked it. Tap another if the PO comes through someone else.';
+      return 'The PO comes through '+b(esc(distName))+'.';}
+    return 'Who does the PO come through? '+(st?'Ours with reps in '+st+' are first. ':'')+'Tap one, type another, or tap Direct sale.';}
+  if(k==="kits")return n?b(n+(n===1?" kit":" kits"))+'. Tap Next, or change it.':'How many kits? Tap one or type the number.';
+  if(k==="amt"){const a=parseFloat(val("oAmt"))||0;
+    if(n&&!logState.oppAmtHand){const pr=quotePrice("1000-0005-TQ",n,oppKitLevel());return n+' × '+(pr%1?fmtC(pr):money(pr))+' = '+b(money(a))+' — '+(oppKitLevel()==="dist"?'the distributor price for '+n+' kits':'list price')+'. Type over it if you quoted something else.';}
+    return a?b(money(a))+' goes in the pipeline.':'What\'s the deal worth?';}
+  if(k==="close")return val("oClose")?'Expected close '+b(oppDayLabel(val("oClose")))+'.':'When do you expect the PO?';
+  if(k==="stage"){const s=logState.oppStage;if(!s)return 'Where does it stand right now?';
+    return (logState.oppQuoteIds||[]).length&&s==="Proposal/Price Quote"?'It came from a quote, so I set '+b("Proposal")+'. Change it if it\'s further along.':b(esc(OPP_SHORT[s]))+' — it counts '+OPP_PROB[s]+'% in the forecast.';}
+  if(k==="why")return 'Why '+esc(OPP_SHORT[logState.oppStage||"Prospecting"])+'? Pick the closest, or type your own.';
+  if(k==="last"){const v=val("oLastC");if(v&&c&&v===oppCustLastTouch(c.id))return 'Your last logged touch with '+cn+' was '+b(oppDayLabel(v))+', so I filled that in.';
+    return v?'Last contact '+b(oppDayLabel(v))+'.':'When did you last talk to them?';}
+  if(k==="next")return 'What\'s the next step?';
+  if(k==="when"){const x=val("oNextA");return x?'When will you do it — '+b(esc(x.charAt(0).toLowerCase()+x.slice(1)))+'?':'When is the next step?';}
+  if(k==="people"){const ps=(logState.oppContacts||[]).map(x=>person(x.pid)).filter(Boolean);
+    if(ps.length)return b(ps.map(p=>esc(p.name)).join(", "))+' '+(ps.length===1?'is':'are')+' on it. Add anyone else, or tap Next.';
+    return 'Who\'s on this deal? Tap to add — '+(c?cn+'\'s people':'their people')+(st?' and the reps covering '+st:'')+' are below. One is enough to start.';}
+  if(k==="quote"){const ids=(logState.oppQuoteIds||[]).map(quoteById).filter(Boolean);
+    if(ids.length)return 'Quote '+b(ids.map(q=>esc(q.no)).join(", "))+' goes on this deal.';
+    if(logState.oppQuoteNext==="newquote")return 'I\'ll open a new quote for this deal as soon as you add it.';
+    if(logState.oppQuoteNext==="extquote")return 'You\'ll add the quote file as soon as you add the deal.';
+    return 'Every deal carries its quote. '+(oppQtSugList().length?'Tap one of theirs below, or make it right after this one.':'Make it right after this one, or add a quote file you already have.');}
+  if(k==="rep"){const r=logState.oppGhRep;
+    if(profile(USER)==="sales"&&r===USER)return 'It goes in your pipeline, '+esc(first)+'.';
+    if(r&&!logState.oppGhRepHand&&reg&&repForRegion(reg)===r)return st+' is '+reg+' — '+b(esc(shortName(r)))+'\'s territory, so I picked them. Tap someone else if not.';
+    return r?b(esc(shortName(r)))+'\'s deal.':'Whose deal is it?';}
+  if(k==="name")return logState.oppNameHand?'Named '+b(esc(val("oName")))+'.':'I named it '+b(esc(val("oName")))+'. Keep it, or rename it.';
+  if(k==="notes")return 'Last one — what\'s the story? A line is enough.';
+  if(k==="review"){const miss=oppMissing();return miss.length?'Almost — I still need '+miss.map(x=>esc(x.l)).join(", ")+'. Tap one to fill it in.':'That\'s everything. Check it over, then add it.';}
+  return "";
+}
+function oppReviewHTML(){
+  const miss=new Set(oppMissing().map(x=>x.k)),direct=!!(document.getElementById("oDirect")||{}).checked;
+  const v={cust:val("oCidQ"),state:val("oLoc").toUpperCase(),type:val("oType"),
+    dist:direct?"Direct sale":(logState.oppDistCid?((company(logState.oppDistCid)||{}).name||""):val("oDistQ")),
+    kits:val("oUnits"),amt:parseFloat(val("oAmt"))?money(parseFloat(val("oAmt"))):"",close:oppDayLabel(val("oClose")),
+    stage:logState.oppStage?OPP_SHORT[logState.oppStage]+" · "+OPP_PROB[logState.oppStage]+"%":"",why:val("oProbWhy"),last:oppDayLabel(val("oLastC")),
+    next:val("oNextA"),when:oppDayLabel(val("oNextAD")),
+    people:(logState.oppContacts||[]).map(x=>{const p=person(x.pid);return p?p.name+" ("+x.role+")":"";}).filter(Boolean).join(", "),
+    quote:(logState.oppQuoteIds||[]).map(quoteById).filter(Boolean).map(q=>q.no).join(", ")||(logState.oppQuoteNext==="newquote"?"New quote right after":logState.oppQuoteNext==="extquote"?"Quote file right after":""),
+    rep:logState.oppGhRep?shortName(logState.oppGhRep):(oppNoAutoRep(null)?"No one yet":""),name:val("oName"),notes:val("oNotes")};
+  return OPP_Q.slice(0,-1).map((q,i)=>'<button class="card" data-act="oppStep" data-v="'+i+'" style="padding:9px 12px"><div class="row" style="gap:10px">'+
+    '<span style="flex:none;width:104px;font-size:12.5px;color:var(--muted)">'+q[1]+'</span>'+
+    '<span class="grow" style="font-size:13.5px;min-width:0;overflow-wrap:anywhere">'+(miss.has(q[0])?'<span class="pill warn">Needed</span>':esc(String(v[q[0]]||"")))+'</span>'+chev()+'</div></button>').join("");
+}
 function oppStepsSync(){
-  const bar=document.getElementById("oSteps");if(!bar)return;
-  const cur=logState.oppStep||0;
+  if(!document.getElementById("oSteps"))return;
+  const i=logState.oppStep||0,k=OPP_Q[i][0];
   const nm=document.getElementById("oName");if(nm&&!logState.oppNameHand)nm.value=oppAutoName();
   if((logState.oppQuoteIds||[]).length)logState.oppQuoteNext="";
   /* an admin's deal follows the state's territory rep until someone taps a person */
@@ -6536,29 +6610,56 @@ function oppStepsSync(){
   put("oDistChips",oppDistChipsHTML());put("oConSug",oppConSugHTML());put("oQtSug",oppQtSugHTML());put("oWhyChips",oppWhyChipsHTML());
   const mark=(box,input)=>{const v=val(input);document.querySelectorAll("#"+box+" .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===v));};
   mark("oKitChips","oUnits");mark("oCloseChips","oClose");mark("oLastChips","oLastC");mark("oNextChips","oNextA");mark("oWhenChips","oNextAD");
-  const miss=oppMissing();
-  bar.innerHTML=OPP_STEPS.map((t,i)=>{const done=!miss.some(x=>x.s===i);return '<span class="chip'+(i===cur?" on":"")+'" data-act="oppStep" data-v="'+i+'">'+(done?svg("check")+' ':'')+(i+1)+'. '+t+'</span>';}).join("");
-  document.querySelectorAll(".ostep").forEach(x=>x.classList.toggle("on",+x.dataset.s===cur));
-  const show=(cur===OPP_STEPS.length-1||logState.oppTried==="all")?miss:(logState.oppTried?miss.filter(x=>x.s===cur):[]);
-  const mEl=document.getElementById("oStepMiss");
-  if(mEl)mEl.innerHTML=show.length?'Still needed: '+show.map(x=>'<a href="#" data-act="oppStep" data-v="'+x.s+'" data-f="'+x.id+'">'+esc(x.l)+'</a>').join(" · "):"";
-  const b=document.getElementById("oBack");if(b)b.style.visibility=cur?"visible":"hidden";
-  const n=document.getElementById("oNext");if(n)n.textContent=cur===OPP_STEPS.length-1?"Add opportunity":"Next";
+  document.querySelectorAll(".oq").forEach(x=>x.classList.toggle("on",x.dataset.q===k));
+  const last=OPP_Q.length-1,bar=document.getElementById("oProgBar"),pt=document.getElementById("oProgTxt");
+  if(bar)bar.style.width=Math.round(i/last*100)+"%";
+  if(pt)pt.textContent=k==="review"?"Review":(i+1)+" of "+last+" · "+OPP_Q[i][1];
+  if(k==="review")put("oReview",oppReviewHTML());
+  if(logState.oppNudge===k&&!oppMissing().some(x=>x.k===k))logState.oppNudge="";
+  const say=document.getElementById("oSay");
+  if(say){const nudge=logState.oppNudge===k?oppMissing().find(x=>x.k===k):null;
+    const h=nudge?'I need '+esc(nudge.l)+' before we go on. '+oppSay(k):oppSay(k);
+    if(say.innerHTML!==h)say.innerHTML=h;say.classList.toggle("nudge",!!nudge);}
+  const b=document.getElementById("oBack");if(b)b.style.visibility=i?"visible":"hidden";
+  const n=document.getElementById("oNext");if(n)n.textContent=k==="review"?"Add opportunity":(logState.oppToReview?"Back to review":"Next");
+}
+/* focus the box on the question (typed boxes only — a date or chip question just waits for a tap) */
+function oppFocusQ(){
+  const k=OPP_Q[logState.oppStep||0][0],box=document.querySelector('.oq[data-q="'+k+'"]');if(!box)return;
+  const f=box.querySelector('input.f:not([type=date]):not([type=hidden]),textarea.f');
+  if(f&&!(k==="cust"&&f.value)){try{f.focus({preventScroll:true});}catch(e){}}
 }
 function oppStepGo(i,focusId){
-  logState.oppStep=Math.max(0,Math.min(OPP_STEPS.length-1,i));logState.oppTried=false;oppStepsSync();
+  i=oppQi(i);
+  logState.oppStep=Math.max(0,Math.min(OPP_Q.length-1,i));oppStepsSync();
   const sh=document.getElementById("sheet");if(sh)sh.scrollTop=0;
-  if(focusId){const f=document.getElementById(focusId);if(f){f.scrollIntoView({block:"center"});if(f.focus&&/INPUT|TEXTAREA/.test(f.tagName))f.focus();}}
+  if(focusId){const f=document.getElementById(focusId);if(f&&f.focus&&/INPUT|TEXTAREA/.test(f.tagName)&&f.type!=="date")f.focus();}
+  else oppFocusQ();
 }
 function oppStepNext(){
-  const cur=logState.oppStep||0,here=oppMissing().filter(x=>x.s===cur);
-  if(cur<OPP_STEPS.length-1){
-    if(here.length){logState.oppTried=true;oppStepsSync();toast("Still needed: "+here.map(x=>x.l).join(", "));const f=document.getElementById(here[0].id);if(f&&f.focus&&/INPUT|TEXTAREA/.test(f.tagName))f.focus();return;}
-    oppStepGo(cur+1);return;}
-  saveOpp(logState.oppQuoteNext||undefined);
+  const i=logState.oppStep||0,k=OPP_Q[i][0];
+  if(k==="review"){saveOpp(logState.oppQuoteNext||undefined);return;}
+  if(oppMissing().some(x=>x.k===k)){logState.oppNudge=k;oppStepsSync();oppFocusQ();return;}
+  logState.oppNudge="";
+  if(logState.oppToReview){logState.oppToReview=false;oppStepGo("review");return;}
+  oppStepGo(i+1);
 }
-/* typing or tapping anywhere in the steps keeps the step marks, chips, name and amount in step */
+/* a chip answers the question it sits on: move on a beat later, once that question is complete */
+function oppAutoNext(k){
+  if(!document.getElementById("oSteps"))return;
+  setTimeout(()=>{const cur=OPP_Q[logState.oppStep||0][0];if(cur!==k||cur==="review")return;if(!oppMissing().some(x=>x.k===cur))oppStepNext();},300);
+}
+/* typing or tapping anywhere in the guide keeps it in step; Enter answers the box (or picks the first match in a type-ahead) */
 ["input","click","change"].forEach(ev=>document.addEventListener(ev,()=>{if(document.getElementById("oSteps")&&document.getElementById("scrim").classList.contains("open"))setTimeout(oppStepsSync,0);}));
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||e.shiftKey||!document.getElementById("oSteps")||!document.getElementById("scrim").classList.contains("open"))return;
+  const t=e.target;if(!t||t.tagName!=="INPUT"||!t.closest||!t.closest(".oq"))return;
+  e.preventDefault();
+  const first=document.querySelector("#"+t.id+"_sug button");
+  if(first&&t.value.trim()){first.click();return;}
+  if(t.id==="oConQ"){const at=document.querySelector('[data-act="oppAttach"]');if(at&&logState.oppConPid){at.click();return;}}
+  oppStepNext();
+});
 /* ----- the quick-add helpers (Max, 2026-11-10: "simplify how the reps add opportunity, apparently it's too hard") ----- */
 /* kit price for the deal's customer: a distributor customer gets the distributor tier for that many kits, anyone else list price
    (the same rule a quote uses, so a deal made here and one made from a quote read alike) */
@@ -6586,7 +6687,7 @@ function oppAutoName(){
 function oppMoreOpen(step){const d=document.getElementById("oMore");if(d)d.open=true;if(step!=null&&document.getElementById("oSteps"))oppStepGo(step);}
 function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote for this deal once it is saved */
   if(!logState.oppId&&document.getElementById("oSteps")){const miss=oppMissing();
-    if(miss.length){oppStepGo(miss[0].s,miss[0].id);logState.oppTried="all";oppStepsSync();toast("Still needed: "+miss.map(x=>x.l).join(", "));return;}}
+    if(miss.length){logState.oppNudge=miss[0].k;oppStepGo(miss[0].k,miss[0].id);toast("Still needed: "+miss.map(x=>x.l).join(", "));return;}}
   const name=val("oName")||oppAutoName();
   if(!name){toast("Who's the customer?");const el=document.getElementById("oCidQ");if(el)el.focus();return;}
   ensureOpps();
@@ -6618,9 +6719,9 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
   /* every deal is tied to a Golden Hour sales person; the territory fills it in when nobody picked one (Max, 2026-10-16) */
   const noAuto=oppNoAutoRep(existing||null);
   data.ghRep=logState.oppGhRep||(noAuto?"":repForRegion(regionFromState(data.state))||(c?repForRegion(companyRegion(c)):"")||"");
-  if(!data.ghRep&&!noAuto){toast("Pick the Golden Hour sales person on this deal");oppMoreOpen(4);const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
-  if(data.stage==="Closed Won"&&!(logState.oppQuoteIds||[]).some(id=>quoteById(id))){toast("Closed won needs its quote — make one or attach the quote you sent");oppMoreOpen(4);const el=document.getElementById("oppQts");if(el)el.scrollIntoView({block:"center"});return;}
-  if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");oppMoreOpen(1);const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
+  if(!data.ghRep&&!noAuto){toast("Pick the Golden Hour sales person on this deal");oppMoreOpen("rep");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
+  if(data.stage==="Closed Won"&&!(logState.oppQuoteIds||[]).some(id=>quoteById(id))){toast("Closed won needs its quote — make one or attach the quote you sent");oppMoreOpen("quote");const el=document.getElementById("oppQts");if(el)el.scrollIntoView({block:"center"});return;}
+  if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");oppMoreOpen("dist");const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
   const ownerSel=document.getElementById("oOwner");
   if(ownerSel)data.owner=ownerSel.value;
   let saved=existing;
@@ -9274,27 +9375,27 @@ document.addEventListener("click",e=>{
   if(a==="editopp"){formOpp(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
   if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}(DB.quotes||[]).forEach(q=>{if(q&&q.oppId===id)q.oppId=null;});DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
-  if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
-  if(a==="oppStep"){e.preventDefault();oppStepGo(parseInt(t.dataset.v,10),t.dataset.f||"");return;}
+  if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));oppAutoNext("stage");return;}
+  if(a==="oppStep"){e.preventDefault();const fromRev=OPP_Q[logState.oppStep||0][0]==="review";logState.oppToReview=fromRev;oppStepGo(parseInt(t.dataset.v,10),t.dataset.f||"");return;}
   if(a==="oppStepNext"){oppStepNext();return;}
   if(a==="oppStepBack"){oppStepGo((logState.oppStep||0)-1);return;}
-  if(a==="oppDistPick"){oppSetDist(t.dataset.id||null,t.dataset.v);sugRender("oDistQ",[]);return;}
-  if(a==="oppDirectPick"){const d=document.getElementById("oDirect");if(d){d.checked=!d.checked;if(d.checked){logState.oppDistCid=null;const q=document.getElementById("oDistQ");if(q)q.value="";}}return;}
-  if(a==="oppKitsPick"){const u=document.getElementById("oUnits");if(u)u.value=t.dataset.v;oppAmtHint();return;}
-  if(a==="oppTypePick"){oppSetType(t.dataset.v);return;}
-  if(a==="oppWhyPick"){const i=document.getElementById("oProbWhy");if(i)i.value=t.dataset.v;return;}
-  if(a==="oppLastPick"){const i=document.getElementById("oLastC");if(i)i.value=t.dataset.v;return;}
-  if(a==="oppNextPick"){const i=document.getElementById("oNextA");if(i)i.value=t.dataset.v;return;}
-  if(a==="oppWhenPick"){const i=document.getElementById("oNextAD");if(i)i.value=t.dataset.v;return;}
+  if(a==="oppDistPick"){oppSetDist(t.dataset.id||null,t.dataset.v);sugRender("oDistQ",[]);oppAutoNext("dist");return;}
+  if(a==="oppDirectPick"){const d=document.getElementById("oDirect");if(d){d.checked=!d.checked;if(d.checked){logState.oppDistCid=null;const q=document.getElementById("oDistQ");if(q)q.value="";oppAutoNext("dist");}}return;}
+  if(a==="oppKitsPick"){const u=document.getElementById("oUnits");if(u)u.value=t.dataset.v;oppAmtHint();oppAutoNext("kits");return;}
+  if(a==="oppTypePick"){oppSetType(t.dataset.v);oppAutoNext("type");return;}
+  if(a==="oppWhyPick"){const i=document.getElementById("oProbWhy");if(i)i.value=t.dataset.v;oppAutoNext("why");return;}
+  if(a==="oppLastPick"){const i=document.getElementById("oLastC");if(i)i.value=t.dataset.v;oppAutoNext("last");return;}
+  if(a==="oppNextPick"){const i=document.getElementById("oNextA");if(i)i.value=t.dataset.v;oppAutoNext("next");return;}
+  if(a==="oppWhenPick"){const i=document.getElementById("oNextAD");if(i)i.value=t.dataset.v;oppAutoNext("when");return;}
   if(a==="oppConAdd"){logState.oppContacts=logState.oppContacts||[];if(!logState.oppContacts.some(x=>x.pid===id))logState.oppContacts.push({pid:id,role:t.dataset.v});const w=document.getElementById("oppCons");if(w)w.innerHTML=oppConChips();return;}
-  if(a==="oppQtNext"){logState.oppQuoteNext=logState.oppQuoteNext===t.dataset.v?"":t.dataset.v;return;}
+  if(a==="oppQtNext"){logState.oppQuoteNext=logState.oppQuoteNext===t.dataset.v?"":t.dataset.v;if(logState.oppQuoteNext)oppAutoNext("quote");return;}
   if(a==="oppNotePick"){const i=document.getElementById("oNotes");if(i){const v=i.value.trim();if(!v.includes(t.dataset.v))i.value=(v?v.replace(/[.\s]*$/,"")+". ":"")+t.dataset.v;}return;}
-  if(a==="pickOppCustCon"){const p=person(id);if(p){const c=company(p.cid);logState.oppCid=c?c.id:null;const i=document.getElementById("oCidQ");if(i)i.value=c?c.name:p.name;sugRender("oCidQ",[]);logState.oppContacts=logState.oppContacts||[];if(!logState.oppContacts.some(x=>x.pid===p.id))logState.oppContacts.push({pid:p.id,role:c&&c.type==="distributor"?"Distributor rep":"Buyer"});const w=document.getElementById("oppCons");if(w)w.innerHTML=oppConChips();oppCustPicked();}return;}
-  if(a==="oppCloseQuick"){const i=document.getElementById("oClose"),on=t.classList.contains("on");if(i)i.value=on?"":t.dataset.v;document.querySelectorAll("#oCloseChips .chip").forEach(x=>x.classList.toggle("on",!on&&x===t));return;}
+  if(a==="pickOppCustCon"){const p=person(id);if(p){const c=company(p.cid);logState.oppCid=c?c.id:null;const i=document.getElementById("oCidQ");if(i)i.value=c?c.name:p.name;sugRender("oCidQ",[]);logState.oppContacts=logState.oppContacts||[];if(!logState.oppContacts.some(x=>x.pid===p.id))logState.oppContacts.push({pid:p.id,role:c&&c.type==="distributor"?"Distributor rep":"Buyer"});const w=document.getElementById("oppCons");if(w)w.innerHTML=oppConChips();oppCustPicked();oppAutoNext("cust");}return;}
+  if(a==="oppCloseQuick"){const i=document.getElementById("oClose"),on=t.classList.contains("on");if(i)i.value=on?"":t.dataset.v;document.querySelectorAll("#oCloseChips .chip").forEach(x=>x.classList.toggle("on",!on&&x===t));oppAutoNext("close");return;}
   if(a==="saveOpp"){saveOpp();return;}
   if(a==="oppNewQuote"){saveOpp("newquote");return;}
   if(a==="oppExtQuote"){saveOpp("extquote");return;}
-  if(a==="pickOppQuote"){logState.oppQuoteIds=logState.oppQuoteIds||[];if(!logState.oppQuoteIds.includes(id))logState.oppQuoteIds.push(id);const i=document.getElementById("oQuoteQ");if(i)i.value="";sugRender("oQuoteQ",[]);oppQuoteRedraw();return;}
+  if(a==="pickOppQuote"){oppAutoNext("quote");logState.oppQuoteIds=logState.oppQuoteIds||[];if(!logState.oppQuoteIds.includes(id))logState.oppQuoteIds.push(id);const i=document.getElementById("oQuoteQ");if(i)i.value="";sugRender("oQuoteQ",[]);oppQuoteRedraw();return;}
   if(a==="oppQDetach"){(logState.oppQuoteIds||[]).splice(parseInt(t.dataset.i,10),1);oppQuoteRedraw();return;}
   if(a==="quoteopp"){formQuoteOpp(id);return;}
   if(a==="qoPick"||a==="pickQoOpp"){quotePickOpp(id);return;}
@@ -9340,7 +9441,7 @@ document.addEventListener("click",e=>{
   if(a==="goallive"){setGoalsLive(t.dataset.v==="1");return;}
   if(a==="goaltargets"){formGoalTargets();return;}
   if(a==="savegoaltargets"){saveGoalTargets();return;}
-  if(a==="setGhRep"){logState.oppGhRep=t.dataset.v;logState.oppGhRepHand=true;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on&&x.dataset.v?tm.c:"";x.style.color=on&&x.dataset.v?tm.c:"";});return;}
+  if(a==="setGhRep"){oppAutoNext("rep");logState.oppGhRep=t.dataset.v;logState.oppGhRepHand=true;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on&&x.dataset.v?tm.c:"";x.style.color=on&&x.dataset.v?tm.c:"";});return;}
   if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
     if(t.dataset.v==="Closed Won"&&!oppHasQuote(o)){toast("Record the quote first — every deal has its outbound quote");formOpp(o.id);return;}
@@ -9497,12 +9598,12 @@ document.addEventListener("click",e=>{
   if(a==="pickLogNewCo"){const c=company(t.dataset.id);if(c){logState.logNewCid=c.id;const i=document.getElementById("logNewCoQ");if(i)i.value=c.name;sugRender("logNewCoQ",[]);logNewSyncCo();}return;}
   if(a==="logNewKind"){logState.logNewKind=t.dataset.v;document.querySelectorAll("#logNewKind .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="pickRepCo"){const c=company(t.dataset.id);if(c){logState.repCid=c.id;const i=document.getElementById("rCidQ");if(i)i.value=c.name;sugRender("rCidQ",[]);}return;}
-  if(a==="pickOppDist"){const c=company(t.dataset.id);if(c){logState.oppDistCid=c.id;const i=document.getElementById("oDistQ");if(i)i.value=c.name;sugRender("oDistQ",[]);logState.oppDistRepPid=null;const r=document.getElementById("oDistRepQ");if(r)r.value="";oppAmtHint();}return;}
+  if(a==="pickOppDist"){const c=company(t.dataset.id);if(c){logState.oppDistCid=c.id;const i=document.getElementById("oDistQ");if(i)i.value=c.name;sugRender("oDistQ",[]);logState.oppDistRepPid=null;const r=document.getElementById("oDistRepQ");if(r)r.value="";oppAmtHint();oppAutoNext("dist");}return;}
   if(a==="pickOppDistRep"){const p=person(t.dataset.id);if(p){logState.oppDistRepPid=p.id;const i=document.getElementById("oDistRepQ");if(i)i.value=p.name;sugRender("oDistRepQ",[]);}return;}
   if(a==="pickOppManrep"){const p=person(t.dataset.id);if(p){logState.oppManrepPid=p.id;const i=document.getElementById("oManrepQ");if(i)i.value=personLabel(p);sugRender("oManrepQ",[]);}return;}
   if(a==="pickIvAcct"){const c=company(t.dataset.id);if(c){const i=document.getElementById("ivAcct");if(i)i.value=c.name;sugRender("ivAcct",[]);}return;}
   if(a==="pickBf"){const c=company(t.dataset.id);if(c){const i=document.getElementById("bfSearch");if(i)i.value=c.name;sugRender("bfSearch",[]);}return;}
-  if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const d=document.getElementById("oDistQ");if(c.type==="distributor"&&d&&!d.value.trim()){d.value=c.name;logState.oppDistCid=c.id;} /* a distributor customer closes it itself */if(document.getElementById("oSteps"))oppCustPicked();oppAmtHint();}return;}
+  if(a==="pickOppAcct"){const c=company(t.dataset.id);if(c){logState.oppCid=c.id;const i=document.getElementById("oCidQ");if(i)i.value=c.name;sugRender("oCidQ",[]);const d=document.getElementById("oDistQ");if(c.type==="distributor"&&d&&!d.value.trim()){d.value=c.name;logState.oppDistCid=c.id;} /* a distributor customer closes it itself */if(document.getElementById("oSteps")){oppCustPicked();oppAutoNext("cust");}oppAmtHint();}return;}
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
   if(a==="confseg"){confSegF=t.dataset.v;render();return;}
