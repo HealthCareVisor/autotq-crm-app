@@ -568,8 +568,14 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .sctag.out{background:#E8F0FB;color:#1D4F91}.sctag.in{background:#EEF3EA;color:#3B6D11}.sctag.crm{background:#FBEDE7;color:#9C3D1B}
 .scw,.scx{display:flex;flex-direction:column;gap:2px;min-width:0}.scw b,.scx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.scw small,.scx small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .scprev{white-space:pre-wrap;background:var(--sunken);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;margin:12px 0 8px;overflow-wrap:anywhere}
-@media (max-width:1100px){.scrow{grid-template-columns:1fr}.scgo{flex-basis:auto;padding-left:0;margin-left:auto}.sctiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:640px){.sctiles{grid-template-columns:repeat(2,minmax(0,1fr))}.scv{font-size:20px}.scwks{grid-template-columns:repeat(4,minmax(0,1fr))}.scdays{grid-template-columns:repeat(4,minmax(0,1fr))}
+.sctiles.fu7{grid-template-columns:repeat(7,minmax(0,1fr))}
+.sct.fu{font:inherit;text-align:left;color:var(--ink);cursor:pointer}.sct.fu:hover{background:var(--sunken)}.sct.fu:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.fuband{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%;font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 10px;cursor:pointer;box-shadow:var(--sh-1)}
+.fuband:hover{background:var(--sunken)}.fuband.sg{border-left-color:var(--st-ok)}.fuband.sy{border-left-color:var(--st-warn)}.fuband.sr{border-left-color:var(--st-dang)}
+.fuband .scl{font-size:13px}.fuband .scv{font-size:26px}.fuband .fusub{font-size:13px;color:var(--muted)}.fuband .fumost{font-size:13px;font-weight:600;margin-left:auto;display:inline-flex;align-items:center;gap:4px}
+.fulate{font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:1100px){.scrow{grid-template-columns:1fr}.scgo{flex-basis:auto;padding-left:0;margin-left:auto}.sctiles,.sctiles.fu7{grid-template-columns:repeat(3,minmax(0,1fr))}.sctiles>.sct.fu{grid-column:1/-1}.fuband .fumost{margin-left:0;flex-basis:100%}}
+@media (max-width:640px){.sctiles,.sctiles.fu7{grid-template-columns:repeat(2,minmax(0,1fr))}.scv{font-size:20px}.scwks{grid-template-columns:repeat(4,minmax(0,1fr))}.scdays{grid-template-columns:repeat(4,minmax(0,1fr))}
   .scli{grid-template-columns:52px minmax(0,1fr);row-gap:4px}.scli .scw,.scli .scx,.scli .sctag{grid-column:2}.scupd{margin-left:0;flex-basis:100%}}
 @media print{body.scprint .side,body.scprint .tbar,body.scprint .nav,body.scprint #fbdock,body.scprint .scnoprint,body.scprint #toast{display:none!important}
   body.scprint .work,body.scprint .console{display:block;margin:0;padding:0}body.scprint .content{max-width:none;padding:0}body.scprint .sct,body.scprint .scday{break-inside:avoid}body.scprint .sct{animation:none}}
@@ -1854,6 +1860,7 @@ function render(){
   fitZoom();
   try{trackUsage();}catch(e){}
   try{fbSync();}catch(e){}
+  try{fuSchedule();}catch(e){}
 }
 /* real navigation history — the back button returns to wherever you actually came from */
 let navStack=[];
@@ -2816,6 +2823,64 @@ function scState(u,mon){
 function scTileHTML(x){const b=x.pct==null?"":GB[goalBand(x.pct)];
   return '<div class="sct'+(b?" s"+b:"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+x.v+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
    '<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div><small class="scs">'+esc(x.sub||"")+'</small></div>';}
+/* Sales follow-ups on time (Hannah's KPI wall, Max 2026-11-11): of the open follow-ups that have a date (to-dos, and each open deal's
+   next step), the share that isn't past due. Due today is still on time. A count as of right now: the week arrows don't move it.
+   To-dos: not done, not removed, the person's own or assigned to them. Deals: open, nextActionDate set, Golden Hour sales person =
+   the person (oppGhRep: o.ghRep, else the territory). Conference leads are left out: their next step is free text, never a date. */
+const FU_PEOPLE=["johnm","john","tim","kellan","jamie"];
+function fuItems(u){
+  const T=todayStr(),S=ymd(new Date(Date.now()-14*86400000)),out=[];
+  (DB.tasks||[]).forEach(t=>{if(!t||t.done||t.removed||!t.due||!taskFor(t,u))return;
+    out.push({k:"task",id:t.id,due:String(t.due).slice(0,10),title:t.title||"To-do",sub:t.pid&&person(t.pid)?"with "+person(t.pid).name:""});});
+  (DB.opps||[]).forEach(o=>{if(!o||!oppIsOpen(o)||!o.nextActionDate||oppGhRep(o)!==u)return;
+    out.push({k:"deal",id:o.id,due:String(o.nextActionDate).slice(0,10),title:o.nextAction||"Next step",sub:o.name||oppAcctLabel(o)});});
+  out.forEach(x=>{x.late=x.due<T;x.stale=x.due<S;});
+  return out;
+}
+function fuSum(items){const late=items.filter(x=>x.late).length;
+  return {total:items.length,overdue:late,stale14:items.filter(x=>x.stale).length,pct:items.length?Math.round((items.length-late)/items.length*100):null};}
+function fuStats(u){const it=fuItems(u);return Object.assign(fuSum(it),{u:u,items:it});}
+/* the team: a to-do shared by two people counts once */
+function fuTeam(){const by={},seen={},all=[];
+  FU_PEOPLE.forEach(u=>{const s=fuStats(u);by[u]=s;s.items.forEach(x=>{const k=x.k+":"+x.id;if(!seen[k]){seen[k]=1;all.push(x);}});});
+  return Object.assign(fuSum(all),{by:by});}
+function fuBand(p){return p==null?"":GB[goalBand(p)];}
+function fuMost(f){return FU_PEOPLE.filter(u=>f.by[u].overdue).sort((a,b)=>f.by[b].overdue-f.by[a].overdue).slice(0,2).map(u=>shortName(u)+" "+f.by[u].overdue).join(", ");}
+function fuLine(s){return s.total?s.overdue+" late of "+s.total+(s.stale14?" · "+s.stale14+" 2+ wks":""):"No dated follow-ups";}
+function fuTileHTML(u){const s=fuStats(u),b=fuBand(s.pct);
+  return '<button class="sct fu'+(b?" s"+b:"")+'" data-act="furep" data-id="'+u+'" title="Open to-dos and deal next steps that have a date: the share not past due, as of now. Tap for the late ones.">'+
+   '<span class="scl">Follow-ups on time</span><b class="scv">'+(s.pct==null?"—":s.pct+"%")+'</b>'+
+   '<div class="gtrk '+b+'"><i style="width:'+(s.pct||0)+'%"></i></div><small class="scs">'+esc(fuLine(s))+' · now</small></button>';}
+function fuTeamHTML(){const f=fuTeam(),b=fuBand(f.pct),m=fuMost(f);
+  return '<button class="fuband'+(b?" s"+b:"")+'" data-act="futeam" title="Open to-dos and deal next steps that have a date, for John M., John C., Tim, Kellan and Jamie">'+
+   '<span class="scl">Sales follow-ups</span><b class="scv">'+(f.pct==null?"—":f.pct+"%")+'</b><span class="fusub">on time · '+esc(fuLine(f))+' · now</span>'+
+   '<span class="fumost">'+(m?"Most late: "+esc(m):"Nothing late")+' '+chev()+'</span></button>';}
+function fuTeamSheet(){if(!scAccess())return;
+  const f=fuTeam(),rows=FU_PEOPLE.map(u=>f.by[u]).sort((a,b)=>b.overdue-a.overdue||b.total-a.total);
+  openSheet('<h2>Sales follow-ups</h2><p class="t2" style="margin:0 0 12px">'+(f.pct==null?"—":f.pct+"% on time")+' · '+esc(fuLine(f))+' · as of now</p>'+
+   '<div class="tablewrap"><table class="lv"><thead><tr><th>Rep</th><th class="num">Open follow-ups</th><th class="num">Late</th><th class="num">2+ wks late</th><th class="num">On time</th></tr></thead><tbody>'+
+   rows.map(s=>'<tr data-act="furep" data-id="'+s.u+'" style="cursor:pointer"><td><b>'+esc(teamById(s.u).name)+'</b></td><td class="num">'+s.total+'</td><td class="num">'+s.overdue+'</td><td class="num">'+s.stale14+'</td>'+
+    '<td class="num">'+(s.pct==null?"—":'<span class="pill '+({g:"ok",y:"warn",r:"dang"}[fuBand(s.pct)]||"")+'">'+s.pct+'%</span>')+'</td></tr>').join("")+
+   '</tbody></table></div>');}
+function fuDaysLate(d){return Math.round((new Date(todayStr()+"T12:00:00")-new Date(d+"T12:00:00"))/86400000);}
+function fuRepSheet(u){if(!(scAccess()||u===USER))return;
+  const s=fuStats(u),late=s.items.filter(x=>x.late).sort((a,b)=>a.due.localeCompare(b.due)||a.k.localeCompare(b.k));
+  openSheet((scAccess()?'<button class="btn sm" data-act="futeam" style="margin-bottom:8px">'+svg("chevL")+' All reps</button>':'')+
+   '<h2>'+(u===USER?"My late follow-ups":esc(shortName(u))+'’s late follow-ups')+'</h2>'+
+   '<p class="t2" style="margin:0 0 12px">'+(s.pct==null?"—":s.pct+"% on time")+' · '+esc(fuLine(s))+'</p>'+
+   (late.length?'<div class="list">'+late.map(x=>{const n=fuDaysLate(x.due);
+    return '<div class="tk" data-act="'+(x.k==="task"?"edittask":"editopp")+'" data-id="'+esc(x.id)+'" style="cursor:pointer"><span class="pill '+(x.k==="task"?"info":"warn")+'">'+(x.k==="task"?"To-do":"Deal")+'</span>'+
+     '<div class="grow"><p class="t1" style="font-size:14px">'+esc(x.title)+'</p>'+(x.sub?'<p class="t2">'+esc(x.sub)+'</p>':'')+'</div>'+
+     '<span class="fulate t2">due '+goalMD(x.due)+' · <b style="color:var(--'+(x.stale?"dang":"warn")+'-t)">'+n+' day'+(n===1?"":"s")+' late</b></span>'+chev()+'</div>';}).join("")+'</div>'
+    :'<div class="empty">Nothing late.</div>'));}
+/* for Hannah's KPI wall: the same numbers in the browser's book store (IndexedDB autotq_book → kv → "autotq_summary") */
+let fuPubT=null,fuPubLast="";
+function fuPublish(){if(!USER||!SYNC.booted||cacheLoading)return;
+  const f=fuTeam(),fu={total:f.total,overdue:f.overdue,stale14:f.stale14,by:{}};
+  FU_PEOPLE.forEach(u=>{const s=f.by[u];fu.by[u]={total:s.total,overdue:s.overdue,stale14:s.stale14};});
+  const sig=JSON.stringify(fu)+todayStr();if(sig===fuPubLast)return;fuPubLast=sig;
+  bookStore("readwrite").then(st=>{st.put({at:new Date().toISOString(),fu:fu},"autotq_summary");}).catch(()=>{});}
+function fuSchedule(){clearTimeout(fuPubT);fuPubT=setTimeout(()=>{try{fuPublish();}catch(e){}},1500);}
 function scWeekNavHTML(mon){const cur=goalMonday(),d=goalDays(mon);
   return '<div class="scnav"><button class="ibtn" data-act="scweek" data-v="-1" title="Previous week" aria-label="Previous week">'+svg("chevL")+'</button>'+
    '<span>'+(mon===cur?"This week · ":"")+goalMD(d[0])+' – '+goalMD(d[6])+'</span>'+
@@ -2825,10 +2890,10 @@ function scHomeHTML(){
   const me=!scAccess();if(me&&!scSelf(USER))return "";
   const mon=logState.scWeek||goalMonday();
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
-   '<span class="scupd">'+esc(rmUpdLine())+'</span></div><div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
+   '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles fu7">'+s.tiles.map(scTileHTML).join("")+fuTileHTML(u)+'</div></div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
@@ -9377,6 +9442,8 @@ document.addEventListener("click",e=>{
   if(a==="saveCov"){saveCoverage();return;}
   if(a==="addopp"){formOpp(null);return;}
   if(a==="editopp"){formOpp(id);return;}
+  if(a==="futeam"){fuTeamSheet();return;}
+  if(a==="furep"){fuRepSheet(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
   if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}(DB.quotes||[]).forEach(q=>{if(q&&q.oppId===id)q.oppId=null;});DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
   if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));oppAutoNext("stage");return;}
