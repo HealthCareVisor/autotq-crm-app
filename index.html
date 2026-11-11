@@ -8230,6 +8230,10 @@ function packingSlipHTML(s){
 }
 /* ---------- Order confirmation — "We've received your order", from Sales Support to the PO's point of contact ---------- */
 const SALES_FROM="salessupport@goldenhourmedical.com";
+/* Max (2026-11-11): "every sales support email … directly to me". send-invoice blind-copies him on everything sent as
+   salessupport@; when the CRM can't send and the rep sends it by hand, the hand-off (mailto / copy window) carries the same Bcc */
+const SALES_COPY_TO="max@goldenhourmedical.com";
+function salesCopyBcc(to,cc){return [to].concat(cc||[]).some(a=>String(a||"").trim().toLowerCase()===SALES_COPY_TO)?"":SALES_COPY_TO;}
 function orderConfirmHTML(o){
   const c=acctForOrder(o),t=shipToFor(o),ship=shipToLines(t);
   const items=shipItems(o).filter(x=>+x.qty>0).map(x=>'<tr><td style="padding:6px 0;border-bottom:1px solid #eeeeee;font-size:11px;color:#333333">'+esc(skuNice(x.sku))+(SKU_NICE[x.sku]?' <span style="color:#999999">· '+esc(x.sku)+'</span>':'')+'</td><td align="right" style="padding:6px 0;border-bottom:1px solid #eeeeee;font-size:11px;color:#111111;font-weight:700;white-space:nowrap">'+(+x.qty)+'</td></tr>').join("");
@@ -8289,10 +8293,10 @@ async function sendHtmlMail(p){
   if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
   return b;
 }
-function htmlCopyWindow(html,to,sub,from){
+function htmlCopyWindow(html,to,sub,from,bcc){
   const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the email");return;}
   const bar='<div style="position:fixed;top:0;left:0;right:0;background:#111;color:#fff;font:13px/1.4 Arial;padding:10px 14px;display:flex;gap:10px;align-items:center;z-index:9;flex-wrap:wrap">'+
-   '<b>Not sent automatically.</b> Copy the email below and paste it into a new message'+(from?' from <b>'+esc(from)+'</b>':'')+' to <b>'+esc(to)+'</b>'+(sub?' · subject: '+esc(sub):'')+
+   '<b>Not sent automatically.</b> Copy the email below and paste it into a new message'+(from?' from <b>'+esc(from)+'</b>':'')+' to <b>'+esc(to)+'</b>'+(bcc?' · Bcc <b>'+esc(bcc)+'</b>':'')+(sub?' · subject: '+esc(sub):'')+
    '<button id="cp" style="margin-left:auto;padding:7px 14px;border:0;border-radius:6px;background:#C8102E;color:#fff;font-weight:700;cursor:pointer">Copy email</button></div><div style="height:46px"></div>';
   w.document.write(html.replace(/<body([^>]*)>/,'<body$1>'+bar));w.document.close();
   const btn=w.document.getElementById("cp");
@@ -8314,7 +8318,7 @@ async function sendOrderConfirm(oid){
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent="Send confirmation";}
     save();toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
-    htmlCopyWindow(orderConfirmHTML(o),to,sub,SALES_FROM);
+    htmlCopyWindow(orderConfirmHTML(o),to,sub,SALES_FROM,salesCopyBcc(to,cc));
   }
 }
 /* ---------- QUOTES (Max, 2026-10-13: "a form that our sales people can use to quote people immediately… input line
@@ -8980,7 +8984,8 @@ function quoteMailto(q,to,sub,cc,msg){
     .concat(["Shipping: "+(ship==null?"quoted at order":fmtC(ship)),"QUOTE TOTAL: "+fmtC(quoteTotal(q)),""])
     .concat(q.distName?["Order through "+q.distName+(q.distRep?" ("+[q.distRep,q.distRepEmail,q.distRepPhone].filter(Boolean).join(", ")+")":"")+" and reference Quote No. "+q.no+"."]:["Email a PO that references Quote No. "+q.no+"."])
     .concat(q.notes?["Note: "+q.notes]:[]).concat(["","The PDF quote is attached.","",rep.name||"",(rep.role?rep.role+" | ":"")+"Golden Hour Medical, Inc.",userEmail(q.by)||"",GHM_PHONE]);
-  return "mailto:"+encodeURIComponent(to||"")+"?"+((cc||[]).length?"cc="+encodeURIComponent(cc.join(","))+"&":"")+"subject="+encodeURIComponent(sub||("AutoTQ quote "+q.no))+"&body="+encodeURIComponent(L.join("\n"));
+  const bcc=salesCopyBcc(to,cc);
+  return "mailto:"+encodeURIComponent(to||"")+"?"+((cc||[]).length?"cc="+encodeURIComponent(cc.join(","))+"&":"")+(bcc?"bcc="+encodeURIComponent(bcc)+"&":"")+"subject="+encodeURIComponent(sub||("AutoTQ quote "+q.no))+"&body="+encodeURIComponent(L.join("\n"));
 }
 function quoteSendFallback(id,why,to,sub,cc,msg){
   const q=quoteById(id);if(!q)return;
@@ -10015,7 +10020,7 @@ document.addEventListener("click",e=>{
   if(a==="qxst"){if(logState.qx){logState.qx.status=t.dataset.v;document.querySelectorAll("#qxSt .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));}return;}
   if(a==="pickQxAcct"){const c=company(t.dataset.id);if(c&&logState.qx){logState.qx.cid=c.id;const i=document.getElementById("qxAcct");if(i)i.value=c.name;sugRender("qxAcct",[]);}return;}
   if(a==="quotefile"){quoteOpenFile(id);return;}
-  if(a==="quotecopy"){const f=logState.qsFail||{},q=quoteById(id);if(q)htmlCopyWindow(quoteEmailHTML(q,f.id===id?f.msg:quoteDefaultMsg(q)),f.to||q.contactEmail||"",f.sub||("AutoTQ quote "+q.no),"");return;}
+  if(a==="quotecopy"){const f=logState.qsFail||{},q=quoteById(id);if(q)htmlCopyWindow(quoteEmailHTML(q,f.id===id?f.msg:quoteDefaultMsg(q)),f.to||q.contactEmail||"",f.sub||("AutoTQ quote "+q.no),"",salesCopyBcc(f.to||q.contactEmail||"",f.id===id?f.cc:[]));return;}
   if(a==="quotest"){setQuoteStatus(id,t.dataset.v);return;}
   if(a==="quotefilter"){quoteFilter=t.dataset.v;render();return;}
   if(a==="quotemine"){quoteMine=!quoteMine;render();return;}
