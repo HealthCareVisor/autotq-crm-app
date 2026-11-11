@@ -457,8 +457,8 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .repbtn .av{width:20px;height:20px;font-size:9px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
 .repbtn small{color:var(--hint);font-weight:500}
 .kpi.warn>span{color:var(--dang-t)}
-/* weekly goals — the look is Hannah's mockup (autotq-rep-goals, 2026-11-05): green 90%+, orange 70–89%, red under 70% */
-:root{--st-ok:#2e8540;--st-warn:#e08a0b;--st-dang:#c8432b}
+/* weekly goals — the look is Hannah's mockup (autotq-rep-goals, 2026-11-05): green 90%+, orange 70–89%, red under 70%; 2026-11-11 Hannah: green 85%+, yellow 50–84%, red under 50% */
+:root{--st-ok:#2e8540;--st-warn:#e3b416;--st-dang:#c8432b}
 .gtest{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--info-b);border:1px solid rgba(31,92,158,.16);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;font-size:13.5px;color:var(--ink-2)}
 .gtest>svg.i{color:var(--info-t);flex:none}.gtest b{color:var(--info-t)}.gtest .grow{min-width:200px}
 .gctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
@@ -482,7 +482,7 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .gwd.other{background:#f3f2ef}.gwd.other b{color:var(--faint)}
 .gwd.today{outline:2px solid var(--ink);outline-offset:-1px}
 .gwd[disabled]{cursor:default}.gwd.locked:not(.sg):not(.sy):not(.sr){background:#faf9f7}
-.gwd.sg,.gwd.sy,.gwd.sr{color:#fff;border-color:transparent}.gwd.sg{background:var(--st-ok)}.gwd.sy{background:var(--st-warn)}.gwd.sr{background:var(--st-dang)}
+.gwd.sg,.gwd.sy,.gwd.sr{color:#fff;border-color:transparent}.gwd.sg{background:var(--st-ok)}.gwd.sy{background:var(--st-warn);color:#3a2c00}.gwd.sr{background:var(--st-dang)}
 .gwd.sg b,.gwd.sy b,.gwd.sr b{color:#fff}
 .gs2{border-top:1px solid var(--line-2);padding:10px 12px 11px;display:flex;flex-direction:column;gap:7px}
 .ggt{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13.5px;font-weight:650;color:var(--ink)}
@@ -1752,8 +1752,9 @@ function render(){
   if(!logState.landed){logState.landed=true;if(view==="today")applyRoleDefaults();} /* admins land on Team (Max, 2026-10-16) */
   if(view==="invoicing"&&!invAccess())view="today";
   if(view==="team"&&!teamPageFor(USER))view="today";
-  if(ownOnly()&&TEAM_VIEWS.includes(view))view="today";
-  if((view==="repweek"||view==="repan")&&!scAccess())view="today";
+  const scMine=(view==="repweek"||view==="repan")&&scSelf(curRep); /* a rep's own week + analysis (Hannah, 2026-11-11) */
+  if(ownOnly()&&TEAM_VIEWS.includes(view)&&!scMine)view="today";
+  if((view==="repweek"||view==="repan")&&!scAccess()&&!scMine)view="today";
   if(ownOnly()&&view==="fcast"){view="opps";oppView="fcast";}
   if((view==="campaigns"||view==="camp")&&!campAccess())view="today";
   /* Future CRM: Max only (anyone else holding ?hub=future just gets the CRM), and Pipeline is all it shows */
@@ -1765,11 +1766,11 @@ function render(){
   if(FUT&&!logState.wbHealed)setTimeout(wbHeal,0);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={repweek:(curRep?teamById(curRep).name:"Rep")+" — the week",repan:(curRep?teamById(curRep).name:"Rep")+" — analysis",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={repweek:scSelf(curRep)?"My week":(curRep?teamById(curRep).name:"Rep")+" — the week",repan:scSelf(curRep)?"My analysis":(curRep?teamById(curRep).name:"Rep")+" — analysis",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
-    team:goalsOn()?(ownOnly()?"Plan your week and log as you go — green 90%+, orange 70–89%, red under 70%":"This week’s goals for every rep — tap a name for their card"):(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
+    team:goalsOn()?(ownOnly()?"Plan your week and log as you go — green 85%+, yellow 50–84%, red under 50%":"This week’s goals for every rep — tap a name for their card"):(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
     teammate:(curRep?"Everything they've logged, and their time in the CRM":""),
     repweek:"Emails and CRM work, day by day — tap any line",
     repan:"Every outside email and everything in the CRM — tap any line",
@@ -2478,7 +2479,7 @@ function eodSectionHTML(){
    '<button class="btn sm coral" data-act="logfor" style="margin-left:auto">'+svg("phone")+' Log activity</button></div>'+eodRecapHTML();
 }
 /* ---------- weekly goals (Max 2026-11-04 → Hannah's spec 2026-11-05, "autotq-rep-goals"): each rep plans Mon–Fri as Zone / Office /
-   Both (Kellan: Calls / Other) and the week's targets add up the days they planned. Bars: green 90%+ · orange 70–89% · red under 70%,
+   Both (Kellan: Calls / Other) and the week's targets add up the days they planned. Bars: green 85%+ · yellow 50–84% · red under 50% (Hannah, 2026-11-11),
    judged on the days that are over — today only helps. Man-reps: each one called every 14 days, 7 with active business (p.activeBiz).
    Synced goals collection: "targets" (per-day numbers, man-rep cadence, the live switch) and gp_<user>_<Monday> = that week's plan.
    Until an admin turns it on for the team, only GOAL_TESTERS see any of it (everyone else keeps the old Team page and Home). ---------- */
@@ -2527,7 +2528,7 @@ function goalTypeLbl(kind,t){const x=GOAL_TYPES[kind].find(y=>y[0]===t);return x
 function goalUp(x){return Math.ceil(x-1e-9);}
 function goalRng(t,s){return s&&goalUp(s)>goalUp(t)?goalUp(t)+"–"+goalUp(s):String(goalUp(t));}
 function goalMD(d){return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+d.slice(5,7)-1]+" "+(+d.slice(8,10));}
-function goalBand(p){return p==null?"":p>=90?"ok":p>=70?"warn":"dang";}
+function goalBand(p){return p==null?"":p>=85?"ok":p>=50?"warn":"dang";} /* Hannah, 2026-11-11: yellow from 50%, green from 85% */
 function goalEvery(n){return n===7?"weekly":n===14?"every 2 weeks":"every "+n+" days";}
 function actCo(a){const p=a.pid?person(a.pid):null;return p?company(p.cid):(a.cid?company(a.cid):null);}
 function actIsCall(a){return a.type==="call"||a.type==="voicemail";}
@@ -2579,7 +2580,7 @@ function goalState(u,mon){
   const dayScore=i=>{const ps=metrics.filter(m=>m.per[i].t>0).map(m=>Math.min(100,Math.round(m.per[i].v/goalUp(m.per[i].t)*100)));return ps.length?Math.round(ps.reduce((a,b)=>a+b,0)/ps.length):null;};
   const mr=kind==="sales"?goalManrepRows(u):[],mrOk=mr.filter(x=>x.ok).length,mrPct=mr.length?Math.round(mrOk/mr.length*100):null;
   const planned=plan.every(Boolean),parts=metrics.map(m=>m.pct).filter(p=>p!=null);if(mrPct!=null)parts.push(mrPct);
-  const status=!planned?"plan":parts.some(p=>p<70)?"dang":parts.some(p=>p<90)?"warn":"ok";
+  const status=!planned?"plan":parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   return {u:u,kind:kind,mon:mon,days:days,plan:plan,planned:planned,ti:ti,T:T,metrics:metrics,dayScore:dayScore,mr:mr,mrOk:mrOk,mrPct:mrPct,mrBand:goalBand(mrPct),
     log:kind==="sales"?goalLogState(u):null,status:status,avg:parts.length?Math.round(parts.reduce((a,p)=>a+Math.min(100,p),0)/parts.length):null};
 }
@@ -2718,12 +2719,15 @@ function goalHomeHTML(){
    one, else a weekday with a distributor meeting is a Travel day and any other weekday an Office day. ---------- */
 const SC_REPS=["johnm","john","tim"];
 function scAccess(){return ["max","hannah","jamie"].includes(USER);}
+/* Hannah, 2026-11-11 ("each of their own metrics in their view, so when they log in they can see this"): a seller sees their OWN
+   scorecard row on Home, their own week and their own analysis — never another rep's (RLS rep_mail_own_read: own mailbox only) */
+function scSelf(u){return !!u&&u===USER&&SC_REPS.includes(USER);}
 function faceHTML(id,cls){const t=teamById(id);
   return '<span class="face '+(cls||"")+'" style="background:'+t.c+'"><b>'+initials(t.name)+'</b><img src="'+assetUrl("face_"+id+".jpg")+'" alt="" onerror="this.remove()"></span>';}
 const RM={weeks:{},at:{},busy:{},days:{},run:null,last:null,err:""};
 /* the week's emails (all reps), loaded once and kept 30 minutes; null while loading */
 function rmWeek(mon){
-  if(!scAccess())return [];
+  if(!scAccess()&&!scSelf(USER))return [];
   if(!(RM.weeks[mon]&&Date.now()-(RM.at[mon]||0)<30*60000)&&!RM.busy[mon]){RM.busy[mon]=true;rmLoad(mon);}
   return RM.weeks[mon]||null;
 }
@@ -2805,7 +2809,7 @@ function scState(u,mon){
       sub:mail?mail.dist+" to distributors · "+mail.recv+" received":"Loading email…",title:"Emails sent to someone outside the company (calendar replies left out) · 100 a week"},
     {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
   const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
-  const status=!parts.length?null:parts.some(p=>p<70)?"dang":parts.some(p=>p<90)?"warn":"ok";
+  const status=!parts.length?null:parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
   return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
 }
@@ -2818,16 +2822,16 @@ function scWeekNavHTML(mon){const cur=goalMonday(),d=goalDays(mon);
    '<button class="ibtn" data-act="scweek" data-v="1" title="Next week" aria-label="Next week"'+(mon>=cur?' disabled':'')+'>'+svg("chevR")+'</button>'+
    (mon!==cur?'<button class="btn sm" data-act="scweek" data-v="0">This week</button>':'')+'</div>';}
 function scHomeHTML(){
-  if(!scAccess())return "";
+  const me=!scAccess();if(me&&!scSelf(USER))return "";
   const mon=logState.scWeek||goalMonday();
-  return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">Rep scorecard</div>'+scWeekNavHTML(mon)+
-   '<span class="scupd">'+esc(rmUpdLine())+'</span></div><div class="scrows">'+SC_REPS.map(u=>{const s=scState(u,mon),t=teamById(u);
+  return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
+   '<span class="scupd">'+esc(rmUpdLine())+'</span></div><div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">The week '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+
-   RA_REPS.filter(u=>!SC_REPS.includes(u)).map(u=>{const t=teamById(u);
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles">'+s.tiles.map(scTileHTML).join("")+'</div></div>';}).join("")+
+   (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
-   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 90%+ of the pace</span><span style="--c:var(--st-warn)">Orange: 70–89%</span><span style="--c:var(--st-dang)">Red: under 70%</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
+   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
 }
 /* the Analysis page: one rep's week, email and CRM side by side, day by day (mirrors the Tim Ford report) */
 function scTime(iso){const s=String(iso||"");if(s.length<=10)return "";const d=new Date(s);return isNaN(d)?"":d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).replace(/\s?([AP])M/i,(m,x)=>x.toLowerCase());}
@@ -2861,7 +2865,7 @@ function scLedgerHTML(u,mon){
     return '<div class="scday"><div class="scdh"><b>'+DN[i]+', '+goalMD(d)+'</b><span>'+[lbl,n.s&&n.s+" sent",n.r&&n.r+" received",n.c&&n.c+" in the CRM"].filter(Boolean).join(" · ")+'</span></div>'+its.map(scItemHTML).join("")+'</div>';}).join("");
 }
 function viewRepWeek(u){
-  if(!scAccess()||!SC_REPS.includes(u))return viewToday();
+  if(!(scAccess()||scSelf(u))||!SC_REPS.includes(u))return viewToday();
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
   let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.mix)+'</p></div>'+
     scWeekNavHTML(mon)+raBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
@@ -2921,7 +2925,7 @@ const RA_COLS={s:"#C4502A",r:"#3E5C76",c:"#7FA36F"};
 const RA_CAT={dist:["Distributor","#C4502A"],man:["Man-rep","#7A5AC8"],cust:["End user / customer","#2D6CC0"],lead:["Lead","#2F7D4F"],other:["Not in the CRM","#8C7A4A"]};
 const RA_SEL="mailbox,imid,rep,dir,at,subject,from_addr,from_name,to_addrs,cc_addrs,outside,preview,conv,kind,web,att";
 const RA={c:{},busy:{},body:{},bodyBusy:{},conv:{},convBusy:{},hits:{},hitBusy:{},open:{},byId:{},byK:{},n:0,model:null,err:""};
-function raAccess(u){return scAccess()&&RA_REPS.includes(u);}
+function raAccess(u){return (scAccess()||scSelf(u))&&RA_REPS.includes(u);}
 /* the big coral View analysis button (Max, 2026-11-10: "make the analysis button bigger") — scorecard rows, the week page, the teammate page */
 function raBigBtn(u,cls){return '<button class="btn coral rabig'+(cls?" "+cls:"")+'" data-act="raopenrep" data-id="'+u+'" title="Every email and everything in the CRM for '+esc(teamById(u).name)+'">'+svg("chart")+'View analysis</button>';}
 function raFirst(u){return teamById(u).name.split(" ")[0];}
@@ -3346,7 +3350,7 @@ function viewTeamGoals(){
   if(see)h+='<p class="t2 gviewing">Viewing '+esc(teamById(see).name)+'’s card · <button class="lnk" data-act="goalback">'+(hasCard?"Back to my card":"Back to the team")+'</button></p><div class="gcards">'+goalCardHTML(see,goalYtdHTML(see))+'</div>';
   else if(who==="me")h+=(goalHas(USER)?'':'<p class="t2 gviewing">Your test card: tap the days to plan them and press Log to watch the bars move. You aren’t on the team board.</p>')+'<div class="gcards">'+goalCardHTML(USER,goalYtdHTML(USER))+'</div>';
   else h+=goalTeamListHTML(view);
-  h+='<p class="glegend2"><span style="--c:var(--st-ok)">Green: 90% or more of the goal</span><span style="--c:var(--st-warn)">Orange: 70–89%</span><span style="--c:var(--st-dang)">Red: under 70%</span></p>';
+  h+='<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85% or more of the goal</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span></p>';
   if(teamAccess()){h+=teamRuleHTML(false);
     if(!see&&who!=="me"){const hs=repOrders("house"),un=(DB.orders||[]).filter(o=>orderIsSale(o)&&!orderRep(o)&&inTeamRange(o.poDate));
       h+='<div class="list" style="max-width:640px;margin-top:14px"><button class="stat gline" data-act="teamdrill" data-rep="house" data-k="sold"><span>House <small>sold before the reps joined · '+hs.length+' orders</small></span><b>'+fmtK(hs.reduce((x,o)=>x+(o.amount||0),0))+'</b></button>'+
@@ -3623,7 +3627,7 @@ function viewToday(){
   /* with goals on, a rep's Home leads with their own KPI goals in place of the pipeline tiles; everyone else keeps the team board */
   const repGoals=goalsOn()&&P==="sales"&&goalHas(USER);
   if(repGoals)h+=goalRepHomeHTML();
-  else if(scAccess())h+=scHomeHTML(); /* Max, Hannah, Jamie: the rep scorecard (the goals board stays on Team) */
+  else if(scAccess()||scSelf(USER))h+=scHomeHTML(); /* Max, Hannah, Jamie: the rep scorecard (the goals board stays on Team); a seller: their own row */
   else if(goalsOn())h+=goalHomeHTML();
   if(P==="sales"){if(!repGoals)h+=kpiRow([["My open pipeline",fmtK(mine.reduce((s,o)=>s+(o.amount||0),0)),mine.length+" deals"],["Follow-ups waiting",qMe.todo.length+qMe.old.length,qMe.old.length?qMe.old.length+" gone stale":"nothing stale",qMe.old.length?"warn":""],["Needs attention",attnRows(mine).length,"deals to look at"],["From outreach",forMe.length,"leads you have not touched yet"+(listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length?" · "+listsPushedTo(USER).filter(l=>l.items.some(x=>!x.done)).length+" call list":""),forMe.length?"warn":""]]);}
   else if(P==="outreach")h+=kpiRow([["Leads to categorize",toCat.length,"new, uncategorized",toCat.length?"warn":""],["Handed to sales",handedWk.length,"this week"],["Conf leads to call",toCall,confs.length+" show list"+(confs.length===1?"":"s")],["Follow-ups waiting",qMe.todo.length+qMe.old.length,"mine"]]);
