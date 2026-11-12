@@ -508,7 +508,7 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .gcard .stat{font-size:13px;padding:8px 12px;border-top-color:var(--line-2)}
 .gst{font-size:11.5px;font-weight:650;border:1px solid currentColor;border-radius:10px;padding:1px 8px;display:inline-flex;gap:5px;align-items:center;white-space:nowrap;flex:none}
 .gst::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
-.gst.g{color:var(--st-ok)}.gst.y{color:#9a7400}.gst.r{color:var(--st-dang)}
+.gst.g{color:var(--st-ok)}.gst.y{color:#9a7400}.gst.r{color:var(--st-dang)}.gst.n{color:var(--muted)}
 .glegend2{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12.5px;margin:12px 2px 4px}
 .glegend2 span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--c)}
 .gtl{display:flex;flex-direction:column;gap:8px;max-width:860px}
@@ -2568,7 +2568,7 @@ const GOAL_DAY_DEFAULT={zone:{mtg:[3,5],call:[0,0],email:[20,0]},office:{mtg:[0,
 const GOAL_WEEK_DEFAULT={mtg:[12,17],call:200};
 const GOAL_TYPES={sales:[["zone","Travel"],["office","Office"],["both","Both"]],outreach:[["calls","Calls"],["other","Other"]]};
 const GOAL_METRICS={sales:[["mtg","Distributor meetings","visit"],["call","Distributor calls","call"],["email","Outbound emails","email"]],outreach:[["call","Calls","call"]]};
-const GOAL_STATUS={ok:"On track",warn:"Close",dang:"Behind",plan:"Plan your week"};
+const GOAL_STATUS={ok:"On track",warn:"Close",dang:"Behind",plan:"Plan your week",idle:"Nothing logged today"};
 const GOAL_HINT={mtg:"Counts toward distributor meetings when it’s with someone at a distributor.",call:"Counts toward distributor calls when it’s with someone at a distributor.",
   ocall:"Counts toward your calls.",email:"Counts toward your outbound emails."};
 function goalRec(id){return (DB.goals||[]).find(x=>x&&x.id===id);}
@@ -2671,7 +2671,7 @@ function goalLogLbl(x){return x.n?[x.stale&&x.stale+" follow-up"+(x.stale===1?""
 function goalViewCur(){return logState.goalView||(goalDays(goalMonday()).slice(0,5).includes(todayStr())?"today":"week");}
 function goalTodayLbl(g){return g.ti<0?"Weekend":g.plan[g.ti]?"Today: "+goalTypeLbl(g.kind,g.plan[g.ti]):"No plan";}
 /* the look is Hannah's mockup (Max, 2026-11-05: "pretty much copy how she had it in the .zip"): g = green, y = orange, r = red */
-const GB={ok:"g",warn:"y",dang:"r",plan:"r"};
+const GB={ok:"g",warn:"y",dang:"r",plan:"r",idle:"n"};
 function goalPillHTML(g){return '<span class="gst '+GB[g.status]+'">'+GOAL_STATUS[g.status]+'</span>';}
 function goalBarHTML(segs,max,title,band){const m=Math.max(1,max||0);
   return '<div class="gtrk '+(band||"")+'" role="img" aria-label="'+esc(title)+'" title="'+esc(title)+'">'+segs.filter(x=>x.v>0).map(x=>'<i'+(x.past?' class="past"':'')+' style="width:calc('+Math.min(100,x.v/m*100).toFixed(1)+'% - 1.5px)"></i>').join("")+'</div>';}
@@ -2798,6 +2798,12 @@ function scAccess(){return ["max","hannah","jamie"].includes(USER);}
 /* Hannah, 2026-11-11 ("each of their own metrics in their view, so when they log in they can see this"): a seller sees their OWN
    scorecard row on Home, their own week and their own analysis — never another rep's (RLS rep_mail_own_read: own mailbox only) */
 function scSelf(u){return !!u&&u===USER&&SC_REPS.includes(USER);}
+/* Jamie, 2026-11-12 ("keep it all grey until they log their first activity and then it turns red, so they don't just open it and
+   it's red"): each day a rep's scorecard colours start grey and come on with the first activity they log that day (a CRM activity
+   dated today, or a conference-lead call from the Marketing hub). Everyone looking at that rep sees the same; past weeks keep
+   their colours. */
+function loggedToday(u){const T=todayStr();
+  return calActs(u,T,T).length>0||(DB.confLeads||[]).some(l=>(l.calls||[]).some(c=>c&&c.by===u&&histDay(c.at)===T));}
 function faceHTML(id,cls){const t=teamById(id);
   return '<span class="face '+(cls||"")+'" style="background:'+t.c+'"><b>'+initials(t.name)+'</b><img src="'+assetUrl("face_"+id+".jpg")+'" alt="" onerror="this.remove()"></span>';}
 const RM={weeks:{},at:{},busy:{},days:{},run:null,last:null,err:""};
@@ -2885,11 +2891,12 @@ function scState(u,mon){
       sub:mail?mail.dist+" to distributors · "+mail.recv+" received":"Loading email…",title:"Emails sent to someone outside the company (calendar replies left out) · 100 a week"},
     {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
   const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
-  const status=!parts.length?null:parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
+  const today=loggedToday(u),live=mon!==goalMonday()||today;
+  const status=!parts.length?null:!live?"idle":parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
-  return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
+  return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,today:today,live:live,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
 }
-function scTileHTML(x){const b=x.pct==null?"":GB[goalBand(x.pct)];
+function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
   return '<div class="sct'+(b?" s"+b:"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+x.v+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
    '<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div><small class="scs">'+esc(x.sub||"")+'</small></div>';}
 /* Sales follow-ups on time (Hannah's KPI wall, Max 2026-11-11): of the open follow-ups that have a date (to-dos, and each open deal's
@@ -2916,7 +2923,7 @@ function fuTeam(){const by={},seen={},all=[];
 function fuBand(p){return p==null?"":GB[goalBand(p)];}
 function fuMost(f){return FU_PEOPLE.filter(u=>f.by[u].overdue).sort((a,b)=>f.by[b].overdue-f.by[a].overdue).slice(0,2).map(u=>shortName(u)+" "+f.by[u].overdue).join(", ");}
 function fuLine(s){return s.total?s.overdue+" late of "+s.total+(s.stale14?" · "+s.stale14+" 2+ wks":""):"No dated follow-ups";}
-function fuTileHTML(u){const s=fuStats(u),b=fuBand(s.pct);
+function fuTileHTML(u,live){const s=fuStats(u),b=live===false?"":fuBand(s.pct);
   return '<button class="sct fu'+(b?" s"+b:"")+'" data-act="furep" data-id="'+u+'" title="Open to-dos and deal next steps that have a date: the share not past due, as of now. Tap for the late ones.">'+
    '<span class="scl">Follow-ups on time</span><b class="scv">'+(s.pct==null?"—":s.pct+"%")+'</b>'+
    '<div class="gtrk '+b+'"><i style="width:'+(s.pct||0)+'%"></i></div><small class="scs">'+esc(fuLine(s))+' · now</small></button>';}
@@ -2929,7 +2936,7 @@ function fuTeamSheet(){if(!scAccess())return;
   openSheet('<h2>Sales follow-ups</h2><p class="t2" style="margin:0 0 12px">'+(f.pct==null?"—":f.pct+"% on time")+' · '+esc(fuLine(f))+' · as of now</p>'+
    '<div class="tablewrap"><table class="lv"><thead><tr><th>Rep</th><th class="num">Open follow-ups</th><th class="num">Late</th><th class="num">2+ wks late</th><th class="num">On time</th></tr></thead><tbody>'+
    rows.map(s=>'<tr data-act="furep" data-id="'+s.u+'" style="cursor:pointer"><td><b>'+esc(teamById(s.u).name)+'</b></td><td class="num">'+s.total+'</td><td class="num">'+s.overdue+'</td><td class="num">'+s.stale14+'</td>'+
-    '<td class="num">'+(s.pct==null?"—":'<span class="pill '+({g:"ok",y:"warn",r:"dang"}[fuBand(s.pct)]||"")+'">'+s.pct+'%</span>')+'</td></tr>').join("")+
+    '<td class="num">'+(s.pct==null?"—":'<span class="pill '+(loggedToday(s.u)?{g:"ok",y:"warn",r:"dang"}[fuBand(s.pct)]||"":"")+'">'+s.pct+'%</span>')+'</td></tr>').join("")+
    '</tbody></table></div>');}
 function fuDaysLate(d){return Math.round((new Date(todayStr()+"T12:00:00")-new Date(d+"T12:00:00"))/86400000);}
 function fuRepSheet(u){if(!(scAccess()||u===USER))return;
@@ -2962,10 +2969,10 @@ function scHomeHTML(){
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles fu7">'+s.tiles.map(scTileHTML).join("")+fuTileHTML(u)+'</div></div>';}).join("")+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles fu7">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+fuTileHTML(u,s.today)+'</div></div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
-   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
+   '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span style="--c:var(--faint)">Grey: nothing logged yet today</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
 }
 /* the Analysis page: one rep's week, email and CRM side by side, day by day (mirrors the Tim Ford report) */
 function scTime(iso){const s=String(iso||"");if(s.length<=10)return "";const d=new Date(s);return isNaN(d)?"":d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}).replace(/\s?([AP])M/i,(m,x)=>x.toLowerCase());}
@@ -3003,7 +3010,7 @@ function viewRepWeek(u){
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
   let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.mix)+'</p></div>'+
     scWeekNavHTML(mon)+raBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
-  h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(scTileHTML).join("")+'</div>';
+  h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+'</div>';
   /* the last eight weeks: emails sent and CRM actions — tap one to open it */
   const mons=[];for(let i=7;i>=0;i--){const p=cur.split("-").map(Number);mons.push(ymd(new Date(p[0],p[1]-1,p[2]-7*i)));}
   const last=goalDays(mons[7])[6],md=rmDays(mons[0],last)||[];
