@@ -2180,8 +2180,12 @@ function orderRep(o){return o.ghRep||repForDeal(orderRegion(o),o.poDate)||"";}
 function orderIsSale(o){return (o.status==="invoiced"||o.status==="paid")&&(o.amount||0)>0&&!o.dupOf;}
 function orderUnits(o){const k=kitQty(o.items);if(k)return k;let u=0;String(o.notes||"").replace(/(\d+)\s*x\s*auto\s*tq(?:\s*kit)?/gi,(m,n)=>{u+=+n;return m;});return u;}
 function oppHasDist(o){return !!(o.distributorId||oppDistLabel(o)||o.direct);}
-/* every deal, big or small, carries its outbound quote (Max, 2026-10-21) — open ones without one are flagged, and none closes won without it */
+/* every deal, big or small, carries its outbound quote (Max, 2026-10-21) — open ones without one are flagged, and none closes won without it.
+   2026-11-12 (Max): "we don't really quote deals unless we're quoting direct… quote sent out from the distributor, allow them to bypass
+   that" — only a Direct sale needs our quote; a deal that goes through a distributor is quoted by the distributor, so it isn't flagged. */
 function oppHasQuote(o){return oppQuotes(o).length>0;}
+function oppNeedsQuote(o){return !!(o&&o.direct);}
+function oppNoQuote(o){return oppNeedsQuote(o)&&!oppHasQuote(o);}
 function oppIsDirect(o){return !!o.direct||oppDistLabel(o)==="Direct";}
 function teamAccessFor(u){return ["max","hannah","kellan","jamie"].includes(u);}
 function campAccessFor(u){return false;} /* Campaigns retired from the CRM 2026-10-16 (Max: handled separately); viewCampaignsHub stays in the file */
@@ -3844,7 +3848,7 @@ function dealIssues(o){
   const is=[];
   if((o.nextActionDate&&o.nextActionDate<todayStr())||oppOverdue(o))is.push(["dang","past due"]);
   if(!oppHasDist(o))is.push(["dang","needs distributor"]);
-  if(!oppHasQuote(o))is.push(["warn","no quote yet"]);
+  if(oppNoQuote(o))is.push(["warn","no quote yet"]);
   if(!o.nextAction)is.push(["warn","no next action"]);
   const lt=oppLastTouch(o),age=lt?since(lt):(o.createdAt?since(o.createdAt):null);
   if(age!==null&&age>21)is.push(["warn",lt?"quiet "+age+"d":"never touched"]);
@@ -5431,7 +5435,7 @@ function oppVal(o,key){
 function oppRow(o){
   const lead=oppAcctLabel(o),isStock=lead&&oppDistLabel(o)&&lead.toLowerCase()===oppDistLabel(o).toLowerCase();
   return '<tr data-act="editopp" data-id="'+o.id+'">'+
-  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':(oppIsOpen(o)?' · <span class="pill warn" style="font-size:10.5px" title="Every deal needs its outbound quote">no quote yet</span>':'');})()+'</div></td>'+
+  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':(oppIsOpen(o)&&oppNeedsQuote(o)?' · <span class="pill warn" style="font-size:10.5px" title="A direct sale needs our quote">no quote yet</span>':'');})()+'</div></td>'+
   '<td>'+distCell(o)+'</td>'+
   '<td>'+ghRepCell(o)+'</td>'+
   '<td>'+regionTag(oppRegion(o))+(o.state?' '+stateChip(o.state):'')+'</td>'+
@@ -5491,7 +5495,7 @@ function oppCard(o){
    '<div class="pa">'+esc(oppAcctLabel(o))+(oppDistLabel(o)&&oppDistLabel(o).toLowerCase()!==oppAcctLabel(o).toLowerCase()?' · via '+esc(oppDistLabel(o)):'')+'</div>'+
    '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
-     (!oppHasQuote(o)&&oppIsOpen(o)?'<span class="pill warn" style="font-size:10.5px" title="Every deal needs its outbound quote">no quote yet</span>':'')+
+     (oppNoQuote(o)&&oppIsOpen(o)?'<span class="pill warn" style="font-size:10.5px" title="A direct sale needs our quote">no quote yet</span>':'')+
      (o.units?'<span>'+o.units+'u</span>':'')+(oppQuotes(o).length?'<span title="Quotes on this deal">'+oppQuotes(o).length+' quote'+(oppQuotes(o).length>1?'s':'')+'</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
@@ -5568,8 +5572,8 @@ function oppKpis(list,tab){
   if(tab==="won")return kpiRow([["Closed won",fmtK(amt),n],["Units sold",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""],["Needs distributor",noDist,noDist?"closed without one":"all attributed",noDist?"warn":""]]);
   if(tab==="lost")return kpiRow([["Closed lost",fmtK(amt),n],["Units",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""]]);
   const wAmt=list.reduce((s,o)=>s+oppWeighted(o),0),due=list.filter(oppOverdue).length;
-  const noQ=list.filter(o=>!oppHasQuote(o)).length;
-  return kpiRow([["Open pipeline",fmtK(amt),n],["Weighted",fmtK(wAmt),"probability-adjusted"],["Units in play",units,""],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""],["No quote yet",noQ,noQ?"every deal needs its quote":"every deal quoted",noQ?"warn":""]]);
+  const noQ=list.filter(oppNoQuote).length;
+  return kpiRow([["Open pipeline",fmtK(amt),n],["Weighted",fmtK(wAmt),"probability-adjusted"],["Units in play",units,""],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""],["No quote yet",noQ,noQ?"direct sales need our quote":"every direct sale quoted",noQ?"warn":""]]);
 }
 /* Pipeline filters (Max, 2026-10-16): Open | Won | Lost are separate views with separate totals; everyone sees the whole
    book and narrows by region, Golden Hour sales person (tap a name anywhere) or closing distributor. */
@@ -5578,7 +5582,7 @@ function oppKpis(list,tab){
 let pipeF={region:"",rep:null,dist:"",quote:""};
 function pipeRep(){if(ownOnly())return (pipeF.rep=USER);if(pipeF.rep===null)pipeF.rep="";return pipeF.rep;}
 function oppMatchesF(o){
-  if(pipeF.quote==="none"&&oppHasQuote(o))return false;
+  if(pipeF.quote==="none"&&!oppNoQuote(o))return false;
   if(pipeF.quote==="has"&&!oppHasQuote(o))return false;
   const r=pipeRep();
   if(r==="none"){if(oppGhRep(o))return false;}
@@ -5604,7 +5608,7 @@ function viewOpps(){
   /* one filter button (2026-10-21): open / won / lost · sales person */
   FLT_RESET.pipe=()=>{oppFilter="open";pipeF.rep=null;pipeF.quote="";};
   h+='<div class="lvhead">'+filterBar("pipe",[fltGroup("Deals","oppfilter",[["open","Open",cnt.open],["won","Won",cnt.won],["lost","Lost",cnt.lost]],oppFilter,"open",{sumOf:(v,o)=>o?o[1]+" deals":""}),pipeRepGroup(tabPool),
-     fltGroup("Quote","pipeq",[["","All"],["none","No quote yet",tabPool.filter(o=>!oppHasQuote(o)).length],["has","Has a quote",tabPool.filter(oppHasQuote).length]],pipeF.quote||"","",{sumOf:(v,o)=>v&&o?o[1]:""})])+
+     fltGroup("Quote","pipeq",[["","All"],["none","No quote yet (direct)",tabPool.filter(oppNoQuote).length],["has","Has a quote",tabPool.filter(oppHasQuote).length]],pipeF.quote||"","",{sumOf:(v,o)=>v&&o?o[1]:""})])+
    '<div class="seg" style="margin:0;max-width:280px">'+(oppFilter==="open"?'<button class="'+(vw==="board"?"on":"")+'" data-act="oppview" data-v="board">Board</button>':'')+'<button class="'+(vw==="list"?"on":"")+'" data-act="oppview" data-v="list">List</button><button class="'+(vw==="fcast"?"on":"")+'" data-act="oppview" data-v="fcast">Forecast</button></div>'+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search pipeline…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
    '<button class="btn sm" data-act="pipexport" title="Export what\'s showing to Excel">'+svg("sheet")+' Excel</button>'+
@@ -6480,6 +6484,7 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
   const o=id?DB.opps.find(x=>x.id===id):null;
   if(o&&!canEditOpp(o)){formOppReadOnly(o);return;}
   logState.oppId=id||null; logState.oppStage=o?o.stage:(pre.quoteId?"Proposal/Price Quote":null); logState.oppGhRepHand=false;
+  logState.oppUnitP=null;logState.oppDistTbd=false;
   logState.oppContacts=(o?oppFoldPeople(o):(pre.pid?[{pid:pre.pid,role:pre.role||"Buyer"}]:[])).filter(c=>person(c.pid));
   logState.oppQuoteIds=o?oppQuotes(o).map(q=>q.id):(pre.quoteId?[pre.quoteId]:[]);
   const selCid=o?(o.accountId||""):(prefillCid||"");
@@ -6539,11 +6544,15 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
 }
 /* ----- New opportunity, one box at a time with a guide (Max, 2026-11-10: "simplify how the reps add opportunity, apparently it's too
    hard" → "make the entire process easier while still requiring all the data" → "text box by text box with an agent that walks them
-   through what's going on"). Every field the deal form has is required on a new deal. A guide bubble asks for one thing at a time and
-   says what it filled in and why (the customer's state, who they buy from, their last logged touch, kits × price, the name, the rep).
-   Tapping a chip answers and moves on; Enter does too. A review screen lists every answer before Add. Same ids as the deal form, so
-   saveOpp stays the one save path; editing a deal keeps the full form. The guide is scripted (no AI call). */
-const OPP_Q=[["cust","Customer"],["state","State"],["type","Deal type"],["dist","Closing distributor"],["kits","Kits"],["amt","Amount"],
+   through what's going on"). A guide bubble asks for one thing at a time and says what it filled in and why (the customer's state, who
+   they buy from, their last logged touch, kits × price, the name, the rep). Tapping a chip answers and moves on; Enter does too. A review
+   screen lists every answer before Add. Same ids as the deal form, so saveOpp stays the one save path; editing a deal keeps the full form.
+   The guide is scripted (no AI call).
+   2026-11-12 (Max: "make every one of these bypassable"): nothing is required any more — an unanswered question's button reads Skip
+   and the review shows "—" for it. The closing distributor has a "Not sure yet" chip; the price is a unit price ($380, then the
+   distributor tiers, then list) × kits; the Quote question only shows on a Direct sale ("we don't really quote deals unless we're
+   quoting direct"). */
+const OPP_Q=[["cust","Customer"],["state","State"],["type","Deal type"],["dist","Closing distributor"],["kits","Kits"],["amt","Price"],
  ["close","Expected close"],["stage","Stage"],["why","Why"],["last","Last contact"],["next","Next step"],["when","When"],
  ["people","People"],["quote","Quote"],["rep","Sales person"],["name","Name"],["notes","Notes"],["review","Review"]];
 const OPP_WHY={"Prospecting":["First conversation","Inbound interest","Met at a show","Referral"],
@@ -6569,7 +6578,9 @@ function formOppSteps(pre,selCid,distLabel,amt0,units0,repChips,dtypes,lbl){
    q("dist",pick("oDistChips","")+comboField("oDistQ","Someone else — type a distributor",distLabel)+'<input type="checkbox" id="oDirect" hidden>')+
    q("kits",pick("oKitChips",[5,10,25,50,100].map(n=>chip("oppKitsPick",n,String(n),false)).join(""))+
      '<input class="f" id="oUnits" type="number" min="0" inputmode="numeric" value="'+esc(String(units0))+'" placeholder="Kits" style="max-width:160px">')+
-   q("amt",'<input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="Amount ($)" style="max-width:200px"><div id="oAmtHint" hidden></div>')+
+   q("amt",pick("oPriceChips","")+
+     '<div class="row" style="gap:10px;align-items:flex-start;max-width:340px"><div style="flex:1;min-width:0">'+lbl("Price each")+'<input class="f" id="oUnitP" inputmode="decimal" placeholder="544" autocomplete="off"></div>'+
+     '<div style="flex:1;min-width:0">'+lbl("Total")+'<input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="$" autocomplete="off"></div></div><div id="oAmtHint" hidden></div>')+
    q("close",pick("oCloseChips",oppCloseChipsHTML(""))+'<input class="f" id="oClose" type="date">')+
    q("stage",pick("oStage",OPP_STAGES.map(st=>chip("setOppStage",st,esc(OPP_SHORT[st]),logState.oppStage===st)).join("")))+
    q("why",pick("oWhyChips","")+'<input class="f" id="oProbWhy" placeholder="Or type it" autocomplete="off">')+
@@ -6623,7 +6634,8 @@ function oppDistChipsHTML(){
   const cur=logState.oppDistCid,txt=val("oDistQ").toLowerCase(),direct=!!(document.getElementById("oDirect")||{}).checked;
   return oppDistChoices().map(x=>{const on=!direct&&(x.cid?x.cid===cur:(!cur&&x.name.toLowerCase()===txt));
     return '<span class="chip'+(on?" on":"")+'" data-act="oppDistPick" data-id="'+esc(x.cid||"")+'" data-v="'+esc(x.name)+'">'+(x.star?svg("star")+" ":"")+esc(shortAcct(x.name))+'</span>';}).join("")+
-   '<span class="chip'+(direct?" on":"")+'" data-act="oppDirectPick">Direct sale</span>';
+   '<span class="chip'+(direct?" on":"")+'" data-act="oppDirectPick">Direct sale</span>'+
+   '<span class="chip'+(logState.oppDistTbd?" on":"")+'" data-act="oppDistTbd">Not sure yet</span>';
 }
 /* people chips: the customer's own people, the distributor's reps in that state, a man-rep covering it — one tap adds them with a role */
 function oppConSuggest(){
@@ -6647,14 +6659,35 @@ function oppQtSugHTML(){
    (ids.length?'':'<span class="chip'+(nx==="newquote"?" on":"")+'" data-act="oppQtNext" data-v="newquote">'+svg("plus")+' Make the quote next</span>'+
     '<span class="chip'+(nx==="extquote"?" on":"")+'" data-act="oppQtNext" data-v="extquote">Add a quote file next</span>');
 }
+/* price chips (Max, 2026-11-12: "$380, then tiered pricing, then click from there — hardly ever going to deviate from the tiers"):
+   $380 (200+ / big distributors) first, then the distributor tiers by quantity, then list. The kit count's tier is the default. */
+function oppPriceOpts(){
+  const t=KIT_TIERS,list=(qCat("1000-0005-TQ")||[])[3],out=[[t[0][1],t[0][0]+"+ · big distributors"]];
+  t.slice(1).reverse().forEach(x=>{const i=t.indexOf(x);out.push([x[1],x[0]+"–"+(t[i-1][0]-1)]);});
+  if(list)out.push([list,"list"]);
+  return out;
+}
+function oppPriceFmt(p){return p%1?fmtC(p):money(p);}
+function oppPriceChipsHTML(){
+  const cur=parseFloat(val("oUnitP"));
+  return oppPriceOpts().map(x=>'<span class="chip'+(cur===x[0]?" on":"")+'" data-act="oppPricePick" data-v="'+x[0]+'">'+oppPriceFmt(x[0])+' <small style="opacity:.7">'+esc(x[1])+'</small></span>').join("");
+}
+/* what the guide calls the price in use */
+function oppPriceWhy(n,pr){
+  const list=(qCat("1000-0005-TQ")||[])[3];
+  if(!(parseFloat(logState.oppUnitP)>0)){const o=oppPriceOpts().find(x=>x[0]===pr&&x[1]!=="list");return 'the '+(o?o[1].replace(/ · .*/,""):"")+' tier price';}
+  if(pr===KIT_TIERS[0][1])return 'the big-distributor price';
+  if(pr===list)return 'list price';
+  const o=oppPriceOpts().find(x=>x[0]===pr);return o?'the '+o[1]+' tier price':'your price';
+}
 function oppWhyChipsHTML(){const cur=val("oProbWhy");return (OPP_WHY[logState.oppStage||"Prospecting"]||[]).map(x=>'<span class="chip'+(cur===x?" on":"")+'" data-act="oppWhyPick" data-v="'+esc(x)+'">'+esc(x)+'</span>').join("");}
-/* what a new deal still needs, by question */
+/* which questions are still unanswered (they can all be skipped — this only drives the Skip / Next label and the review's "—") */
 function oppMissing(){
   const m=[],add=(k,id,l)=>m.push({k:k,id:id,l:l});
   if(!val("oCidQ"))add("cust","oCidQ","the customer");
   if(!/^[A-Za-z]{2}$/.test(val("oLoc")))add("state","oLoc","the state");
   if(!val("oType"))add("type","oTypeChips","the deal type");
-  if(!(logState.oppDistCid||val("oDistQ")||(document.getElementById("oDirect")||{}).checked))add("dist","oDistQ","the closing distributor");
+  if(!(logState.oppDistCid||val("oDistQ")||logState.oppDistTbd||(document.getElementById("oDirect")||{}).checked))add("dist","oDistQ","the closing distributor");
   if(!(parseInt(val("oUnits"),10)>0))add("kits","oUnits","the number of kits");
   if(!(parseFloat(val("oAmt"))>0))add("amt","oAmt","the amount");
   if(!val("oClose"))add("close","oClose","an expected close date");
@@ -6664,7 +6697,7 @@ function oppMissing(){
   if(!val("oNextA"))add("next","oNextA","the next step");
   if(!val("oNextAD"))add("when","oNextAD","when the next step happens");
   if(!(logState.oppContacts||[]).length)add("people","oConQ","at least one person");
-  if(!((logState.oppQuoteIds||[]).some(id=>quoteById(id))||logState.oppQuoteNext))add("quote","oQuoteQ","the quote");
+  if(!oppQHidden("quote")&&!((logState.oppQuoteIds||[]).some(id=>quoteById(id))||logState.oppQuoteNext))add("quote","oQuoteQ","the quote");
   if(!logState.oppGhRep&&!oppNoAutoRep(null))add("rep","oGhRep","the sales person");
   if(!val("oName"))add("name","oName","a name");
   if(!val("oNotes"))add("notes","oNotes","a note");
@@ -6683,16 +6716,18 @@ function oppSay(k){
     return st.length===2?b(st)+(reg?' — '+reg+' territory.':''):'What state is this deal in? Two letters, like TX.';}
   if(k==="type"){if(c&&c.type==="distributor")return cn+' is a distributor, so I set '+b("Stocking order")+'. Change it if not.';
     return 'What kind of order? '+b("End user")+' = they buy for their own people. '+b("Stocking")+' = a distributor buying to stock.';}
-  if(k==="dist"){if(direct)return b("Direct sale")+' — no distributor on this one.';
+  if(k==="dist"){if(direct)return b("Direct sale")+' — no distributor on this one, so I\'ll ask for our quote later on.';
+    if(logState.oppDistTbd)return b("Not sure yet")+' — fine. The deal shows "needs distributor" until you pick one.';
     if(distName){const f=c?quoteFirstDist(c):null;
       if(c&&c.type==="distributor"&&logState.oppDistCid===c.id)return cn+' closes it themselves. Tap another if the PO comes through someone else.';
       if(f&&((f.cid&&f.cid===logState.oppDistCid)||(!f.cid&&String(f.name).toLowerCase()===distName.toLowerCase())))return cn+' buys through '+b(esc(distName))+' — their first choice — so I picked it. Tap another if the PO comes through someone else.';
       return 'The PO comes through '+b(esc(distName))+'.';}
-    return 'Who does the PO come through? '+(st?'Ours with reps in '+st+' are first. ':'')+'Tap one, type another, or tap Direct sale.';}
+    return 'Who does the PO come through? '+(st?'Ours with reps in '+st+' are first. ':'')+'Tap one, type another, Direct sale — or Not sure yet.';}
   if(k==="kits")return n?b(n+(n===1?" kit":" kits"))+'. Tap Next, or change it.':'How many kits? Tap one or type the number.';
   if(k==="amt"){const a=parseFloat(val("oAmt"))||0;
-    if(n&&!logState.oppAmtHand){const pr=quotePrice("1000-0005-TQ",n,oppKitLevel());return n+' × '+(pr%1?fmtC(pr):money(pr))+' = '+b(money(a))+' — '+(oppKitLevel()==="dist"?'the distributor price for '+n+' kits':'list price')+'. Type over it if you quoted something else.';}
-    return a?b(money(a))+' goes in the pipeline.':'What\'s the deal worth?';}
+    if(n&&!logState.oppAmtHand){const pr=oppUnitPrice(n);return n+' × '+oppPriceFmt(pr)+' = '+b(money(a))+' — '+oppPriceWhy(n,pr)+'. Tap $380 or another tier to change it.';}
+    if(a)return b(money(a))+' goes in the pipeline.';
+    return n?'What\'s it worth? Tap a price.':'No kit count, so type the deal\'s total — or Skip.';}
   if(k==="close")return val("oClose")?'Expected close '+b(oppDayLabel(val("oClose")))+'.':'When do you expect the PO?';
   if(k==="stage"){const s=logState.oppStage;if(!s)return 'Where does it stand right now?';
     return (logState.oppQuoteIds||[]).length&&s==="Proposal/Price Quote"?'It came from a quote, so I set '+b("Proposal")+'. Change it if it\'s further along.':b(esc(OPP_SHORT[s]))+' — it counts '+OPP_PROB[s]+'% in the forecast.';}
@@ -6703,51 +6738,58 @@ function oppSay(k){
   if(k==="when"){const x=val("oNextA");return x?'When will you do it — '+b(esc(x.charAt(0).toLowerCase()+x.slice(1)))+'?':'When is the next step?';}
   if(k==="people"){const ps=(logState.oppContacts||[]).map(x=>person(x.pid)).filter(Boolean);
     if(ps.length)return b(ps.map(p=>esc(p.name)).join(", "))+' '+(ps.length===1?'is':'are')+' on it. Add anyone else, or tap Next.';
-    return 'Who\'s on this deal? Tap to add — '+(c?cn+'\'s people':'their people')+(st?' and the reps covering '+st:'')+' are below. One is enough to start.';}
+    return 'Who\'s on this deal? Tap to add — '+(c?cn+'\'s people':'their people')+(st?' and the reps covering '+st:'')+' are below. Or Skip for now.';}
   if(k==="quote"){const ids=(logState.oppQuoteIds||[]).map(quoteById).filter(Boolean);
     if(ids.length)return 'Quote '+b(ids.map(q=>esc(q.no)).join(", "))+' goes on this deal.';
     if(logState.oppQuoteNext==="newquote")return 'I\'ll open a new quote for this deal as soon as you add it.';
     if(logState.oppQuoteNext==="extquote")return 'You\'ll add the quote file as soon as you add the deal.';
-    return 'Every deal carries its quote. '+(oppQtSugList().length?'Tap one of theirs below, or make it right after this one.':'Make it right after this one, or add a quote file you already have.');}
+    return 'A direct sale carries our quote. '+(oppQtSugList().length?'Tap one of theirs below, make it right after this one — or Skip.':'Make it right after this one, add a quote file you already have — or Skip.');}
   if(k==="rep"){const r=logState.oppGhRep;
     if(profile(USER)==="sales"&&r===USER)return 'It goes in your pipeline, '+esc(first)+'.';
     if(r&&!logState.oppGhRepHand&&reg&&repForRegion(reg)===r)return st+' is '+reg+' — '+b(esc(shortName(r)))+'\'s territory, so I picked them. Tap someone else if not.';
     return r?b(esc(shortName(r)))+'\'s deal.':'Whose deal is it?';}
   if(k==="name")return logState.oppNameHand?'Named '+b(esc(val("oName")))+'.':'I named it '+b(esc(val("oName")))+'. Keep it, or rename it.';
   if(k==="notes")return 'Last one — what\'s the story? A line is enough.';
-  if(k==="review"){const miss=oppMissing();return miss.length?'Almost — I still need '+miss.map(x=>esc(x.l)).join(", ")+'. Tap one to fill it in.':'That\'s everything. Check it over, then add it.';}
+  if(k==="review"){const miss=oppMissing().filter(x=>x.k!=="stage");return miss.length?'Here\'s the deal. You skipped '+miss.length+' — tap a line to fill it in now, or add it as is and fill it in later.':'That\'s everything. Check it over, then add it.';}
   return "";
 }
 function oppReviewHTML(){
   const miss=new Set(oppMissing().map(x=>x.k)),direct=!!(document.getElementById("oDirect")||{}).checked;
   const v={cust:val("oCidQ"),state:val("oLoc").toUpperCase(),type:val("oType"),
-    dist:direct?"Direct sale":(logState.oppDistCid?((company(logState.oppDistCid)||{}).name||""):val("oDistQ")),
-    kits:val("oUnits"),amt:parseFloat(val("oAmt"))?money(parseFloat(val("oAmt"))):"",close:oppDayLabel(val("oClose")),
+    dist:direct?"Direct sale":(logState.oppDistCid?((company(logState.oppDistCid)||{}).name||""):val("oDistQ"))||(logState.oppDistTbd?"Not sure yet":""),
+    kits:val("oUnits"),close:oppDayLabel(val("oClose")),
+    amt:(function(){const a=parseFloat(val("oAmt")),n=parseInt(val("oUnits"),10)||0;if(!(a>0))return "";return money(a)+(n&&!logState.oppAmtHand?" ("+n+" × "+oppPriceFmt(oppUnitPrice(n))+")":"");})(),
     stage:logState.oppStage?OPP_SHORT[logState.oppStage]+" · "+OPP_PROB[logState.oppStage]+"%":"",why:val("oProbWhy"),last:oppDayLabel(val("oLastC")),
     next:val("oNextA"),when:oppDayLabel(val("oNextAD")),
     people:(logState.oppContacts||[]).map(x=>{const p=person(x.pid);return p?p.name+" ("+x.role+")":"";}).filter(Boolean).join(", "),
     quote:(logState.oppQuoteIds||[]).map(quoteById).filter(Boolean).map(q=>q.no).join(", ")||(logState.oppQuoteNext==="newquote"?"New quote right after":logState.oppQuoteNext==="extquote"?"Quote file right after":""),
     rep:logState.oppGhRep?shortName(logState.oppGhRep):(oppNoAutoRep(null)?"No one yet":""),name:val("oName"),notes:val("oNotes")};
-  return OPP_Q.slice(0,-1).map((q,i)=>'<button class="card" data-act="oppStep" data-v="'+i+'" style="padding:9px 12px"><div class="row" style="gap:10px">'+
+  if(!logState.oppStage){v.stage="Prospecting · "+OPP_PROB["Prospecting"]+"% (the default)";miss.delete("stage");}
+  return OPP_Q.slice(0,-1).map((q,i)=>oppQHidden(q[0])?"":'<button class="card" data-act="oppStep" data-v="'+i+'" style="padding:9px 12px"><div class="row" style="gap:10px">'+
     '<span style="flex:none;width:104px;font-size:12.5px;color:var(--muted)">'+q[1]+'</span>'+
-    '<span class="grow" style="font-size:13.5px;min-width:0;overflow-wrap:anywhere">'+(miss.has(q[0])?'<span class="pill warn">Needed</span>':esc(String(v[q[0]]||"")))+'</span>'+chev()+'</div></button>').join("");
+    '<span class="grow" style="font-size:13.5px;min-width:0;overflow-wrap:anywhere">'+(miss.has(q[0])||!v[q[0]]?'<span style="color:var(--hint)">—</span>':esc(String(v[q[0]]||"")))+'</span>'+chev()+'</div></button>').join("");
 }
+/* the Quote question only shows on a Direct sale (or when the deal came with a quote) — Max, 2026-11-12 */
+function oppQHidden(k){return k==="quote"&&!(document.getElementById("oDirect")||{}).checked&&!(logState.oppQuoteIds||[]).length;}
+function oppQVisible(){return OPP_Q.filter(q=>!oppQHidden(q[0]));}
+function oppStepMove(i,dir){let j=i+dir;while(j>0&&j<OPP_Q.length-1&&oppQHidden(OPP_Q[j][0]))j+=dir;return Math.max(0,Math.min(OPP_Q.length-1,j));}
 function oppStepsSync(){
   if(!document.getElementById("oSteps"))return;
   const i=logState.oppStep||0,k=OPP_Q[i][0];
   const nm=document.getElementById("oName");if(nm&&!logState.oppNameHand)nm.value=oppAutoName();
-  if((logState.oppQuoteIds||[]).length)logState.oppQuoteNext="";
+  if((logState.oppQuoteIds||[]).length||oppQHidden("quote"))logState.oppQuoteNext="";
+  if(logState.oppDistCid||val("oDistQ")||(document.getElementById("oDirect")||{}).checked)logState.oppDistTbd=false;
   /* an admin's deal follows the state's territory rep until someone taps a person */
   if(profile(USER)!=="sales"&&!oppNoAutoRep(null)&&!logState.oppGhRepHand){const r=repForRegion(regionFromState(val("oLoc")));if(r&&r!=="house"&&r!==logState.oppGhRep)oppGhRepSet(r);}
   oppAmtHint();
   const put=(id,h)=>{const e=document.getElementById(id);if(e&&e.innerHTML!==h)e.innerHTML=h;};
-  put("oDistChips",oppDistChipsHTML());put("oConSug",oppConSugHTML());put("oQtSug",oppQtSugHTML());put("oWhyChips",oppWhyChipsHTML());
+  put("oDistChips",oppDistChipsHTML());put("oConSug",oppConSugHTML());put("oQtSug",oppQtSugHTML());put("oWhyChips",oppWhyChipsHTML());put("oPriceChips",oppPriceChipsHTML());
   const mark=(box,input)=>{const v=val(input);document.querySelectorAll("#"+box+" .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===v));};
   mark("oKitChips","oUnits");mark("oCloseChips","oClose");mark("oLastChips","oLastC");mark("oNextChips","oNextA");mark("oWhenChips","oNextAD");
   document.querySelectorAll(".oq").forEach(x=>x.classList.toggle("on",x.dataset.q===k));
-  const last=OPP_Q.length-1,bar=document.getElementById("oProgBar"),pt=document.getElementById("oProgTxt");
-  if(bar)bar.style.width=Math.round(i/last*100)+"%";
-  if(pt)pt.textContent=k==="review"?"Review":(i+1)+" of "+last+" · "+OPP_Q[i][1];
+  const vis=oppQVisible(),pos=Math.max(0,vis.findIndex(q=>q[0]===k)),last=vis.length-1,bar=document.getElementById("oProgBar"),pt=document.getElementById("oProgTxt");
+  if(bar)bar.style.width=Math.round(pos/last*100)+"%";
+  if(pt)pt.textContent=k==="review"?"Review":(pos+1)+" of "+last+" · "+OPP_Q[i][1];
   if(k==="review")put("oReview",oppReviewHTML());
   if(logState.oppNudge===k&&!oppMissing().some(x=>x.k===k))logState.oppNudge="";
   const say=document.getElementById("oSay");
@@ -6755,7 +6797,8 @@ function oppStepsSync(){
     const h=nudge?'I need '+esc(nudge.l)+' before we go on. '+oppSay(k):oppSay(k);
     if(say.innerHTML!==h)say.innerHTML=h;say.classList.toggle("nudge",!!nudge);}
   const b=document.getElementById("oBack");if(b)b.style.visibility=i?"visible":"hidden";
-  const n=document.getElementById("oNext");if(n)n.textContent=k==="review"?"Add opportunity":(logState.oppToReview?"Back to review":"Next");
+  /* nothing is required: an unanswered question's button says Skip */
+  const n=document.getElementById("oNext");if(n)n.textContent=k==="review"?"Add opportunity":oppMissing().some(x=>x.k===k)?"Skip":(logState.oppToReview?"Back to review":"Next");
 }
 /* focus the box on the question (typed boxes only — a date or chip question just waits for a tap) */
 function oppFocusQ(){
@@ -6773,10 +6816,10 @@ function oppStepGo(i,focusId){
 function oppStepNext(){
   const i=logState.oppStep||0,k=OPP_Q[i][0];
   if(k==="review"){saveOpp(logState.oppQuoteNext||undefined);return;}
-  if(oppMissing().some(x=>x.k===k)){logState.oppNudge=k;oppStepsSync();oppFocusQ();return;}
+  /* every question can be skipped (Max, 2026-11-12) — an empty one just moves on */
   logState.oppNudge="";
   if(logState.oppToReview){logState.oppToReview=false;oppStepGo("review");return;}
-  oppStepGo(i+1);
+  oppStepGo(oppStepMove(i,1));
 }
 /* a chip answers the question it sits on: move on a beat later, once that question is complete */
 function oppAutoNext(k){
@@ -6797,14 +6840,22 @@ document.addEventListener("keydown",e=>{
 /* ----- the quick-add helpers (Max, 2026-11-10: "simplify how the reps add opportunity, apparently it's too hard") ----- */
 /* kit price for the deal's customer: a distributor customer gets the distributor tier for that many kits, anyone else list price
    (the same rule a quote uses, so a deal made here and one made from a quote read alike) */
-function oppKitLevel(){const c=logState.oppCid?company(logState.oppCid):null;return c&&c.type==="distributor"?"dist":"enduser";}
-function oppKitAmount(n){if(!(n>0))return 0;return Math.round(n*quotePrice("1000-0005-TQ",n,oppKitLevel())*100)/100;}
+/* 2026-11-12 (Max: "hardly ever going to deviate from the tiered pricing"): a deal's kit price is the distributor tier for that many
+   kits (1–10 $544 … 200+ $380) unless the rep picked or typed another price each (logState.oppUnitP). */
+function oppTierPrice(n){return quotePrice("1000-0005-TQ",n>0?n:1,"dist");}
+function oppUnitPrice(n){const u=parseFloat(logState.oppUnitP);return u>0?u:oppTierPrice(n);}
+function oppKitAmount(n){if(!(n>0))return 0;return Math.round(n*oppUnitPrice(n)*100)/100;}
 function oppAmtHint(){
   const h=document.getElementById("oAmtHint"),u=document.getElementById("oUnits"),a=document.getElementById("oAmt");if(!h||!u||!a)return;
   const n=parseInt(u.value,10)||0;
   if(!logState.oppAmtHand&&n>0)a.value=String(oppKitAmount(n));
   if(!logState.oppAmtHand&&!n&&!a.value.trim())a.value="";
-  const pr=quotePrice("1000-0005-TQ",n,oppKitLevel());h.textContent=n>0&&!logState.oppAmtHand?n+" × "+(pr%1?fmtC(pr):money(pr)):"";
+  /* the guide's Price each box: the picked price, else what a typed total works out to, else the tier */
+  const up=document.getElementById("oUnitP");
+  if(up&&document.activeElement!==up){const at=parseFloat(a.value)||0;
+    const v=parseFloat(logState.oppUnitP)>0?parseFloat(logState.oppUnitP):(logState.oppAmtHand?(n>0&&at>0?Math.round(at/n*100)/100:""):oppTierPrice(n));
+    const s=v===""?"":(v%1?v.toFixed(2):String(v));if(up.value!==s)up.value=s;}
+  const pr=oppUnitPrice(n);h.textContent=n>0&&!logState.oppAmtHand?n+" × "+oppPriceFmt(pr):"";
   const nm=document.getElementById("oName");if(nm&&!logState.oppId)nm.placeholder=oppAutoName()||"Fills itself from the customer";
 }
 function oppCloseOpts(){
@@ -6820,9 +6871,9 @@ function oppAutoName(){
 }
 function oppMoreOpen(step){const d=document.getElementById("oMore");if(d)d.open=true;if(step!=null&&document.getElementById("oSteps"))oppStepGo(step);}
 function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote for this deal once it is saved */
-  if(!logState.oppId&&document.getElementById("oSteps")){const miss=oppMissing();
-    if(miss.length){logState.oppNudge=miss[0].k;oppStepGo(miss[0].k,miss[0].id);toast("Still needed: "+miss.map(x=>x.l).join(", "));return;}}
-  const name=val("oName")||oppAutoName();
+  /* the guide saves whatever was answered — every question can be skipped (Max, 2026-11-12) */
+  const guided=!logState.oppId&&!!document.getElementById("oSteps");
+  const name=val("oName")||oppAutoName()||(guided?"New deal · "+oppDayLabel(todayStr()):"");
   if(!name){toast("Who's the customer?");const el=document.getElementById("oCidQ");if(el)el.focus();return;}
   ensureOpps();
   const cid=logState.oppCid||"";
@@ -6853,8 +6904,8 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
   /* every deal is tied to a Golden Hour sales person; the territory fills it in when nobody picked one (Max, 2026-10-16) */
   const noAuto=oppNoAutoRep(existing||null);
   data.ghRep=logState.oppGhRep||(noAuto?"":repForRegion(regionFromState(data.state))||(c?repForRegion(companyRegion(c)):"")||"");
-  if(!data.ghRep&&!noAuto){toast("Pick the Golden Hour sales person on this deal");oppMoreOpen("rep");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
-  if(data.stage==="Closed Won"&&!(logState.oppQuoteIds||[]).some(id=>quoteById(id))){toast("Closed won needs its quote — make one or attach the quote you sent");oppMoreOpen("quote");const el=document.getElementById("oppQts");if(el)el.scrollIntoView({block:"center"});return;}
+  if(!data.ghRep&&!noAuto&&!guided){toast("Pick the Golden Hour sales person on this deal");oppMoreOpen("rep");const el=document.getElementById("oGhRep");if(el)el.scrollIntoView({block:"center"});return;}
+  if(data.stage==="Closed Won"&&oppNeedsQuote(data)&&!(logState.oppQuoteIds||[]).some(id=>quoteById(id))){toast("A direct sale closes won with its quote — make one or attach the quote you sent");oppMoreOpen("quote");const el=document.getElementById("oppQts");if(el)el.scrollIntoView({block:"center"});return;}
   if(data.stage==="Closed Won"&&!(data.distributorId||data.distributorName||data.direct)){toast("Closed won needs the closing distributor — or tick Direct sale");oppMoreOpen("dist");const el=document.getElementById("oDistQ");if(el){el.focus();el.scrollIntoView({block:"center"});}return;}
   const ownerSel=document.getElementById("oOwner");
   if(ownerSel)data.owner=ownerSel.value;
@@ -6866,7 +6917,7 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
   save();
   if(after==="newquote"){render();formQuote(null,{cid:saved.accountId||null,acct:saved.accountName||"",oppId:saved.id});toast("Deal saved — the new quote goes on it");return;}
   if(after==="extquote"){render();formQuoteExt(null,saved.id);toast("Deal saved — the quote you add goes on it");return;}
-  closeSheet();render();toast(existing?"Opportunity saved"+(oppIsOpen(saved)&&!oppHasQuote(saved)?" — it still needs its quote":""):"Opportunity added");
+  closeSheet();render();toast(existing?"Opportunity saved"+(oppIsOpen(saved)&&oppNoQuote(saved)?" — a direct sale still needs its quote":""):"Opportunity added");
 }
 /* ----- quotes on a pipeline deal (Max, 2026-10-21: "make it so reps can attach a quote to a pipeline opportunity"). One link,
    kept on the quote: q.oppId. A deal lists the quotes that point at it. Attach from the deal form (type-ahead, New quote for
@@ -6885,7 +6936,7 @@ function quoteLine(q){return esc(q.no)+' · '+esc(qAcct(q.account)||"—")+' · 
 function oppQuoteChips(){
   return (logState.oppQuoteIds||[]).map((id,i)=>{const q=quoteById(id);if(!q)return "";
     return '<span class="rolechip">'+svg("tag")+' '+quoteLine(q)+'<button data-act="oppQDetach" data-i="'+i+'" title="Take this quote off the deal" aria-label="Remove">'+svg("x")+'</button></span>';}).join("")||
-   (logState.oppId?'<span class="pill warn" style="font-size:12px">No quote yet</span> <span class="t2" style="display:inline;white-space:normal">every deal needs its outbound quote — make one or attach one below</span>'
+   (logState.oppId&&oppNeedsQuote(oppById(logState.oppId))?'<span class="pill warn" style="font-size:12px">No quote yet</span> <span class="t2" style="display:inline;white-space:normal">a direct sale needs our quote — make one or attach one below</span>'
     :'<span class="muted" style="font-size:13px">No quote yet.</span>'); /* a new deal isn't nagged — the pipeline flags it quietly */
 }
 function oppQuoteRedraw(){const w=document.getElementById("oppQts");if(w)w.innerHTML=oppQuoteChips();}
@@ -7378,7 +7429,7 @@ function doRestore(){
 function helpSheet(){
   const rows=[
    ["Home","Your day: to-dos, conference call lists, the distributors you're onboarding, and your quotes (folded up at the bottom)."],
-   ["Pipeline","Open, Won and Lost are separate views with their own totals. Every deal carries a Golden Hour sales person (tap a name to filter), a closing distributor and its outbound quote — a deal can't close won without both (a new quote makes its own deal). Board, List or Forecast."],
+   ["Pipeline","Open, Won and Lost are separate views with their own totals. Every deal carries a Golden Hour sales person (tap a name to filter) and a closing distributor — a deal can't close won without one. A direct sale also needs our quote (a new quote makes its own deal); a distributor's deal is quoted by the distributor. Board, List or Forecast."],
    ["Activity","The top of the funnel. Everything you log lands here: follow it up with one tap (it becomes a to-do), mark it done, or turn it into a lead or an opportunity. Week view shows who did what, day by day."],
    ["Accounts","Distributors, end-users and man-rep groups. Open one for its contacts, deals, demos and activity."],
    ["Contacts","The channel reps we enable. Tap-to-call/email; log every touch."],
@@ -10093,7 +10144,9 @@ document.addEventListener("click",e=>{
   if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));oppAutoNext("stage");return;}
   if(a==="oppStep"){e.preventDefault();const fromRev=OPP_Q[logState.oppStep||0][0]==="review";logState.oppToReview=fromRev;oppStepGo(parseInt(t.dataset.v,10),t.dataset.f||"");return;}
   if(a==="oppStepNext"){oppStepNext();return;}
-  if(a==="oppStepBack"){oppStepGo((logState.oppStep||0)-1);return;}
+  if(a==="oppStepBack"){oppStepGo(oppStepMove(logState.oppStep||0,-1));return;}
+  if(a==="oppDistTbd"){const on=!logState.oppDistTbd;logState.oppDistTbd=on;if(on){oppSetDist(null,"");sugRender("oDistQ",[]);}const w=document.getElementById("oDistChips");if(w)w.innerHTML=oppDistChipsHTML();if(on)oppAutoNext("dist");return;}
+  if(a==="oppPricePick"){const p=parseFloat(t.dataset.v);logState.oppUnitP=p>0?p:null;logState.oppAmtHand=false;const up=document.getElementById("oUnitP");if(up)up.value=p%1?p.toFixed(2):String(p);oppAmtHint();oppAutoNext("amt");return;}
   if(a==="oppDistPick"){oppSetDist(t.dataset.id||null,t.dataset.v);sugRender("oDistQ",[]);oppAutoNext("dist");return;}
   if(a==="oppDirectPick"){const d=document.getElementById("oDirect");if(d){d.checked=!d.checked;if(d.checked){logState.oppDistCid=null;const q=document.getElementById("oDistQ");if(q)q.value="";oppAutoNext("dist");}}return;}
   if(a==="oppKitsPick"){const u=document.getElementById("oUnits");if(u)u.value=t.dataset.v;oppAmtHint();oppAutoNext("kits");return;}
@@ -10159,7 +10212,7 @@ document.addEventListener("click",e=>{
   if(a==="setGhRep"){oppAutoNext("rep");logState.oppGhRep=t.dataset.v;logState.oppGhRepHand=true;document.querySelectorAll("#oGhRep .chip").forEach(x=>{const on=x.dataset.v===t.dataset.v;x.classList.toggle("on",on);const tm=teamById(x.dataset.v);x.style.borderColor=on&&x.dataset.v?tm.c:"";x.style.color=on&&x.dataset.v?tm.c:"";});return;}
   if(a==="insighttab"){insightTab=t.dataset.v;render();return;}
   if(a==="oppclose"){e.stopPropagation();const o=DB.opps.find(x=>x.id===id);if(o){if(!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
-    if(t.dataset.v==="Closed Won"&&!oppHasQuote(o)){toast("Record the quote first — every deal has its outbound quote");formOpp(o.id);return;}
+    if(t.dataset.v==="Closed Won"&&oppNoQuote(o)){toast("Record the quote first — a direct sale carries our quote");formOpp(o.id);return;}
     if(t.dataset.v==="Closed Won"&&!oppHasDist(o)){toast("Pick the closing distributor first (or mark it direct)");formOpp(o.id);return;}
     o.stage=t.dataset.v;o.probability=OPP_PROB[o.stage];if(!o.closeDate)o.closeDate=todayStr();save();render();toast(o.name+" → "+OPP_SHORT[o.stage]);}return;}
   if(a==="openreport"){pushNav();curReport=t.dataset.id;sortState.report={key:0,dir:1};view="report";render();window.scrollTo(0,0);return;}
@@ -10536,7 +10589,8 @@ document.addEventListener("input",e=>{
   if(e.target.id==="oName"){logState.oppNameHand=!!e.target.value.trim();return;}
   if(e.target.id==="oLoc"&&document.getElementById("oSteps")){const v=e.target.value.toUpperCase();if(v!==e.target.value)e.target.value=v;return;}
   if(e.target.id==="oUnits"){oppAmtHint();return;}
-  if(e.target.id==="oAmt"){logState.oppAmtHand=!!e.target.value.trim();oppAmtHint();return;}
+  if(e.target.id==="oAmt"){logState.oppAmtHand=!!e.target.value.trim();if(logState.oppAmtHand)logState.oppUnitP=null;oppAmtHint();return;}
+  if(e.target.id==="oUnitP"){logState.oppUnitP=parseFloat(e.target.value)>0?parseFloat(e.target.value):null;logState.oppAmtHand=false;oppAmtHint();return;}
   if(e.target.id==="oClose"){document.querySelectorAll("#oCloseChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===e.target.value));return;}
   if(e.target.id==="bcFile"){bcHandleFile(e.target.files&&e.target.files[0]);return;}
   if(e.target.id==="bcCoQ"){if(logState.bc)logState.bc.cid=null;sugRender("bcCoQ",acctSugItems(e.target.value,"pickBcCo"));bcSyncCompany();return;}
