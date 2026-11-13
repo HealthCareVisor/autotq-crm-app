@@ -270,6 +270,12 @@ input[type=date].f,input[type=date]{min-height:40px}
 .dropzone{border:1.5px dashed var(--line-3);border-radius:16px;padding:28px 18px;text-align:center;color:var(--muted);background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
 .dropzone:hover,.dropzone.drag{border-color:var(--coral);background:var(--hover)}
 .dropzone svg{width:26px;height:26px;color:var(--faint)}
+.qdropbar{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:12px 14px;border:1.5px dashed var(--line-3);border-radius:12px;background:var(--surface);color:var(--muted);font:inherit;font-size:13.5px;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.qdropbar b{color:var(--ink);font-weight:600}.qdropbar svg{width:20px;height:20px;flex:none;color:var(--faint)}
+.qdropbar:hover,body.qdrag .qdropbar{border-color:var(--coral);background:var(--hover)}
+.qxdrop{border:1.5px dashed var(--line-3);border-radius:12px;padding:6px}.qxdrop .f{border:0;margin:0}
+body.qdrag .qxdrop{border-color:var(--coral);background:var(--hover)}
+body.qdrag::after{content:"Drop PDF quotes to add them";position:fixed;inset:12px;z-index:9999;display:flex;align-items:center;justify-content:center;border:2.5px dashed var(--coral);border-radius:20px;background:color-mix(in srgb,var(--bg,#fff) 82%,transparent);color:var(--ink);font-size:20px;font-weight:650;pointer-events:none}
 .wiz{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 .wiz button{flex:1;min-width:130px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;text-align:left;box-shadow:var(--sh-1)}
 .wiz button.on{border-color:var(--coral);color:var(--coral-tt);background:var(--coral-t)}
@@ -8704,15 +8710,17 @@ function saveQuote(mode){
 
 /* ----- an existing quote: one made outside the CRM (a PDF, Word, the MARCH letterhead…) added so it sits in Quotes with the
    rest — its file, number, customer, total and where it stands (Max, 2026-10-21: "add an add existing quote button") ----- */
-function formQuoteExt(id,oppId){
+function formQuoteExt(id,oppId,queue){
   const q=id?quoteById(id):null;
-  logState.qx={id:q?q.id:null,cid:q?q.cid:null,status:q?(q.status||"sent"):"sent",fileObj:null,oppId:q?(q.oppId||null):(oppId||null)};
-  const qxo=oppById(logState.qx.oppId);
+  logState.qx={id:q?q.id:null,cid:q?q.cid:null,status:q?(q.status||"sent"):"sent",fileObj:null,oppId:q?(q.oppId||null):(oppId||null),
+    queue:queue&&queue.files?queue:null}; /* dropped PDFs still to add after this one ({files,n}) — dies with this sheet */
+  const qxo=oppById(logState.qx.oppId),Q=logState.qx.queue;
   const v=k=>esc(q&&q[k]!=null?String(q[k]):"");
-  openSheet('<h2>'+(q?'Edit '+esc(q.no):'Add an existing quote')+'</h2>'+
+  openSheet('<h2>'+(q?'Edit '+esc(q.no):'Add an existing quote')+(Q?' <span class="pill gray" style="vertical-align:middle">'+(Q.n-Q.files.length)+' of '+Q.n+'</span>':'')+'</h2>'+
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">A quote made outside the CRM. It shows in Quotes with the others.'+(qxo?' It goes on the deal <b>'+esc(qxo.name)+'</b>.':'')+'</p>'+
-   '<label class="fl">Quote file <span style="font-weight:400;color:var(--hint)">— optional; the number and company fill in from a name like “Quote Q-261020-01 Hendrick.pdf”</span></label>'+
-   '<input class="f" type="file" id="qxFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">'+(q&&q.fname?'<p class="t2" style="margin:4px 0 0">On file: '+esc(q.fname)+' — pick a new one to replace it</p>':'')+
+   '<label class="fl">Quote file <span style="font-weight:400;color:var(--hint)">— optional; drop a PDF here and the number, date, customer and total fill in from it</span></label>'+
+   '<div class="qxdrop" data-drop="quote"><input class="f" type="file" id="qxFile" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"></div>'+
+   '<p class="t2" id="qxRead" style="margin:4px 0 0;white-space:normal'+(q&&q.fname?'':';display:none')+'">'+(q&&q.fname?'On file: '+esc(q.fname)+' — pick or drop a new one to replace it':'')+'</p>'+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Quote number</label><input class="f" id="qxNo" autocomplete="off" value="'+v("no")+'" placeholder="Q-260928-01"></div>'+
    '<div style="width:170px"><label class="fl">Quote date</label><input class="f" type="date" id="qxDate" value="'+(q?esc(q.date||todayStr()):todayStr())+'"></div></div>'+
    '<label class="fl">Quote for</label>'+comboField("qxAcct","Company — pick an account or type a name",q?q.account:"")+
@@ -8721,17 +8729,161 @@ function formQuoteExt(id,oppId){
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">Quote total</label><input class="f" id="qxTotal" inputmode="decimal" autocomplete="off" value="'+(q?esc(String(q.total!=null?q.total:"")):"")+'" placeholder="$"></div>'+
    '<div class="grow"><label class="fl">AutoTQ kits on it <span style="font-weight:400;color:var(--hint)">— optional</span></label><input class="f" id="qxUnits" inputmode="numeric" autocomplete="off" value="'+(q&&q.extUnits?esc(String(q.extUnits)):"")+'"></div></div>'+
    '<label class="fl">Where it stands</label><div class="qa-types" id="qxSt">'+["draft","sent","won","lost"].map(k=>'<span class="chip'+(logState.qx.status===k?" on":"")+'" data-act="qxst" data-v="'+k+'">'+QUOTE_ST[k][0]+'</span>').join("")+'</div>'+
-   '<button class="btn coral block" data-act="qxsave" id="qxSave" style="margin-top:18px">'+(q?"Save changes":"Add quote")+'</button>');
+   '<button class="btn coral block" data-act="qxsave" id="qxSave" style="margin-top:18px">'+(q?"Save changes":"Add quote")+(Q&&Q.files.length?' · next file':'')+'</button>'+
+   (Q&&Q.files.length?'<button class="btn ghost block" data-act="qxskip" style="margin-top:8px">Skip this one</button>':''));
 }
 function qxFilePicked(f){
   const S=logState.qx;if(!S)return;S.fileObj=f||null;if(!f)return;
   const base=f.name.replace(/\.[a-z0-9]+$/i,"");
-  const m=base.match(/\bQ-?\d{6}-?\d{1,3}\b/i)||base.match(/\b(?:quote|qt)[\s#_-]*(?:no\.?\s*)?([A-Z0-9][A-Z0-9-]{3,})/i);
+  const m=base.match(/\bQ-?\d{6}-?[A-Z0-9]{1,4}\b/i)||base.match(/\b(?:quote|qt)[\s#_-]*(?:no\.?\s*)?([A-Z0-9][A-Z0-9-]{3,})/i);
   const no=m?(m[1]||m[0]).toUpperCase().replace(/^Q(\d)/,"Q-$1"):"";
-  const co=base.replace(m?m[0]:"","").replace(/\b(quote|qt|autotq|march|safety foundation)\b/ig," ").replace(/_+/g," ").replace(/\s*[-–—]\s*$/,"").replace(/^\s*[-–—]\s*/,"").replace(/\s{2,}/g," ").trim();
+  const co=base.replace(m?m[0]:"","").replace(/\b(quote|qt|quotation|proposal|estimate|autotq|march|safety foundation)\b/ig," ").replace(/_+/g," ").replace(/\s*[-–—]\s*$/,"").replace(/^\s*[-–—]\s*/,"").replace(/\s{2,}/g," ").trim();
   const n=document.getElementById("qxNo"),a=document.getElementById("qxAcct");
   if(n&&!n.value.trim()&&no)n.value=no;
   if(a&&!a.value.trim()&&co.length>2){a.value=co;const c=bcMatchCompany(co);if(c){S.cid=c.id;a.value=c.name;}}
+  if(/\.pdf$/i.test(f.name)||f.type==="application/pdf")qxReadPdf(f);
+}
+
+/* ----- drag & drop PDF quotes (Max, 2026-11-13: "drag and drop pdf quotes that might have been made or sent to you
+   externally"). Drop one or more PDFs anywhere on the Quotes page or on the Add-an-existing-quote sheet: each opens that
+   sheet in turn with the file attached and the fields read from the PDF's text (pdf.js, loaded from cdnjs only when a PDF
+   is read; offline or a scanned image-only PDF just leaves the fields for typing). Nothing saves until "Add quote". ----- */
+const PDFJS_V="4.10.38";let pdfjsLib=null;
+async function pdfjsLoad(){
+  if(pdfjsLib)return pdfjsLib;
+  const base="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/"+PDFJS_V+"/";
+  const m=await import(base+"pdf.min.mjs");
+  m.GlobalWorkerOptions.workerSrc=base+"pdf.worker.min.mjs";
+  return pdfjsLib=m;
+}
+/* the PDF's text as lines, top to bottom (first 4 pages): text items grouped by their baseline, left to right; a wide gap
+   (the next column) becomes a tab, and letter-spaced headings ("T O TA L", "P R E PA R E D F O R") are closed up */
+const qxDespace=s=>s.replace(/\b(?:[A-Z]{1,2} ){2,}[A-Z]{1,2}\b/g,m=>m.replace(/ /g,""));
+async function pdfLines(file){
+  const lib=await pdfjsLoad();
+  const doc=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
+  const out=[];
+  for(let p=1;p<=Math.min(doc.numPages,4);p++){
+    const tc=await (await doc.getPage(p)).getTextContent(),rows=[];
+    tc.items.forEach(it=>{if(!it.str||!it.str.trim())return;const x=it.transform[4],y=it.transform[5];
+      let r=rows.find(r=>Math.abs(r.y-y)<3);if(!r){r={y,its:[]};rows.push(r);}r.its.push({x,s:it.str,w:it.width||0});});
+    rows.sort((a,b)=>b.y-a.y).forEach(r=>{r.its.sort((a,b)=>a.x-b.x);let s="",end=null;
+      r.its.forEach(i=>{if(end!==null){const gap=i.x-end;if(gap>14)s+="\t";else if(gap>1.5&&!/\s$/.test(s)&&!/^\s/.test(i.s))s+=" ";}s+=i.s;end=i.x+i.w;});
+      out.push(s.split("\t").map(x=>qxDespace(x.replace(/\s+/g," ").trim())).filter(Boolean).join("\t"));});
+  }
+  try{doc.destroy();}catch(e){}
+  return out.filter(Boolean);
+}
+const QX_OURS=/goldenhourmedical|theautotq|autotq\.com|marchsafety|marchfoundation|march safety|golden hour medical/i;
+function qxDateIso(s){
+  s=String(s||"").trim();let m;
+  if(m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/))return s;
+  if(m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/)){let y=+m[3];if(y<100)y+=2000;return y+"-"+String(+m[1]).padStart(2,"0")+"-"+String(+m[2]).padStart(2,"0");}
+  const d=new Date(s.replace(/(\d)(st|nd|rd|th)\b/,"$1"));
+  return isNaN(d)||d.getFullYear()<2015?"":d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+/* best guesses from a quote's lines: {no,date,total,email,name,company,cid,units} — anything unsure stays empty */
+function quotePdfParse(lines){
+  const text=lines.join("\n"),r={};
+  const money=s=>(String(s).match(/\$\s?\d[\d,]*(?:\.\d{2})?|\b\d{1,3}(?:,\d{3})+(?:\.\d{2})?\b|\b\d+\.\d{2}\b/g)||[]).map(x=>parseFloat(x.replace(/[$,\s]/g,""))).filter(n=>n>=0);
+  /* number: our own Q-YYMMDD-NN, else whatever follows "Quote no / # / number" */
+  let m=text.match(/\bQ-?\d{6}-?[A-Z0-9]{1,4}\b/i);
+  if(m)r.no=m[0].toUpperCase().replace(/^Q(\d)/,"Q-$1");
+  else if(m=text.match(/\b(?:quote|quotation|estimate|proposal)\s*(?:no\.?|number|num\.?|#|id)\s*[:#.]?\s*([A-Z0-9][A-Z0-9\-\/]{2,})/i))r.no=m[1].toUpperCase();
+  /* date: one labelled "date" that isn't an expiry / due / ship date, else the first date on the page */
+  const DT="(\\d{1,2}[\\/.\\-]\\d{1,2}[\\/.\\-]\\d{2,4}|\\d{4}-\\d{2}-\\d{2}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\\.? \\d{1,2}(?:st|nd|rd|th)?,? \\d{4})";
+  const re=new RegExp("(.{0,24})\\bdate[d]?\\b\\s*[:\\-]?\\s*"+DT,"ig");let dm;
+  while(dm=re.exec(text)){if(!/expir|valid|due|ship|deliver|until|through/i.test(dm[1])){r.date=qxDateIso(dm[2]);if(r.date)break;}}
+  if(!r.date){const any=text.match(new RegExp(DT,"i"));if(any)r.date=qxDateIso(any[1]);}
+  /* total: the biggest amount on a "total" line (or the line under it); else the biggest amount on the quote */
+  const tots=[];
+  lines.forEach((l,i)=>{if(/\btotal\b/i.test(l)&&!/\bsub-?\s?total\b/i.test(l)&&!/total units|total qty|total quantity/i.test(l)){
+    let a=money(l);if(!a.length&&lines[i+1])a=money(lines[i+1]);tots.push(...a);}});
+  const all=money(text);
+  if(tots.length)r.total=Math.max(...tots);else if(all.length)r.total=Math.max(...all);
+  /* the customer's email (not ours), and who that is in the CRM */
+  const ems=(text.match(/[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}/ig)||[]).filter(e=>!QX_OURS.test(e));
+  const lc=e=>String(e||"").toLowerCase();
+  const known=ems.map(e=>DB.people.find(p=>lc(p.email)===lc(e))).find(Boolean);
+  r.email=known?known.email:(ems[0]||"");
+  if(known){r.name=known.name;const c=company(known.cid);if(c&&!QX_OURS.test(c.name)){r.company=c.name;r.cid=c.id;}}
+  /* "Prepared for / Bill to / Quote for / Customer / Sold to" in the first column → the company is the first line under it
+     (or after the colon), then "Name, Title" */
+  const NAME=/^[A-Z][a-z'’\-]+(?: [A-Z]\.?)?(?: [A-Z][A-Za-z'’\-]+){1,2}$/;
+  const okCo=s=>s&&s.length>2&&!/@|\d{3}[\s.\-)]+\d{3}|^attn|^customer name$|^street|^city,|^\d/i.test(s)&&!QX_OURS.test(s);
+  for(let i=0;i<lines.length&&!r.company;i++){
+    const seg0=lines[i].split("\t")[0];
+    if(!/^(?:preparedfor|billto|billedto|quotefor|quotedfor|customer|soldto|to)(?::|$)/.test(seg0.replace(/\s+/g,"").toLowerCase().replace(/:.*$/,":")))continue;
+    const inl=seg0.includes(":")?seg0.replace(/^[^:]*:\s*/,"").trim():"";
+    const below=[1,2,3].map(d=>String(lines[i+d]||"").split("\t")[0].trim());
+    const at=okCo(inl)?-1:below.findIndex(okCo);
+    const co=(at<0?inl:below[at]||"").split(/\s+[·|]\s+/)[0].trim();
+    if(!okCo(co))continue;
+    const c=bcMatchCompany(co);r.company=c?c.name:co;r.cid=c?c.id:null;
+    const nm=below.slice(at+1).map(s=>s.split(",")[0].trim()).find(s=>NAME.test(s)&&s!==co);
+    if(nm&&!r.name)r.name=nm;
+  }
+  if(!r.name&&(m=text.match(/\b(?:attn|attention)\s*[:.]?\s*([A-Z][a-z'’\-]+(?: [A-Z]\.?)?(?: [A-Z][A-Za-z'’\-]+){1,2})/)))r.name=m[1];
+  /* company: else the longest account of ours named in it */
+  if(!r.company){
+    const low=text.toLowerCase();let best=null;
+    DB.companies.forEach(c=>{const n=String(c.name||"").trim();if(n.length<4||QX_OURS.test(n))return;
+      const k=n.toLowerCase();const i=low.indexOf(k);if(i<0)return;
+      const ok=(i===0||/[^a-z0-9]/.test(low[i-1]))&&(i+k.length>=low.length||/[^a-z0-9]/.test(low[i+k.length]));
+      if(ok&&(!best||n.length>best.name.length))best=c;});
+    if(best){r.company=best.name;r.cid=best.id;}
+  }
+  /* AutoTQ kits: the quantity on each kit line (part numbers and prices taken out first) */
+  let units=0;
+  const bare=l=>String(l||"").replace(/\b[A-Z0-9]+(?:-[A-Z0-9]+)+\b/ig," ").replace(/\$\s?\d[\d,]*(?:\.\d{2})?|\b\d{1,3}(?:,\d{3})+(?:\.\d{2})?|\b\d+\.\d{2}\b/g," ");
+  lines.forEach((l,i)=>{if(!/1000-0005|autotq\s*(?:kit|tourniquet)|tourniquet kit/i.test(l)||/cuff|demo|replacement|per station|list price/i.test(l))return;
+    let q=money(l).length?(bare(l).match(/\b\d{1,5}\b/g)||[]).map(Number).filter(n=>n>0):[]; /* a priced line, not a sentence */
+    if(!q.length){const nx=String(lines[i+1]||"").match(/^(\d{1,5})\s+\$/);if(nx)q=[+nx[1]];} /* the qty sits on the line under the name */
+    if(q.length)units+=q[0];});
+  if(units)r.units=units;
+  return r;
+}
+async function qxReadPdf(f){
+  const S=logState.qx;if(!S)return;
+  const note=document.getElementById("qxRead"),say=t=>{if(note){note.style.display="";note.innerHTML=t;}};
+  say("Reading "+esc(f.name)+"…");
+  let r;
+  try{r=quotePdfParse(await pdfLines(f));}
+  catch(e){if(logState.qx===S)say("Couldn't read the PDF's text"+(navigator.onLine?"":" (offline)")+" — fill in the boxes below.");return;}
+  if(logState.qx!==S||S.fileObj!==f)return; /* the sheet moved on while we were reading */
+  const el=id=>document.getElementById(id),got=[];
+  const put=(id,v,label,force)=>{const e=el(id);if(!e||v==null||v==="")return;if(e.value.trim()&&!force)return;e.value=v;got.push(label);};
+  put("qxNo",r.no,"number");
+  const d=el("qxDate");if(d&&r.date&&!S.id&&(d.value===todayStr()||!d.value)){d.value=r.date;got.push("date");}
+  if(r.company){const a=el("qxAcct");if(a&&(!a.value.trim()||!S.cid)){a.value=r.company;S.cid=r.cid||null;got.push("customer");}}
+  put("qxCon",r.name,"contact");put("qxEmail",r.email,"email");
+  if(r.total!=null)put("qxTotal",String(r.total),"total");
+  if(r.units)put("qxUnits",String(r.units),"kits");
+  say(got.length?"Filled from the PDF: <b>"+got.join(", ")+"</b> — check them before adding.":"Nothing readable in this PDF (a scan?) — fill in the boxes below.");
+}
+/* files dropped (or picked) → the first opens the sheet; the rest wait their turn */
+function quoteDropFiles(list){
+  const files=[...(list||[])].filter(f=>/\.pdf$/i.test(f.name)||f.type==="application/pdf");
+  const skipped=(list?list.length:0)-files.length;
+  if(!files.length){toast("Drop PDF quotes here");return;}
+  const S=logState.qx,sheetOpen=document.getElementById("scrim").classList.contains("open")&&document.getElementById("qxFile");
+  if(sheetOpen&&S&&files.length===1){qxSetFile(files[0]);return;} /* onto the open sheet: that's its file */
+  const oppId=sheetOpen&&S&&!S.id?S.oppId:null;
+  quoteDropNext({files,n:files.length,oppId});
+  if(skipped)toast(skipped+" file"+(skipped>1?"s weren't PDFs":" wasn't a PDF")+" — skipped");
+}
+function quoteDropNext(Q){
+  const f=Q.files.shift();if(!f)return false;
+  formQuoteExt(null,Q.oppId||null,Q);qxSetFile(f);return true;
+}
+function qxSetFile(f){
+  const inp=document.getElementById("qxFile");
+  try{const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;}catch(e){}
+  qxFilePicked(f);
+}
+function quoteDropPick(){
+  const inp=document.createElement("input");inp.type="file";inp.accept=".pdf,application/pdf";inp.multiple=true;
+  inp.addEventListener("change",()=>{if(inp.files.length)quoteDropFiles(inp.files);});inp.click();
 }
 async function saveQuoteExt(){
   const S=logState.qx;if(!S)return;
@@ -8754,12 +8906,16 @@ async function saveQuoteExt(){
   if(fresh)DB.quotes.push(q);
   const made=fresh&&!q.oppId&&(q.status==="draft"||q.status==="sent")?oppFromQuote(q):null;
   S.id=q.id;save();
-  const f=S.fileObj;
+  const f=S.fileObj;let upFail=false;
   if(f){const btn=document.getElementById("qxSave");if(btn){btn.disabled=true;btn.textContent="Uploading the file…";}
     const path="quotes/"+q.id+"_"+f.name.replace(/[^\w.\- ]+/g,"_");
     const ok=await storUpload(path,f);
-    if(ok){q.file=path;q.fname=f.name;save();}else toast("The file didn't upload — the quote is saved without it; use Edit to add it again");}
-  render();quoteSheet(q.id);toast("Quote "+q.no+(fresh?" added":" updated")+(made?" · new deal in the pipeline":""));
+    if(ok){q.file=path;q.fname=f.name;save();}else upFail=true;}
+  render();
+  const msg=upFail?"Quote "+q.no+" saved, but the file didn't upload — use Edit to add it again"
+    :"Quote "+q.no+(fresh?" added":" updated")+(made?" · new deal in the pipeline":"");
+  if(S.queue&&S.queue.files.length&&logState.qx===S){quoteDropNext(S.queue);toast(msg+" · next file");return;}
+  quoteSheet(q.id);toast(msg);
 }
 function quoteExtSheet(q){
   const st=quoteState(q);
@@ -8871,7 +9027,8 @@ function viewQuotes(){
   FLT_RESET.quotes=()=>{quoteFilter="open";quoteRep=ownOnly()?USER:"";};
   let h='<div class="lvhead"><button class="btn coral" data-act="quotenew">'+svg("plus")+' New quote</button>'+
    filterBar("quotes",[fltGroup("Status","quotefilter",[["open","Open"],["won","Won"],["lost","Lost"],["expired","Expired"],["all","All"]].map(f=>[f[0],f[1],pick(f[0]).length]),quoteFilter,"open",{sumOf:(v,o)=>o?o[1]+" quotes":""}),
-     who.length?fltGroup("Whose quotes","quoterep",who.map(w=>[w[0],w[1]]),quoteRep,"",{sumOf:(v,o)=>o?o[1]:""}):null])+'</div>';
+     who.length?fltGroup("Whose quotes","quoterep",who.map(w=>[w[0],w[1]]),quoteRep,"",{sumOf:(v,o)=>o?o[1]:""}):null])+'</div>'+
+   '<button class="qdropbar" data-act="quotedroppick">'+svg("file")+'<span><b>Drop PDF quotes here</b> — ones made or sent to you outside the CRM. Or tap to pick files.</span></button>';
   const list=pick(quoteFilter);
   if(!list.length)return h+'<div class="empty">'+(all.length?'Nothing in this view.':'No quotes yet. Tap <b>New quote</b>: the date, who is quoting, the customer, the items and the price — it gives you the PDF and puts the deal in the pipeline.')+'</div>';
   return h+'<div class="list">'+list.map(quoteRowHTML).join("")+'</div>';
@@ -10154,6 +10311,8 @@ document.addEventListener("click",e=>{
   if(a==="quotemailview"){quoteEmailPreview(id);return;}
   if(a==="quoteext"){formQuoteExt(null);return;}
   if(a==="qxsave"){saveQuoteExt();return;}
+  if(a==="qxskip"){const Q=logState.qx&&logState.qx.queue;if(!Q||!quoteDropNext(Q))closeSheet();return;}
+  if(a==="quotedroppick"){quoteDropPick();return;}
   if(a==="qxst"){if(logState.qx){logState.qx.status=t.dataset.v;document.querySelectorAll("#qxSt .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));}return;}
   if(a==="pickQxAcct"){const c=company(t.dataset.id);if(c&&logState.qx){logState.qx.cid=c.id;const i=document.getElementById("qxAcct");if(i)i.value=c.name;sugRender("qxAcct",[]);}return;}
   if(a==="quotefile"){quoteOpenFile(id);return;}
@@ -10754,7 +10913,20 @@ document.addEventListener("mousedown",e=>{
 /* campaign dropzone drag & drop */
 document.addEventListener("dragover",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(dz){e.preventDefault();dz.classList.add("drag");}});
 document.addEventListener("dragleave",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(dz)dz.classList.remove("drag");});
-document.addEventListener("drop",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(!dz)return;e.preventDefault();dz.classList.remove("drag");campHandleFile(e.dataTransfer.files&&e.dataTransfer.files[0]);});
+document.addEventListener("drop",e=>{const dz=e.target.closest&&e.target.closest(".dropzone");if(!dz||dz.dataset.drop==="quote")return;e.preventDefault();dz.classList.remove("drag");campHandleFile(e.dataTransfer.files&&e.dataTransfer.files[0]);});
+/* PDF quotes: files dragged anywhere over the Quotes page or the Add-an-existing-quote sheet (window-level, so the whole page
+   is the target; the overlay says so while a file is over it) */
+function quoteDropActive(){
+  const sheet=document.getElementById("scrim").classList.contains("open");
+  return sheet?!!document.getElementById("qxFile"):view==="quotes";
+}
+let qdragN=0;
+const qdragHas=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes("Files");
+window.addEventListener("dragenter",e=>{if(!qdragHas(e)||!quoteDropActive())return;qdragN++;document.body.classList.add("qdrag");});
+window.addEventListener("dragleave",e=>{if(!qdragHas(e))return;qdragN=Math.max(0,qdragN-1);if(!qdragN)document.body.classList.remove("qdrag");});
+window.addEventListener("dragover",e=>{if(qdragHas(e)&&quoteDropActive()){e.preventDefault();e.dataTransfer.dropEffect="copy";}});
+window.addEventListener("drop",e=>{qdragN=0;document.body.classList.remove("qdrag");
+  if(!qdragHas(e)||!quoteDropActive())return;e.preventDefault();quoteDropFiles(e.dataTransfer.files);});
 document.addEventListener("dblclick",e=>{
   const rz=e.target.closest&&e.target.closest("table.lv th .rz");if(!rz)return;
   const table=rz.closest("table"),tbl=table.dataset.tbl;
