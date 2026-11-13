@@ -1169,7 +1169,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11) */
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1831,9 +1831,10 @@ function render(){
   if(FUT&&!logState.wbHealed)setTimeout(wbHeal,0);
   const pn=curPerson&&person(curPerson)?person(curPerson):null, cc=curCompany&&company(curCompany)?company(curCompany):null;
   const rep=REPORTS.find(r=>r.id===curReport);
-  const titles={repweek:scSelf(curRep)?"My week":(curRep?teamById(curRep).name:"Rep")+" — the week",repan:scSelf(curRep)?"My analysis":(curRep?teamById(curRep).name:"Rep")+" — analysis",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",grainger:(curGpo&&gpoById(curGpo)?"Grainger PO "+(gpoById(curGpo).po||"(new)"):"Grainger orders"),shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
+  const titles={repweek:scSelf(curRep)?"My week":(curRep?teamById(curRep).name:"Rep")+" — the week",repan:scSelf(curRep)?"My analysis":(curRep?teamById(curRep).name:"Rep")+" — analysis",today:"Home",accounts:"Accounts",contacts:"Contacts",opps:"Pipeline",fcast:"Pipeline",dash:"Insight",reports:"Insight",report:rep?rep.name:"Report",insights:"Insight",insight:"Insight",map:"Field Map",conf:"Conferences",confleads:(curConf||"Conference leads"),camp:"Campaigns",campaigns:(curCampaign&&campaignById(curCampaign)?campaignById(curCampaign).name:"Campaigns"),leads:"Leads",export:(curList?"Call list":"Call lists"),person:pn?pn.name:"Contact",roster:cc?cc.name:"Account",search:"Search",invoicing:"Invoicing",grainger:(curGpo&&gpoById(curGpo)?"Grainger PO "+(gpoById(curGpo).po||"(new)"):"Grainger orders"),shipping:"Shipping",quotes:"Quotes",board:"Whiteboard",activity:"Activity",teamcal:"Team calendar",team:(ownOnly()?(goalsOn()?"My goals":"My KPIs"):"Team"),teammate:(curRep&&teamById(curRep).id?teamById(curRep).name:"Teammate")};
   const subs={
     today:greeting()+(admin()?" · admin":""),
+    teamcal:(function(){const s=repcalStats();return s?s.trips+" trips · "+s.meets+" meetings on their Outlooks through "+s.to:"Their travel, meetings and trip outreach";})(),
     activity:(function(){const q=actQueue();return q.todo.length+" to follow up · "+q.old.length+" old, never followed up · "+q.sched.length+" scheduled";})(),
     team:goalsOn()?(ownOnly()?"Plan your week and log as you go — green 85%+, yellow 50–84%, red under 50%":"This week’s goals for every rep — tap a name for their card"):(ownOnly()?"Your numbers only — tap a line for the deals, quotes and touches behind it":"KPIs by sales person — tap a tile for the deals, quotes and touches behind it"),
     teammate:(curRep?"Everything they've logged, and their time in the CRM":""),
@@ -1878,6 +1879,7 @@ function render(){
   else if(view==="insight")body=viewInsight();
   else if(view==="activity")body=viewActivity();
   else if(view==="team")body=viewTeam();
+  else if(view==="teamcal")body=profile(USER)==="admin"?viewTeamCal():viewToday();
   else if(view==="teammate")body=teamAccess()?viewTeammate(curRep):viewToday();
   else if(view==="repweek")body=viewRepWeek(curRep);
   else if(view==="repan")body=viewRepAnalysis(curRep);
@@ -2331,7 +2333,7 @@ function railGroups(u){
     ["Manage",[["team","users","Team"]]]];
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
   const g=[];
-  const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(mg.length)g.push(["Manage",mg]); /* Campaigns tab removed 2026-10-16 — handled outside the CRM */
+  const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(profile(u)==="admin")mg.push(["teamcal","cal","Team calendar"]);if(mg.length)g.push(["Manage",mg]); /* Campaigns tab removed 2026-10-16 — handled outside the CRM */
   g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["export","dl","Lists"]]],
     ["Insight",[["insight","spark","Insight"],["map","pin","Field Map"],["conf","cal","Conferences"]]]);
@@ -6074,6 +6076,78 @@ function teamDrillHTML(reps,kp){
     h+='<div class="lvhead" style="margin-top:22px"><div class="sech">'+esc(title)+'</div><button class="btn sm ghost" data-act="teamdrill" data-rep="" data-k="" style="margin-left:auto">Clear</button></div>'+body;
   return h;
 }
+/* ---------- Team calendar (admins: Max, Hannah, Jamie) ----------
+   Reads the synced `repcal` collection: one record per rep with their Outlook travel,
+   timed meetings and the group emails they sent announcing a trip (pulled by the
+   calendar refresh, data lives in Supabase like everything else). */
+function ensureRepcal(){DB.repcal=DB.repcal||[];}
+function repcalFor(rep){ensureRepcal();return DB.repcal.find(r=>r.rep===rep)||null;}
+function repcalStats(){
+  ensureRepcal();if(!DB.repcal.length)return null;
+  let trips=0,meets=0,to="";
+  ["johnm","john","tim"].forEach(id=>{const rc=repcalFor(id);if(!rc)return;
+    trips+=tcTrips(rc).length;meets+=tcMeets(rc).length;
+    (rc.meetings||[]).forEach(m=>{const d=String(m.start||"").slice(0,10);if(d>to)to=d;});});
+  return {trips:trips,meets:meets,to:fmtMD(to)};
+}
+function fmtMD(iso){if(!iso)return"";const d=new Date(String(iso).slice(0,10)+"T12:00:00");return isNaN(d)?String(iso):d.toLocaleDateString(undefined,{month:"short",day:"numeric"});}
+function tcTime(s){const m=/T(\d\d):(\d\d)/.exec(String(s||""));if(!m)return"";const h=+m[1],h12=((h+11)%12)+1;return h12+(m[2]==="00"?"":":"+m[2])+(h>=12?"p":"a");}
+function tcDow(iso){const d=new Date(String(iso).slice(0,10)+"T12:00:00");return isNaN(d)?"":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()];}
+function tcTrips(rc){const t=todayStr();return (rc.travel||[]).filter(x=>String(x.end||x.start||"").slice(0,10)>=t).sort((a,b)=>String(a.start).localeCompare(String(b.start)));}
+function tcMeets(rc){const t=todayStr();return (rc.meetings||[]).filter(x=>x.title&&x.kind!=="travel"&&x.kind!=="personal-hidden"&&String(x.start||"").slice(0,10)>=t).sort((a,b)=>String(a.start).localeCompare(String(b.start)));}
+function tcAnnounces(o,trip){
+  const from=String(trip.start||"").slice(0,10),to=String(trip.end||trip.start||"").slice(0,10);
+  if(!o.d||o.d>to)return false;
+  const lo=new Date(from+"T12:00:00");lo.setDate(lo.getDate()-28);
+  if(o.d<lo.toISOString().slice(0,10))return false;
+  const st=(trip.state||"").split("/").map(s=>s.trim()).filter(Boolean);
+  return (o.st||[]).some(s=>st.includes(s));
+}
+function tcSpan(trip){const a=String(trip.start||"").slice(0,10),b=String(trip.end||trip.start||"").slice(0,10);return a===b?fmtMD(a):fmtMD(a)+" – "+fmtMD(b);}
+function viewTeamCal(){
+  ensureRepcal();
+  if(!DB.repcal.length)return '<div class="empty">No calendar data has been pulled yet — ask Max to run the calendar refresh.</div>';
+  const soonCut=(function(){const d=new Date(todayStr()+"T12:00:00");d.setDate(d.getDate()+14);return d.toISOString().slice(0,10);})();
+  let h='';
+  ["johnm","john","tim"].forEach(id=>{
+    const t=teamById(id),rc=repcalFor(id);
+    const trips=rc?tcTrips(rc):[],meets=rc?tcMeets(rc):[],outs=rc?(rc.outreach||[]):[];
+    h+='<div class="lvhead" style="margin-top:18px"><div class="sech">'+esc(t.name)+'</div>'+
+       '<span style="margin-left:auto;color:var(--muted);font-size:13px">'+trips.length+' trip'+(trips.length===1?'':'s')+' · '+meets.length+' meetings</span></div>';
+    if(!rc){h+='<div class="empty">Nothing pulled for '+esc(t.name.split(" ")[0])+' yet.</div>';return;}
+    if(!trips.length&&!meets.length){h+='<div class="empty">Nothing on '+esc(t.name.split(" ")[0])+'’s calendar from today on.</div>';return;}
+    h+='<div class="card" style="padding:0;overflow:hidden">';
+    let i=0;
+    trips.forEach(tr=>{
+      const ann=outs.filter(o=>tcAnnounces(o,tr));
+      const soon=String(tr.start).slice(0,10)<=soonCut;
+      const where=[tr.state&&tr.state.length<=12?stateFull(tr.state):tr.state,tr.city].filter(Boolean).join(" · ")||"Trip";
+      h+='<div style="display:flex;gap:12px;align-items:center;padding:12px 16px'+(i++?';border-top:1px solid var(--line)':'')+'">'+
+        '<span class="ic coral" style="flex:none">'+svg("plane")+'</span>'+
+        '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(where)+'</p>'+
+        (tr.purpose?'<p class="t2" style="margin:2px 0 0;white-space:normal">'+esc(tr.purpose)+'</p>':'')+
+        ann.map(o=>'<p style="margin:3px 0 0;font-size:12.5px;color:var(--ok-t)">Told people they’re coming — '+esc(o.label||("Emailed "+(o.n||"?")+" people"))+' · '+fmtMD(o.d)+(o.replied?' · '+o.replied+' replied':'')+'</p>').join("")+
+        (!ann.length&&soon?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Nobody has been told they’re coming yet.</p>':'')+'</div>'+
+        (!ann.length&&soon?'<span class="pill coral" style="white-space:nowrap">no outreach yet</span>':ann.length?'<span class="pill" style="color:var(--ok-t);background:rgba(0,160,90,.12);font-weight:600;white-space:nowrap">announced</span>':'')+
+        '<b style="flex:none;font-size:13.5px;white-space:nowrap">'+tcSpan(tr)+'</b></div>';
+    });
+    meets.forEach(m=>{
+      const d=String(m.start).slice(0,10),loc=(m.location||"").replace(/^Microsoft Teams Meeting$/,"Teams");
+      const att=(m.attendees||[]).filter(a=>a&&!/goldenhourmedical/i.test(a));
+      h+='<div style="display:flex;gap:12px;align-items:center;padding:11px 16px'+(i++?';border-top:1px solid var(--line)':'')+'">'+
+        '<span class="ic '+(m.kind==="visit"?"ok":"info")+'" style="flex:none">'+svg(m.kind==="call"||m.kind==="internal"?"phone":"cal")+'</span>'+
+        '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14px;margin:0">'+esc(m.title)+(loc?' <span style="color:var(--hint);font-weight:500">· '+esc(loc.slice(0,46))+'</span>':'')+'</p>'+
+        (att.length?'<p class="t2" style="margin:2px 0 0;white-space:normal">With '+esc(att.slice(0,4).join(", "))+(att.length>4?' +'+(att.length-4)+' more':'')+'</p>':'')+'</div>'+
+        '<b style="flex:none;font-size:13px;color:var(--muted);white-space:nowrap">'+tcDow(d)+' '+fmtMD(d)+(tcTime(m.start)?' · '+tcTime(m.start)+(tcTime(m.end)?'–'+tcTime(m.end):''):'')+'</b></div>';
+    });
+    h+='</div>';
+    const pulled=rc.pulled?'<p style="font-size:12px;color:var(--hint);margin:6px 2px 0">From '+esc(t.name.split(" ")[0])+'’s Outlook, pulled '+esc(fmtMD(rc.pulled))+'</p>':'';
+    h+=pulled;
+  });
+  return h;
+}
+function stateFull(st){const M={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming",DC:"Washington DC"};
+  return String(st||"").split("/").map(s=>M[s.trim()]||s.trim()).filter(Boolean).join(" · ");}
 function viewTeam(){
   if(goalsOn())return viewTeamGoals();
   const me=ownOnly(); /* a sales rep: their own tile and KPIs only */
