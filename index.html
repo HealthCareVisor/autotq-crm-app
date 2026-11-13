@@ -1399,7 +1399,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let VIEWAS=null; /* admin rail preview — render-only, never changes who's logged in */
-let curList=null, regionF="", acctFilter="all", contactFilter="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let curList=null, regionF="", acctFilter="all", contactFilter="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", rosterRegF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 let fltOpen=null; const FLT_RESET={}; /* the one filter button per list — see filterBar() */
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
@@ -1762,7 +1762,7 @@ function palItems(q){
   ensureLeads();DB.leads.filter(l=>!l.removed&&[l.name,l.company,l.email].join(" ").toLowerCase().includes(q)).slice(0,5).forEach(l=>add("Leads","spark",l.name,l.company||"",()=>{closeSheet();formLeadRec(l.id);}));
   return out;
 }
-function openRec(k,id){closeSheet();pushNav();if(k==="c"){curCompany=id;rosterBranchF="";view="roster";}else{curPerson=id;view="person";}render();window.scrollTo(0,0);}
+function openRec(k,id){closeSheet();pushNav();if(k==="c"){curCompany=id;rosterBranchF="";rosterRegF="";view="roster";}else{curPerson=id;view="person";}render();window.scrollTo(0,0);}
 function palDraw(){
   const box=document.getElementById("palList");if(!box)return;
   PAL.items=palItems(PAL.q);if(PAL.sel>=PAL.items.length)PAL.sel=Math.max(0,PAL.items.length-1);
@@ -4055,10 +4055,15 @@ function viewRoster(cid){
   let repsShown=reps;
   const brCnt={};reps.forEach(p=>{const b=(p.city||"").trim();brCnt[b||"—"]=(brCnt[b||"—"]||0)+1;});
   const branches=Object.keys(brCnt).filter(b=>b!=="—").sort((a,b)=>brCnt[b]-brCnt[a]||a.localeCompare(b));
-  if(reps.length>6&&branches.length>1){
-    FLT_RESET.branch=()=>{rosterBranchF="";};
-    h+='<div class="lvhead" style="margin:0 0 8px">'+filterBar("branch",[fltGroup("Branch","rosterbranch",[["","All branches",reps.length]].concat(branches.map(b=>[b,b,brCnt[b]]),brCnt["—"]?[["—","No branch",brCnt["—"]]]:[]),rosterBranchF,"",{sumOf:(v,o)=>o?o[1]:""})])+'</div>';
-    if(rosterBranchF)repsShown=reps.filter(p=>((p.city||"").trim()||"—")===rosterBranchF);
+  const regOf=p=>regionFromStates(personStates(p))||"—";
+  if(reps.length>6){
+    const rgCnt={};reps.forEach(p=>{const r=regOf(p);rgCnt[r]=(rgCnt[r]||0)+1;});
+    FLT_RESET.branch=()=>{rosterBranchF="";rosterRegF="";};
+    const groups=[fltGroup("Territory","rosterreg",[["","All",reps.length]].concat(["East","Central","West","Nationwide"].filter(r=>rgCnt[r]).map(r=>[r,r,rgCnt[r]]),rgCnt["—"]?[["—","No territory",rgCnt["—"]]]:[]),rosterRegF,"",{sumOf:(v,o)=>o?o[1]:""})];
+    if(branches.length>1)groups.push(fltGroup("Branch","rosterbranch",[["","All branches",reps.length]].concat(branches.map(b=>[b,b,brCnt[b]]),brCnt["—"]?[["—","No branch",brCnt["—"]]]:[]),rosterBranchF,"",{sumOf:(v,o)=>v&&o?o[1]:""}));
+    h+='<div class="lvhead" style="margin:0 0 8px">'+filterBar("branch",groups)+'</div>';
+    if(rosterRegF)repsShown=repsShown.filter(p=>regOf(p)===rosterRegF);
+    if(rosterBranchF)repsShown=repsShown.filter(p=>((p.city||"").trim()||"—")===rosterBranchF);
   }
   h+=repsShown.length?contactTableOrgHTML(repsShown):'<div class="empty">No contacts at this account yet — add the first one above.</div>';
   if(demos.length){
@@ -10422,7 +10427,7 @@ document.addEventListener("click",e=>{
   if(a==="person"){closeSheet();pushNav();curPerson=id;view="person";render();window.scrollTo(0,0);return;}
   if(a==="invitemadd"){collectInvItems();logState.invItems=logState.invItems||[];logState.invItems.push({sku:"",qty:1,unit:""});formOrder(logState.invEditId||null,true);return;}
   if(a==="invitemdel"){collectInvItems();logState.invItems.splice(+t.dataset.i,1);formOrder(logState.invEditId||null,true);return;}
-  if(a==="roster"){closeSheet();pushNav();curCompany=id;rosterBranchF="";view="roster";render();window.scrollTo(0,0);return;}
+  if(a==="roster"){closeSheet();pushNav();curCompany=id;rosterBranchF="";rosterRegF="";view="roster";render();window.scrollTo(0,0);return;}
   if(a==="bfadd"){const c=company(id);if(!c)return;const inp=document.getElementById("bfSearch");const q=(inp?inp.value:"").trim();if(!q){toast("Type a distributor name first");return;}
     c.buysFrom=bfList(c);const d=DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase()===q.toLowerCase())||DB.companies.find(x=>x.type==="distributor"&&x.name.toLowerCase().startsWith(q.toLowerCase()));
     const nm=d?d.name:q;
@@ -10440,6 +10445,7 @@ document.addEventListener("click",e=>{
       state:(personStates(p)[0]||(co?co.state:"")||"").toUpperCase(),conf:"CRM",by:USER,createdAt:new Date().toISOString(),touches:[],promoted:true,refPid:p.id});
     save();render();toast(p.name+" pushed to Leads");return;}
   if(a==="rosterbranch"){rosterBranchF=t.dataset.v;render();return;}
+  if(a==="rosterreg"){rosterRegF=t.dataset.v;render();return;}
   if(a==="logfor"){formLog(id,"call");return;}
   if(a==="quicknote"){formLog(id,"note");return;}
   if(a==="pickLogWho"){const p=person(t.dataset.id);if(p){logState.logPid=p.id;const i=document.getElementById("logWho2");if(i)i.value=personLabel(p);sugRender("logWho2",[]);logNewShow(false);}return;}
