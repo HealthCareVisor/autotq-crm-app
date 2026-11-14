@@ -3504,7 +3504,8 @@ function viewTeamGoals(){
     if(!see&&who!=="me"){const hs=repOrders("house"),un=(DB.orders||[]).filter(o=>orderIsSale(o)&&!orderRep(o)&&inTeamRange(o.poDate));
       h+='<div class="list" style="max-width:640px;margin-top:14px"><button class="stat gline" data-act="teamdrill" data-rep="house" data-k="sold"><span>House <small>sold before the reps joined · '+hs.length+' orders</small></span><b>'+fmtK(hs.reduce((x,o)=>x+(o.amount||0),0))+'</b></button>'+
         '<button class="stat gline" data-act="teamdrill" data-rep="house" data-k="unassigned"><span>No territory <small>'+un.length+' orders</small></span><b>'+fmtK(un.reduce((x,o)=>x+(o.amount||0),0))+'</b></button></div>';}
-    h+=teamRankHTML(reps);}
+    h+=teamRankHTML(reps);
+    if(!see&&who!=="me")h+=cycleTilesHTML(false);}
   else if(ownOnly())h+=teamRuleHTML(true);
   return h+teamDrillHTML(reps,[]);
 }
@@ -6077,7 +6078,8 @@ function teamDrillHTML(reps,kp){
   if(!teamDrill)return "";
   const os=outreachStats("kellan"),ot=teamById("kellan");let h="";
     let title="",body="";
-    if(teamDrill.k.indexOf("kpi:")===0){const k=kp.find(x=>"kpi:"+x[0]===teamDrill.k);if(k){title=k[1];body=drillList(k[4]);}}
+    if(teamDrill.k.indexOf("cycle:")===0){const r=teamDrill.k.slice(6);title="Sales cycle — "+(r==="all"?"all territories":r)+" (first contact → PO)";body=cycleDrillHTML(r);}
+    else if(teamDrill.k.indexOf("kpi:")===0){const k=kp.find(x=>"kpi:"+x[0]===teamDrill.k);if(k){title=k[1];body=drillList(k[4]);}}
     else if(teamDrill.rep==="kellan"){title=ot.name+" — "+{oleads:"Leads added",ocat:"Categorized",ohanded:"Handed to sales",ocalls:"Conf leads called",otouches:"Touches"}[teamDrill.k];
       const rows={oleads:os.added,ocat:os.cat,ohanded:os.handed,ocalls:os.calls,otouches:os.touches}[teamDrill.k]||[];
       body=teamDrill.k==="otouches"?drillList(rows):teamDrill.k==="ocalls"?drillList(rows):(rows.length?'<div class="list">'+rows.map(leadHomeRow).join("")+'</div>':'<div class="empty">Nothing in this range.</div>');}
@@ -6186,6 +6188,7 @@ function viewTeam(){
   h+='<div class="lvhead" style="margin-top:18px"><div class="sectlabel" style="margin:0">'+(me?'Your KPIs — '+esc(teamById(USER).name):'KPIs — '+(teamSel?esc(teamById(teamSel).name):"whole team"))+'</div>'+
    '</div>'+
    '<div class="kpis ktiles">'+kp.map(k=>'<button class="kpi fill'+(teamDrill&&teamDrill.k==="kpi:"+k[0]?" on":"")+'" data-act="teamdrill" data-rep="" data-k="kpi:'+k[0]+'"><span>'+k[2]+'</span><b>'+k[1]+'</b><small>'+k[3]+'</small></button>').join("")+'</div>';
+  h+=cycleTilesHTML(me);
   h+=teamDrillHTML(reps,kp);
   return h;
 }
@@ -6199,6 +6202,73 @@ function drillList(rows){
   if(r0&&r0.type==="distributor")return '<div class="list">'+rows.map(c=>'<button class="card" data-act="roster" data-id="'+c.id+'"><div class="row"><span class="ic coral">'+svg("ware")+'</span><div class="grow"><p class="t1">'+esc(c.name)+'</p><p class="t2">'+esc([c.city,c.state].filter(Boolean).join(", "))+'</p></div>'+chev()+'</div></button>').join("")+'</div>';
   /* conference leads */
   return '<div class="list">'+rows.map(l=>'<div class="tk"><span class="ic info">'+svg("user")+'</span><div class="grow"><p class="t1">'+esc(l.name||"")+'</p><p class="t2">'+esc([l.company,l.conf,l.state].filter(Boolean).join(" · "))+(leadHasTouches(l)&&leadHist(l).some(x=>x.kind!=="campaign")?' · last '+esc(histMd(leadHist(l).find(x=>x.kind!=="campaign").day)):'')+'</p></div></div>').join("")+'</div>';
+}
+
+/* ---------- SALES CYCLE (Max for Hannah, 2026-11-13): days from first contact to the PO, per territory ----------
+   One row per customer = their FIRST paid/invoiced PO. Start = the earliest touch on record before it: CRM activities with the
+   account or its people, leads, conference leads (the show's first day), demo units, quotes, loaner orders.
+   CYCLE_SEED holds what the 2026-11-13 pull found in the team mailboxes (the browser can't read mail):
+   orderId → [first contact, how, territory, shaky 0/1, note, corrected PO date or ""]. CYCLE_SKIP = orders that aren't a sale cycle.
+   Sheet: CRM_Cleanup/Sales_Cycle_by_Territory_2026-11-13.xlsx. Each rep inherits their territory's number. Team page, admins only (max / hannah / jamie). */
+const CYCLE_SEED={"8kulz4e":["2025-12-16","Email from them (hannah@): Auto TQ by Golden Hour Medical","Central",0,"",""],"13h70l4":["2025-07-29","Email from them (hannah@): Great Meeting You at ASSP – Let's Connect","East",0,"",""],"n3whldu":["2026-01-13","Email to them (max@): AED Professionals | Auto TQ Information & Meeting","Central",0,"",""],"7i8i9ry":["2026-01-19","Email cc thread (hannah@): PMG Check-in/AutoTQ Intro","Central",0,"",""],"j65b0yt":["2025-07-28","Email to them (hannah@): Thank You + AutoTQ More Info","East",0,"",""],"094rpix":["2025-10-24","Email to them (hannah@): Re: Ian - Acme United Corporation","East",1,"First email on record is a reply/forward — contact started earlier",""],"axzkxzi":["2026-02-04","Email to them (hannah@): AutoTQ Quote & Next Steps","West",0,"",""],"k4r41f1":["2026-01-15","Email to them (max@): Auto TQ (PMG Safety) - Ballard Set Up","West",0,"PO date from email: Ballard forwarded PO 207289 on Feb 5 (CRM says Mar 2)","2026-02-05"],"5k2agiw":["2026-01-12","Email to them (max@): Regarding Auto TQ","East",0,"",""],"1kq4s2h":["2025-11-14","Email to them (hannah@): Look forward to connecting with you!","Central",0,"",""],"ob0yywu":["2026-04-13","Email to them (max@): Fw: AutoTQ Quote for Four","West",1,"First email on record is a reply/forward — contact started earlier",""],"1kga8nc":["2026-01-23","Email to them (max@): Distributor Intro (final)","East",0,"First touch was a cold email with no reply; first real thread Apr 21 via PMG",""],"1m5dw8m":["2025-08-07","Email to them (hannah@): Introduction and Meeting Follow-Up – Goldenhour Medical & AutoT","East",0,"",""],"8yibqje":["2026-01-13","Email to them (max@): AutoTQ follow up","West",0,"",""],"px1wyha":["2026-05-08","Email to them (hannah@): Re: Auto TQ Order and Vendor Setup","East",1,"First email on record is a reply/forward — contact started earlier; The end user (Collier County Sheriff) drove it; LEESAR only copied",""],"i640do9":["2026-07-14","Email (hannah@): PMG's new-account / order email (PMG sold it)","Central",1,"Man-rep sold it before we were involved",""],"rl2x7z7":["2025-08-24","Email to them (hannah@): Great to Reconnect -Opportunity at NSC","East",0,"PO date from email: PO 11499 was invoiced Jul 9 (CRM says Jul 18)","2026-07-09"],"r99gjks":["2026-07-10","Email (hannah@): Blueprint's first email about the deal","Central",1,"Man-rep sold it before we were involved",""],"rlnglg9":["2026-03-18","Email to them (hannah@): AutoTQ - MSC Gap Filler And Critical Addition","East",0,"",""],"6g5w6an":["2026-08-12","Email (hannah@): Blueprint's 'Hub city - quote' email","East",1,"First record is days before the PO; Man-rep sold it before we were involved",""],"vphlf1k":["2025-07-28","Email from them (hannah@): AUTO TQ Demo","East",0,"UniFirst was already buying through Medique from Jan 2026",""],"jan7570":["2026-04-21","Email to them (max@): AutoTQ | Introduction","West",0,"First touch was a cold email; first two-way exchange May 12",""],"tq322":["2026-09-24","Email to them (max@): AutoTQ Quote Q-260924-01: 6 AutoTQ Kits with Wall Mounts","West",0,"",""],"tq325":["2025-07-28","Email from them (hannah@): RE: [**External**]: Thank you + Autos More Info","Central",1,"First email on record is a reply/forward — contact started earlier; Grainger PO came in before the listed Nov 2 (invoice 1181) — real date not in the CRM",""],"tq326":["2026-09-09","Email to them (johnmorrison@): AutoTQ - John Morrison","East",0,"PO date from email: D&M PO was invoiced Nov 2 (CRM says Nov 11)","2026-11-02"]};
+const CYCLE_SKIP={"981p51k":"Team / family order","9h6agkf":"Man-rep buying their own unit","i1i9qjm":"Man-rep buying their own unit","fyjoqde":"Man-rep buying their own unit","kb1s93d":"Same customer as an earlier order","nf4mx1n":"2024 web pre-order (paid Sep 2024) — the 2026 date is when it shipped","v76jjkp":"Friend of the team","sg6q37w":"Long-time personal contact (Jay Greely, since 2023)","h8dw92y":"Same customer as an earlier order"};
+const CYCLE_KEYED=new Set(["2025-10-31","2025-11-04","2025-11-05"]); /* old orders keyed in on these days: that's the entry date, not the PO date */
+const CYCLE_CONF={"assp 2026":"2026-06-07","nsc 2026":"2026-09-14","ems world 2026":"2026-09-28"};
+const TERR_REP={East:"johnm",Central:"john",West:"tim"};
+function cycleDays(a,b){return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/86400000);}
+function cycleRows(){
+  const sales=(DB.orders||[]).filter(o=>orderIsSale(o)&&o.poDate).sort((a,b)=>String(a.poDate).localeCompare(String(b.poDate)));
+  const seen=new Set(),out=[],skipped=[];
+  const confStart={};confSchedule().forEach(c=>{if(c.name&&c.start)confStart[String(c.name).toLowerCase()]=c.start;});
+  for(const o of sales){
+    const c=orderCompany(o),key=c?"c:"+c.id:"a:"+String(o.account||"").trim().toLowerCase();
+    const seed=CYCLE_SEED[o.id];
+    if(seen.has(key)){skipped.push({o,why:"Reorder"});continue;}
+    seen.add(key);
+    if(CYCLE_SKIP[o.id]){skipped.push({o,why:CYCLE_SKIP[o.id]});continue;}
+    if(!seed&&CYCLE_KEYED.has(o.poDate)&&/^PO-2025/.test(o.poNo||"")){skipped.push({o,why:"Old order keyed in late 2025 (not the PO date)"});continue;}
+    if(c&&c.type==="manrep"){skipped.push({o,why:"Man-rep's own unit"});continue;}
+    const end=(seed&&seed[5])||o.poDate;
+    const ev=[];const add=(d,how)=>{d=String(d||"").slice(0,10);if(/^\d{4}-\d\d-\d\d$/.test(d)&&d<end)ev.push([d,how]);};
+    if(seed)add(seed[0],seed[1]);
+    const ppl=c?DB.people.filter(p=>p.cid===c.id):[];
+    const pids=new Set(ppl.map(p=>p.id)),emails=new Set(ppl.map(p=>String(p.email||"").toLowerCase()).filter(Boolean));
+    const nm=c?String(c.name).toLowerCase():String(o.account||"").toLowerCase();
+    const sameCo=x=>{x=String(x||"").trim().toLowerCase();return !!x&&x===nm;};
+    (DB.activities||[]).forEach(a=>{if((c&&a.cid===c.id)||pids.has(a.pid))add(a.date,"CRM: "+actLabel(a.type,a)+(person(a.pid)?" with "+person(a.pid).name:""));});
+    (DB.leads||[]).forEach(l=>{if(!l.removed&&(sameCo(l.company)||emails.has(String(l.email||"").toLowerCase())))add(l.createdAt,"Lead added ("+(l.name||"")+")");});
+    (DB.confLeads||[]).forEach(l=>{if(sameCo(l.company)||emails.has(String(l.email||"").toLowerCase())){const k=String(l.conf||"").toLowerCase();add(confStart[k]||CYCLE_CONF[k],"Met at "+l.conf+" ("+(l.name||"")+")");(l.touches||[]).forEach(t=>add(t.date,"Conference-lead touch ("+(l.name||"")+")"));}});
+    (DB.demos||[]).forEach(d=>{if((c&&d.cid===c.id)||sameCo(d.company))add(d.date,"Demo unit ("+(d.holder||"")+")");});
+    quotesAll().forEach(q=>{if((c&&q.cid===c.id)||sameCo(q.account))add(q.date,"Quote "+q.no);});
+    (DB.orders||[]).forEach(l=>{if(l.status==="loaner"&&l!==o&&((c&&orderCompany(l)===c)||sameCo(l.account)))add(l.poDate,"Loaner "+(l.poNo||""));});
+    if(!ev.length){skipped.push({o,why:"No contact on record before the PO"});continue;}
+    ev.sort((a,b)=>a[0].localeCompare(b[0]));
+    const days=cycleDays(ev[0][0],end),fromSeed=!!seed&&ev[0][0]===seed[0];
+    const region=(seed&&seed[2])||orderRegion(o)||"";
+    const note=fromSeed?seed[4]:(days<=3?"First record is days before the PO":"");
+    out.push({o,cust:o.id==="tq322"?"Howmet Aerospace (via MARCH Safety)":(c?c.name:o.account),region,start:ev[0][0],how:ev[0][1],end,days,shaky:fromSeed?!!seed[3]:days<=3,note});
+  }
+  return {rows:out,skipped};
+}
+function cycleStats(rows){
+  if(!rows.length)return {n:0};
+  const d=rows.map(r=>r.days).sort((a,b)=>a-b),m=d.length>>1;
+  return {n:d.length,avg:Math.round(d.reduce((s,x)=>s+x,0)/d.length),med:d.length%2?d[m]:Math.round((d[m-1]+d[m])/2),min:d[0],max:d[d.length-1]};
+}
+function cycleTilesHTML(me){
+  if(profile(USER)!=="admin")return ""; /* admins only (Max, 2026-11-13): reps and Kellan don't see it */
+  const all=cycleRows().rows;
+  const regs=me?[userRegion(USER)].filter(Boolean):["East","Central","West"];
+  const on=k=>teamDrill&&teamDrill.k===k?" on":"";
+  const tile=(r,list,lbl)=>{const s=cycleStats(list);return '<button class="kpi fill'+on("cycle:"+r)+'" data-act="teamdrill" data-rep="" data-k="cycle:'+r+'"><span>'+(s.n?s.avg+' days':'—')+'</span><b>'+lbl+'</b><small>'+(s.n?'median '+s.med+' · '+s.n+' deal'+(s.n===1?'':'s'):'no deals yet')+'</small></button>';};
+  return '<div class="sectlabel" style="margin-top:18px">Sales cycle — first contact to PO <small class="t2" style="font-weight:500">'+(me?'all time · your territory\'s average':'all time · each rep gets their territory\'s number')+'</small></div><div class="kpis ktiles"'+(me?' style="grid-template-columns:minmax(0,300px)"':'')+'>'+
+    regs.map(r=>tile(r,all.filter(x=>x.region===r),r+(TERR_REP[r]?' · '+esc(shortName(TERR_REP[r])):''))).join("")+
+    (me?'':tile("all",all,"All territories"))+'</div>';
+}
+function cycleDrillHTML(r){
+  const all=cycleRows().rows.filter(x=>r==="all"||x.region===r).sort((a,b)=>b.end.localeCompare(a.end));
+  if(!all.length)return '<div class="empty">No deals with a first contact on record yet.</div>';
+  return '<div class="list">'+all.map(x=>'<button class="tk" data-act="invedit" data-id="'+x.o.id+'" style="width:100%;text-align:left;font:inherit;cursor:pointer"><span class="ic coral">'+svg("box")+'</span><div class="grow"><p class="t1">'+esc(x.cust)+' <span style="color:var(--muted);font-weight:500">· '+esc(x.region||"no territory")+'</span></p><p class="t2" style="white-space:normal">First contact '+esc(usDate(x.start))+' — '+esc(x.how)+' · PO '+esc(usDate(x.end))+(x.note?' · <span style="color:'+(x.shaky?'var(--coral-btn)':'var(--muted)')+'">'+esc(x.note)+'</span>':'')+'</p></div><b style="flex:none">'+x.days+' days</b></button>').join("")+'</div>';
 }
 
 /* ---------- CAMPAIGNS — Max + Hannah (2026-10-16): the campaign, its materials, its results, its contacts ---------- */
