@@ -1320,9 +1320,20 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .mk2-lb .lbh{position:sticky;top:0;display:flex;align-items:center;gap:10px;color:#F6F5F1;padding:6px 0 12px;font-size:13px}
 .mk2-lb .lbh small{color:#CFCBC2}
 .mk2-lb .lbh .x{margin-left:auto;color:#F6F5F1;border:1px solid #5A5750;border-radius:99px;padding:4px 12px;background:none;cursor:pointer}
-.mk2-lb .pgs{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:900px;margin:0 auto}
-.mk2-lb .pgs img{width:100%;max-width:100%;height:auto;border-radius:4px;background:#fff;min-height:200px}
-.mk2-lb .more{color:#CFCBC2;font-size:12px}
+.mk2-lb .more{color:#CFCBC2;font-size:12px;text-align:center}
+.mk2-dlb{margin-left:auto;display:inline-flex;align-items:center;gap:7px;background:var(--coral-btn,#C4502A);color:#fff;border:0;border-radius:0;padding:9px 15px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.mk2-dlb svg{width:15px;height:15px}.mk2-dlb:hover{filter:brightness(1.08)}
+.mk2-lb .lbh .mk2-dlb~.x{margin-left:8px}
+.mk2-car{position:relative;max-width:1180px;margin:0 auto}
+.mk2-lbtrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;height:calc(100vh - 150px);min-height:280px;scrollbar-width:none;overscroll-behavior-x:contain}
+.mk2-lbtrack::-webkit-scrollbar{display:none}
+.mk2-lbtrack .sl{flex:0 0 100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;padding:0 60px;min-width:0}
+.mk2-lbtrack img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;background:#fff;border-radius:3px;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.mk2-car .nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;border:1px solid #5A5750;background:rgba(20,20,22,.72);color:#F6F5F1;display:grid;place-items:center;cursor:pointer;padding:0}
+.mk2-car .nav svg{width:20px;height:20px}.mk2-car .nav:hover{background:#2A2926}.mk2-car .pv{left:4px}.mk2-car .nx{right:4px}
+.mk2-dots{display:flex;justify-content:center;align-items:center;gap:8px;padding:12px 0 4px;color:#CFCBC2;font-size:12px}
+.mk2-dots button{width:8px;height:8px;border-radius:50%;border:0;background:#5A5750;padding:0;cursor:pointer}.mk2-dots button.on{background:#F6F5F1}
+@media (max-width:640px){.mk2-lbtrack{height:calc(100vh - 170px)}.mk2-lbtrack .sl{padding:0 2px}.mk2-car .nav{display:none}.mk2-dlb{padding:8px 11px}}
 /* Campaigns + literature */
 .mk2-cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .mk2-camp{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;cursor:pointer;color:var(--ink)}
@@ -1341,7 +1352,10 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .mk2-lit .im img{width:100%;height:100%;object-fit:contain;background:#fff}
 .mk2-lit:hover .im{border-color:var(--rule-3)}
 .mk2-lit .klt{font-size:12px;font-weight:600;line-height:1.3}
-.mk2-lit .klm{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--ink-3);flex-wrap:wrap}.mk2-lit .klm.up{text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.mk2-lit .klm{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--ink-3);flex-wrap:wrap}
+.mk2-litw{display:flex;flex-direction:column;gap:7px;min-width:0}
+.mk2-dl{display:inline-flex;align-items:center;justify-content:center;gap:5px;font:inherit;font-size:11.5px;font-weight:650;color:var(--coral-ink,var(--coral));background:none;border:1px solid currentColor;border-radius:0;padding:6px 6px;cursor:pointer;margin-top:auto}
+.mk2-dl svg{width:13px;height:13px}.mk2-dl:hover{background:var(--coral-wash)}.mk2-lit .klm.up{text-transform:uppercase;letter-spacing:.04em;font-weight:600}
 .audh{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;padding:10px 14px 0;border-top:1px solid var(--rule-2)}
 .ch+.audh{border-top:0}.audh .kn{font-weight:500}
 .audnone{padding:6px 14px 12px;font-size:12px;color:var(--ink-3)}
@@ -6035,12 +6049,12 @@ function mk2IdeaSheet(){const i=mk2Ideas().find(x=>x.id===MK2.idea);if(!i)return
    '<div class="sf"><button class="btn ghost" data-act="mk2iedel">Remove</button><button class="btn coral" style="margin-left:auto" data-act="mk2iesave">Save</button></div></div></div>';}
 
 /* ---------- Campaigns + literature ---------- */
-const MK2_LIT_ST={final:["Final","ok"],approved:["Approved","ok"],wording:["Wording open","warn"],internal:["Internal",""],reference:["Reference","co"],inuse:["In use","ok"]};
+const MK2_LIT_ST={hold:["Don't send yet","bad"],review:["New · needs OK","co"],final:["Final","ok"],approved:["Approved","ok"],wording:["Wording open","warn"],internal:["Internal",""],reference:["Reference","co"],inuse:["In use","ok"]};
 const MK2_AUDS=[["customer","For customers","Handed or sent to end users: schools, chiefs, safety managers."],["distributor","For distributors","For distributors and their reps: sell sheets, SPIFFs, field briefs."],["push","Campaign push","Sent at scale: mail-outs, postcards, ads, the banner, the white paper."],["team","For our team","Our reps only; never sent out."],["reference","Reference","Other companies' pieces, kept as models."]];
 const mk2Camps=()=>mk2Lib("camp").sort((a,b)=>(a.ord||9)-(b.ord||9));
 function mk2LitOf(cid){const c=mk2Camps().find(x=>x.id===cid);return mk2Lib("lit").filter(l=>(l.camp||"")===cid).sort((a,b)=>(c&&c.first===b.id?1:0)-(c&&c.first===a.id?1:0)||String(b.date||"").localeCompare(String(a.date||"")));}
 function mk2LitCard(l,cn){const s=MK2_LIT_ST[l.st]||["",""],first=mk2Camps().some(c=>c.first===l.id);
-  return '<button class="mk2-lit" data-act="mk2lit" data-v="'+esc(l.id)+'"><span class="im"><img data-mkt="'+esc(l.thumb)+'" alt=""></span>'+(cn?'<span class="klm up">'+esc(cn)+'</span>':'')+'<span class="klt">'+esc(l.title)+'</span><span class="klm">'+(first?'<span class="mk2-pill co">Send first</span>':'')+'<span class="mk2-pill '+s[1]+'">'+s[0]+'</span>'+(l.date?esc(mk2Short(l.date).replace(/^\w+, /,"")):'')+(l.n>1?' · '+l.n+' pages':'')+'</span></button>';}
+  return '<div class="mk2-litw"><button class="mk2-lit" data-act="mk2lit" data-v="'+esc(l.id)+'"><span class="im"><img data-mkt="'+esc(l.thumb)+'" alt=""></span>'+(cn?'<span class="klm up">'+esc(cn)+'</span>':'')+'<span class="klt">'+esc(l.title)+'</span><span class="klm">'+(first?'<span class="mk2-pill co">Send first</span>':'')+'<span class="mk2-pill '+s[1]+'">'+s[0]+'</span>'+(l.date?esc(mk2Short(l.date).replace(/^\w+, /,"")):'')+(l.n>1?' · '+l.n+' pages':'')+'</span></button>'+(l.pdf?'<button class="mk2-dl" data-act="mk2litdl" data-v="'+esc(l.id)+'">'+svg("dl")+'Download PDF</button>':'')+'</div>';}
 const mk2CampEmails=c=>c.em?campaigns().filter(x=>new RegExp(c.em,"i").test(x.name||"")):[];
 const mk2CampPosts=c=>c.posts?liPosts().filter(p=>p.status!=="rejected"&&String(p.slotAt||"")>=todayStr()&&new RegExp(c.posts,"i").test((p.topic||"")+" "+(p.hook||""))).sort((a,b)=>String(a.slotAt).localeCompare(String(b.slotAt))).slice(0,4):[];
 const mk2CampNotes=c=>(DB.projUpdates||[]).filter(u=>u&&u.kind==="session"&&!u.removed&&(u.camp===c.id||(c.cl||[]).includes(u.project))).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
@@ -6072,8 +6086,8 @@ function mk2CampPage(c){const L=mk2LitOf(c.id),team=L.filter(l=>l.aud==="team"),
   return h+'<div class="mk2-grid2">'+left+right+'</div>';}
 function mk2CampRows(E){return '<div class="mk2-crow kh"><span>Campaign</span><span class="kr hm">People</span><span class="kr">Sent</span><span class="kr hm">Replies</span><span></span></div>'+E.map(x=>{const L=x.leads||[],sent=L.reduce((a,l)=>a+Object.keys(l.sent||{}).length,0),rep=L.filter(l=>["replied","meeting","quote"].includes(l.outcome)).length;
   return '<button class="mk2-crow" data-act="campopen" data-id="'+esc(x.id)+'"><span class="knm">'+esc(x.name||"")+'</span><span class="kr hm">'+L.length+'</span><span class="kr">'+sent+'</span><span class="kr hm">'+(rep||"—")+'</span><span style="text-align:right">'+(x.paused?'<span class="mk2-pill warn">Paused</span>':x.status==="active"?'<span class="mk2-pill ok">Running</span>':x.status==="done"?'<span class="mk2-pill">Done</span>':/Year-end/i.test(x.name||"")?'<span class="mk2-pill warn">Needs offer</span>':'<span class="mk2-pill">'+esc(campStatusWord(x))+'</span>')+'</span></button>';}).join("");}
-function mk2LightboxHTML(){const l=mk2Lib("lit").find(x=>x.id===MK2.lb);if(!l)return "";
-  return '<div class="mk2-lb" data-act="mk2lbclose"><div class="lbh"><div><b>'+esc(l.title)+'</b><br><small>'+esc(l.path||"")+(l.note?' · '+esc(l.note):'')+(l.file?' · preview of the first rows':'')+'</small></div>'+(l.file?'<button class="x" data-act="mk2litfile" data-v="'+esc(l.id)+'">Download</button>':'')+'<button class="x"'+(l.file?' style="margin-left:8px"':'')+' data-act="mk2lbclose">Close</button></div><div class="pgs">'+(l.pages||[]).map(p=>'<img data-mkt="'+esc(p)+'" alt="">').join("")+(l.n>(l.pages||[]).length?'<div class="more">Showing '+(l.pages||[]).length+' of '+l.n+' pages. The full file is at the path above.</div>':'')+'</div></div>';}
+function mk2LightboxHTML(){const l=mk2Lib("lit").find(x=>x.id===MK2.lb);if(!l)return "";const P=l.pages||[];
+  return '<div class="mk2-lb" data-act="mk2lbclose" role="dialog" aria-modal="true" aria-label="'+esc(l.title)+'"><div class="lbh"><div><b>'+esc(l.title)+'</b><br><small>'+esc(l.note||l.path||"")+(l.file?' · preview of the first rows':'')+'</small></div>'+(l.pdf?'<button class="mk2-dlb" data-act="mk2litdl" data-v="'+esc(l.id)+'">'+svg("dl")+'Download PDF</button>':'')+(l.file?'<button class="x"'+(l.pdf?'':' style="margin-left:auto"')+' data-act="mk2litfile" data-v="'+esc(l.id)+'">Download</button>':'')+'<button class="x"'+(l.file&&!l.pdf?' style="margin-left:8px"':'')+' data-act="mk2lbclose">Close</button></div>'+'<div class="mk2-car">'+(P.length>1?'<button class="nav pv" data-act="mk2lbgo" data-v="-1" aria-label="Previous page"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M15 5l-7 7 7 7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>':'')+'<div class="mk2-lbtrack" id="mk2Track" tabindex="0">'+P.map((p,i)=>'<div class="sl"><img data-mkt="'+esc(p)+'" alt="Page '+(i+1)+'"></div>').join("")+'</div>'+(P.length>1?'<button class="nav nx" data-act="mk2lbgo" data-v="1" aria-label="Next page"><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M9 5l7 7-7 7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>':'')+'</div>'+(P.length>1?'<div class="mk2-dots">'+P.map((p,i)=>'<button data-act="mk2lbto" data-v="'+i+'" class="'+(i?'':'on')+'" aria-label="Page '+(i+1)+'"></button>').join("")+'</div>':'')+(l.n>P.length?'<div class="more">Showing '+P.length+' of '+l.n+' pages'+(l.pdf?'. The PDF has all of them.':'.')+'</div>':'')+'</div>';}
 
 /* ---------- Outreach: the email web ---------- */
 function mk2Web(){const rows=[];campaigns().forEach(c=>{if(/^New campaign/.test(c.name||""))return;(c.leads||[]).forEach(l=>Object.keys(l.sent||{}).forEach(k=>{const s=(l.by||{})[k];if(s)rows.push({nm:c.name,step:k,sender:s});}));});
@@ -6271,6 +6285,7 @@ function mk2Body(){return view==="start"?mk2ViewToday():view==="ideahub"?mk2View
 function mk2Head(){return APP!=="marketing"?"":(view==="camp"&&!curCampaign)||view==="limsg"?mk2OutTabs():view==="li"?mk2PostTabs():"";}
 function mk2After(){if(APP!=="marketing")return;let x=document.getElementById("mk2Layer");if(!x){x=document.createElement("div");x.id="mk2Layer";document.body.appendChild(x);}
   const html=(MK2.idea?mk2IdeaSheet():"")+(MK2.lb?mk2LightboxHTML():"");if(x.getAttribute("data-k")!==html){x.innerHTML=html;x.setAttribute("data-k",html);}
+  const tr=document.getElementById("mk2Track");if(tr&&!tr.dataset.on){tr.dataset.on="1";tr.addEventListener("scroll",()=>{const i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));document.querySelectorAll(".mk2-dots button").forEach((d,j)=>d.classList.toggle("on",j===i));},{passive:true});}
   const ii=document.getElementById("mk2IdeaIn");if(ii&&MK2.focusIdea){ii.focus();try{ii.setSelectionRange(ii.value.length,ii.value.length);}catch(e){}}
   mktHydrate();}
 function mk2Redraw(){render();}
@@ -6298,8 +6313,10 @@ function mk2Handle(a,t,ev){const v=t.dataset.v;if(a.startsWith("mk2cold"))return
   if(a==="mk2litf"){MK2.litF=v;mk2Redraw();return true;}
   if(a==="mk2litall"){MK2.camp="";MK2.campSeg="lit";MK2.litF=v;mk2Redraw();window.scrollTo(0,0);return true;}
   if(a==="mk2lit"){MK2.lb=v;mk2After();return true;}
+  if(a==="mk2litdl"){const l=mk2Lib("lit").find(x=>x.id===v);if(l&&l.pdf){toast("Getting the PDF…");mktBlob(l.pdf).then(u=>livSave(u,(String(l.title).replace(/[^\w \-+.]+/g," ").trim().replace(/\s+/g,"_")||"AutoTQ")+".pdf")).catch(e=>toast("Couldn’t get the PDF ("+e.message+")"));}return true;}
+  if(a==="mk2lbgo"||a==="mk2lbto"){const tr=document.getElementById("mk2Track");if(tr){if(a==="mk2lbgo")tr.scrollBy({left:(+v)*tr.clientWidth,behavior:"smooth"});else tr.scrollTo({left:(+v)*tr.clientWidth,behavior:"smooth"});}return true;}
   if(a==="mk2litfile"){const l=mk2Lib("lit").find(x=>x.id===v);if(l&&l.file){MK2.lb="";mk2After();mktOpen(l.file,l.title);}return true;} // a data file (xlsx/csv) on a campaign page: open the viewer, which has Download
-  if(a==="mk2lbclose"){if(ev.target&&ev.target.tagName==="IMG")return true;MK2.lb="";mk2After();return true;}
+  if(a==="mk2lbclose"){if(ev.target&&(ev.target.tagName==="IMG"||(ev.target.closest&&ev.target.closest(".mk2-lbtrack,.mk2-dots"))))return true;MK2.lb="";mk2After();return true;}
   if(a==="mk2next"){const c=mk2Camps().find(x=>x.id===MK2.camp);if(c&&c.next[+v]){c.next[+v].done=!c.next[+v].done;c.next[+v].doneBy=USER;c.next[+v].doneAt=new Date().toISOString();c.updatedAt=new Date().toISOString();put("mktLib",c);}mk2Redraw();return true;}
   if(a==="mk2websel"){MK2.webSel=MK2.webSel===v?"":v;mk2Redraw();return true;}
   if(a==="mk2bankg"){MK2.bankG=v;mk2Redraw();return true;}
@@ -6310,6 +6327,7 @@ function mk2Handle(a,t,ev){const v=t.dataset.v;if(a.startsWith("mk2cold"))return
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-act^='mk2']");if(!t||APP!=="marketing")return;if(mk2Handle(t.dataset.act,t,e)){e.preventDefault();e.stopPropagation();}},true);
 document.addEventListener("keydown",e=>{if(APP!=="marketing")return;
   if(e.key==="Escape"&&(MK2.lb||MK2.idea)){MK2.lb="";MK2.idea="";mk2After();return;}
+  if(MK2.lb&&(e.key==="ArrowLeft"||e.key==="ArrowRight")){const tr=document.getElementById("mk2Track");if(tr){e.preventDefault();tr.scrollBy({left:(e.key==="ArrowLeft"?-1:1)*tr.clientWidth,behavior:"smooth"});}return;}
   if(e.key!=="Enter")return;const id=e.target&&e.target.id;
   if(id==="mk2IdeaIn"){e.preventDefault();MK2.ideaDraft=e.target.value;mk2AddIdea();}
   else if(id==="mk2Todo"){e.preventDefault();const v=e.target.value.trim();if(!v)return;const x={id:"todo-"+uid(),owner:USER,assignees:[USER],title:v.slice(0,300),type:"todo",status:"todo",priority:"",due:todayStr(),done:false,createdAt:new Date().toISOString()};(DB.tasks=DB.tasks||[]).unshift(x);put("tasks",x);mk2Redraw();const n=document.getElementById("mk2Todo");if(n)n.focus();}
