@@ -7234,6 +7234,26 @@ function saveFollowup(){
   DB.tasks.unshift({id:uid(),owner:USER,title:title,type:"followup",due:due,done:false,createdAt:new Date().toISOString(),pid:logState.fuPid||null});
   save();closeSheet();toast("Follow-up scheduled");if(view==="today")render();
 }
+/* "Have you spoken with them?" (Max, 2026-11-16: John Morrison met Colby College, added the contacts and a deal, and the meeting
+   never reached the tracker): every add-contact form carries one small box. Not yet = nothing logged; a type reveals a date
+   (today by default, can be last week) and a note, and saving logs a real activity by whoever adds the contact. */
+const SPOKE_TYPES=[["","Not yet"]].concat(LOG_TYPES.filter(t=>t[0]!=="note").map(t=>[t[0],t[2]]));
+function spokeBoxHTML(){logState.spoke="";
+  return '<div class="spoke" style="margin-top:14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px"><label class="fl" style="margin-top:0">Have you spoken with them?</label>'+
+   '<div class="qa-types" id="spokeTypes">'+SPOKE_TYPES.map(x=>'<span class="qchip'+(x[0]===""?" on":"")+'" data-act="spokeType" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>'+
+   '<div id="spokeMore" style="display:none"><div style="display:flex;gap:10px;margin-top:8px"><div style="flex:1"><label class="fl">When</label><input class="f" id="spokeDate" type="date" max="'+todayStr()+'" value="'+todayStr()+'"></div></div>'+
+   '<label class="fl">Note</label><textarea class="f" id="spokeNote" rows="2" placeholder="What did you talk about?"></textarea></div></div>';}
+function spokePick(v){logState.spoke=v||"";
+  document.querySelectorAll("#spokeTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.spoke));
+  const m=document.getElementById("spokeMore");if(m)m.style.display=logState.spoke?"block":"none";}
+/* logs the conversation for p (returns the label for the toast, "" when nothing was logged) */
+function spokeSave(p){const t=logState.spoke;logState.spoke="";if(!t||!p)return "";
+  const d=val("spokeDate")||todayStr(),when=d>=todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
+  const lbl=(SPOKE_TYPES.find(x=>x[0]===t)||["",t])[1];
+  DB.activities=DB.activities||[];
+  DB.activities.unshift({id:uid(),type:t,pid:p.id,cid:p.cid||null,note:val("spokeNote")||lbl+" — added them to the CRM",date:when,by:USER});
+  if(!p.last||new Date(when)>new Date(p.last))p.last=when;
+  return lbl.toLowerCase()+" logged";}
 function formNewContactFor(cid){
   const c=company(cid);if(!c)return;logState.ncCid=cid;
   openSheet('<h2>Add contact at '+esc(c.name)+'</h2>'+
@@ -7243,22 +7263,25 @@ function formNewContactFor(cid){
    '<label class="fl">Phone</label><input class="f" id="ncPhone">'+
    '<label class="fl">City</label><input class="f" id="ncCity" value="'+esc(c.city||"")+'">'+
    '<label class="fl">State</label><input class="f" id="ncState" value="'+esc(c.state||"")+'" maxlength="2">'+
+   spokeBoxHTML()+
    '<button class="btn coral block" data-act="ncsave" style="margin-top:18px">Add contact</button>');
   setTimeout(()=>{const e=document.getElementById("ncName");if(e)e.focus();},60);
 }
 function saveNewContactFor(){
   const c=company(logState.ncCid);if(!c)return;
   const name=val("ncName");if(!name){toast("Give the contact a name");return;}
-  DB.people.unshift({id:uid(),name:name,role:val("ncRole")||"Contact",cid:c.id,branch:c.name,
+  const p={id:uid(),name:name,role:val("ncRole")||"Contact",cid:c.id,branch:c.name,
     email:val("ncEmail").toLowerCase(),phone:val("ncPhone"),city:val("ncCity"),
-    state:val("ncState").toUpperCase().slice(0,2)||c.state||"",last:null});
-  save();closeSheet();render();toast(name+" added at "+c.name);
+    state:val("ncState").toUpperCase().slice(0,2)||c.state||"",last:null};
+  DB.people.unshift(p);const lg=spokeSave(p);
+  save();closeSheet();render();toast(name+" added at "+c.name+(lg?" · "+lg:""));
 }
 function formRep(){
   logState.repCid=null;
   openSheet('<h2>Add rep</h2><label class="fl">Name</label><input class="f" id="rName" placeholder="e.g. Chris Walker">'+
    '<label class="fl">Works at</label>'+comboField("rCidQ","Type the company — e.g. Gra… → Grainger","")+
    '<label class="fl">City</label><input class="f" id="rCity" placeholder="Orlando"><label class="fl">State</label><input class="f" id="rState" placeholder="FL" maxlength="2">'+
+   spokeBoxHTML()+
    '<button class="btn coral block" data-act="saveRep" style="margin-top:18px">Add rep</button>');
 }
 function saveRep(){const name=document.getElementById("rName").value.trim();
@@ -7267,8 +7290,9 @@ function saveRep(){const name=document.getElementById("rName").value.trim();
     const hit=q&&DB.companies.find(c=>c.name.toLowerCase()===q)||q&&DB.companies.find(c=>c.name.toLowerCase().startsWith(q));
     if(hit)cid=hit.id;}
   if(!name||!cid){toast(name?"Pick the company from the suggestions":"Add a name and company");return;}const c=company(cid),city=document.getElementById("rCity").value.trim();
-  DB.people.unshift({id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null});
-  save();closeSheet();pushNav();view="contacts";render();toast(name+" added");}
+  const p={id:uid(),name:name,cid:cid,branch:c.name+(city?" — "+city:""),role:"Rep",city:city,state:document.getElementById("rState").value.trim().toUpperCase(),units:0,pos:0,last:null};
+  DB.people.unshift(p);const lg=spokeSave(p);
+  save();closeSheet();pushNav();view="contacts";render();toast(name+" added"+(lg?" · "+lg:""));}
 /* ---------- BUSINESS CARD: photo → details pulled off the card → note + date (Max, 2026-09-17) ----------
    The photo is downscaled in the browser, read by the `card-scan` edge function (Claude vision; the API
    key lives in Supabase), and kept in the shared `resources` bucket under cards/. If the scan can't run
@@ -7289,9 +7313,8 @@ function formCard(){
     '<div style="flex:1"><label class="fl">Mobile</label><input class="f" id="bcMobile" autocomplete="off"></div></div>'+
    '<div style="display:flex;gap:10px"><div style="flex:2"><label class="fl">City</label><input class="f" id="bcCity" autocomplete="off"></div>'+
     '<div style="flex:1"><label class="fl">State</label><input class="f" id="bcState" maxlength="2" placeholder="FL" autocomplete="off"></div></div>'+
-   '<label class="fl">Date you met</label><input class="f" id="bcDate" type="date" value="'+todayStr()+'">'+
-   '<label class="fl">Note</label><textarea class="f" id="bcNote" rows="3" placeholder="What did you do, and how did the meeting go?"></textarea>'+
-   '<button class="btn coral block" data-act="saveCard" style="margin-top:18px">Save contact + note</button>');
+   spokeBoxHTML()+
+   '<button class="btn coral block" data-act="saveCard" style="margin-top:18px">Save contact</button>');
 }
 function bcStatus(html){const el=document.getElementById("bcPrev");if(el)el.innerHTML=html;}
 function bcThumb(msg){const b=logState.bc;if(!b||!(b.thumb||b.pdf))return "";
@@ -7344,7 +7367,7 @@ async function bcHandleFile(file){
   if(hit){b.cid=hit.id;document.getElementById("bcCoQ").value=hit.name;}
   bcSyncCompany();
   bcStatus(bcThumb(n?'<b style="color:var(--ok-t)">'+svg("check")+' Pulled '+n+' detail'+(n>1?"s":"")+' off the card.</b> Give it a quick look'+(hit?" — matched to your account "+esc(hit.name):"")+', then add your note.':"Couldn't find any text on that card — try a closer, sharper shot or type the details."));
-  const note=document.getElementById("bcNote");if(note&&n)note.focus();
+  const note=document.getElementById("spokeNote");if(note&&n&&logState.spoke)note.focus();
 }
 function saveCard(){
   const b=logState.bc;if(!b)return;
@@ -7363,11 +7386,9 @@ function saveCard(){
   else{ // already in the CRM — only fill what's blank
     [["role",title],["email",email],["phone",phone],["mobile",mobile],["city",city],["state",st],["address",card.street?addr:""]].forEach(f=>{if(f[1]&&!p[f[0]])p[f[0]]=f[1];});
     if(!p.cid&&c){p.cid=c.id;if(!p.branch)p.branch=c.name+(city?" — "+city:"");}}
-  const d=val("bcDate")||todayStr(),when=d===todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
-  DB.activities.unshift({id:uid(),type:"meeting",pid:p.id,cid:p.cid||null,note:val("bcNote")||"Met — business card collected",date:when,by:USER});
-  if(!p.last||new Date(when)>new Date(p.last))p.last=when;
+  const lg=spokeSave(p);
   save();closeSheet();pushNav();curPerson=p.id;view="person";render();window.scrollTo(0,0);
-  toast(name+(isNew?" added":" updated")+(newCo?" · new account "+c.name:""));
+  toast(name+(isNew?" added":" updated")+(newCo?" · new account "+c.name:"")+(lg?" · "+lg:""));
   if(b.blob){const path="cards/"+p.id+"_"+Date.now()+(b.pdf?".pdf":".jpg"),pid=p.id;
     storUpload(path,b.blob).then(ok=>{const q=person(pid);if(ok&&q){q.cardPath=path;save();if(view==="person"&&curPerson===pid)render();}
       else if(!ok)toast("Contact saved — the card photo didn't upload (offline?)");}).catch(()=>{});}
@@ -10667,6 +10688,7 @@ document.addEventListener("click",e=>{
   if(a==="restoredo"){doRestore();return;}
   if(a==="addhub"){addHub();return;}
   if(a==="saveCard"){saveCard();return;}
+  if(a==="spokeType"){spokePick(t.dataset.v);return;}
   if(a==="bcKind"){if(logState.bc)logState.bc.kind=t.dataset.v;document.querySelectorAll("#bcKind .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="pickBcCo"){const c=company(t.dataset.id);if(c&&logState.bc){logState.bc.cid=c.id;const i=document.getElementById("bcCoQ");if(i)i.value=c.name;sugRender("bcCoQ",[]);bcSyncCompany();}return;}
   if(a==="cardview"){openCardPhoto(id);return;}
