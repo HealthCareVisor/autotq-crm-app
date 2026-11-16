@@ -2334,7 +2334,7 @@ function railGroups(u){
   if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"],["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt",goalsOn()?"My goals":"My KPIs"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
     ["Field",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
-  if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
+  if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["quotes","tag","Quotes"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["map","pin","Field Map"]]],
     ["Manage",[["team","users","Team"]]]];
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
@@ -5085,7 +5085,8 @@ function formLead(id){
    '<button class="btn sm" data-act="editconflead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
-    (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
+    (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+
+    '<button class="btn block" data-act="leadquote" data-src="conf" data-id="'+esc(l.id)+'">'+svg("tag")+' Quote</button></div>'+leadQuotesHTML(l)+
    (leadAbout(l)?'<div class="banner" style="white-space:normal">'+svg("note")+esc(leadAbout(l))+'</div>':'')+
    leadHistHTML(l)+
    '<div class="sectlabel">Log a call</div><div class="chips" id="ldOut">'+LEAD_LOG_OUTS.map(o=>'<span class="chip" data-act="ldcallout" data-v="'+o+'">'+esc(callOutLabel(o))+'</span>').join("")+'</div>'+
@@ -5342,6 +5343,7 @@ function formLeadRec(id){
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
     (l.email?'<a class="btn block" style="text-decoration:none;text-align:center" href="mailto:'+esc(l.email)+'">'+svg("mail")+' Email</a>':'')+'</div>'+
    '<button class="btn coral block" data-act="addtouch" data-id="'+esc(l.id)+'" style="margin:8px 0">'+svg("phone")+' Log a touch</button>'+
+   '<button class="btn block" data-act="leadquote" data-src="lead" data-id="'+esc(l.id)+'" style="margin:0 0 8px">'+svg("tag")+' Quote</button>'+leadQuotesHTML(l)+
    (l.oppId&&(DB.opps||[]).find(o=>o.id===l.oppId)?'<button class="btn block" data-act="editopp" data-id="'+esc(l.oppId)+'" style="margin:0 0 8px">'+svg("chart")+' Open the opportunity</button>'
      :'<button class="btn block" data-act="leadtoopp" data-id="'+esc(l.id)+'" style="margin:0 0 8px">'+svg("chart")+' Start an opportunity</button>')+
    '<div class="sectlabel">Touch history · '+touches.length+'</div>'+
@@ -7176,7 +7178,7 @@ function oppFromQuote(q){
   const c=q.cid?company(q.cid):null,units=quoteUnits(q),now=new Date().toISOString();
   const stock=q.level==="dist"&&c&&c.type==="distributor";
   const dist=stock?c:(q.distCid?company(q.distCid):null);
-  const st=String((c&&c.state)||"").toUpperCase().slice(0,2);
+  const st=String((c&&c.state)||q.state||"").toUpperCase().slice(0,2);
   const o={id:uid(),owner:USER,source:"quote",fromQuote:q.id,createdAt:now,
     name:qAcct(q.account)+(units?" — "+units+(units===1?" kit":" kits"):"")+" ("+q.no+")",
     accountId:c?c.id:null,accountName:c?c.name:(q.account||""),
@@ -8604,6 +8606,26 @@ function quoteDraftFrom(q,pre){
     acct:c?c.name:(pre.acct||""),con:p?p.name:"",email:p?(p.email||""):"",shipTo:ship,notes:"",shipping:"",more:!!(ship||bf),
     dist:bf?bf.name:"",distCid:bf?bf.cid:null,distRep:"",distPid:null,oppId:pre.oppId||null,date:todayStr(),acctFrom:p?"contact":(c||pre.acct?"pick":"")};
 }
+/* Quote straight from a lead (Max, 2026-11-16: "a template… when she's calling or talking to conference leads that allows
+   to directly quote" → "just give her access to the quote button"). Opens the normal quote form at end-user price with the
+   lead's name, email and company filled in; the saved quote remembers the lead (q.leadId/leadSrc) and the lead lists it. */
+function quoteFromLead(id,src){
+  const l=src==="conf"?leadById(id):myLeadById(id);if(!l)return;
+  const em=String(l.email||"").trim().toLowerCase();
+  const p=(l.refPid&&person(l.refPid))||(em?DB.people.find(x=>String(x.email||"").trim().toLowerCase()===em):null)||null;
+  const c=p&&p.cid?null:(l.company?bcMatchCompany(l.company):null);
+  formQuote(null,{pid:p?p.id:null,cid:c?c.id:null,acct:l.company||""});
+  const S=logState.qt;
+  if(!p){S.con=l.name||"";S.email=l.email||"";if(S.acct)S.acctFrom=c?"pick":"field";}
+  S.level="enduser"; /* a lead gets list price, never volume tiers */
+  S.items.forEach(it=>{if(it.auto)it.unit=quotePrice(it.sku,+it.qty||1,"enduser");});
+  S.state=String(l.state||"").toUpperCase().slice(0,2);S.leadId=l.id;S.leadSrc=src==="conf"?"conf":"lead";
+  formQuote(null,null,true);
+}
+function leadQuotesHTML(l){
+  const qs=quotesAll().filter(q=>q.leadId===l.id);if(!qs.length)return "";
+  return '<div class="list" style="margin:4px 0 8px">'+qs.map(q=>'<button class="card" data-act="quoteopen" data-id="'+esc(q.id)+'"><div class="row"><span class="ic coral">'+svg("tag")+'</span><div class="grow"><p class="t1" style="font-size:13.5px">'+esc(q.no)+' · '+fmtK(quoteTotal(q))+'</p><p class="t2">'+esc(QUOTE_ST[quoteState(q)]?QUOTE_ST[quoteState(q)][0]:q.status)+' · '+fmtDay(q.date)+'</p></div>'+chev()+'</div></button>').join("")+'</div>';
+}
 function formQuote(id,pre,keep){
   if(!keep)logState.qt=quoteDraftFrom(id?quoteById(id):null,pre);
   const S=logState.qt,q=S.id?quoteById(S.id):null,deal=S.oppId?oppById(S.oppId):null;
@@ -8757,6 +8779,7 @@ function saveQuote(mode){
   const sh=String(S.shipping||"").replace(/[$,\s]/g,"");
   q.account=acct;q.cid=S.cid||null;q.contactName=con;q.contactEmail=email;q.pid=S.pid||null;
   if(S.date&&/^\d{4}-\d{2}-\d{2}$/.test(S.date))q.date=S.date;
+  if(S.leadId&&!q.leadId){q.leadId=S.leadId;q.leadSrc=S.leadSrc;}if(S.state&&!q.state)q.state=S.state;
   q.level=S.level;q.validDays=S.validDays;q.items=items;q.shipTo=String(S.shipTo||"").trim();q.notes=String(S.notes||"").trim();
   q.shipping=sh===""?null:(parseFloat(sh)||0);q.total=quoteTotal(q);q.updatedAt=new Date().toISOString();
   const dn=S.level==="dist"?"":String(S.dist||"").trim(); // a distributor's own quote has nobody to buy it through
@@ -10694,6 +10717,7 @@ document.addEventListener("click",e=>{
   if(a==="confregion"){confRegF=t.dataset.v;render();return;}
   if(a==="cfplus"){confLeadPlus(id);return;}
   if(a==="extlink")return; /* tel: / mailto: inside a clickable row — let the link work, don't open the row */
+  if(a==="leadquote"){quoteFromLead(id,t.dataset.src);return;}
   if(a==="leadtoopp"){const l=myLeadById(id);if(!l)return;const c=bcMatchCompany(l.company||"");logState.oppFromLead=null;formOpp(null,c?c.id:null,{acct:c?"":(l.company||l.name),state:l.state||"",pid:l.refPid&&person(l.refPid)?l.refPid:null,note:"From lead "+l.name+(l.conf?" ("+l.conf+")":"")});logState.oppFromLead=l.id;return;}
   if(a==="leadcatsel"||a==="leadhandsel"){e.stopPropagation();return;}
   if(a==="leadcat"){e.stopPropagation();const l=myLeadById(id);if(l){l.cat=t.dataset.v;l.catAt=new Date().toISOString();l.catBy=USER;if(l.cat!=="handed"&&l.assignee&&t.dataset.v==="dead")l.assignee=null;save();render();if(document.getElementById("scrim").classList.contains("open"))formLeadRec(id);}return;}
