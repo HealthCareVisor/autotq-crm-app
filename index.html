@@ -2623,7 +2623,8 @@ function goalActDist(a){const c=actCo(a);return !!(c&&c.type==="distributor");}
 function goalTally(u,mon,kind){
   const days=goalDays(mon),z=()=>[0,0,0,0,0,0,0],out={mtg:z(),call:z(),email:z()},seen={};
   calActs(u,days[0],days[6]).forEach(a=>{const i=days.indexOf(localDay(a.date));if(i<0)return;
-    if(actIsMeet(a)&&goalActDist(a))out.mtg[i]++;
+    /* a visit with a distributor rep along is a distributor meeting too (Hannah, 2026-11-16: the tracker has to show what reps log) */
+    if(actIsMeet(a)&&(goalActDist(a)||isCoTravel(a)))out.mtg[i]++;
     if(a.type==="email")out.email[i]++;
     if(actIsCall(a)&&(kind==="outreach"||goalActDist(a)))out.call[i]++;
     if(kind==="outreach"&&actIsCall(a)&&a.refId){const k=a.refId+"|"+i;seen[k]=(seen[k]||0)+1;}});
@@ -2886,6 +2887,9 @@ function scState(u,mon){
   const perT=tJ.length?sum(tally.mtg,tJ)/tJ.length:null,perO=oJ.length?sum(tally.call,oJ)/oJ.length:null;
   const call=tally.call.reduce((a,b)=>a+b,0),oWeek=W.reduce((s,i)=>s+(typ[i]===null?1:ow(typ[i])),0),oDue=cfg.week.call/5*judge.reduce((s,i)=>s+ow(typ[i]),0);
   const mail=rmStats(u,mon),eDue=eDay*judge.length,mr=scManrep(u,days[6]<T?days[6]:T);
+  /* emails: per day the larger of what the mailbox import found (nightly) and what the rep logged in the CRM, so emails
+     logged today count right away instead of waiting for tonight's import (Hannah, 2026-11-16) */
+  const crmMail=tally.email.reduce((a,b)=>a+b,0),sent=tally.email.reduce((a,n,i)=>a+Math.max(n,mail?mail.out[i]:0),0);
   const tiles=[
     {k:"mtg",label:"Distributor meetings",v:mtg,tgt:tWeek?"/ "+goalRng(Math.min(dz[0]*tWeek,wk[0]),Math.min(Math.max(dz[0],dz[1])*tWeek,wk[1])):"",pct:tWeek?pc(mtg,tDue):null,
       sub:tWeek?pl(Math.ceil(tWeek),"travel day")+" · 12–17 a travel week":"No travel days this week",title:"Visits, trainings and demos with a distributor"},
@@ -2895,14 +2899,14 @@ function scState(u,mon){
       sub:oJ.length?"Average of "+pl(oJ.length,"office day"):"No office days yet",title:"Calls to someone at a distributor ÷ office days that are over"},
     {k:"call",label:"Distributor calls this week",v:call,tgt:oWeek?"/ "+Math.round(cfg.week.call*oWeek/5):"",pct:oWeek?pc(call,oDue):null,
       sub:pl(allCalls,"call")+" in all",title:"200 an office week · calls on travel days count too"},
-    {k:"email",label:"Outbound emails",v:mail?mail.sent:"…",tgt:"/ "+eDay*5,pct:mail?pc(mail.sent,eDue):null,
-      sub:mail?mail.dist+" to distributors · "+mail.recv+" received":"Loading email…",title:"Emails sent to someone outside the company (calendar replies left out) · 100 a week"},
+    {k:"email",label:"Outbound emails",v:sent,tgt:"/ "+eDay*5,pct:pc(sent,eDue),
+      sub:crmMail+" logged in the CRM · "+(mail?mail.sent+" from the mailbox":"mailbox loading…"),title:"Emails sent to someone outside the company: each day counts the larger of the emails logged in the CRM and the mailbox import (every evening) · 100 a week"},
     {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
   const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
   const today=loggedToday(u),live=mon!==goalMonday()||today;
   const status=!parts.length?null:!live?"idle":parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
-  return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,today:today,live:live,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
+  return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,today:today,live:live,logged:acts.length,loggedT:calActs(u,T,T).length,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
 }
 function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
   return '<div class="sct'+(b?" s"+b:"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+x.v+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
@@ -2976,7 +2980,7 @@ function scHomeHTML(){
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
-     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
+     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week')+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
      '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles fu7">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+fuTileHTML(u,s.today)+'</div></div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
