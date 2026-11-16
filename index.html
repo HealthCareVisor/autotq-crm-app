@@ -3912,7 +3912,7 @@ function teamFeed(){
 
 function viewPerson(id){
   const p=person(id);if(!p)return'<div class="empty">Not found.</div>';
-  const acts=DB.activities.filter(a=>a.pid===id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const acts=actsForPerson(id).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const surfaced=DB.companies.filter(c=>c.type==="enduser"&&c.sourcedBy===p.name);
   const c=company(p.cid);
   const acctOpps=(DB.opps||[]).filter(o=>p.cid&&(o.accountId===p.cid||o.distributorId===p.cid));
@@ -3957,7 +3957,7 @@ function viewPerson(id){
   if(surfaced.length){h+='<div class="sectlabel">End-users '+esc(p.name.split(" ")[0])+' surfaced</div><div class="list">';
     h+=surfaced.map(o=>'<div class="card" data-act="roster" data-id="'+o.id+'" style="cursor:pointer"><div class="row"><span class="ic ok">'+svg("build")+'</span><div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">End-user · '+esc(o.city?o.city+", "+o.state:"new")+'</p></div>'+chev()+'</div></div>').join("")+'</div>';}
   h+='<div class="sectlabel">History</div>';
-  h+= acts.length? '<div class="list">'+acts.map(a=>'<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(actLabel(a.type,a))+' · '+fmtDay(a.date)+' <span style="color:var(--hint);font-weight:500">('+ago(a.date)+(a.by?' · '+esc(teamById(a.by).name.split(" ")[0]):'')+')</span></p><p class="t2" style="white-space:normal">'+esc(a.note)+'</p></div>'+chev()+'</div></div>').join("")+'</div>'
+  h+= acts.length? '<div class="list">'+acts.map(a=>'<div class="card" data-act="editact" data-id="'+esc(a.id||"")+'" style="cursor:pointer"><div class="row"><span class="ic '+toneFor(a.type)+'">'+svg(iconFor(a.type))+'</span><div class="grow"><p class="t1" style="font-size:14px">'+esc(actLabelFor(a,id))+' · '+fmtDay(a.date)+' <span style="color:var(--hint);font-weight:500">('+ago(a.date)+(a.by?' · '+esc(teamById(a.by).name.split(" ")[0]):'')+')</span></p><p class="t2" style="white-space:normal">'+esc(a.note)+'</p></div>'+chev()+'</div></div>').join("")+'</div>'
      :'<div class="empty">No touches logged yet.</div>';
   return h;
 }
@@ -4001,7 +4001,7 @@ const LOG_TYPES=[["call","phone","Call"],["email","mail","Email"],["visit","pin"
 const VISIT_WITH=[["","Just me"],["distrep","With a distributor rep"],["manrep","With a man-rep"],["team","With a teammate"]];
 function iconFor(t){return {call:"phone",voicemail:"phone",meeting:"pin",visit:"pin",cotravel:"pin",mrtravel:"pin",email:"mail",training:"school",demo:"box",note:"note",quote:"file"}[t]||"note";}
 function toneFor(t){return {call:"info",voicemail:"warn",meeting:"coral",visit:"coral",cotravel:"coral",mrtravel:"coral",email:"info",training:"ok",demo:"coral",note:"",quote:"warn"}[t]||"";}
-function actLabel(t,a){if(a&&a.vm)return "Call · left voicemail";if(a&&a.type==="visit"&&a.with)return "Visit · "+((VISIT_WITH.find(w=>w[0]===a.with)||["",""])[1].replace(/^With /,"with "));return {voicemail:"Call · left voicemail",cotravel:"Visit · with a distributor rep",mrtravel:"Visit · with a man-rep",visit:"Visit",meeting:"Visit",training:"Training"}[t]||titlecase(t||"note");}
+function actLabel(t,a){if(a&&a.vm)return "Call · left voicemail";if(a&&a.type==="visit"&&a.with){const nm=withNames(a);if(nm.length)return "Visit · with "+nm.join(", ");return "Visit · "+((VISIT_WITH.find(w=>w[0]===a.with)||["",""])[1].replace(/^With /,"with "));}return {voicemail:"Call · left voicemail",cotravel:"Visit · with a distributor rep",mrtravel:"Visit · with a man-rep",visit:"Visit",meeting:"Visit",training:"Training"}[t]||titlecase(t||"note");}
 /* Max, 2026-10-16: keep everything already logged and recategorize it under the six types — runs once per record */
 function normActTypes(){
   let ch=false;
@@ -7411,10 +7411,50 @@ function acctSugItems(q,act,types){q=String(q||"").trim().toLowerCase();if(q.len
 function peopleSugItemsF(q,act,filter){q=String(q||"").trim().toLowerCase();if(q.length<2)return[];
   return DB.people.filter(p=>filter(p)&&(p.name+" "+((company(p.cid)||{}).name||p.branch||"")).toLowerCase().includes(q)).slice(0,8)
    .map(p=>'<button type="button" data-act="'+act+'" data-id="'+p.id+'">'+esc(p.name)+' <span style="color:var(--hint)">— '+esc((company(p.cid)||{}).name||p.branch||"")+'</span></button>');}
+/* "Who came along" names (Max, 2026-11-16: "the with distributor rep should have a box… that populates rep names").
+   a.with stays the kind (distrep | manrep | team — what isCoTravel / isMrTravel read); a.withPids = the CRM reps picked,
+   a.withNames = free-typed people not in the CRM, a.withTeam = teammate ids. One activity, by the person who logged it, so the
+   scorecard counts it once; each picked rep's contact page lists it too (actsForPerson). */
+function withNames(a){return (a.withPids||[]).map(id=>{const p=person(id);return p?p.name:"";}).filter(Boolean)
+  .concat(a.withNames||[]).concat((a.withTeam||[]).map(id=>shortName(id)));}
+/* on a rep's own page, a visit they came along on reads "Came along with John M. · Tim Weston (Colby College)" */
+function actLabelFor(a,pid){if(a.pid===pid)return actLabel(a.type,a);const p=person(a.pid),c=p?company(p.cid):company(a.cid);
+  return "Came along"+(a.by?" with "+shortName(a.by):"")+(p?" · "+p.name:"")+(c?" ("+c.name+")":"");}
+function actsForPerson(pid){return (DB.activities||[]).filter(a=>a&&(a.pid===pid||(a.withPids||[]).includes(pid)));}
+function wpReset(a){logState.wp={kind:(a&&a.with)||"",pids:((a&&a.withPids)||[]).slice(),names:((a&&a.withNames)||[]).slice(),team:((a&&a.withTeam)||[]).slice()};}
+/* the customer the visit was with: the reps of the distributors they buy from, then the reps covering their state, come first */
+function wpCustomer(){let p=null,c=null;
+  if(logState.wpCtx==="act"){const a=(DB.activities||[]).find(x=>x.id===logState.actId);if(a){p=person(a.pid);c=company(a.cid)||(p?company(p.cid):null);}}
+  else{p=person(logState.logPid);c=p?company(p.cid):(logState.logNewCid?company(logState.logNewCid):null);}
+  return {c:c,st:String((c&&c.state)||(p&&p.state)||"").toUpperCase().slice(0,2)};}
+function wpSugItems(q){const w=logState.wp,raw=String(q||"").trim();q=raw.toLowerCase();if(!w||!q)return [];
+  const cu=wpCustomer(),bf=cu.c?bfList(cu.c).map(x=>x.cid).filter(Boolean):[];
+  const score=p=>(bf.includes(p.cid)?2:0)+(cu.st&&personStates(p).some(x=>String(x||"").toUpperCase().slice(0,2)===cu.st)?1:0);
+  const hits=(DB.people||[]).filter(p=>contactType(p)===w.kind&&!w.pids.includes(p.id)&&(p.name+" "+((company(p.cid)||{}).name||"")).toLowerCase().includes(q))
+    .sort((a,b)=>score(b)-score(a)||String(a.name).localeCompare(String(b.name))).slice(0,8)
+    .map(p=>{const co=(company(p.cid)||{}).name||p.branch||"",st=personStates(p).slice(0,3).join(" ");
+      return '<button type="button" data-act="wpPick" data-id="'+p.id+'">'+esc(p.name)+' <span style="color:var(--hint)">— '+esc(co)+(st?' · '+esc(st):'')+'</span></button>';});
+  hits.push('<button type="button" data-act="wpFree" style="color:var(--coral);font-weight:600">+ Add "'+esc(raw.slice(0,40))+'" (not in the CRM)</button>');
+  return hits;}
+function wpPickHTML(){const w=logState.wp;if(!w||!w.kind)return "";
+  if(w.kind==="team")return '<label class="fl">Who from the team</label><div class="qa-types">'+TEAM.filter(t=>t.id!==USER).map(t=>'<span class="qchip'+(w.team.includes(t.id)?" on":"")+'" data-act="wpTeam" data-v="'+t.id+'">'+esc(shortName(t.id))+'</span>').join("")+'</div>';
+  const chips=w.pids.map(id=>{const p=person(id);return p?'<span class="qchip on" data-act="wpDel" data-v="p:'+id+'" title="Remove">'+esc(p.name)+' ×</span>':"";}).join("")+
+    w.names.map((n,i)=>'<span class="qchip on" data-act="wpDel" data-v="n:'+i+'" title="Remove">'+esc(n)+' ×</span>').join("");
+  return '<label class="fl">'+(w.kind==="distrep"?"Which distributor rep":"Which man-rep")+'</label>'+(chips?'<div class="qa-types" style="margin-bottom:6px">'+chips+'</div>':'')+
+    comboField("wpQ",w.kind==="distrep"?"Type a rep's name":"Type the man-rep's name","");}
+function wpDraw(){const el=document.getElementById("wpWrap");if(el)el.innerHTML=wpPickHTML();}
+function wpKind(v){if(!logState.wp)wpReset(null);const w=logState.wp;if(w.kind!==v){w.kind=v;w.pids=[];w.names=[];w.team=[];}wpDraw();}
+/* writes the picks onto the activity (a typed name left in the box counts as a free-text pick) */
+function wpApply(rec){const w=logState.wp||{};delete rec.withPids;delete rec.withNames;delete rec.withTeam;
+  if(rec.type!=="visit"||!w.kind)return;
+  const left=val("wpQ").trim();if(left&&w.kind!=="team"&&!w.names.includes(left))w.names.push(left);
+  if(w.kind==="team"){if(w.team.length)rec.withTeam=w.team.slice();}
+  else{if(w.pids.length)rec.withPids=w.pids.slice();if(w.names.length)rec.withNames=w.names.slice();}
+  (rec.withPids||[]).forEach(id=>{const p=person(id);if(p&&(!p.last||new Date(rec.date)>new Date(p.last)))p.last=rec.date;});}
 function formActivity(id){
   const a=(DB.activities||[]).find(x=>x.id===id);
   if(!a){toast("Couldn't open that entry");return;}
-  logState.actId=id;logState.actType=a.type||"note";logState.actWith=a.with||"";
+  logState.actId=id;logState.actType=a.type||"note";logState.actWith=a.with||"";logState.wpCtx="act";wpReset(a);
   const types=LOG_TYPES.slice();
   if(!types.some(t=>t[0]===logState.actType))types.push([logState.actType,"note",titlecase(logState.actType)]);
   const p=person(a.pid),tk=actFuTask(a),st=actState(a);
@@ -7428,7 +7468,7 @@ function formActivity(id){
      '<p class="t2" style="margin:6px 0 0">'+(tk&&!tk.done?'On your day for '+esc(tk.due)+' — pick another day to move it.':'Pick a day and it lands on your day as a to-do.')+'</p>')+
    '<label class="fl">Type</label><div class="tiles" id="actTiles">'+
    types.map(t=>'<div class="tile'+(t[0]===logState.actType?' on':'')+'" data-act="setActType" data-v="'+t[0]+'">'+svg(t[1])+t[2]+'</div>').join("")+'</div>'+
-   '<div id="actWith" style="display:'+(logState.actType==="visit"?"block":"none")+'"><label class="fl">Who came along</label><div class="chips" id="actWithChips">'+VISIT_WITH.map(w=>'<span class="chip'+(logState.actWith===w[0]?" on":"")+'" data-act="setActWith" data-v="'+w[0]+'">'+w[1]+'</span>').join("")+'</div></div>'+
+   '<div id="actWith" style="display:'+(logState.actType==="visit"?"block":"none")+'"><label class="fl">Who came along</label><div class="chips" id="actWithChips">'+VISIT_WITH.map(w=>'<span class="chip'+(logState.actWith===w[0]?" on":"")+'" data-act="setActWith" data-v="'+w[0]+'">'+w[1]+'</span>').join("")+'</div><div id="wpWrap">'+wpPickHTML()+'</div></div>'+
    '<label class="fl">Date</label><input class="f" id="actDate" type="date" value="'+esc(localDay(a.date))+'">'+
    '<label class="fl">Note</label><textarea class="f" id="actNote" rows="3">'+esc(a.note||"")+'</textarea>'+
    '<button class="btn coral block" data-act="saveact" style="margin-top:18px">Save</button>'+
@@ -7443,6 +7483,7 @@ function saveActivity(){
   a.note=document.getElementById("actNote").value.trim();
   const d=document.getElementById("actDate").value;
   if(d&&d!==localDay(a.date))a.date=d+"T12:00:00.000Z";
+  wpApply(a);
   /* follow-up day: new → a to-do on that day; existing → moved */
   const fuEl=document.getElementById("actFuDue");const due=fuEl?fuEl.value:"";
   if(due){ensureTasks();let tk=actFuTask(a);
@@ -7472,7 +7513,7 @@ function saveEditTask(){
 }
 function formLog(prefillPid,prefillType,hint){
   const types=LOG_TYPES;
-  logState.logType=prefillType||"call";logState.outcome="Interested";logState.logWith="";
+  logState.logType=prefillType||"call";logState.outcome="Interested";logState.logWith="";logState.wpCtx="log";wpReset(null);
   logState.logPid=prefillPid||null;
   logState.logNew=false;logState.logNewCid=null;logState.logNewKind="enduser";
   openSheet('<h2>Log activity</h2>'+(hint?'<p class="t2" style="white-space:normal;margin:-4px 0 6px">'+esc(hint)+'</p>':'')+'<label class="fl">Type</label><div class="tiles" id="logTiles">'+
@@ -7486,7 +7527,7 @@ function formLog(prefillPid,prefillType,hint){
      [["enduser","End-user"],["distributor","Distributor"]].map(k=>'<span class="chip'+(k[0]==="enduser"?" on":"")+'" data-act="logNewKind" data-v="'+k[0]+'">'+k[1]+'</span>').join("")+'</div></div>'+
     '<div style="display:flex;gap:10px"><div style="flex:1"><label class="fl">Email</label><input class="f" id="logNewEmail" type="email" autocomplete="off" placeholder="optional"></div>'+
      '<div style="flex:1"><label class="fl">Phone</label><input class="f" id="logNewPhone" autocomplete="off" placeholder="optional"></div></div></div>'+
-   '<div id="logWith" style="display:'+(logState.logType==="visit"?"block":"none")+'"><label class="fl">Who came along</label><div class="chips" id="logWithChips">'+VISIT_WITH.map(w=>'<span class="chip'+(!w[0]?" on":"")+'" data-act="setWith" data-v="'+w[0]+'">'+w[1]+'</span>').join("")+'</div></div>'+
+   '<div id="logWith" style="display:'+(logState.logType==="visit"?"block":"none")+'"><label class="fl">Who came along</label><div class="chips" id="logWithChips">'+VISIT_WITH.map(w=>'<span class="chip'+(!w[0]?" on":"")+'" data-act="setWith" data-v="'+w[0]+'">'+w[1]+'</span>').join("")+'</div><div id="wpWrap"></div></div>'+
    '<label class="fl">Note</label><textarea class="f" id="logNote" placeholder="One line is plenty…"></textarea>'+
    '<label class="fl">Outcome</label><div class="chips" id="logOut">'+
    ["Interested","Wants quote","Potential opportunity","Not now","Left voicemail"].map(o=>'<span class="chip'+(o==="Interested"?" on":"")+'" data-act="setOut" data-v="'+o+'"'+(o==="Left voicemail"?' id="outVm" style="display:'+(logState.logType==="call"?"":"none")+'"':'')+'>'+o+'</span>').join("")+'</div>'+
@@ -7523,6 +7564,7 @@ function saveLog(){
   const rec={id:uid(),type:logState.logType,pid:pid,note:note+(logState.outcome?" · "+logState.outcome:""),date:new Date().toISOString(),by:USER,norm:2};
   if(rec.type==="call"&&logState.outcome==="Left voicemail")rec.vm=true;
   if(rec.type==="visit"&&logState.logWith)rec.with=logState.logWith;
+  wpApply(rec);
   DB.activities.unshift(rec);
   if(p)p.last=new Date().toISOString();
   let extra="";
@@ -7679,7 +7721,7 @@ function listLog(l,it,type,note){const pr=it.pid?person(it.pid):null;if(!pr&&!it
 function personSheetHTML(pid){
   const p=person(pid);if(!p)return'<div class="empty">Not found.</div>';
   const c=company(p.cid);
-  const acts=DB.activities.filter(a=>a.pid===pid).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const acts=actsForPerson(pid).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
   let h='<div class="row" style="margin-bottom:12px"><span class="ic info" style="width:46px;height:46px;font-size:15px">'+initials(p.name)+'</span>'+
    '<div class="grow"><p class="t1" style="font-size:17px">'+esc(p.name)+'</p><p class="t2">'+esc(p.role||"")+(c?' · '+esc(c.name):(p.branch?' · '+esc(p.branch):''))+'</p></div>'+regionTag(personRegion(p))+'</div>';
   h+='<div class="facts">'+
@@ -7695,7 +7737,7 @@ function personSheetHTML(pid){
    '<button class="btn block" data-act="schedfu" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("clock")+' Follow-up</button>'+
    '<button class="btn block" data-act="personfull" data-id="'+p.id+'" style="flex:none;width:auto;padding:14px 18px">'+svg("user")+' Full page</button></div>';
   if(acts.length){h+='<div class="sectlabel">History</div>'+acts.map(a=>'<div class="card" style="padding:9px 13px;margin-bottom:6px"><div class="row"><span class="ic '+toneFor(a.type)+'" style="width:30px;height:30px">'+svg(iconFor(a.type))+'</span>'+
-   '<div class="grow"><p class="t1" style="font-size:13px">'+esc(actLabel(a.type,a))+' · '+fmtDay(a.date)+(a.by?' <span style="color:var(--hint);font-weight:500">('+esc(teamById(a.by).name.split(" ")[0])+')</span>':'')+'</p>'+
+   '<div class="grow"><p class="t1" style="font-size:13px">'+esc(actLabelFor(a,pid))+' · '+fmtDay(a.date)+(a.by?' <span style="color:var(--hint);font-weight:500">('+esc(teamById(a.by).name.split(" ")[0])+')</span>':'')+'</p>'+
    '<p class="t2" style="white-space:normal">'+esc(a.note||"")+'</p></div></div></div>').join("");}
   return h;
 }
@@ -10775,14 +10817,18 @@ document.addEventListener("click",e=>{
     if(ax&&confirm("Delete this logged "+ax.type+"?")){DB.activities=DB.activities.filter(x=>x.id!==logState.actId);save();closeSheet();render();toast("Deleted");}return;}
   if(a==="logemail"){formLog(id,"email");return;}
   if(a==="logtrain"){formLog(id,"training");return;}
-  if(a==="setActWith"){logState.actWith=t.dataset.v;document.querySelectorAll("#actWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="wpPick"){const w=logState.wp;if(w&&!w.pids.includes(t.dataset.id))w.pids.push(t.dataset.id);wpDraw();refocus("wpQ");return;}
+  if(a==="wpFree"){const w=logState.wp,v=val("wpQ").trim();if(w&&v&&!w.names.includes(v))w.names.push(v);wpDraw();refocus("wpQ");return;}
+  if(a==="wpDel"){const w=logState.wp,v=String(t.dataset.v||"");if(w){if(v.startsWith("p:"))w.pids=w.pids.filter(x=>x!==v.slice(2));else w.names.splice(+v.slice(2),1);}wpDraw();return;}
+  if(a==="wpTeam"){const w=logState.wp,v=t.dataset.v;if(w)w.team=w.team.includes(v)?w.team.filter(x=>x!==v):w.team.concat([v]);wpDraw();return;}
+  if(a==="setActWith"){wpKind(t.dataset.v);logState.actWith=t.dataset.v;document.querySelectorAll("#actWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="actfuquick"){const d=document.getElementById("actFuDue");if(d)d.value=dAdd(todayStr(),parseInt(t.dataset.v,10));return;}
   if(a==="tktype"){logState.taskEditType=t.dataset.v;document.querySelectorAll("#tkType .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="tkquick"){const d=document.getElementById("tkDue");if(d)d.value=dAdd(todayStr(),parseInt(t.dataset.v,10));return;}
   if(a==="setType"){logState.logType=t.dataset.v;document.querySelectorAll("#logTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));
     const w=document.getElementById("logWith");if(w)w.style.display=t.dataset.v==="visit"?"block":"none";
     const vm=document.getElementById("outVm");if(vm){vm.style.display=t.dataset.v==="call"?"":"none";if(t.dataset.v!=="call"&&logState.outcome==="Left voicemail"){logState.outcome="Interested";document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v==="Interested"));}}return;}
-  if(a==="setWith"){logState.logWith=t.dataset.v;document.querySelectorAll("#logWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
+  if(a==="setWith"){wpKind(t.dataset.v);logState.logWith=t.dataset.v;document.querySelectorAll("#logWithChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="setActType"){logState.actType=t.dataset.v;document.querySelectorAll("#actTiles .tile").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));const w=document.getElementById("actWith");if(w)w.style.display=t.dataset.v==="visit"?"block":"none";return;}
   if(a==="setOut"){logState.outcome=t.dataset.v;document.querySelectorAll("#logOut .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="map"){closeSheet();pushNav();mapState=null;view="map";render();window.scrollTo(0,0);return;}
@@ -10950,6 +10996,7 @@ document.addEventListener("input",e=>{
     logNewShow(false);
     if(q.length>=2)hits.push('<button type="button" data-act="logNewWho" style="color:var(--coral);font-weight:600">+ Add "'+esc(q)+'" as a new contact</button>');
     sugRender("logWho2",hits);return;}
+  if(e.target.id==="wpQ"){sugRender("wpQ",wpSugItems(e.target.value));return;}
   if(e.target.id==="logNewCoQ"){logState.logNewCid=null;sugRender("logNewCoQ",acctSugItems(e.target.value,"pickLogNewCo"));logNewSyncCo();return;}
   if(e.target.id==="oCidQ"){logState.oppCid=null;const stp=!!document.getElementById("oSteps");sugRender("oCidQ",acctSugItems(e.target.value,"pickOppAcct").slice(0,stp?5:8).concat(stp?peopleSugItemsF(e.target.value,"pickOppCustCon",p=>!!company(p.cid)).slice(0,4):[]));oppAmtHint();return;}
   if(e.target.id==="oName"){logState.oppNameHand=!!e.target.value.trim();return;}
