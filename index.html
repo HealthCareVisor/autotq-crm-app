@@ -1637,7 +1637,7 @@ function sideBadge(v){
     if(v==="activity")return actQueueFor(USER).todo.length;
     if(v==="leads"){ensureLeads();const L=DB.leads.filter(l=>!l.removed);
       return profile()==="outreach"?L.filter(l=>leadCat(l)==="new").length:L.filter(l=>leadRep(l)===USER&&!(l.touches||[]).some(t=>t.by===USER)).length;}
-    if(v==="invoicing")return invAccess()?ordersAll().filter(o=>o.status==="queue").length:0;
+    if(v==="invoicing")return (invAccess()?ordersAll().filter(o=>o.status==="queue").length:0)+(gpoAccess()?gposAll().filter(g=>!gpoComplete(g)).length:0);
     if(v==="grainger")return gpoAccess()?gposAll().filter(g=>!gpoComplete(g)).length:0;
   }catch(e){}
   return 0;
@@ -1645,12 +1645,12 @@ function sideBadge(v){
 function sideGroups(NU){
   if(inFuture())return [["Sell",[["opps","chart","Pipeline"]]],["Plan",[["board","note","Whiteboard"]]]]; /* Future CRM: Pipeline + the Whiteboard (Max, 2026-11-06) */
   const groups=NU==="laresa"
-   ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["grainger","truck","Grainger"],["opps","chart","Pipeline"]]],
+   ?[["Billing",[["today","home","Home"],["invoicing","file","Invoicing"],["opps","chart","Pipeline"]]],
      ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
    :railGroups(NU); /* per-profile rail (2026-10-16): sales / outreach / admin — see railGroups() */
   const nuInv=(NU==="max"||NU==="jamie"||NU==="laresa"); /* Kellan's rail is outreach only (2026-10-16) */
-  if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"],["grainger","truck","Grainger"]]]); /* Shipping tab retired 2026-10-16; Grainger drop ships 2026-11-11 */
-  else if(NU==="hannah")groups.unshift(["Back office",[["grainger","truck","Grainger"]]]); /* Hannah sends 855s / ASNs in SPS */
+  if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]); /* Grainger is a section inside Invoicing (2026-11-17) */ /* Shipping tab retired 2026-10-16; Grainger drop ships 2026-11-11 */
+  else if(NU==="hannah")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]); /* Hannah sends 855s / ASNs in SPS */
   return groups;
 }
 function recentList(){
@@ -2006,7 +2006,7 @@ function goBack(fb){
   }
   restoreNav(st);render();window.scrollTo(0,st.scroll||0);
 }
-function navOn(v){if(v==="team"&&view==="teammate")return true;if(v==="today"&&(view==="repweek"||view==="repan"))return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
+function navOn(v){if(v==="invoicing"&&view==="grainger")return true;if(v==="team"&&view==="teammate")return true;if(v==="today"&&(view==="repweek"||view==="repan"))return true;return view===v||(v==="accounts"&&view==="roster")||(v==="contacts"&&view==="person")||(v==="conf"&&view==="confleads")||(v==="insight"&&["dash","reports","report","insights"].includes(view))||(v==="opps"&&view==="fcast")||(v==="today"&&view==="quotes")||(v==="campaigns"&&view==="camp");}
 function navbtn(v,ic,label){return '<button class="'+(navOn(v)?"on":"")+'" data-act="nav" data-view="'+v+'">'+svg(ic)+'<span>'+label+'</span></button>';}
 function typeLabel(t){return {distributor:"Distributor",manrep:"Man-rep",partner:"Partner",enduser:"End-user"}[t]||"Account";}
 function roleShort(me){return me.role.length>22?me.role.slice(0,21)+"…":me.role;}
@@ -7942,7 +7942,7 @@ function exportCSV(){
 /* ---------- Invoicing (back office: Max/admin, Jamie, Laresa) ----------
    PO PDFs live in the shared Supabase `resources` bucket under pos/…;
    order metadata syncs through the `orders` collection like everything else. */
-function invAccess(){return admin()||USER==="jamie"||USER==="laresa";}
+function invAccess(){return admin()||USER==="jamie"||USER==="laresa"||USER==="hannah";}
 function ordersAll(){return (DB.orders||[]).slice().sort((a,b)=>String(b.poDate||"").localeCompare(String(a.poDate||"")));}
 function fmtC(n){return "$"+(+(n||0)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
 /* Known POs (2026 reconciliation, 8/24): uploading a matching file auto-fills the record. */
@@ -8064,6 +8064,29 @@ function tqFoldCopy(coll,id,orders){
   if(coll!=="orders")return false;const m=/^tq(\d+)$/.exec(String(id));if(!m)return false;
   const n=+m[1];return (orders||[]).some(x=>x&&x.id!==id&&+x.tqId===n);
 }
+/* serial numbers (GS1 codes) as Devin's Add Devices screen takes them: a scanned/pasted full code, or Year·Month·Lot·Serial */
+function serialSplit(text){return String(text||"").split(/[\s,;]+/).map(x=>x.trim()).filter(Boolean);}
+function serialBuild(y,m,lot,ser){
+  y=String(y||"").trim();m=String(m||"").trim();lot=String(lot||"").trim();ser=String(ser||"").trim();
+  if(!/^\d{4}$/.test(y))return {error:"Year needs 4 digits"};
+  if(!/^\d{1,2}$/.test(m)||+m<1||+m>12)return {error:"Month is 1–12"};
+  if(!/^\d{1,4}$/.test(lot))return {error:"Lot is up to 4 digits"};
+  if(!ser)return {error:"Add the serial"};
+  const r=/^(\d{1,4})(?:\s*[-–]\s*(\d{1,4}))?$/.exec(ser);
+  if(!r)return {error:"Serial is up to 4 digits, or a range like 54-56"};
+  const a=+r[1],b=r[2]!=null?+r[2]:a;
+  if(b<a)return {error:"Range runs backwards"};
+  if(b-a>199)return {error:"That range is over 200 units"};
+  const p=(n,w)=>String(n).padStart(w,"0"),codes=[];
+  for(let n=a;n<=b;n++)codes.push(y+p(+m,2)+p(+lot,4)+p(n,4));
+  return {codes:codes};
+}
+function serialLabel(code){
+  code=String(code||"");
+  const ai=/\(21\)([^()]+)/.exec(code);if(ai)return ai[1];
+  const d=/^(\d{4})(\d{2})(\d{4})(\d{4})$/.exec(code);if(d)return d[4]+" · lot "+d[3]+" · "+d[1]+"-"+d[2];
+  return code;
+}
 function tqFoldSweep(orders){return (orders||[]).filter(x=>!(x&&tqFoldCopy("orders",x.id,orders)));}
 /*TQ-CORE-END*/
 /*PO-CORE*/
@@ -8147,7 +8170,7 @@ function invRowHTML(o,i){
     :'<p style="margin:0;text-align:center;color:var(--hint);font-size:12.5px;padding:4px 0">no line items</p>';
   const open=invOpenId===o.id;
   return '<div'+(i?' style="border-top:1px solid var(--line)"':'')+'><div class="invrow" data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer">'+
-    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+'</p>'+
+    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+(srNeed(o)||srHave(o)?' '+srChipHTML(o):'')+'</p>'+
     '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+(o.contactName?'<span style="color:var(--hint)">· '+esc(o.contactName)+'</span>':'')+'</p>'+
     (line?'<p class="invline" style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(line)+'</p>':'')+
     (o.status==="queue"
@@ -8257,13 +8280,112 @@ function invDetailsHTML(o){
       fact("Terms",esc(o.payTerms||""))+fact("Bill-to email",esc(o.billEmail||billToFor(o)||""))+fact("QB invoice",esc(o.qbInv||""))+'</div>'+
     '<div>'+fact("Ship to",addr(o.shipTo))+fact("Bill to",addr(o.billTo))+
       fact("Added",(o.src==="pdf"?"Read from the PO PDF · ":"")+esc((who&&who.name)||o.addedBy||"")+(o.addedAt?" · "+esc(usDate(String(o.addedAt).slice(0,10))):""))+'</div></div>'+
-    tbl+
+    tbl+srDetailsHTML(o)+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
      (o.file?'<button class="btn sm" data-act="invview" data-id="'+o.id+'">Open the PO PDF</button>':'<button class="btn sm" data-act="invattach" data-id="'+o.id+'">Add the PO PDF</button>')+
      (o.files||[]).map(x=>'<button class="btn sm ghost" data-act="invviewx" data-id="'+o.id+'" data-p="'+esc(x.path)+'">'+esc(x.fname)+'</button>').join("")+
      (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'">Invoiced ✓</button>':'')+
      '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Full order</button>'+
      '<button class="btn sm ghost" data-act="invform" data-id="'+o.id+'">Edit</button></div></div>';
+}
+/* ---- Serials & tracking on an order (Max, 2026-11-17: "input serial numbers [in the CRM] and then you manually input the stuff
+   for Devin's"). Stored on the order: o.serials=[{code,at,by}], o.shipCarrier/shipTracking/shipDate/shipCost;
+   o.devin={state:"todo"|"done",at,by} says whether it has been keyed into Devin's order system yet. ---- */
+const SR_CARRIERS=["UPS","FedEx","USPS","Hand delivered"];
+function srShipper(){return admin()||["max","hannah","jamie"].includes(USER);}
+function srNeed(o){return tqSerialCount(o);}
+function srHave(o){return (o.serials||[]).length;}
+function srPending(o){return !!(o.devin&&o.devin.state==="todo");}
+function srOtherOrder(code,oid){return (DB.orders||[]).find(x=>x&&x.id!==oid&&(x.serials||[]).some(s=>s.code===code))||null;}
+function srChipHTML(o){
+  const need=srNeed(o),have=srHave(o);if(!need&&!have)return "";
+  const ok=need&&have>=need;
+  return '<span class="pill" title="Serial numbers on this order" style="white-space:nowrap;color:'+(ok?'var(--ok-t)':'var(--warn-t,#a15c00)')+';background:'+(ok?'rgba(0,160,90,.12)':'rgba(255,180,0,.16)')+'">'+have+'/'+(need||have)+' serials'+(ok?' ✓':'')+'</span>'+
+    (srPending(o)?' <span class="pill" title="Not yet entered in Devin’s order system" style="white-space:nowrap;color:#3b6fb5;background:rgba(60,110,180,.12)">to Devin</span>':'');
+}
+function srListHTML(){
+  const S=logState.sr;if(!S)return "";
+  const o=orderById(S.oid),need=o?srNeed(o):0;
+  return '<p style="margin:10px 0 6px;font-size:13px"><b>'+S.codes.length+(need?' / '+need:'')+'</b> serial'+(S.codes.length===1?'':'s')+(need&&S.codes.length>=need?' — all units covered ✓':need?' — '+(need-S.codes.length)+' to go':'')+'</p>'+
+    (S.codes.length?'<div style="display:flex;flex-wrap:wrap;gap:6px">'+S.codes.map((c,i)=>'<span class="pill" style="display:inline-flex;gap:6px;align-items:center;background:rgba(120,120,120,.10);color:var(--ink)" title="'+esc(c)+'">'+esc(serialLabel(c))+
+      '<button class="tkdel" data-act="srdel" data-i="'+i+'" aria-label="Remove '+esc(serialLabel(c))+'" style="width:18px;height:18px">'+svg("x")+'</button></span>').join("")+'</div>':'');
+}
+function formSerials(oid){
+  const o=orderById(oid);if(!o)return;
+  logState.sr={oid:oid,codes:(o.serials||[]).map(s=>s.code),carrier:o.shipCarrier||"UPS"};
+  const S=logState.sr,need=srNeed(o);
+  const lbl=t=>'<label class="fl">'+t+'</label>';
+  const y=new Date().getFullYear();
+  openSheet('<h2>Serials &amp; tracking — '+esc(shortAcct(o.account)||"Order")+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+poChip(o.poNo)+' '+esc(itemsLine(o)||"")+(need?' · <b>'+need+'</b> unit'+(need>1?'s need':' needs')+' a serial':'')+'</p>'+
+   lbl('Scan or paste the full GS1 barcode <span style="font-weight:400;color:var(--hint)">— Enter adds it; paste several at once</span>')+
+   '<div style="display:flex;gap:8px"><input class="f grow" id="srIn" autocomplete="off" placeholder="Scan or paste a code…" style="margin:0"><button class="btn" data-act="sradd">Add</button></div>'+
+   lbl('Or build it <span style="font-weight:400;color:var(--hint)">— serial can be a range like 54-56</span>')+
+   '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+    '<input class="f" id="srY" inputmode="numeric" maxlength="4" value="'+y+'" placeholder="Year" style="width:76px;margin:0">'+
+    '<input class="f" id="srM" inputmode="numeric" maxlength="2" placeholder="Month" style="width:72px;margin:0">'+
+    '<input class="f" id="srL" inputmode="numeric" maxlength="4" placeholder="Lot" style="width:76px;margin:0">'+
+    '<input class="f" id="srS" inputmode="numeric" maxlength="9" placeholder="Serial" style="width:96px;margin:0">'+
+    '<button class="btn" data-act="srbuild">Add</button></div>'+
+   '<div id="srList">'+srListHTML()+'</div>'+
+   lbl('Shipped with')+'<div id="srCar" style="display:flex;gap:6px;flex-wrap:wrap">'+SR_CARRIERS.map(c=>'<button class="qchip'+(S.carrier===c?" on":"")+'" data-act="srcar" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>'+
+   '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" style="min-width:200px">'+lbl('Tracking #')+'<input class="f" id="srTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="1Z… (blank if hand delivered)"></div>'+
+   '<div>'+lbl('Ship date')+'<input class="f" id="srDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div>'+
+   '<div>'+lbl('Shipping cost <span style="font-weight:400;color:var(--hint)">optional</span>')+'<input class="f" id="srCost" inputmode="decimal" value="'+(o.shipCost||"")+'" placeholder="$" style="width:110px"></div></div>'+
+   '<button class="btn coral block" data-act="srsave" data-id="'+o.id+'" style="margin-top:16px">Save</button>'+
+   '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">Saved here first. Then it’s marked <b>to Devin</b> until it’s entered in Devin’s order system.</p>');
+  setTimeout(()=>{const el=document.getElementById("srIn");if(el)el.focus();},60);
+}
+function srAddCodes(codes){
+  const S=logState.sr;if(!S||!codes.length)return;
+  const added=[],dup=[];
+  for(const c of codes){
+    if(S.codes.includes(c)){dup.push(serialLabel(c)+" (already on this order)");continue;}
+    const other=srOtherOrder(c,S.oid);
+    if(other&&!confirm("Serial "+serialLabel(c)+" is already on "+(shortAcct(other.account)||"another order")+" (PO "+(other.poNo||"—")+").\n\nAdd it here too? (OK only if that unit came back, e.g. a returned loaner.)")){dup.push(serialLabel(c)+" (on "+shortAcct(other.account)+")");continue;}
+    S.codes.push(c);added.push(c);
+  }
+  const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();
+  if(dup.length)toast("Skipped: "+dup.join(", "));
+  else if(added.length)toast(added.length===1?"Added "+serialLabel(added[0]):"Added "+added.length+" serials");
+}
+function saveSerials(oid){
+  const o=orderById(oid),S=logState.sr;if(!o||!S)return;
+  const pending=serialSplit(val("srIn"));if(pending.length)srAddCodes(pending);
+  const now=new Date().toISOString(),old={};(o.serials||[]).forEach(s=>{old[s.code]=s;});
+  const before=JSON.stringify([(o.serials||[]).map(s=>s.code),o.shipCarrier||"",o.shipTracking||""]);
+  o.serials=S.codes.map(c=>old[c]||{code:c,at:now,by:USER});
+  o.shipCarrier=S.carrier;o.shipTracking=val("srTrack").replace(/\s+/g,"");o.shipDate=val("srDate")||todayStr();
+  o.shipCost=parseFloat(String(val("srCost")).replace(/[$,]/g,""))||0;
+  const after=JSON.stringify([o.serials.map(s=>s.code),o.shipCarrier,o.shipTracking]);
+  if(after!==before&&(o.serials.length||o.shipTracking))o.devin={state:"todo",at:now,by:USER};
+  save();closeSheet();render();
+  const need=srNeed(o);
+  toast("Saved — "+o.serials.length+(need?"/"+need:"")+" serials"+(o.shipTracking?" · "+o.shipCarrier+" "+o.shipTracking:"")+(srPending(o)?" · marked to Devin":""));
+}
+function srDevinDone(oid){const o=orderById(oid);if(!o)return;o.devin={state:"done",at:new Date().toISOString(),by:USER};save();render();toast("Marked as entered in Devin’s system");}
+/* the dropdown's serial + shipping block */
+function srDetailsHTML(o){
+  const need=srNeed(o),have=srHave(o);
+  if(!need&&!have&&!o.shipTracking&&!srShipper())return "";
+  const tl=o.shipTracking?(trackUrl(o.shipCarrier,o.shipTracking)?'<a href="'+esc(trackUrl(o.shipCarrier,o.shipTracking))+'" target="_blank" rel="noopener" data-stop="1" style="color:var(--coral,#e8543f);font-weight:600">'+esc(o.shipTracking)+' ↗</a>':esc(o.shipTracking)):"";
+  return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:13px">'+
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>Serials</b> '+(need||have?srChipHTML(o):'<span style="color:var(--hint)">none needed</span>')+
+      (o.shipCarrier&&(o.shipTracking||o.shipCarrier==="Hand delivered")?'<span style="color:var(--muted)">· '+esc(o.shipCarrier)+(tl?' '+tl:'')+(o.shipDate?' · '+esc(usDate(o.shipDate)):'')+'</span>':'')+'</div>'+
+    (have?'<p style="margin:6px 0 0;color:var(--muted)">'+(o.serials||[]).map(s=>esc(serialLabel(s.code))).join(" · ")+'</p>':'')+
+    (o.devin&&o.devin.state==="done"?'<p style="margin:6px 0 0;color:var(--ok-t)">In Devin’s system ✓ '+esc(usDate(String(o.devin.at).slice(0,10)))+'</p>':'')+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
+     (srShipper()?'<button class="btn sm'+(need&&have<need?' coral':'')+'" data-act="srform" data-id="'+o.id+'">'+(have||o.shipTracking?'Edit serials &amp; tracking':'Add serials &amp; tracking')+'</button>':'')+
+     (srPending(o)&&srShipper()?'<button class="btn sm ghost" data-act="srdevin" data-id="'+o.id+'" title="Tick once it’s entered in Devin’s order system">Entered in Devin’s ✓</button>':'')+
+    '</div></div>';
+}
+/* top of Invoicing: what still has to be keyed into Devin's system */
+function srPendingBannerHTML(){
+  if(!srShipper())return "";
+  const p=(DB.orders||[]).filter(o=>o&&srPending(o));if(!p.length)return "";
+  return '<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid #3b6fb5;font-size:13.5px"><b>'+p.length+' order'+(p.length>1?'s have':' has')+' serials or tracking not yet in Devin’s system</b> — '+
+    p.map(o=>esc(shortAcct(o.account)||o.poNo||"—")+' ('+srHave(o)+' serial'+(srHave(o)===1?'':'s')+(o.shipTracking?', tracking':'')+')').join(", ")+
+    '.<br><span style="color:var(--muted)">Ask Claude to “sync serials to Devin” — it enters them in Devin’s Orders screen and ticks them off here.</span></div>';
 }
 async function attachPoFile(id,file){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o||!file)return;
@@ -9928,12 +10050,20 @@ function billingHome(){
   h+='<button class="btn block" data-act="nav" data-view="invoicing" style="margin-top:16px">Open the full Invoicing tab</button>';
   return h;
 }
+/* Invoicing has two sections: our orders, and Grainger's SPS Commerce drop ships (Max, 2026-11-17) */
+function invSecHTML(cur){
+  if(!gpoAccess())return "";
+  const q=ordersAll().filter(o=>o.status==="queue").length,g=gposAll().filter(x=>!gpoComplete(x)).length;
+  return '<div class="seg" style="max-width:420px;margin:4px 0 12px">'+
+    '<button class="'+(cur==="inv"?"on":"")+'" data-act="invsec" data-v="invoicing">Orders'+(q?' · '+q:'')+'</button>'+
+    '<button class="'+(cur==="gr"?"on":"")+'" data-act="invsec" data-v="grainger">Grainger · SPS'+(g?' · '+g:'')+'</button></div>';
+}
 function viewInvoicing(){
   ensureOrderItems();ensureLoanerBook();
   const os=ordersAll();
   const q=os.filter(o=>o.status==="queue"),ln=os.filter(o=>o.status==="loaner"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
   const lnNeed=ln.filter(o=>!o.upsCost);
-  let h='';
+  let h=invSecHTML("inv");
   h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+
      '<div class="kpi"><b>Needs invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
      '<div class="kpi"><b>Loaners out</b><span>'+ln.length+(lnNeed.length?' · '+lnNeed.length+' need UPS':'')+'</span></div>'+
@@ -9950,6 +10080,7 @@ function viewInvoicing(){
   FLT_RESET.inv=()=>{invFilter="queue";};
   h+='<div class="lvhead" style="margin-bottom:10px">'+filterBar("inv",[fltGroup("Orders","invfilter",[["queue","Needs invoice",q.length],["loaner","Loaners",ln.length],["invoiced","Invoiced",inv.length],["paid","Paid",paid.length],["all","All",os.length],["supplier","Supplier"]],invFilter,"queue")])+'</div>';
   const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
+  h+=srPendingBannerHTML();
   const noPdf=q.filter(o=>!o.file);
   if(noPdf.length&&(invFilter==="queue"||invFilter==="all"))h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
     '<b>'+noPdf.length+' paid PO'+(noPdf.length>1?'s are':' is')+' missing the PDF</b> — '+noPdf.map(o=>esc(shortAcct(o.account)||o.poNo||"—")).join(", ")+
@@ -10550,7 +10681,7 @@ function gpoRowHTML(g){const st=g.shipTo||{};
 function viewGrainger(){gpoSeed();
   if(curGpo){const g=gpoById(curGpo);if(g&&!g.removed)return viewGpo(g);curGpo=null;}
   const all=gposAll(),open=all.filter(g=>!gpoComplete(g)),done=all.filter(gpoComplete);
-  let h='<div class="gact" style="margin:4px 0 14px"><button class="btn coral" data-act="gponew">'+svg("plus")+' New Grainger PO</button></div>';
+  let h=invSecHTML("gr")+'<div class="gact" style="margin:4px 0 14px"><button class="btn coral" data-act="gponew">'+svg("plus")+' New Grainger PO</button></div>';
   h+='<div class="sech" style="margin-bottom:8px">Open <span class="cnt">'+open.length+'</span></div>';
   h+=open.length?'<div class="list">'+open.map(gpoRowHTML).join("")+'</div>':'<div class="card empty" style="padding:22px">No open Grainger POs.</div>';
   h+='<div class="sech" style="margin:18px 0 8px">History <span class="cnt">'+done.length+'</span></div>';
@@ -10738,6 +10869,14 @@ document.addEventListener("click",e=>{
     inp.click();return;}
   if(a==="invform"){formOrder(id);return;}
   if(a==="invsheet"){orderSheet(id);return;}
+  if(a==="invsec"){goView(t.dataset.v);return;}
+  if(a==="srform"){formSerials(id);return;}
+  if(a==="sradd"){const el=document.getElementById("srIn");srAddCodes(serialSplit(el?el.value:""));if(el){el.value="";el.focus();}return;}
+  if(a==="srbuild"){const r=serialBuild(val("srY"),val("srM"),val("srL"),val("srS"));if(r.error){toast(r.error);return;}srAddCodes(r.codes);const el=document.getElementById("srS");if(el){el.value="";el.focus();}return;}
+  if(a==="srdel"){const S=logState.sr;if(S){S.codes.splice(+t.dataset.i,1);const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();}return;}
+  if(a==="srcar"){const S=logState.sr;if(S){S.carrier=t.dataset.v;document.querySelectorAll('#srCar .qchip').forEach(x=>x.classList.toggle("on",x.dataset.v===S.carrier));}return;}
+  if(a==="srsave"){saveSerials(id);return;}
+  if(a==="srdevin"){srDevinDone(id);return;}
   if(a==="invviewx"){e.stopPropagation();(async()=>{toast("Opening…");const b=await storBlob(t.dataset.p);if(!b){toast("Couldn't fetch the PDF — are you online?");return;}const u=URL.createObjectURL(b);window.open(u,"_blank");setTimeout(()=>URL.revokeObjectURL(u),60000);})();return;}
   if(a==="invdel"){e.stopPropagation();deleteOrder(id);return;}
   if(a==="invpdf"){invoicePdf(id);return;}
@@ -11423,6 +11562,9 @@ window.addEventListener("dragover",e=>{if(qdragHas(e)&&quoteDropActive()){e.prev
 window.addEventListener("drop",e=>{qdragN=0;document.body.classList.remove("qdrag");
   if(!qdragHas(e)||!quoteDropActive())return;e.preventDefault();quoteDropFiles(e.dataTransfer.files);});
 /* Invoicing: drop a PO PDF straight onto an order's row to attach it (Max, 2026-11-17: Laresa needs the PDF of every paid PO) */
+document.addEventListener("keydown",e=>{if(e.key!=="Enter")return;const id=e.target&&e.target.id;
+  if(id==="srIn"){e.preventDefault();srAddCodes(serialSplit(e.target.value));e.target.value="";}
+  else if(id==="srS"||id==="srL"||id==="srM"||id==="srY"){e.preventDefault();const b=document.querySelector('[data-act="srbuild"]');if(b)b.click();}});
 function invDropRow(e){if(view!=="invoicing"||!qdragHas(e))return null;const r=e.target.closest&&e.target.closest('[data-act="invedit"][data-id]');return r||null;}
 document.addEventListener("dragover",e=>{const r=invDropRow(e);if(!r)return;e.preventDefault();e.dataTransfer.dropEffect="copy";
   document.querySelectorAll(".invdrop").forEach(x=>{if(x!==r)x.classList.remove("invdrop");});r.classList.add("invdrop");});
