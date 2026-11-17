@@ -555,6 +555,19 @@ svg.usmap .nd.act circle.c{stroke:var(--coral);stroke-width:2.5}svg.usmap .nd.ac
 /* replies (2026-10-20) */
 .replycard{border:1px solid var(--rule-2);border-left:3px solid #3FB950;border-radius:10px;padding:12px 14px;margin:10px 0 14px;background:rgba(63,185,80,.05)}
 .replycard .rh{display:flex;justify-content:space-between;gap:10px;font-size:13px}.replycard .rh span{color:var(--ink-3);font-size:12px}
+.slstats{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--rule-2);border-radius:10px;overflow:hidden;margin:0 0 6px}
+.slstats>div{padding:10px 12px;border-left:1px solid var(--rule-2);min-width:0}.slstats>div:first-child{border-left:0}
+.slstats b{display:block;font-size:20px;line-height:1.2;font-variant-numeric:tabular-nums;color:var(--ink)}.slstats b small{font-size:12px;font-weight:500;color:var(--ink-3)}.slstats>div>small{color:var(--ink-3);font-size:12px}
+@media (max-width:640px){.slstats{grid-template-columns:repeat(3,1fr)}.slstats>div:nth-child(4){border-left:0}.slstats>div:nth-child(n+4){border-top:1px solid var(--rule-2)}}
+.slw-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;margin-bottom:6px}.slw-pct{font-variant-numeric:tabular-nums;font-weight:650;color:var(--ink)}
+.slw-bar{display:block;height:8px;border-radius:5px;background:var(--rule-2);overflow:hidden;min-width:60px}.slw-bar i{display:block;height:100%;border-radius:5px;background:var(--ok)}.slw-bar.big{height:12px;border-radius:7px}
+.slw-sum{margin:8px 0 0;font-size:12.5px;line-height:1.5;color:var(--ink-3)}.slw-ok{margin:8px 0 0;font-size:12.5px;color:var(--ok);display:flex;align-items:center;gap:6px}.slw-ok .i{width:14px;height:14px}
+.slw-flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.slw-flags .pill{margin:0;white-space:normal}
+.slw-list{margin-top:10px}.slw-list summary{cursor:pointer;font-size:12.5px;color:var(--ink-3);padding:4px 0}
+.slw-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(70px,1fr) auto;gap:4px 14px;align-items:center;padding:8px 0;border-top:1px solid var(--rule-2)}
+.slw-row .em{min-width:0}.slw-row .em b{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.slw-row .em small{display:block;font-size:11.5px;color:var(--ink-3)}.slw-row .em small.fl{color:var(--bad)}
+.slw-meta{font-size:12px;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}.slw-row.bad .slw-bar i{background:var(--bad)}
+@media (max-width:640px){.slw-row{grid-template-columns:minmax(0,1fr) auto}.slw-row .slw-bar{grid-column:1/-1;order:3}.slw-row .em b{white-space:normal;overflow-wrap:anywhere}}
 .replycard .rs{font-size:12px;color:var(--ink-3);margin-top:2px}.replycard .rb{white-space:pre-wrap;margin-top:10px;font-size:14.5px;line-height:1.55;color:var(--ink)}
 
 /* ---- light mode (2026-10-21) — tokens first, then the few rules that used fixed dark colours ---- */
@@ -4686,7 +4699,7 @@ function viewCampaigns(){
   CAMP_STATUS.forEach(s=>{const rows=list.filter(x=>(x.status||"draft")===s[0]);if(!rows.length)return;
     h+='<div class="sech">'+s[1]+' · '+rows.length+'</div><div class="list">'+rows.map(x=>{const ok=campOk(x).length,steps=x.steps||[],col=campColor(x),appr=Object.keys(x.approvals||{}).map(shortName);
       const stops=steps.map((st,k)=>{const sent=campSentCount(x,k);return '<span class="tag'+(sent&&sent>=ok?" done":"")+'">Day '+(st.day||1)+(sent?' · '+sent:'')+'</span>';}).join("");
-      return '<button class="card route" data-act="campopen" data-id="'+x.id+'"><div><p class="t1">'+esc(x.name)+'</p><p class="t2">'+esc(campAudienceLabel(x))+' · '+ok+' people'+(appr.length?' · approved by '+appr.join(" + "):'')+(x.paused?' · <b style="color:var(--bad)">paused</b>':'')+'</p></div><div class="days">'+stops+'</div><div class="row" style="gap:8px">'+campStatusTag(x)+svg("chevR")+'</div></button>';}).join("")+'</div>';});
+      return '<button class="card route" data-act="campopen" data-id="'+x.id+'"><div><p class="t1">'+esc(x.name)+'</p><p class="t2">'+esc(campAudienceLabel(x))+' · '+ok+' people'+(x.smartlead?' · <b>'+slIn(x)+' in Smartlead</b>':x.channel==="smartlead"?' · Smartlead':'')+(appr.length?' · approved by '+appr.join(" + "):'')+(x.paused?' · <b style="color:var(--bad)">paused</b>':'')+'</p></div><div class="days">'+stops+'</div><div class="row" style="gap:8px">'+campStatusTag(x)+svg("chevR")+'</div></button>';}).join("")+'</div>';});
   return h;
 }
 function campAudiencesHTML(){
@@ -4707,7 +4720,7 @@ function campWizard(c){
   let h='<div class="row" style="margin:2px 0 12px;gap:10px;flex-wrap:wrap"><button class="btn sm ghost" data-act="campback">'+svg("back")+' Campaigns</button><input class="f" id="campName" value="'+esc(c.name)+'" placeholder="Name this campaign" style="max-width:380px;font-weight:650;padding:7px 10px">'+campStatusTag(c)+(c.paused?'<span class="pill dang">Paused — complaints or bounces too high</span>':'')+(c.status==="draft"||admin()?'<button class="btn sm ghost" data-act="campdel" data-id="'+c.id+'" style="margin-left:auto;color:var(--bad)">Delete</button>':'')+'</div>';
   h+=campRouteLine(c);
   h+='<div class="wiz">'+steps.map(s=>'<button class="'+(campStep===s[0]?"on":(campReady(c,s[0])?"done":""))+'" data-act="campstep" data-v="'+s[0]+'">'+(campReady(c,s[0])?svg("check")+" ":"")+s[0]+'. '+s[1]+'</button>').join("")+'</div>';
-  return h+(campStep===1?campLeadsUI(c):campStep===2?campEmailsUI(c):campReviewUI(c)+(admin()?campSendUI(c):''));
+  return h+(campStep===1?campLeadsUI(c):campStep===2?campEmailsUI(c):campReviewUI(c)+(admin()?campSendUI(c):(c.channel==="smartlead"?slPanelHTML(c):'')));
 }
 function campListDots(c,l){const L=leadLists(l);if(!L.length)return '<span class="t2" style="margin:0">removed</span>';const A=campAuds(c);
   return L.map(k=>{const s=A.find(x=>x.key===k);return '<span class="ldot" title="'+esc(s?(s.label||campSpecLabel(s)):"")+'" style="background:'+campListColor(c,k)+'"></span>';}).join("")+(L.length>1?' <span class="t2" style="margin:0">'+L.length+' lists</span>':'');}
@@ -4773,16 +4786,17 @@ function campReviewUI(c){
   let h='<div class="reccard" style="margin-bottom:12px"><div class="row" style="gap:10px">'+campStatusTag(c)+'<span class="t2" style="margin:0">'+(appr.length?'Approved by '+appr.map(u=>teamById(u).name+" · "+new Date(c.approvals[u]).toLocaleDateString()).join(", "):(c.status==="review"?'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or "):'Not sent for review yet'))+'</span></div>'+
    '<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">'+(c.status==="draft"?'<button class="btn coral" data-act="campreview">Send for review</button>':'')+(campIsReviewer()&&!(c.approvals||{})[USER]&&c.status!=="done"?'<button class="btn coral" data-act="campapprove">'+svg("check")+' Approve</button>':'')+(appr.length&&c.status!=="done"&&campIsReviewer()?'<button class="btn ghost" data-act="campunapprove">Pull approval</button>':'')+'</div></div>';
   const chk=campChecks(c);h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Deliverability check</div>'+chk.map(x=>'<div class="tk" style="padding:6px 0"><span class="pill '+(x.ok?"ok":x.hard?"dang":"warn")+'" style="width:22px;height:20px;justify-content:center;padding:0">'+svg(x.ok?"check":"alert")+'</span><span>'+esc(x.text)+'</span></div>').join("")+'</div>';
-  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">What goes out</div><div class="tk"><b>Who</b><span>'+campOk(c).length+' people · '+esc(campAudienceLabel(c))+'</span></div><div class="tk"><b>From</b><span>'+(c.channel==="mailbox"?'the cold inboxes ('+(senders().filter(x=>isMailbox(x)&&!x.paused).map(x=>esc(x.email)).join(", ")||"none yet")+') · Apollo-verified addresses only · replies to '+esc(REPLY_TO):(c.channel||"ses")==="ses"?'the AutoTQ inbox pool ('+senders().filter(s=>!s.paused).map(s=>esc(s.email)).join(", ")+') · replies to each rep\'s real address · unsubscribe link on every email':(esc(SALES_FROM)+', '+esc(teamById(USER).name)+' cc\'d'))+' · up to '+(c.dailyCap||50)+' a day</span></div>'+(c.steps||[]).map(s=>'<div class="tk"><b>Day '+(s.day||1)+'</b><span><b>'+esc(first?campFill(s.subject,first,c):s.subject)+'</b><br><span style="white-space:pre-wrap;color:var(--ink-3)">'+esc(first?campFill(s.body,first,c):s.body)+'</span></span></div>').join("")+'</div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">What goes out</div><div class="tk"><b>Who</b><span>'+campOk(c).length+' people · '+esc(campAudienceLabel(c))+'</span></div><div class="tk"><b>From</b><span>'+(c.channel==="smartlead"?'Smartlead — its own mailboxes and domains, never goldenhourmedical.com · Apollo-verified addresses only · the copy and schedule are set in Smartlead · replies come back to this page':c.channel==="mailbox"?'the cold inboxes ('+(senders().filter(x=>isMailbox(x)&&!x.paused).map(x=>esc(x.email)).join(", ")||"none yet")+') · Apollo-verified addresses only · replies to '+esc(REPLY_TO):(c.channel||"ses")==="ses"?'the AutoTQ inbox pool ('+senders().filter(s=>!s.paused).map(s=>esc(s.email)).join(", ")+') · replies to each rep\'s real address · unsubscribe link on every email':(esc(SALES_FROM)+', '+esc(teamById(USER).name)+' cc\'d'))+' · up to '+(c.dailyCap||50)+' a day</span></div>'+(c.steps||[]).map(s=>'<div class="tk"><b>Day '+(s.day||1)+'</b><span><b>'+esc(first?campFill(s.subject,first,c):s.subject)+'</b><br><span style="white-space:pre-wrap;color:var(--ink-3)">'+esc(first?campFill(s.body,first,c):s.body)+'</span></span></div>').join("")+'</div>';
   h+='<div class="sech">Comments</div><div class="list">'+((c.review||[]).length?(c.review||[]).map(r=>'<div class="card block'+(r.sys?'" style="opacity:.7':'')+'"><p class="t2" style="margin:0 0 3px"><b style="color:'+teamById(r.by).c+'">'+esc(teamById(r.by).name)+'</b> · '+new Date(r.at).toLocaleString([], {month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})+(r.step?' · on '+["","Audience","Emails","Review","Send"][r.step]:'')+'</p><p style="white-space:pre-wrap;margin:0">'+esc(r.text)+'</p></div>').join(""):'<div class="empty" style="padding:16px">No comments yet.</div>')+'</div>';
   return h+'<div class="reccard" style="margin-top:10px"><textarea class="f" id="campNote" rows="3" placeholder="Leave a note for the team — a line to change, a question, a go-ahead"></textarea><button class="btn" data-act="campcomment" style="margin-top:8px">Post</button></div>';
 }
 function campSendUI(c){
   const can=campCanSend(c);let h='<div class="sech">Send</div>';
   if(campColdSes(c))h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Not through Amazon SES</p><p class="t2">'+esc(COLD_SES_TEXT)+'</p></div>';
-  else if(!can)h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Locked until a reviewer approves</p><p class="t2">'+(c.status==="draft"?'Send it for review first.':c.status==="done"?'Every email has gone out.':'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or ")+'.')+'</p></div>';
+  else if(!can&&c.channel!=="smartlead")h+='<div class="reccard" style="margin-bottom:12px"><p class="t1">Locked until a reviewer approves</p><p class="t2">'+(c.status==="draft"?'Send it for review first.':c.status==="done"?'Every email has gone out.':'Waiting on '+CAMP_REVIEWERS.map(u=>teamById(u).name.split(" ")[0]).join(" or ")+'.')+'</p></div>';
   const ses=(c.channel||"ses")==="ses";const st=MAILOUT_STATUS;
-  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Send through</div><div class="chips"><span class="chip'+(ses?" on":"")+'" data-act="campchan" data-v="ses">AutoTQ inbox pool (SES)</span>'+(c.channel==="mailbox"?'<span class="chip on" data-act="campchan" data-v="mailbox">Cold inboxes (Microsoft 365, retired)</span>':'')+'<span class="chip'+(c.channel==="inbox"?" on":"")+'" data-act="campchan" data-v="inbox">Our inbox · '+esc(SALES_FROM)+'</span></div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Send through</div><div class="chips"><span class="chip'+(ses?" on":"")+'" data-act="campchan" data-v="ses">AutoTQ inbox pool (SES)</span>'+(c.channel==="mailbox"?'<span class="chip on" data-act="campchan" data-v="mailbox">Cold inboxes (Microsoft 365, retired)</span>':'')+'<span class="chip'+(c.channel==="smartlead"?" on":"")+'" data-act="campchan" data-v="smartlead">Smartlead (cold)</span><span class="chip'+(c.channel==="inbox"?" on":"")+'" data-act="campchan" data-v="inbox">Our inbox · '+esc(SALES_FROM)+'</span></div>';
+  if(c.channel==="smartlead")return h+'<p class="t2" style="margin-top:10px">Cold lists go out from Smartlead’s own mailboxes and domains — never goldenhourmedical.com, Amazon SES or Microsoft 365. The copy and the schedule live in Smartlead; replies come back here.</p></div>'+slPanelHTML(c);
   if(c.channel==="mailbox"){const boxes=senders().filter(isMailbox);
     h+='<p class="t2" style="margin-top:10px">Real Microsoft 365 mailboxes, for lists that never met us. Only Apollo-verified addresses get an email, each inbox climbs '+COLD_RAMP.join(" → ")+' a day, and replies go to '+esc(REPLY_TO)+'.'+(st&&st.ok&&!st.m365?' <b style="color:var(--bad)">mail-out has no Microsoft 365 credentials.</b>':'')+'</p>'+
       (boxes.length?'<div class="chips" style="margin-top:8px">'+boxes.map(x=>{const okb=senderDomainOk(x);return '<span class="chip'+(c.from===x.email?" on":"")+'" data-act="campfrom" data-v="'+esc(x.email)+'">'+esc(x.email)+' · '+senderLeft(x)+' left today'+(okb===false?' · not allowed on mail-out yet':'')+'</span>';}).join("")+'</div><p class="t2" style="margin-top:6px">Send now uses the inbox picked here; the day\'s run rotates through all of them.</p>':'<p class="t2" style="margin-top:8px"><b>No cold inbox yet.</b> Add one under Schedule › Inboxes.</p>');
@@ -4804,6 +4818,144 @@ function campSendUI(c){
   if((c.sendLog||[]).length)h+='<div class="sech">Send log</div><div class="list">'+c.sendLog.slice().reverse().map(e=>'<div class="card"><div class="grow"><p class="t1">'+(e.step>=0?'Email '+(e.step+1):'The day\'s run')+' → '+e.count+' people</p><p class="t2">'+new Date(e.at).toLocaleString()+' · '+esc(e.by==="mail-run"?"automation":teamById(e.by).name)+(e.from?' · from '+esc(e.from):'')+'</p></div></div>').join("")+'</div>';
   return h;
 }
+/* ---------- Smartlead (2026-11-11 · the cold school & university campaign) ----------
+   Cold lists run in Smartlead, on Smartlead's own mailboxes and domains — never goldenhourmedical.com, Amazon SES or Microsoft 365.
+   The hub only: picks a Smartlead campaign and adds this campaign's ready people to it (smartlead-bridge `push`, 400 a call), shows
+   Smartlead's numbers, and lists the replies its webhook brought back (`replies`, source "smartlead"), each with the territory rep and
+   a one-tap hand-off (actPush: a CRM lead + a to-do for the rep). The hub emails nobody and starts nothing in Smartlead: Max launches
+   the campaign there, and the cc to the rep happens in Smartlead's inbox or Outlook. Bounces and unsubscribes land on `suppress`. */
+const SLFN="/functions/v1/smartlead-bridge";
+const SL={camps:null,accts:null,err:"",loading:false,stats:{},pick:{},busy:"",last:{}};
+const SL_REP={East:"johnm",Central:"john"},SL_HAND=["johnm","john","max"]; // West has no rep (Max, 2026-11-16: "Take Tim Ford out and just replace with West")
+async function slCall(action,body){try{const r=await supa(SLFN,{method:"POST",body:JSON.stringify(Object.assign({action},body||{}))});let j={};try{j=await r.json();}catch(e){}
+  if(r.status===404&&!j.error)j.error="The Smartlead bridge isn't deployed yet";j._status=r.status;return j;}catch(e){return {error:"Couldn't reach the Smartlead bridge",_status:0};}}
+async function slLoad(force){if(SL.loading||(SL.camps&&!force))return;SL.loading=true;SL.err="";
+  const [c,a]=await Promise.all([slCall("campaigns"),slCall("accounts")]);SL.loading=false;
+  if(c.error){SL.err=c.error;SL.camps=null;}else{SL.camps=c.campaigns||[];SL.accts=a.error?null:(a.accounts||[]);}
+  if(view==="camp")render();}
+async function slLoadStats(id,force){const s=SL.stats[id];if(!id||(s&&(s.loading||(!force&&Date.now()-s.at<300000))))return;
+  SL.stats[id]=Object.assign({},s||{},{loading:true});const j=await slCall("stats",{slId:id});
+  SL.stats[id]=j.error?Object.assign({},s||{},{loading:false,err:j.error,at:Date.now()}):{s:j.stats,at:Date.now(),loading:false};if(view==="camp")render();}
+function slLeadKey(l){return String((l&&l.email)||"").trim().toLowerCase();}
+function slTarget(c){return SL.pick[c.id]||(c.smartlead&&c.smartlead.id)||"";}
+function slReady(c,id){const sup=new Set((DB.suppress||[]).map(s=>String(s.id||"").toLowerCase()));
+  return campOk(c).filter(l=>campFlagNow(l)==="ok"&&campColdReady(l)&&!sup.has(slLeadKey(l))&&!(l.sl&&l.sl.id===id&&l.sl.at));} // Apollo-verified only, like the cold lane
+function slIn(c){const id=c.smartlead&&c.smartlead.id;return id?(c.leads||[]).filter(l=>l.sl&&l.sl.id===id).length:0;}
+function slReplies(c){const em=new Set((c.leads||[]).map(slLeadKey)),id=c.smartlead&&c.smartlead.id;const by=new Map();
+  (DB.replies||[]).filter(r=>r&&r.source==="smartlead"&&((r.campaignIds||[]).includes(c.id)||em.has(String(r.from||"").toLowerCase())||(id&&String(r.slCampaignId)===String(id))))
+    .sort((a,b)=>String(b.at).localeCompare(String(a.at))).forEach(r=>{const k=String(r.from||"").toLowerCase();if(!by.has(k))by.set(k,[]);by.get(k).push(r);});
+  return [...by.entries()].map(([key,rs])=>({key,rs,l:(c.leads||[]).find(l=>slLeadKey(l)===key)||null}));}
+function slInboxLink(r){const u=String((r&&r.inbox)||"");return /^https:\/\/([a-z0-9-]+\.)*smartlead\.ai\//i.test(u)?u:"";}
+function slStatusPill(st){st=String(st||"").toUpperCase();return '<span class="pill'+(st==="ACTIVE"?" ok":st==="PAUSED"?" warn":st==="DRAFTED"?"":" dang")+'">'+esc(st?st.charAt(0)+st.slice(1).toLowerCase():"—")+'</span>';}
+function slPanelHTML(c){
+  const link=c.smartlead||null,can=admin()||USER==="hannah";let h='<div class="sech">Smartlead</div><div class="reccard" style="margin-bottom:12px">';
+  if(!SL.camps&&!SL.err){h+='<p class="t2" style="margin:0">Loading your Smartlead campaigns…</p>';setTimeout(()=>slLoad(),30);}
+  else if(SL.err)h+='<div class="tk" style="border:0;padding:0"><span class="pill dang">Not connected</span><span class="t2" style="margin:0">'+esc(SL.err)+'</span><button class="btn sm ghost" data-act="slreload">Try again</button></div>';
+  else{const id=slTarget(c),t=SL.camps.find(x=>x.id===id),rd=id?slReady(c,id):[],open=SL.camps.filter(x=>!/STOPPED|ARCHIVED|COMPLETED/i.test(x.status));
+    h+='<p class="t2" style="margin:0 0 8px">Add this list to a campaign in Smartlead. Nobody is emailed until you launch the campaign in Smartlead — the hub never starts one.</p>';
+    h+=open.length?'<div class="chips">'+open.map(x=>'<span class="chip'+(x.id===id?" on":"")+'" data-act="slpick" data-v="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(x.status.charAt(0)+x.status.slice(1).toLowerCase())+'</span>').join("")+'</div>'
+      :'<p class="t1" style="margin:4px 0">No open campaigns in Smartlead yet</p><p class="t2" style="margin:0">Create one in Smartlead (sequence, mailboxes, schedule), then refresh.</p><button class="btn sm ghost" data-act="slreload" style="margin-top:8px">Refresh</button>';
+    if(id){const held=campOk(c).filter(l=>!campColdReady(l)).length;
+      h+='<p style="margin:12px 0 4px"><b>'+rd.length+'</b> ready to add to <b>'+esc(t?t.name:"this campaign")+'</b>'+(slIn(c)&&link&&link.id===id?' · <b>'+slIn(c)+'</b> already there':'')+(held?' · '+held+' held back (address not checked with Apollo)':'')+'</p>';
+      if(t&&/ACTIVE/i.test(t.status))h+='<p class="t2" style="margin:0 0 4px">This campaign is running: anyone added starts getting its emails on its schedule.</p>';
+      if(can)h+='<div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn coral" data-act="slpush"'+(rd.length&&!SL.busy?'':' disabled')+'>'+(SL.busy==="push"?'Adding…':'Send '+rd.length+' to Smartlead')+'</button></div>';}
+    const last=SL.last[c.id];if(last)h+='<p class="t2" style="margin:10px 0 0">'+esc(last)+'</p>';
+    if(link){const p=(link.pushes||[]).slice(-1)[0];
+      h+='<div class="tk" style="margin-top:12px"><b>Linked</b><span>'+esc(link.name||"Smartlead campaign")+' '+slStatusPill(((SL.camps.find(x=>x.id===link.id)||{}).status)||link.status)+' · '+slIn(c)+' people in Smartlead'+(p?' · last added '+esc(actDay(p.at))+' by '+esc(shortName(TEAM_EMAILS[p.by]||p.by))+(p.error?' · <b style="color:var(--bad)">stopped early: '+esc(p.error)+'</b>':''):'')+'</span></div>'+
+        '<div class="tk"><b>Replies</b><span>'+(link.hook&&link.hook.ok?'<span class="pill ok">Coming back to the hub</span> reply · bounce · unsubscribe':'<span class="pill warn">Not connected</span> '+esc((link.hook&&link.hook.error)||"")+(can?' <button class="btn sm ghost" data-act="slhook">Connect replies</button>':''))+'</span></div>';}
+    if(SL.accts){const n=SL.accts.length,warm=SL.accts.filter(a=>/active|progress|warm/i.test(a.warmup)).length;
+      h+='<details style="margin-top:10px"><summary class="t2">'+n+' Smartlead mailbox'+(n===1?"":"es")+(warm?' · '+warm+' warming up':'')+'</summary><div class="list" style="margin-top:8px">'+SL.accts.map(a=>'<div class="card"><div class="grow"><p class="t1">'+esc(a.email)+'</p><p class="t2">'+esc([a.name,a.type,a.warmup?("warmup "+String(a.warmup).toLowerCase()+(a.reputation!==""?" · "+a.reputation:"")):"",a.perDay?(a.sentToday+" of "+a.perDay+" today"):""].filter(Boolean).join(" · "))+'</p></div></div>').join("")+'</div></details>';}}
+  h+='</div>';
+  h+='<div class="reccard" style="margin-bottom:12px"><div class="sectlabel">Inbox warmup</div>'+slWarmHTML(false)+'</div>';
+  if(link&&link.id)h+=slStatsHTML(link.id);
+  return h+slRepliesHTML(c);
+}
+function slStatsHTML(id){const x=SL.stats[id];if(!x||(!x.s&&!x.err&&!x.loading))setTimeout(()=>slLoadStats(id),30);else if(!x.loading&&Date.now()-x.at>300000)setTimeout(()=>slLoadStats(id),30);
+  const s=(x&&x.s)||null,pct=n=>s&&s.sent?' <small>'+(Math.round(n/s.sent*1000)/10)+'%</small>':'';
+  const cell=(lbl,n,r)=>'<div><b>'+(s?n.toLocaleString():"—")+(r?pct(n):"")+'</b><small>'+lbl+'</small></div>';
+  return '<div class="slstats">'+cell("Sent",s?s.sent:0)+cell("Opened",s?s.opened:0,1)+cell("Replied",s?s.replied:0,1)+cell("Bounced",s?s.bounced:0,1)+cell("Unsubscribed",s?s.unsubscribed:0,1)+'</div>'+
+    '<p class="t2" style="margin:0 0 12px">'+(x&&x.err?'<b style="color:var(--bad)">'+esc(x.err)+'</b> · ':'')+'From Smartlead'+(x&&x.at?' · updated '+esc(actAgo(new Date(x.at).toISOString())):'')+' <button class="btn sm ghost" data-act="slstats">'+(x&&x.loading?'Refreshing…':'Refresh')+'</button></p>';}
+function slRepliesHTML(c){const ps=slReplies(c);
+  let h='<div class="pan" style="margin-bottom:14px"><div class="ph2">'+svg("mail")+'Replies<span class="t2" style="margin-left:4px">· '+(ps.length?ps.length+(ps.length===1?' person':' people')+' wrote back':'none yet')+'</span></div>';
+  if(!ps.length)return h+'<div class="actrow"><span class="t2">Replies from Smartlead show up here within seconds, each with the rep for that territory.</span></div></div>';
+  return h+ps.map(p=>{const l=p.l||{},r=p.rs[0],reg=regionFromState(l.state),rep=SL_REP[reg]||"",nm=((l.first||"")+" "+(l.last||"")).trim()||r.fromName||p.key;
+    const txt=String(r.text||"").replace(/\s+/g," ");
+    return '<div class="actrow"><i class="actdot"></i><span class="nm"><b>'+esc(nm)+'</b><small>'+esc([l.title,l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")||p.key)+'</small>'+
+      '<small class="what">'+(txt?'“'+esc(txt.slice(0,140))+(txt.length>140?'…':'')+'”':'(no text)')+' · '+esc(actAgo(r.at))+(p.rs.length>1?' · '+p.rs.length+' replies':'')+'</small>'+
+      '<small>'+(rep?'Rep: <span style="font-weight:600;color:var(--ink-2)">'+esc(teamById(rep).name)+'</span> · '+reg:reg==="West"?'West · no rep yet':'No state on file')+'</small></span><span class="row" style="gap:6px">'+
+      (!p.l?'<span class="pill">Not on this hub list</span>':l.handedTo?'<span class="pill info">With '+esc(repShort(l.handedTo))+(l.handedAt?' · '+esc(actDay(l.handedAt)):'')+'</span>':
+        (rep?'<button class="btn sm coral" data-act="actpush" data-v="'+esc(p.key)+'" data-r="'+rep+'">Hand to '+esc(repShort(rep))+'</button>':'<button class="btn sm" data-act="slhand" data-v="'+esc(p.key)+'">Hand to…</button>'))+
+      '<button class="btn sm" data-act="slread" data-v="'+esc(p.key)+'">Read</button></span></div>';}).join("")+'</div>';}
+function slReadSheet(key){const c=campaignById(curCampaign);const p=c?slReplies(c).find(x=>x.key===key):null;if(!p)return;const l=p.l||{email:key},reg=regionFromState(l.state),rep=SL_REP[reg]||"";
+  const nm=((l.first||"")+" "+(l.last||"")).trim()||p.rs[0].fromName||key,ib=slInboxLink(p.rs[0]);
+  openInsp('<div class="actsheet"><h2>'+esc(nm)+' wrote back</h2><p class="t2">'+esc([l.title,l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))+'<br>'+esc(key)+'</p>'+p.rs.map(replyHTML).join("")+
+    (ib?'<a class="btn" href="'+esc(ib)+'" target="_blank" rel="noopener">Open in Smartlead</a>':'')+
+    '<p class="t2" style="margin-top:14px">Answer from Smartlead\'s inbox (or Outlook) and cc '+(rep?esc(teamById(rep).name)+', the '+reg+' rep':reg==="West"?'whoever takes it (West has no rep yet)':'the rep')+'. The hub doesn\'t send anything.</p>'+
+    (!p.l?'<p class="t2">They aren\'t on this hub list, so there is nobody to hand over from here.</p>':l.handedTo?'<p><span class="pill info">With '+esc(teamById(l.handedTo).name)+(l.handedAt?' since '+esc(actDay(l.handedAt)):'')+'</span></p>':
+      '<div class="row" style="gap:8px;flex-wrap:wrap">'+SL_HAND.map(id=>'<button class="btn sm'+(id===rep?' coral':'')+'" data-act="actpush" data-v="'+esc(key)+'" data-r="'+id+'">Hand to '+esc(teamById(id).name)+'</button>').join("")+'</div><p class="t2" style="margin-top:8px">Hand-off = the lead in the CRM\'s Leads for that rep + a follow-up on their Home, with this reply attached.</p>')+'</div>');}
+function slPickSheet(key){const c=campaignById(curCampaign);const p=c?slReplies(c).find(x=>x.key===key):null;if(!p||!p.l)return;const l=p.l;
+  openInsp('<h2>Hand '+esc(l.first||key)+' to</h2><p class="t2">'+esc([l.company,[l.city,l.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))+'</p><div class="list">'+SL_HAND.map(id=>'<div class="card"><div class="grow"><p class="t1">'+esc(teamById(id).name)+'</p><p class="t2">'+esc(teamById(id).role)+'</p></div><button class="btn sm coral" data-act="actpush" data-v="'+esc(key)+'" data-r="'+id+'">Hand over</button></div>').join("")+'</div>');}
+async function slPush(c){const id=slTarget(c);if(!id){toast("Pick a Smartlead campaign");return;}const t=(SL.camps||[]).find(x=>x.id===id)||{name:"that campaign",status:""};
+  const rd=slReady(c,id);if(!rd.length){toast("Nobody new to add");return;}
+  if(!confirm('Add '+rd.length+' people to "'+t.name+'" in Smartlead?\n\nNobody is emailed until you launch the campaign in Smartlead.'+(/ACTIVE/i.test(t.status)?'\n\nThis campaign is already running — they start getting its emails on its schedule.':'')))return;
+  SL.busy="push";SL.last[c.id]="";render();await pushDirty();
+  const body={hubId:c.id,slId:id,emails:rd.map(slLeadKey),confirmActive:/ACTIVE/i.test(t.status)};let j=await slCall("push",body);
+  if(j.needConfirm&&confirm('"'+t.name+'" is running in Smartlead. Add them anyway? They start getting its emails on its schedule.'))j=await slCall("push",Object.assign(body,{confirmActive:true}));
+  if(j.needRelink){if(confirm('This list is linked to "'+((j.linkedTo||{}).name||"another Smartlead campaign")+'". Link it to "'+t.name+'" instead? People already added stay where they are.'))j=await slCall("push",Object.assign(body,{relink:true}));else{SL.busy="";render();return;}}
+  SL.busy="";await pullChanges();
+  SL.last[c.id]=j.needConfirm||j.needRelink?"Nothing added.":j.error&&!j.pushed?"Nothing added: "+j.error:
+    "Added "+(j.added||0)+" to "+t.name+(j.skipped?" · Smartlead skipped "+j.skipped+" (duplicates, its block list or bad addresses)":"")+(j.error?" · stopped early: "+j.error+" — send again for the rest":"")+(j.hook&&!j.hook.ok?" · replies not connected yet":"");
+  toast(j.pushed?"Added to Smartlead":"Nothing added");render();slLoadStats(id,true);}
+function slHandle(a,t){const c=curCampaign?campaignById(curCampaign):null;
+  if(a==="slreload"){SL.camps=null;SL.err="";slLoad(true);render();return true;}
+  if(a==="slpick"&&c){SL.pick[c.id]=t.dataset.v;render();return true;}
+  if(a==="slpush"&&c){slPush(c);return true;}
+  if(a==="slstats"&&c&&c.smartlead){slLoadStats(c.smartlead.id,true);render();return true;}
+  if(a==="slhook"&&c&&c.smartlead){(async()=>{const j=await slCall("hook",{slId:c.smartlead.id,hubId:c.id});await pullChanges();toast(j.ok?"Replies connected":"Couldn't connect: "+(j.error||""));render();})();return true;}
+  if(a==="slread"){slReadSheet(String(t.dataset.v||"").toLowerCase());return true;}
+  if(a==="slhand"){slPickSheet(String(t.dataset.v||"").toLowerCase());return true;}
+  if(a==="slwarm"){slLoadWarm(true);render();return true;}
+  return false;}
+/* Smartlead inbox warmup (Max, 2026-11-17: "something … that shows the progress of the warming via progress bar"). Read-only: the bridge's
+   `warmup` action (every mailbox's warmup settings + its /warmup-stats). Progress = days warmed out of SL_WARM_DAYS, counted in Eastern
+   calendar days from the warmup start; ready = start + 21 days. Flagged: warmup not active, blocked, can't connect, reputation under 90%. */
+const SL_WARM_DAYS=21;
+function slWarmLive(){return (USER==="max"||USER==="hannah")&&!(SL.warm&&SL.warm.err&&!SL.warm.boxes);} // the bridge answers Max + Hannah; otherwise the Cold email tab keeps its estimate
+const slEtDay=d=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York"}).format(d); // YYYY-MM-DD in Eastern time
+function slWarmInfo(b){const s0=b.startedAt?slEtDay(new Date(b.startedAt)):"",days=s0?Math.max(0,Math.round((Date.parse(slEtDay(new Date()))-Date.parse(s0))/864e5)):0;
+  const ready=s0?new Date(Date.parse(s0)+SL_WARM_DAYS*864e5+12*36e5):null,st=b.stats||null,flags=[];
+  if(b.status&&b.status.toUpperCase()!=="ACTIVE")flags.push("Warmup "+b.status.toLowerCase());
+  if(b.blocked)flags.push("Blocked: "+b.blocked);
+  if(!b.smtpOk||!b.imapOk)flags.push("Can't connect"+(b.connError?": "+b.connError:""));
+  if(b.reputation&&b.reputation<90)flags.push("Reputation "+b.reputation+"%");
+  const perDay=b.perDayMax?Math.min(b.perDayMax,(b.perDayMin||0)+(b.rampUp||0)*days):0;
+  return {days:Math.min(days,SL_WARM_DAYS),pct:Math.min(1,days/SL_WARM_DAYS),ready,flags,place:st&&st.sent?st.inbox/st.sent:null,perDay};}
+async function slLoadWarm(force){const w=SL.warm;if(w&&(w.loading||(!force&&w.at&&Date.now()-w.at<1800000)))return;
+  SL.warm=Object.assign({},w||{},{loading:true});const j=await slCall("warmup");
+  SL.warm=j.error?Object.assign({},w||{},{loading:false,err:j.error,at:Date.now()}):{boxes:j.boxes||[],at:Date.now(),loading:false};render();}
+const slMd=d=>d?d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",timeZone:"UTC"}):"";
+function slWarmHTML(open){const w=SL.warm;if(!w||(!w.boxes&&!w.err&&!w.loading))setTimeout(()=>slLoadWarm(),30);
+  if(!w||(!w.boxes&&!w.err))return '<p class="t2" style="margin:0">Reading the warmup from Smartlead…</p>';
+  if(!w.boxes)return '<div class="tk" style="border:0;padding:0"><span class="pill dang">Not connected</span><span class="t2" style="margin:0">'+esc(w.err)+'</span><button class="btn sm ghost" data-act="slwarm">Try again</button></div>';
+  const B=w.boxes;if(!B.length)return '<p class="t2" style="margin:0">No mailboxes in Smartlead yet.</p>';
+  const I=B.map(b=>Object.assign({b},slWarmInfo(b))),act0=I.filter(x=>String(x.b.status).toUpperCase()==="ACTIVE"),act=act0.length?act0:I;
+  const pct=act.length?act.reduce((a,x)=>a+x.pct,0)/act.length:0,days=act.length?Math.min(...act.map(x=>x.days)):0;
+  const rd=[...new Set(I.filter(x=>x.ready).map(x=>x.ready.getTime()))].sort(),rdTxt=rd.length?(rd.length===1?slMd(new Date(rd[0])):slMd(new Date(rd[0]))+' – '+slMd(new Date(rd[rd.length-1]))):"";
+  const sum=k=>B.reduce((a,b)=>a+((b.stats&&b.stats[k])||0),0),sent=sum("sent"),inbox=sum("inbox"),spam=sum("spam");
+  const types={};B.forEach(b=>{const t=b.type==="GMAIL"?"Gmail":b.type==="OUTLOOK"?"Outlook":(b.type||"Other");types[t]=(types[t]||0)+1;});
+  const reps=B.map(b=>b.reputation).filter(Boolean),repMin=reps.length?Math.min(...reps):0,doms=new Set(B.map(b=>b.domain)).size,bad=I.filter(x=>x.flags.length);
+  const ramp=I[0]&&I[0].b.rampUp?I[0]:null,full=ramp?Math.ceil(((ramp.b.perDayMax||0)-(ramp.b.perDayMin||0))/ramp.b.rampUp):0,fullDay=ramp&&ramp.b.startedAt?new Date(Date.parse(slEtDay(new Date(ramp.b.startedAt)))+full*864e5+12*36e5):null;
+  const bar=(p,cls)=>'<span class="slw-bar'+(cls?' '+cls:'')+'" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(p*100)+'"><i style="width:'+Math.max(p>0?2:0,Math.round(p*100))+'%"></i></span>';
+  let h='<div class="slw"><div class="slw-head"><span><b>'+days+' of '+SL_WARM_DAYS+' days</b> warmed'+(rdTxt?' · ready about <b>'+esc(rdTxt)+'</b>':'')+'</span><span class="slw-pct">'+Math.round(pct*100)+'%</span></div>'+bar(pct,"big")+
+    '<p class="slw-sum">'+B.length+' inbox'+(B.length===1?'':'es')+' on '+doms+' domain'+(doms===1?'':'s')+' · '+Object.keys(types).map(t=>types[t]+' '+t).join(', ')+' · '+sent.toLocaleString()+' warmup emails sent · '+(sent?Math.round(inbox/sent*100)+'% landed in the inbox':'none landed yet')+' · '+spam+' in spam · reputation '+(repMin===100||!reps.length?'100%':'lowest '+repMin+'%')+'</p>'+
+    (ramp&&ramp.perDay?'<p class="slw-sum">Each inbox sends '+ramp.perDay+' warmup emails today, +'+ramp.b.rampUp+' a day up to '+ramp.b.perDayMax+(fullDay&&ramp.perDay<ramp.b.perDayMax?' ('+esc(slMd(fullDay))+')':'')+'.</p>':'')+
+    (bad.length?'<div class="slw-flags">'+bad.map(x=>'<span class="pill dang" title="'+esc(x.flags.join(' · '))+'">'+esc(x.b.email)+' — '+esc(x.flags[0])+'</span>').join("")+'</div>':'<p class="slw-ok">'+svg("check")+' All '+B.length+' inboxes healthy</p>');
+  const rows=I.slice().sort((a,b)=>(b.flags.length?1:0)-(a.flags.length?1:0)||a.b.email.localeCompare(b.b.email)).map(x=>{const b=x.b,st=b.stats||{};
+    return '<div class="slw-row'+(x.flags.length?' bad':'')+'"><span class="em"><b>'+esc(b.email)+'</b><small>'+esc([b.type==="GMAIL"?"Gmail":b.type==="OUTLOOK"?"Outlook":b.type,x.days+' of '+SL_WARM_DAYS+' days',x.ready?'ready '+slMd(x.ready):''].filter(Boolean).join(' · '))+'</small>'+(x.flags.length?'<small class="fl">'+esc(x.flags.join(' · '))+'</small>':'')+'</span>'+bar(x.pct)+
+      '<span class="slw-meta">'+(b.reputation?b.reputation+'% rep':'—')+' · '+(st.spam||0)+' spam · '+(x.place==null?'— inbox':Math.round(x.place*100)+'% inbox')+'</span></div>';}).join("");
+  h+='<details class="slw-list"'+(open?' open':'')+'><summary>Every inbox</summary>'+rows+'</details>';
+  return h+'<p class="t2" style="margin:8px 0 0">From Smartlead · updated '+esc(actAgo(new Date(w.at).toISOString()))+' <button class="btn sm ghost" data-act="slwarm">'+(w.loading?'Refreshing…':'Refresh')+'</button></p></div>';}
+function slWarmSince(){const B=SL.warm&&SL.warm.boxes;if(!B||!B.length)return "";const s=B.map(b=>b.startedAt).filter(Boolean).sort()[0];return s?"on since "+new Date(Date.parse(slEtDay(new Date(s)))+12*36e5).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"})+" · live from Smartlead":"";}
 function repliedPeople(){const by=new Map();const rc=realClicks();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{const key=String(l.email||"").toLowerCase();const ck=rc.get(key);if(!(l.outcome&&l.outcome!=="no")&&l.flag!=="replied"&&l.flag!=="engaged"&&!ck)return;if(!key||by.has(key))return;const rp=repliesOf(key)[0];
     by.set(key,{key,l,c,reply:rp,click:ck||(l.engagedAt?{at:l.engagedAt,url:l.engagedUrl}:null),at:rp?rp.at:(l.replyAt||l.outcomeAt||(ck&&ck.at)||l.engagedAt||"")});}));
   return [...by.values()].sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
@@ -5499,6 +5651,7 @@ document.addEventListener("click",e=>{
   if(a.indexOf("call")===0&&callHandle(a,t))return;
   if(a==="perftest"){perfTest(t.dataset.id,+t.dataset.v);return;}
   if(a==="perfmsg"){const s=PERF_OPEN[t.dataset.id]=PERF_OPEN[t.dataset.id]||new Set();const k=+t.dataset.v;if(s.has(k))s.delete(k);else s.add(k);render();return;}
+  if(a.indexOf("sl")===0&&slHandle(a,t))return;
   if(a.indexOf("act")===0&&actHandle(a,t))return;
   if(a==="mapstate"){const k=t.dataset.v;const d=MAP_DATA[k];if(!d)return;const cs=campaigns().filter(c=>!ovCamp||c.id===ovCamp);const rows=[];cs.forEach(c=>(c.leads||[]).forEach(l=>{if(String(l.state||"").toUpperCase().slice(0,2)===k&&l.sent&&Object.keys(l.sent).length)rows.push({l,c});}));
     const actHere=(actByState()[k]||[]);openInsp((actHere.length?'<h2>Act on — '+esc(stFull(k))+'</h2><div class="pan" style="margin-bottom:18px">'+actHere.map(actRowHTML).join('')+'</div>':'')+'<h2>'+esc(STATE_NAMES[k]||k)+'</h2><p class="t2">'+esc(regionFromState(k))+' · '+d.sent+' sent · '+fmtPct(pct(d.opened,d.sent))+' opened · '+fmtPct(pct(d.bounced,d.sent))+' bounced</p><div class="insp-line" style="background:'+(d.hot?"var(--coral)":"var(--ink)")+'"></div><div class="list">'+rows.slice(0,40).map(r=>'<div class="card"><div class="grow"><p class="t1">'+esc((r.l.first||"")+" "+(r.l.last||""))+'</p><p class="t2">'+esc(r.l.company||"")+(r.l.title?" · "+esc(r.l.title):"")+' · '+esc(laneShort(r.c))+(r.l.outcome?' · <b>'+esc(r.l.outcome)+'</b>':"")+'</p></div></div>').join("")+'</div>'+(rows.length>40?'<p class="t2">+'+(rows.length-40)+' more</p>':""));return;}
@@ -6284,8 +6437,8 @@ function mk2ViewCold(){const today=todayStr(),can=coldCan(),D=coldDomains(),fill
     D.map((d,i)=>{const bad=coldDomainIssue(d);return '<div class="cold-br"><span>'+(can?'<input class="cold-dom" data-i="'+i+'" value="'+esc(d)+'" placeholder="Domain '+(i+1)+'" autocomplete="off" spellcheck="false" aria-label="Domain '+(i+1)+'">':'<b>'+esc(d||"Domain "+(i+1))+'</b>')+(bad?'<small class="bad">'+esc(bad)+'</small>':'')+'</span><span class="pv">'+(i<D.length/2?"Google":"Outlook")+'</span><span class="mb">max@'+esc(d||"…")+'<br>max.herbst@'+esc(d||"…")+'</span></div>';}).join("")+'</div>'+
     (can&&filled<D.length?'<div class="cold-ideas"><span class="mut">Ideas:</span>'+COLD_DOMAIN_IDEAS.filter(x=>!D.includes(x)).map(x=>'<button class="mk2-chip" data-act="mk2colddom" data-v="'+x+'">'+x+'</button>').join("")+'</div>':'')+
     '<div class="cold-sig"><div class="sl">Signature</div><pre>'+esc(COLD_SIG)+'</pre><button class="btn sm ghost" data-act="mk2coldcopy" data-v="sig">Copy</button></div></div>';
-  L+='<div class="mk2-card"><div class="ch"><h2>Warmup</h2><span class="kn">'+(ws?'on since '+esc(coldMd(ws.start)):'turns on with step 6')+'</span></div>'+
-    (ws?'<div class="cold-warm"><div class="bar"><i style="width:'+Math.min(100,Math.round(100*ws.day/21))+'%"></i></div><div class="wl"><span>Day <b>'+ws.day+'</b> of 14–21</span><span><b>'+ws.cap+'</b> warmup emails a mailbox today</span><span>Ready '+esc(ws.ready[0])+' – '+esc(ws.ready[1])+'</span></div></div>':'')+
+  L+='<div class="mk2-card"><div class="ch"><h2>Warmup</h2><span class="kn">'+(slWarmSince()?esc(slWarmSince()):ws?'on since '+esc(coldMd(ws.start)):'turns on with step 6')+'</span></div>'+
+    (slWarmLive()?slWarmHTML(true):ws?'<div class="cold-warm"><div class="bar"><i style="width:'+Math.min(100,Math.round(100*ws.day/21))+'%"></i></div><div class="wl"><span>Day <b>'+ws.day+'</b> of 14–21</span><span><b>'+ws.cap+'</b> warmup emails a mailbox today</span><span>Ready '+esc(ws.ready[0])+' – '+esc(ws.ready[1])+'</span></div></div>':'')+
     '<div class="cold-spec">'+COLD_WARM.map(x=>'<div><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>').join("")+'</div></div>';
   // right: road, launch settings, the yes loop, sequences
   const firstOpen=COLD_ROAD.findIndex(r=>!(r[0]==="r1"?setupN===COLD_SETUP.length||coldDone("r1"):coldDone(r[0])));
