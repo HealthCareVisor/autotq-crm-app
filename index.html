@@ -553,6 +553,7 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 /* rep scorecard (admin Home) + the Analysis page */
 .face{position:relative;width:40px;height:40px;border-radius:50%;overflow:hidden;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
 .face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.face.vac{background:var(--sunken);border:2px dashed var(--line-3)}
 .face.lg{width:58px;height:58px;font-size:17px;box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--line)}.face.xl{width:76px;height:76px;font-size:22px;box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--line)}
 .schome{margin:0 0 24px}.scrows{display:flex;flex-direction:column;gap:10px}
 .scrow{display:grid;grid-template-columns:230px minmax(0,1fr);gap:12px;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--sh-1)}
@@ -585,7 +586,7 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .sctag.out{background:#E8F0FB;color:#1D4F91}.sctag.in{background:#EEF3EA;color:#3B6D11}.sctag.crm{background:#FBEDE7;color:#9C3D1B}
 .scw,.scx{display:flex;flex-direction:column;gap:2px;min-width:0}.scw b,.scx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.scw small,.scx small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .scprev{white-space:pre-wrap;background:var(--sunken);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;margin:12px 0 8px;overflow-wrap:anywhere}
-.sctiles.fu7{grid-template-columns:repeat(7,minmax(0,1fr))}
+.sctiles.fu7{grid-template-columns:repeat(7,minmax(0,1fr))}.sct.scsm .scv{font-size:18px}
 .sct.fu{font:inherit;text-align:left;color:var(--ink);cursor:pointer}.sct.fu:hover{background:var(--sunken)}.sct.fu:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .fuband{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%;font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 10px;cursor:pointer;box-shadow:var(--sh-1)}
 .fuband:hover{background:var(--sunken)}.fuband.sg{border-left-color:var(--st-ok)}.fuband.sy{border-left-color:var(--st-warn)}.fuband.sr{border-left-color:var(--st-dang)}
@@ -1375,7 +1376,9 @@ const TEAM=[
  {id:"hannah",name:"Hannah Herbst",role:"Founder / CEO",c:"#993556"},
  {id:"kellan",name:"Kellan Phillips",role:"Outreach / lead gen",c:"#6B4FA3"},
  {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
- {id:"tim",name:"Tim Ford",role:"Channel Sales — West",c:"#B7791F"},
+ /* Max, 2026-11-17: "remove Tim from CRM … change his name there to Empty". The West seat stays (id "tim": its mailbox, past
+    attribution and REP_START keep working) but has no person: no name, no photo, nobody signs in as it. */
+ {id:"tim",name:"Empty",role:"Open seat",c:"#8F8B82",vacant:true},
  {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}
 ];
 const ENRICH={
@@ -1451,6 +1454,7 @@ function save(){writeCache();queueChanges();}
 function bootFixes(){applyRosterCorrections();applyManrepPersonCoverage();applyPersonAddresses();}
 function person(id){return DB.people.find(p=>p.id===id);}
 function company(id){return DB.companies.find(c=>c.id===id);}
+function vacant(id){const t=TEAM.find(x=>x.id===id);return !!(t&&t.vacant);}
 function teamById(id){if(id==="house")return {id:"house",name:"House",role:"Before the reps joined",c:"#A9A59C"};return TEAM.find(t=>t.id===id)||{name:"—",c:"#888"};}
 function emailOf(p){const c=company(p.cid);return p.name.toLowerCase().replace(/\s+/g,".")+"@"+((c&&c.website)||"company.com");}
 
@@ -1530,9 +1534,9 @@ function renderLogin(){
   let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Channel CRM</div>';
   if(step==="email"){
     h+='<div class="who">Tap your name to sign in</div><div class="list">'+
-     TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em)return"";
+     TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em||t.vacant)return"";
       return '<button class="ubtn" data-act="pickuser" data-email="'+esc(em)+'"><span class="uav" style="background:'+t.c+'">'+initials(t.name)+'</span><span class="grow"><b>'+t.name+'</b><small>'+esc(em)+'</small></span>'+chev()+'</button>';}).join("")+
-     '</div><p id="loginMsg"></p>';
+     '</div><p id="loginMsg"'+(logState.seatClosed?' style="color:var(--dang-t)">That sign-in belongs to a seat that is closed. Ask Max if you need access.':'>')+'</p>';
   }else if(step==="pw"){
     h+='<div class="who">Password for<br><b style="color:var(--ink)">'+esc(logState.pwEmail)+'</b></div>'+
      '<input class="f" id="pwInput" type="password" placeholder="Password" autocomplete="current-password">'+
@@ -1570,11 +1574,14 @@ async function verifyPw(){
     if(!res.ok||!j.access_token){loginMsg("Wrong password — try again, or use an email code",true);return;}
     saveSession(j);
     USER=TEAM_EMAILS[((j.user&&j.user.email)||logState.pwEmail).toLowerCase()]||"";
+    if(vacant(USER)){closedSeat();renderLogin();return;}
     localStorage.setItem(UKEY,USER);
     logState.pwEmail=null;logState.otpEmail=null;view="today";applyRoleDefaults();render();
     bootSync();
   }catch(e){loginMsg("Network problem — try again",true);}
 }
+/* a session for the open seat (e.g. a device that stayed signed in) is signed out on the spot */
+function closedSeat(){saveSession(null);try{localStorage.removeItem(UKEY);}catch(e){}USER=null;logState.setPw=false;logState.pwEmail=null;logState.otpEmail=null;logState.seatClosed=true;}
 function loginMsg(m,bad){const el=document.getElementById("loginMsg");if(el){el.textContent=m;el.style.color=bad?"var(--dang-t)":"var(--muted)";}}
 async function sendOtp(email){
   loginMsg("Sending code…");
@@ -1596,6 +1603,7 @@ async function verifyOtp(){
     if(!res.ok||!j.access_token){loginMsg(j.msg||j.error_description||"That code didn't work — check it or send a fresh one",true);return;}
     saveSession(j);
     USER=TEAM_EMAILS[((j.user&&j.user.email)||logState.otpEmail).toLowerCase()]||"";
+    if(vacant(USER)){closedSeat();renderLogin();return;}
     localStorage.setItem(UKEY,USER);
     logState.otpEmail=null;logState.setPw=true;renderLogin();
     bootSync();
@@ -1843,6 +1851,7 @@ function goView(to){
   render();window.scrollTo(0,0);
 }
 function render(){
+  if(USER&&vacant(USER))closedSeat();
   if(!USER||!authed()||logState.setPw){renderLogin();return;}
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
   ensureActIds(); // older logged activities may predate ids — editing needs one
@@ -2109,10 +2118,10 @@ function ensureTasks(){
 }
 function taskFor(t,u){return t.owner===u||(t.assignees||[]).includes(u);}
 function myTasks(){return DB.tasks.filter(t=>taskFor(t,USER)&&!t.removed);}
-function taskPeopleLabel(t){const a=(t.assignees||[]).filter(x=>x!==t.owner);if(!a.length)return"";if(a.length>=TEAM.length-1)return"Everyone";return a.map(x=>teamById(x).name.split(" ")[0]).join(", ");}
-function assignChipsHTML(){const sel=logState.taskAssign||[];const all=sel.length>=TEAM.filter(x=>x.id!==USER).length;
+function taskPeopleLabel(t){const a=(t.assignees||[]).filter(x=>x!==t.owner);if(!a.length)return"";if(a.length>=TEAM.filter(x=>!x.vacant).length-1)return"Everyone";return a.map(x=>teamById(x).name.split(" ")[0]).join(", ");}
+function assignChipsHTML(){const sel=logState.taskAssign||[];const all=sel.length>=TEAM.filter(x=>x.id!==USER&&!x.vacant).length;
   return '<div class="qa-types" id="taskAssign" style="margin-top:6px"><span class="qchip'+(all?" on":"")+'" data-act="assignall" title="Assign to the whole team">Everyone</span>'+
-   TEAM.filter(x=>x.id!==USER).map(x=>'<span class="qchip'+(sel.includes(x.id)?" on":"")+'" data-act="assignone" data-v="'+x.id+'" style="'+(sel.includes(x.id)?'border-color:'+x.c+';color:'+x.c:'')+'">'+esc(x.name.split(" ")[0]+(x.id==="johnm"?" M.":x.id==="john"?" C.":""))+'</span>').join("")+
+   TEAM.filter(x=>x.id!==USER&&!x.vacant).map(x=>'<span class="qchip'+(sel.includes(x.id)?" on":"")+'" data-act="assignone" data-v="'+x.id+'" style="'+(sel.includes(x.id)?'border-color:'+x.c+';color:'+x.c:'')+'">'+esc(x.name.split(" ")[0]+(x.id==="johnm"?" M.":x.id==="john"?" C.":""))+'</span>').join("")+
    '<span class="t2" style="align-self:center;margin-left:4px">'+(sel.length?'for '+(all?'everyone':sel.map(x=>teamById(x).name.split(" ")[0]).join(", ")):'just me — tap names to assign')+'</span></div>';}
 /* To-dos are never deleted: "×" marks them removed (kept for history). */
 function taskHistoryPool(){ensureTasks();return DB.tasks.filter(t=>admin()||taskFor(t,USER));}
@@ -2623,7 +2632,7 @@ function goalCfg(){
   return {day:day,week:week,every:+r.mrEvery||14,active:+r.mrActive||7,live:!!r.live};
 }
 function goalsOn(){return goalCfg().live||GOAL_TESTERS.includes(USER);}
-function goalPeople(){return GH_REPS.filter(id=>["sales","outreach"].includes(profile(id))&&TEAM.some(t=>t.id===id));}
+function goalPeople(){return GH_REPS.filter(id=>["sales","outreach"].includes(profile(id))&&TEAM.some(t=>t.id===id)&&!vacant(id));}
 function goalHas(u){return goalPeople().includes(u);}
 /* while it's in test, Hannah and Max get a card of their own to try the planning and the Log buttons on */
 function goalCardFor(u){return goalHas(u)||(u===USER&&!goalCfg().live&&GOAL_TESTERS.includes(u));}
@@ -2844,6 +2853,7 @@ function scSelf(u){return !!u&&u===USER&&SC_REPS.includes(USER);}
 function loggedToday(u){const T=todayStr();
   return calActs(u,T,T).length>0||(DB.confLeads||[]).some(l=>(l.calls||[]).some(c=>c&&c.by===u&&histDay(c.at)===T));}
 function faceHTML(id,cls){const t=teamById(id);
+  if(t.vacant)return '<span class="face vac '+(cls||"")+'" title="Open seat" aria-hidden="true"></span>';
   return '<span class="face '+(cls||"")+'" style="background:'+t.c+'"><b>'+initials(t.name)+'</b><img src="'+assetUrl("face_"+id+".jpg")+'" alt="" onerror="this.remove()"></span>';}
 const RM={weeks:{},at:{},busy:{},days:{},run:null,last:null,err:""};
 /* the week's emails (all reps), loaded once and kept 30 minutes; null while loading */
@@ -2933,19 +2943,44 @@ function scState(u,mon){
       sub:crmMail+" logged in the CRM · "+(mail?mail.sent+" from the mailbox":"mailbox loading…"),title:"Emails sent to someone outside the company: each day counts the larger of the emails logged in the CRM and the mailbox import (every evening) · 100 a week"},
     {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
   const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
+  if(vacant(u))return scInboxState(u,mon,days,mail);
   const today=loggedToday(u),live=mon!==goalMonday()||today;
   const status=!parts.length?null:!live?"idle":parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
   return {u:u,mon:mon,days:days,typ:typ,tally:tally,mail:mail,tiles:tiles,status:status,today:today,live:live,logged:acts.length,loggedT:calActs(u,T,T).length,mix:[nT&&"Travel "+nT,nO&&"Office "+nO].filter(Boolean).join(" · ")||"No weekdays yet"};
 }
+/* the open seat (Max, 2026-11-17: "just have his window show the activity that is happening within that inbox"): no KPIs to judge,
+   just what the mailbox did that week — read from public.rep_mail like every other seat (calendar / auto replies left out) */
+function scInboxState(u,mon,days,mail){
+  const all=(rmWeek(mon)||[]).filter(r=>r.rep===u),bounced=all.filter(r=>r.kind==="bounce").length,rows=mail?mail.rows:[];
+  const pl=(n,w)=>n+" "+w+(n===1?"":"s"),last={},orgs={};let dist=0;
+  rows.forEach(r=>{(r.dir==="out"?(r.outside||[]):[r.from_addr]).forEach(a=>{a=String(a||"").toLowerCase();if(!a)return;
+    if(!last[a]||new Date(r.at)>=new Date(last[a].at))last[a]=r;
+    const w=rmWho(a),k=w.c?"c:"+w.c.id:"d:"+(a.split("@")[1]||a);if(!orgs[k]){orgs[k]=1;if(w.dist)dist++;}});});
+  const senders=new Set(rows.filter(r=>r.dir==="in").map(r=>String(r.from_addr||"").toLowerCase())).size;
+  const waiting=Object.values(last).filter(r=>r.dir==="in").length,nOrg=Object.keys(orgs).length;
+  const lastIn=rows.filter(r=>r.dir==="in").slice(-1)[0];
+  const fmt=iso=>{const d=new Date(iso);return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});};
+  const lw=lastIn?rmWho(lastIn.from_addr):null;
+  const L=mail?"":"…";
+  const tiles=[
+    {label:"Emails received",v:mail?mail.recv:L,sub:mail?(senders?"from "+senders+(senders===1?" person":" people"):"Nothing came in"):"mailbox loading…",title:"Emails from someone outside the company that reached the inbox this week",bar:false},
+    {label:"Emails sent",v:mail?mail.sent:L,sub:mail?(mail.sent?pl(mail.dist,"email")+" to distributors":"Nothing sent from it"):"",title:"Emails sent from this mailbox to someone outside the company",bar:false},
+    {label:"Waiting on a reply",v:mail?waiting:L,sub:"they wrote last",title:"Outside people whose latest email this week came in and wasn’t answered from this mailbox",bar:false},
+    {label:"Organizations",v:mail?nOrg:L,sub:mail?pl(dist,"distributor"):"",title:"Companies (or email domains) the inbox heard from or wrote to",bar:false},
+    {label:"Bounced",v:mail?bounced:L,sub:"couldn’t be delivered",title:"Bounce notices: an email from this mailbox that didn’t arrive",bar:false},
+    {label:"Last email in",v:lastIn?fmt(lastIn.at):(mail?"—":L),sub:lastIn?(lw.p?lw.name:(lastIn.from_name||lw.name))+(lw.co?" · "+lw.co:""):(mail?"None this week":""),title:lastIn?String(lastIn.subject||""):"",bar:false,small:true}];
+  return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:mail,tiles:tiles,status:null,today:false,live:false,
+    inbox:true,logged:mail?mail.recv+mail.sent:0,loggedT:0,mix:"Open seat"};
+}
 function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
-  return '<div class="sct'+(b?" s"+b:"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+x.v+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
-   '<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div><small class="scs">'+esc(x.sub||"")+'</small></div>';}
+  return '<div class="sct'+(b?" s"+b:"")+(x.small?" scsm":"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+esc(String(x.v))+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
+   (x.bar===false?'':'<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div>')+'<small class="scs">'+esc(x.sub||"")+'</small></div>';}
 /* Sales follow-ups on time (Hannah's KPI wall, Max 2026-11-11): of the open follow-ups that have a date (to-dos, and each open deal's
    next step), the share that isn't past due. Due today is still on time. A count as of right now: the week arrows don't move it.
    To-dos: not done, not removed, the person's own or assigned to them. Deals: open, nextActionDate set, Golden Hour sales person =
    the person (oppGhRep: o.ghRep, else the territory). Conference leads are left out: their next step is free text, never a date. */
-const FU_PEOPLE=["johnm","john","tim","kellan","jamie"];
+const FU_PEOPLE=["johnm","john","kellan","jamie"]; /* the open West seat has nobody to be late (Max, 2026-11-17) */
 function fuItems(u){
   const T=todayStr(),S=ymd(new Date(Date.now()-14*86400000)),out=[];
   (DB.tasks||[]).forEach(t=>{if(!t||t.done||t.removed||!t.due||!taskFor(t,u))return;
@@ -2970,7 +3005,7 @@ function fuTileHTML(u,live){const s=fuStats(u),b=live===false?"":fuBand(s.pct);
    '<span class="scl">Follow-ups on time</span><b class="scv">'+(s.pct==null?"—":s.pct+"%")+'</b>'+
    '<div class="gtrk '+b+'"><i style="width:'+(s.pct||0)+'%"></i></div><small class="scs">'+esc(fuLine(s))+' · now</small></button>';}
 function fuTeamHTML(){const f=fuTeam(),b=fuBand(f.pct),m=fuMost(f);
-  return '<button class="fuband'+(b?" s"+b:"")+'" data-act="futeam" title="Open to-dos and deal next steps that have a date, for John M., John C., Tim, Kellan and Jamie">'+
+  return '<button class="fuband'+(b?" s"+b:"")+'" data-act="futeam" title="Open to-dos and deal next steps that have a date, for John M., John C., Kellan and Jamie">'+
    '<span class="scl">Sales follow-ups</span><b class="scv">'+(f.pct==null?"—":f.pct+"%")+'</b><span class="fusub">on time · '+esc(fuLine(f))+' · now</span>'+
    '<span class="fumost">'+(m?"Most late: "+esc(m):"Nothing late")+' '+chev()+'</span></button>';}
 function fuTeamSheet(){if(!scAccess())return;
@@ -3010,8 +3045,8 @@ function scHomeHTML(){
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
-     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week')+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles fu7">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+fuTileHTML(u,s.today)+'</div></div>';}).join("")+
+     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox?'':fuTileHTML(u,s.today))+'</div></div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span style="--c:var(--faint)">Grey: nothing logged yet today</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
@@ -3050,7 +3085,7 @@ function scLedgerHTML(u,mon){
 function viewRepWeek(u){
   if(!(scAccess()||scSelf(u))||!SC_REPS.includes(u))return viewToday();
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
-  let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.mix)+'</p></div>'+
+  let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.inbox?userRegion(u):s.mix)+'</p></div>'+
     scWeekNavHTML(mon)+raBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
   h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+'</div>';
   /* the last eight weeks: emails sent and CRM actions — tap one to open it */
@@ -3589,7 +3624,7 @@ function saveGoalTargets(){
   save();closeSheet();render();toast("Targets saved — everyone’s goals follow");
 }
 function setGoalsLive(on){
-  if(on&&!confirm("Turn weekly goals on for the whole team?\n\nJohn M., John C., Tim and Kellan will see their goals card and plan their week, and everyone sees who is behind on Home."))return;
+  if(on&&!confirm("Turn weekly goals on for the whole team?\n\nJohn M., John C. and Kellan will see their goals card and plan their week, and everyone sees who is behind on Home."))return;
   const r=goalTargetsRec();r.live=!!on;r.liveBy=USER;r.liveAt=new Date().toISOString();save();closeSheet();render();
   toast(on?"Goals are live for the team":"Goals are back in test — only Hannah and Max see them");
 }
@@ -4994,10 +5029,10 @@ function leadCatSelHTML(l){const c=leadCat(l);
 function leadHandSelHTML(l){const auto=!l.assignee&&leadRep(l);
   return '<select class="cellsel'+(l.assignee?"":auto?" auto":"")+'" data-act="leadhandsel" data-id="'+esc(l.id)+'" aria-label="Sales person" title="'+(auto?"By territory — pick a name to confirm":"")+'">'+
    '<option value="">'+(auto?esc(shortName(auto))+" · territory":"Nobody yet")+'</option>'+
-   GH_REPS.filter(id=>profile(id)==="sales").map(id=>'<option value="'+id+'"'+(l.assignee===id?" selected":"")+'>'+esc(shortName(id))+'</option>').join("")+'</select>';}
+   GH_REPS.filter(id=>profile(id)==="sales"&&(!vacant(id)||l.assignee===id)).map(id=>'<option value="'+id+'"'+(l.assignee===id?" selected":"")+'>'+esc(shortName(id))+'</option>').join("")+'</select>';}
 function leadHandChipsHTML(l){
   const auto=!l.assignee&&leadRep(l);
-  return '<div class="chiprow">'+GH_REPS.filter(id=>profile(id)==="sales").map(id=>{const t=teamById(id);return '<span class="qchip'+(l.assignee===id?" on":(auto===id?" on auto":""))+'" title="'+(auto===id?"by territory — tap to confirm":"")+'" data-act="leadhand" data-id="'+esc(l.id)+'" data-v="'+id+'" style="'+(l.assignee===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+'</span>';}).join("")+'</div>';
+  return '<div class="chiprow">'+GH_REPS.filter(id=>profile(id)==="sales"&&(!vacant(id)||l.assignee===id||auto===id)).map(id=>{const t=teamById(id);return '<span class="qchip'+(l.assignee===id?" on":(auto===id?" on auto":""))+'" title="'+(auto===id?"by territory — tap to confirm":"")+'" data-act="leadhand" data-id="'+esc(l.id)+'" data-v="'+id+'" style="'+(l.assignee===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+'</span>';}).join("")+'</div>';
 }
 function leadVal(l,key){
   if(key==="name")return (l.name||"").toLowerCase();
@@ -6100,8 +6135,8 @@ function teamDateGroup(){
 }
 /* who gets a sale — your own rule (a rep) or the whole rule */
 function teamRuleHTML(me){return (me?'<p class="t2" style="white-space:normal;margin:4px 2px 0">'+({johnm:"A sale counts for you when it closes in the East from Aug 14, 2026 on.",john:"A sale counts for you when it closes in Central from May 4, 2026 on, or in the West between May 4 and Oct 1, 2026.",tim:"A sale counts for you when it closes in the West from Oct 2, 2026 on."}[USER]||"")+' If a different person is set on the order or the deal, it counts for them.</p>'
-     :'<p class="t2" style="white-space:normal;margin:4px 2px 0">Who gets a sale depends on when it closed: East → John Morrison from Aug 14 · Central → John Cornejo from May 4 · West → John Cornejo May 4 – Oct 1, Tim Ford from Oct 2 · earlier = House. Set a different person on the order or the deal to override.</p>');}
-function teamRankHTML(reps){
+     :'<p class="t2" style="white-space:normal;margin:4px 2px 0">Who gets a sale depends on when it closed: East → John Morrison from Aug 14 · Central → John Cornejo from May 4 · West → John Cornejo May 4 – Oct 1, the open West seat (Empty) from Oct 2 · earlier = House. Set a different person on the order or the deal to override.</p>');}
+function teamRankHTML(reps){reps=reps.filter(s=>!vacant(s.id));
   const top=(k,f)=>{const best=reps.slice().sort((a,b)=>f(b)-f(a))[0];return best&&f(best)>0?best:null;};
   const mostAct=top("touches",s=>s.touches.length),mostRev=top("sold",s=>s.sold),mostQ=top("quoted",s=>s.quoted);
   const score=s=>{const rank=(f)=>reps.slice().sort((a,b)=>f(b)-f(a)).findIndex(x=>x.id===s.id);return rank(x=>x.touches.length)+rank(x=>x.sold)+rank(x=>x.quoted)+rank(x=>x.openAmt);};
@@ -6780,7 +6815,7 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
   const noAuto=oppNoAutoRep(o);
   /* a rep adding a deal is its sales person (their pipeline only shows their own); others get the territory's rep */
   logState.oppGhRep=o?(o.ghRep||oppGhRep(o)||""):noAuto?"":(profile(USER)==="sales"?USER:(repForRegion(regionFromState((prefillCid&&company(prefillCid)||{}).state))||(GH_REPS.includes(USER)?USER:"")));
-  const repChips=(noAuto?'<span class="chip'+(logState.oppGhRep?"":" on")+'" data-act="setGhRep" data-v="">No one yet</span>':'')+GH_REPS.concat(["jamie","max","house"]).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
+  const repChips=(noAuto?'<span class="chip'+(logState.oppGhRep?"":" on")+'" data-act="setGhRep" data-v="">No one yet</span>':'')+GH_REPS.concat(["jamie","max","house"]).filter(id=>!vacant(id)||logState.oppGhRep===id).map(id=>{const t=teamById(id);return '<span class="chip'+(logState.oppGhRep===id?" on":"")+'" data-act="setGhRep" data-v="'+id+'" style="'+(logState.oppGhRep===id?'border-color:'+t.c+';color:'+t.c:'')+'">'+esc(shortName(id))+(userRegion(id)?' <small style="opacity:.7">'+userRegion(id)+'</small>':'')+'</span>';}).join("");
   /* from a distributor's page the distributor is also the closing one (a run-rate / stocking deal) */
   const preCo=!o&&prefillCid?company(prefillCid):null;
   if(preCo&&preCo.type==="distributor")logState.oppDistCid=preCo.id;
@@ -7555,7 +7590,7 @@ function wpSugItems(q){const w=logState.wp,raw=String(q||"").trim();q=raw.toLowe
   hits.push('<button type="button" data-act="wpFree" style="color:var(--coral);font-weight:600">+ Add "'+esc(raw.slice(0,40))+'" (not in the CRM)</button>');
   return hits;}
 function wpPickHTML(){const w=logState.wp;if(!w||!w.kind)return "";
-  if(w.kind==="team")return '<label class="fl">Who from the team</label><div class="qa-types">'+TEAM.filter(t=>t.id!==USER).map(t=>'<span class="qchip'+(w.team.includes(t.id)?" on":"")+'" data-act="wpTeam" data-v="'+t.id+'">'+esc(shortName(t.id))+'</span>').join("")+'</div>';
+  if(w.kind==="team")return '<label class="fl">Who from the team</label><div class="qa-types">'+TEAM.filter(t=>t.id!==USER&&!t.vacant).map(t=>'<span class="qchip'+(w.team.includes(t.id)?" on":"")+'" data-act="wpTeam" data-v="'+t.id+'">'+esc(shortName(t.id))+'</span>').join("")+'</div>';
   const chips=w.pids.map(id=>{const p=person(id);return p?'<span class="qchip on" data-act="wpDel" data-v="p:'+id+'" title="Remove">'+esc(p.name)+' ×</span>':"";}).join("")+
     w.names.map((n,i)=>'<span class="qchip on" data-act="wpDel" data-v="n:'+i+'" title="Remove">'+esc(n)+' ×</span>').join("");
   return '<label class="fl">'+(w.kind==="distrep"?"Which distributor rep":"Which man-rep")+'</label>'+(chips?'<div class="qa-types" style="margin-bottom:6px">'+chips+'</div>':'')+
@@ -7791,7 +7826,7 @@ function helpSheet(){
    ["Shipping","Back office: what still has to go out the door, one record per box. Prints the packing slip; billable freight lands on the order so Invoicing sees it."]
   ];
   openSheet('<h2>How this CRM works</h2>'+
-   '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / Central / West</b> by state — John Morrison works East, John Cornejo works Central, Tim Ford works West, Max sees everything.</p>'+
+   '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">AutoTQ sells through a channel: <b>man-rep groups → distributors → their reps → end-users</b>. This CRM tracks who\'s been demo\'d, trained and is actually selling. Accounts &amp; contacts are split <b>East / Central / West</b> by state — John Morrison works East, John Cornejo works Central, West is an open seat (Empty), Max sees everything.</p>'+
    '<div class="list">'+rows.map(r=>'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:96px;font-size:13px;padding-top:1px">'+r[0]+'</b><span style="font-size:13px;color:var(--muted)">'+r[1]+'</span></div>').join("")+'</div>'+
    '<button class="btn coral block" data-act="closehelp" style="margin-top:14px">Got it</button>');
 }
@@ -7903,7 +7938,7 @@ function viewList(id){
    '<button class="tkdel" data-act="listdel" data-id="'+l.id+'" aria-label="Delete list" title="Delete list">'+svg("x")+'</button></div>'+
    '<div class="bar" style="margin-top:10px"><i style="width:'+pct+'%"></i></div>'+
    '<div class="qa-types" style="margin-top:12px"><span class="t2" style="align-self:center">Push to</span>'+
-    TEAM.filter(t=>t.id!==USER&&t.id!=="laresa").map(t=>{const r=userRegion(t.id);
+    TEAM.filter(t=>t.id!==USER&&t.id!=="laresa"&&(!t.vacant||l.assignee===t.id)).map(t=>{const r=userRegion(t.id);
      return '<span class="qchip'+(l.assignee===t.id?" on":"")+'" data-act="listpush" data-id="'+l.id+'" data-v="'+t.id+'">'+esc(t.name.split(" ")[0]+(t.id==="johnm"?" M.":t.id==="john"?" C.":""))+(r?' ('+r+')':'')+'</span>';}).join("")+'</div>'+
    '</div>';
   h+='<div class="list">'+l.items.map((it,i)=>{
@@ -10129,7 +10164,7 @@ function formOrder(id,keepItems){
    '<div class="grow"><label class="fl">Invoice date <span style="font-weight:400;color:var(--hint)">(drives Net 30)</span></label><input class="f" id="ivInvDate" type="date" value="'+esc(o&&o.invoicedAt?o.invoicedAt:"")+'"></div>'+
    '<div class="grow"><label class="fl">Amount'+(logState.invItems&&logState.invItems.length?' (auto from items)':'')+'</label><input class="f" id="ivAmt" inputmode="decimal" value="'+(o&&o.amount?o.amount:"")+'"></div></div>'+
    invItemsHTML()+
-   '<label class="fl">Sales person <span style="font-weight:400;color:var(--hint)">(auto = territory on the PO date'+(o&&!o.ghRep&&orderRep(o)?': '+esc(shortName(orderRep(o))):'')+')</span></label><div id="ivRep" class="qa-types">'+[["","Auto"]].concat(GH_REPS.concat(["house"]).map(id=>[id,shortName(id)])).map(x=>'<span class="qchip'+(((o&&o.ghRep)||"")===x[0]?" on":"")+'" data-act="invsetrep" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>'+
+   '<label class="fl">Sales person <span style="font-weight:400;color:var(--hint)">(auto = territory on the PO date'+(o&&!o.ghRep&&orderRep(o)?': '+esc(shortName(orderRep(o))):'')+')</span></label><div id="ivRep" class="qa-types">'+[["","Auto"]].concat(GH_REPS.concat(["house"]).filter(id=>!vacant(id)||(o&&o.ghRep)===id).map(id=>[id,shortName(id)])).map(x=>'<span class="qchip'+(((o&&o.ghRep)||"")===x[0]?" on":"")+'" data-act="invsetrep" data-v="'+x[0]+'">'+x[1]+'</span>').join("")+'</div>'+
    '<label class="fl">Status</label><div id="ivStatus" style="display:flex;gap:6px;flex-wrap:wrap">'+
     Object.keys(INV_STATUS).map(s=>'<button class="qchip'+((o?o.status:"queue")===s?" on":"")+'" data-act="invsetst" data-v="'+s+'">'+INV_STATUS[s][0]+'</button>').join("")+'</div>'+
    '<label class="fl">QB invoice #(s)</label><input class="f" id="ivQb" value="'+esc(o?o.qbInv:"")+'" placeholder="e.g. 1172">'+
@@ -10988,7 +11023,7 @@ document.addEventListener("click",e=>{
       else{d.engage=t.dataset.v;d.engageBy=USER;d.engageAt=new Date().toISOString();}
       save();render();}return;}
   if(a==="assignone"){const v=t.dataset.v,sel=logState.taskAssign||[];logState.taskAssign=sel.includes(v)?sel.filter(x=>x!==v):sel.concat([v]);document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
-  if(a==="assignall"){const others=TEAM.filter(x=>x.id!==USER).map(x=>x.id);const sel=logState.taskAssign||[];logState.taskAssign=sel.length>=others.length?[]:others;document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
+  if(a==="assignall"){const others=TEAM.filter(x=>x.id!==USER&&!x.vacant).map(x=>x.id);const sel=logState.taskAssign||[];logState.taskAssign=sel.length>=others.length?[]:others;document.getElementById("taskAssign").outerHTML=assignChipsHTML();return;}
   if(a==="settask"){logState.taskType=t.dataset.v;document.querySelectorAll("#taskTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));return;}
   if(a==="addtask"){const ti=document.getElementById("taskTitle"),dd=document.getElementById("taskDue");const title=(ti?ti.value:"").trim();if(!title){toast("Type an action first");return;}ensureTasks();DB.tasks.unshift({id:uid(),owner:USER,assignees:(logState.taskAssign||[]).slice(),title:title,type:logState.taskType||"todo",due:(dd&&dd.value)||todayStr(),done:false,createdAt:new Date().toISOString()});logState.taskAssign=[];save();render();refocus("taskTitle");return;}
   if(a==="toggletask"){const tk=DB.tasks.find(x=>x.id===id);if(tk){tk.done=!tk.done;tk.completedAt=tk.done?new Date().toISOString():null;tk.completedDay=tk.done?todayStr():null;}save();render();if(document.getElementById("scrim").classList.contains("open")&&document.getElementById("sheet").textContent.indexOf("To-do history")===0)viewTaskHistory();return;}
@@ -11183,7 +11218,7 @@ document.addEventListener("click",e=>{
   if(a==="oppNoteAll"){const w=document.getElementById("oNoteLog");if(w){w.dataset.all="1";oppNoteRedraw();}return;}
   if(a==="menu"){menu();return;}
   if(a==="viewaspick"){openSheet('<h2>See a teammate\'s tabs</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 10px">Shows their left rail exactly as they see it — you stay signed in as you.</p>'+
-    TEAM.filter(t=>t.id!==USER).map(t=>'<button class="hub" data-act="viewas" data-v="'+t.id+'"><span class="av" style="background:'+t.c+';width:30px;height:30px;font-size:12px">'+initials(t.name)+'</span><b>'+esc(t.name)+'</b></button>').join("")+
+    TEAM.filter(t=>t.id!==USER&&!t.vacant).map(t=>'<button class="hub" data-act="viewas" data-v="'+t.id+'"><span class="av" style="background:'+t.c+';width:30px;height:30px;font-size:12px">'+initials(t.name)+'</span><b>'+esc(t.name)+'</b></button>').join("")+
     (VIEWAS?'<button class="hub" data-act="viewasoff">'+svg("back")+'<b>Back to my own view</b></button>':''));return;}
   if(a==="viewas"){VIEWAS=t.dataset.v;closeSheet();render();toast("Showing "+teamById(VIEWAS).name.split(" ")[0]+"'s tabs — you're still you");return;}
   if(a==="viewasoff"){VIEWAS=null;closeSheet();render();toast("Back to your view");return;}
@@ -11601,6 +11636,7 @@ render();
 if(HASHLOGIN)fetch(SUPA_URL+"/auth/v1/user",{headers:{"apikey":SUPA_KEY,"Authorization":"Bearer "+SESSION.access_token}})
   .then(r=>r.json()).then(u=>{
     const mapped=TEAM_EMAILS[(u.email||"").toLowerCase()]||"";
+    if(mapped&&vacant(mapped)){closedSeat();renderLogin();return;}
     if(mapped){USER=mapped;localStorage.setItem(UKEY,USER);SESSION.user=u;saveSession(SESSION);renderLogin();}
   }).catch(()=>{});
 if(authed())bootSync();
