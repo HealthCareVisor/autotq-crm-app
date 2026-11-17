@@ -1533,6 +1533,39 @@ i.klg{display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 4px 0
   .mk2-wk th,.mk2-wk td{padding:3px 2px}.mk2-wk .knm .mk2-av{display:none}
 }
 
+/* ---------- Newsletter tab ---------- */
+.nw-issues{margin:-4px 0 12px}
+.nw-reach{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:12px 16px}
+.nw-reach b{font-variant-numeric:tabular-nums;font-weight:650;color:var(--ink)}
+.nw-rt{display:flex;align-items:baseline;gap:7px}.nw-rt b{font-size:20px}.nw-rt span{color:var(--ink-2);font-size:13px}
+.nw-rs{display:flex;gap:14px;flex-wrap:wrap;color:var(--ink-2);font-size:13px;padding-left:18px;border-left:1px solid var(--rule)}
+.nw-rc{display:flex;align-items:baseline;gap:6px;margin-left:auto;color:var(--ink-3);font-size:13px}
+.nw-grid{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:16px;align-items:start}
+.nw-ed{display:flex;flex-direction:column;gap:8px;min-width:0}
+.nw-blk{background:var(--paper);border:1px solid var(--rule);border-radius:10px}
+.nw-blk>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:11px 14px;font-weight:600;font-size:14px}
+.nw-blk>summary::-webkit-details-marker{display:none}
+.nw-chev{width:15px;height:15px;color:var(--ink-3);transition:transform .15s}
+.nw-blk[open]>summary .nw-chev{transform:rotate(90deg)}
+.nw-fields{display:flex;flex-direction:column;gap:4px;padding:0 14px 14px}
+.nw-l{font-size:12px;color:var(--ink-3);margin-top:6px}
+.nw-f{width:100%;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:var(--ground);border:1px solid var(--rule-3);border-radius:8px;padding:8px 10px}
+textarea.nw-f{resize:vertical;line-height:1.5}
+.nw-f:focus{outline:2px solid var(--coral);outline-offset:-1px;border-color:transparent}
+.nw-sub{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule);font-size:12px;font-weight:600;color:var(--ink-2)}
+.nw-pv{position:sticky;top:64px;min-width:0}
+.nw-pvbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.nw-seg{display:inline-flex;border:1px solid var(--rule-3);border-radius:8px;overflow:hidden}
+.nw-seg button{height:28px;padding:0 12px;font-size:12.5px;font-weight:550;color:var(--ink-2);background:var(--paper);border:0}
+.nw-seg button+button{border-left:1px solid var(--rule-3)}
+.nw-seg button.on{background:var(--ink);color:var(--paper)}
+.nw-acts{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.nw-frame{background:#F2F0EC;border:1px solid var(--rule);border-radius:10px;overflow:hidden;max-height:calc(100vh - 124px);overflow-y:auto}
+.nw-frame iframe{display:block;width:100%;border:0;background:#F2F0EC}
+.nw-frame.phone{padding:16px 0}
+.nw-frame.phone iframe{width:375px;max-width:100%;margin:0 auto;border-radius:18px;box-shadow:0 0 0 8px #1b1c1f}
+@media (max-width:1000px){.nw-grid{grid-template-columns:1fr}.nw-pv{position:static;order:-1}.nw-frame{max-height:70vh}}
+@media (max-width:640px){.nw-rs{border-left:0;padding-left:0}.nw-rc{margin-left:0}.nw-acts{margin-left:0}}
 </style>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("autotq_mkt_theme_v2")||"light";}catch(e){document.documentElement.dataset.theme="light";}</script>
 </head>
@@ -5986,7 +6019,7 @@ function pjSetStep(p,s,st){const was=pjStepSt(s);s.status=st;if(st==="done"){s.d
    start mix|warm|new|retry}. It sets the pool (who), the list filter (lists), the time blocks (where; "clock" = East mornings, Central
    midday, West afternoons) and the first chip (start). Opening a lead holds it for 20 minutes (l.calling={by,at}) so two callers never
    get the same person at once. Only Max and Hannah see Industries and Spend (MKT_FULL_ONLY). */
-const MKT_FULL_ONLY=["ind","spend","numbers"];
+const MKT_FULL_ONLY=["ind","spend","numbers","news"];
 function crmUser(){return !["carisse","elvi"].includes(USER);} // Carisse and Elvi are Marketing only: no CRM sign-in, so no CRM switch
 const CALL_SETUP_DEF={lists:[],who:"end",where:"clock",start:"mix"};
 let callSetupApplied=false;
@@ -6112,7 +6145,7 @@ Object.assign(SVG,Object.fromEntries(Object.entries({
   li:'<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 10.5V16M8 7.8v.1M11.5 16v-5.5M11.5 13c0-1.6 1-2.5 2.3-2.5S16 11.4 16 13v3"/>',
   flag2:'<path d="M5.5 21V4M5.5 4h11l-2 4 2 4h-11"/>',
   xx:'<path d="M6 6l12 12M18 6L6 18"/>'}).filter(([k])=>!SVG[k])));
-const MK2_VIEWS=["start","ideahub","push","out","cold","post","activity","numbers"];
+const MK2_VIEWS=["start","ideahub","push","out","cold","post","activity","numbers","news"];
 const MK2_GONE={projects:"start",tasks:"start",plan:"start",home:"start"}; // off the menu since 2026-11-06; records kept
 let MK2={ideaCh:"",ideaGuess:"email",ideaDraft:"",showDone:false,showPark:false,actWho:"",actWhat:"all",camp:"",campSeg:"camps",litF:"customer",webSel:"",bankG:"",numSeg:"over",open:{},lb:"",idea:"",hrDone:{}};
 try{Object.assign(MK2.hrDone,JSON.parse(localStorage.getItem("autotq_mk2_hr")||"{}"));}catch(e){}
@@ -6537,16 +6570,16 @@ function mk2ViewNumbers(){const t=MK2.numSeg;let h='<div class="mk2-ph"><div><h1
   return h+(t==="ind"?viewIndustries():t==="spend"?viewSpend():perfStripHTML());}
 
 /* ---------- shell pieces ---------- */
-function mk2Tabs(){const t=[["start","home","Today"],["cold","mail","Cold email"],["ideahub","bulb","Ideas"],["push","flag2","Campaigns"],["calls","phone","Calls"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"],["activity","pulse","Activity"]];if(pjInner())t.push(["numbers","chart","Numbers"]);return t;}
+function mk2Tabs(){const t=[["start","home","Today"],["cold","mail","Cold email"],["ideahub","bulb","Ideas"],["push","flag2","Campaigns"],["calls","phone","Calls"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"],["activity","pulse","Activity"]];if(pjInner()){t.splice(t.findIndex(x=>x[0]==="out")+1,0,["news","file","Newsletter"]);t.push(["numbers","chart","Numbers"]);}return t;}
 function mk2On(v){return v==="out"?["out","camp","over","net","sched","playbook","leads"].includes(view):v==="post"?(view==="post"||view==="li"):v==="numbers"?(view==="numbers"||view==="ind"||view==="spend"):view===v;}
 function mk2Badge(v){try{if(v==="start")return actItems().length;if(v==="post")return pjInner()?liPosts().filter(p=>p.status==="draft"&&String(p.slotAt||"")>=todayStr()).length:0;}catch(e){}return 0;}
 function mk2SideHTML(){return '<div class="sgrp sgrp-top"><div class="sgrp-b"><div>'+mk2Tabs().map(([v,ic,lb])=>{const b=mk2Badge(v);return '<button class="sitem'+(mk2On(v)?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b:""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge">'+b+'</span><span class="mdot"></span>':'')+'</button>';}).join("")+'</div></div></div>';}
 function mk2Mnav(){return '<nav class="mnav" aria-label="Sections">'+mk2Tabs().map(([v,ic,lb])=>'<button class="'+(mk2On(v)?"on":"")+'" data-act="nav" data-v="'+v+'">'+lb+'</button>').join("")+'</nav>';}
-function mk2Crumb(){return ({start:"Today",ideahub:"Ideas",push:"Campaigns",out:"Outreach",cold:"Cold email",post:"Posting",activity:"Activity",numbers:"Numbers",camp:"Outreach",limsg:"LinkedIn outbound",li:"Posting",calls:"Calls"})[view]||"";}
-function mk2Body(){return view==="start"?mk2ViewToday():view==="ideahub"?mk2ViewIdeas():view==="push"?mk2ViewCampaigns():view==="out"?mk2ViewOut():view==="cold"?mk2ViewCold():view==="post"?mk2ViewPost():view==="activity"?mk2ViewActivity():mk2ViewNumbers();}
+function mk2Crumb(){return ({start:"Today",ideahub:"Ideas",push:"Campaigns",out:"Outreach",cold:"Cold email",post:"Posting",activity:"Activity",numbers:"Numbers",camp:"Outreach",limsg:"LinkedIn outbound",li:"Posting",calls:"Calls",news:"Newsletter"})[view]||"";}
+function mk2Body(){return view==="news"?mk2ViewNews():view==="start"?mk2ViewToday():view==="ideahub"?mk2ViewIdeas():view==="push"?mk2ViewCampaigns():view==="out"?mk2ViewOut():view==="cold"?mk2ViewCold():view==="post"?mk2ViewPost():view==="activity"?mk2ViewActivity():mk2ViewNumbers();}
 /* camp (list only), limsg and li keep their old bodies under the new Outreach / Posting header */
 function mk2Head(){return APP!=="marketing"?"":(view==="camp"&&!curCampaign)?mk2OutTabs():view==="limsg"?mk2LiOutHead():view==="li"?mk2PostTabs():"";}
-function mk2After(){if(APP!=="marketing")return;let x=document.getElementById("mk2Layer");if(!x){x=document.createElement("div");x.id="mk2Layer";document.body.appendChild(x);}
+function mk2After(){if(APP!=="marketing")return;newsAfter();let x=document.getElementById("mk2Layer");if(!x){x=document.createElement("div");x.id="mk2Layer";document.body.appendChild(x);}
   const html=(MK2.idea?mk2IdeaSheet():"")+(MK2.lb?mk2LightboxHTML():"");if(x.getAttribute("data-k")!==html){x.innerHTML=html;x.setAttribute("data-k",html);}
   const tr=document.getElementById("mk2Track");if(tr&&!tr.dataset.on){tr.dataset.on="1";tr.addEventListener("scroll",()=>{const i=Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth));document.querySelectorAll(".mk2-dots button").forEach((d,j)=>d.classList.toggle("on",j===i));},{passive:true});}
   const ii=document.getElementById("mk2IdeaIn");if(ii&&MK2.focusIdea){ii.focus();try{ii.setSelectionRange(ii.value.length,ii.value.length);}catch(e){}}
@@ -6601,6 +6634,168 @@ document.addEventListener("keydown",e=>{if(APP!=="marketing")return;
   else if(e.target.classList&&e.target.classList.contains("mk2-idea")){e.preventDefault();e.target.click();}},true);
 document.addEventListener("input",e=>{if(APP!=="marketing"||!e.target)return;if(e.target.id==="mk2IdeaIn"){MK2.ideaDraft=e.target.value;MK2.focusIdea=true;if(!MK2.guessSet){const g=mk2GuessCh(e.target.value);if(g!==MK2.ideaGuess){MK2.ideaGuess=g;document.querySelectorAll(".mk2-guess .mk2-chip").forEach(b=>b.classList.toggle("on",b.dataset.v===g));}}}},true);
 document.addEventListener("focusout",e=>{if(e.target&&e.target.id==="mk2IdeaIn")MK2.focusIdea=false;},true);
+
+const NEWS_LIB=[{"f":"demo-press.jpg","t":"Gloved hands applying AutoTQ to an arm"},{"f":"inflator-on-cuff.jpg","t":"Inflator on the arm cuff"},{"f":"whitepaper.jpg","t":"White paper cover"},{"f":"wall-front.jpg","t":"Kit in its wall mount"},{"f":"hard-front.jpg","t":"Hard case, closed"},{"f":"kit-front.jpg","t":"The red kit case"},{"f":"kit-laid.jpg","t":"Kit with inflator and cuffs laid out"},{"f":"mannequin-arm.jpg","t":"Training arm with AutoTQ applied"},{"f":"comp-front.jpg","t":"Inflator, arm cuff and leg cuff"},{"f":"cuffs-pair.jpg","t":"Arm and leg cuffs"},{"f":"arm-closeup.jpg","t":"AutoTQ on a person's arm, close"},{"f":"inflator-front.jpg","t":"The inflator: Power, Tighten, Inflate"},{"f":"demo-power.jpg","t":"Pressing Power on an applied AutoTQ"}];
+/* ---------- Newsletter: issue -> email HTML / plain text (pure; no DOM, no DB) ---------- */
+const NEWS_IMG_BASE="https://autotqcrm.goldenhourmedical.com/marketing/news/img/";
+const NEWS_LOGO="https://autotqcrm.goldenhourmedical.com/AutoTQ_CRM_assets/lockup_mail.png";
+const NEWS_ADDR="AutoTQ · Golden Hour Medical, Inc. · 6590 W Rogers Cir, Ste 5, Boca Raton, FL 33487";
+const NEWS_C={ink:"#16181B",ink2:"#4A4842",ink3:"#8A867D",red:"#C8102E",bg:"#F2F0EC",paper:"#FFFFFF",rule:"#E4E1DA",font:"Inter,Arial,Helvetica,sans-serif"};
+
+function newsDefault(){return {kind:"news",title:"Issue 1 · What's new at AutoTQ",subject:"What's new at AutoTQ",
+  pre:"A school, a campus police department, an NHL arena, and a white paper on why bleeding control is next.",
+  hero:{img:"demo-press.jpg",kicker:"FEATURED STORY",head:"Would you know how to stop someone from bleeding?",
+    text:"Five years ago, our team at Golden Hour Medical couldn't answer that confidently. So we built AutoTQ: an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.\n\nYou put the cuff above the bleed and press Inflate. The inflator sets the pressure and talks you through it. Nothing to judge by hand.",
+    btn:"SEE HOW IT WORKS",url:"https://theautotq.com"},
+  tiles:[{img:"inflator-on-cuff.jpg",head:"36 of 36 first-time users got it on",text:"In studies of untrained adults, fewer than one in four get a manual tourniquet on correctly. In AutoTQ testing, 36 of 36 first-time users got it on, 33 with no help.",btn:"TRY THE FREE TRAINING",url:"https://theautotq.com/training"},
+    {img:"whitepaper.jpg",head:"From AEDs to Bleeding Control",text:"Why is there an AED on so many walls, and nothing for severe bleeding next to it? Our white paper looks at what it would take. 11 pages, 34 sources.",btn:"READ THE WHITE PAPER",url:"https://theautotq.com/whitepaper"}],
+  field:{title:"Where AutoTQ is now",items:[
+    {img:"wall-front.jpg",place:"A Florida K–12 school",where:"Florida",text:"In October, a Florida K–12 school used AutoTQ to help control a 12-year-old's severe bleeding.",url:""},
+    {img:"hard-front.jpg",place:"A university police department",where:"Florida",text:"AutoTQ is in every patrol car and beside nearly every AED on campus: 150 units.",url:""},
+    {img:"kit-front.jpg",place:"Florida Panthers",where:"Sunrise, Florida",text:"The Florida Panthers put 13 AutoTQ units in their arena.",url:""}]},
+  cta:{head:"Is there a tourniquet next to your AED?",text:"Reply to this email and we'll put together a simple station plan for your building: where each AutoTQ goes and how many you need.",btn:"GET A STATION PLAN",url:"https://theautotq.com/contact"},
+  foot:{why:"You're getting this because you've met AutoTQ: at a show, on theautotq.com, or through our team."}};}
+
+function newsEsc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function newsUrl(u){u=String(u||"").trim();return /^(https?:\/\/|mailto:)/i.test(u)?newsEsc(u):"";}
+function newsImg(f,base){f=String(f||"").trim();if(!f)return "";if(/^https?:\/\//i.test(f))return newsEsc(f);if(!/^[\w.-]+$/.test(f))return "";return newsEsc((base==null?NEWS_IMG_BASE:base)+f);}
+function newsParas(t,css){return String(t||"").trim().split(/\n{2,}/).filter(Boolean).map(p=>'<p style="margin:0 0 14px;'+css+'">'+newsEsc(p).replace(/\n/g,"<br>")+'</p>').join("");}
+function newsBtn(label,url,dark){const h=newsUrl(url);if(!h||!String(label||"").trim())return "";const C=NEWS_C;
+  return '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 0"><tr><td style="border-radius:6px;background:'+(dark?C.paper:C.red)+'"><a href="'+h+'" style="display:inline-block;padding:12px 20px;font:700 13px/1 '+C.font+';letter-spacing:.06em;color:'+(dark?C.ink:"#FFFFFF")+';text-decoration:none;border-radius:6px">'+newsEsc(label)+'</a></td></tr></table>';}
+
+/* opts.base = where images live (absolute for email; the preview passes a local base) */
+function newsHTML(n,opts){n=n||{};opts=opts||{};const C=NEWS_C,b=opts.base,F=C.font;const h=n.hero||{},T=(n.tiles||[]).slice(0,2),fd=n.field||{},it=(fd.items||[]).slice(0,3),ct=n.cta||{};
+  const img=(f,w,alt,r)=>{const s=newsImg(f,b);return s?'<img src="'+s+'" width="'+w+'" alt="'+newsEsc(alt||"")+'" style="display:block;width:100%;max-width:'+w+'px;height:auto;'+(r?"border:1px solid "+C.rule+";border-radius:"+r+";box-sizing:border-box;":"border:0;")+'">':"";};
+  const pad='padding:0 32px';
+  let o='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>'+newsEsc(n.subject||"")+'</title>'+
+    '<style>@media (max-width:620px){.nw-col{display:block!important;width:100%!important;max-width:100%!important}.nw-pad{padding-left:20px!important;padding-right:20px!important}.nw-card-img{width:100%!important;max-width:100%!important;padding:0 0 12px!important}}</style></head>'+
+    '<body style="margin:0;padding:0;background:'+C.bg+'">';
+  if(n.pre)o+='<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">'+newsEsc(n.pre)+'&#8199;&#847;&zwnj;&nbsp;'.repeat(60)+'</div>';
+  o+='<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:'+C.bg+'"><tr><td align="center" style="padding:24px 12px">'+
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:'+C.paper+';border-radius:10px;overflow:hidden">'+
+    '<tr><td class="nw-pad" style="padding:22px 32px 18px;border-bottom:1px solid '+C.rule+'"><img src="'+NEWS_LOGO+'" width="132" alt="AutoTQ" style="display:block;width:132px;height:auto;border:0"></td></tr>';
+  /* featured story */
+  const hi=img(h.img,600,h.head);
+  if(hi)o+='<tr><td>'+(newsUrl(h.url)?'<a href="'+newsUrl(h.url)+'">'+hi+'</a>':hi)+'</td></tr>';
+  o+='<tr><td class="nw-pad" style="padding:26px 32px 30px">'+(h.kicker?'<p style="margin:0 0 8px;font:700 11px/1.2 '+F+';letter-spacing:.14em;color:'+C.red+'">'+newsEsc(h.kicker)+'</p>':"")+
+    (h.head?'<h1 style="margin:0 0 12px;font:700 26px/1.2 '+F+';color:'+C.ink+'">'+newsEsc(h.head)+'</h1>':"")+newsParas(h.text,"font:16px/1.6 "+F+";color:"+C.ink2)+newsBtn(h.btn,h.url)+'</td></tr>';
+  /* two feature tiles */
+  if(T.length){o+='<tr><td class="nw-pad" style="padding:0 20px 8px;border-top:1px solid '+C.rule+'"><!--[if mso]><table role="presentation" width="100%"><tr><td width="50%" valign="top"><![endif]-->';
+    T.forEach((t,i)=>{o+=(i?'<!--[if mso]></td><td width="50%" valign="top"><![endif]-->':"")+'<div class="nw-col" style="display:inline-block;vertical-align:top;width:100%;max-width:280px"><div style="padding:24px 12px 12px">'+
+      img(t.img,256,t.head,"8px")+'<h2 style="margin:'+(newsImg(t.img,b)?"16px":"0")+' 0 8px;font:700 18px/1.3 '+F+';color:'+C.ink+'">'+newsEsc(t.head)+'</h2>'+newsParas(t.text,"font:14px/1.55 "+F+";color:"+C.ink2)+newsBtn(t.btn,t.url)+'</div></div>';});
+    o+='<!--[if mso]></td></tr></table><![endif]--></td></tr>';}
+  /* in the field */
+  if(it.length){o+='<tr><td class="nw-pad" style="padding:22px 32px 6px;border-top:1px solid '+C.rule+'">'+(fd.title?'<h2 style="margin:0 0 4px;font:700 18px/1.3 '+F+';color:'+C.ink+'">'+newsEsc(fd.title)+'</h2>':"")+'</td></tr>';
+    it.forEach(c=>{const ci=img(c.img,160,c.place,"6px"),u=newsUrl(c.url);
+      o+='<tr><td class="nw-pad" style="padding:14px 32px;border-bottom:1px solid '+C.rule+'"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>'+
+        (ci?'<td class="nw-card-img nw-col" width="160" valign="top" style="width:160px;padding:0 16px 0 0">'+ci+'</td>':"")+
+        '<td class="nw-col" valign="top"><p style="margin:0;font:700 15px/1.35 '+F+';color:'+C.ink+'">'+newsEsc(c.place)+'</p>'+(c.where?'<p style="margin:2px 0 6px;font:13px/1.4 '+F+';color:'+C.ink3+'">'+newsEsc(c.where)+'</p>':"")+
+        newsParas(c.text,"font:14px/1.55 "+F+";color:"+C.ink2+";margin-bottom:6px")+(u?'<a href="'+u+'" style="font:700 12px/1 '+F+';letter-spacing:.06em;color:'+C.red+';text-decoration:none">READ MORE &rsaquo;</a>':"")+'</td></tr></table></td></tr>';});}
+  /* one call to action */
+  if(ct.head||ct.btn)o+='<tr><td class="nw-pad" style="padding:30px 32px;background:'+C.ink+'"><h2 style="margin:0 0 10px;font:700 21px/1.3 '+F+';color:#FFFFFF">'+newsEsc(ct.head)+'</h2>'+newsParas(ct.text,"font:15px/1.55 "+F+";color:#D9D6CF")+newsBtn(ct.btn,ct.url,true)+'</td></tr>';
+  /* footer */
+  o+='<tr><td class="nw-pad" style="padding:22px 32px 26px;background:'+C.paper+'"><p style="margin:0 0 10px;font:13px/1.6 '+F+';color:'+C.ink3+'">'+
+    '<a href="https://theautotq.com" style="color:'+C.ink2+';text-decoration:none;font-weight:600">theautotq.com</a> &nbsp;·&nbsp; <a href="https://theautotq.com/training" style="color:'+C.ink2+';text-decoration:none">Free training</a> &nbsp;·&nbsp; <a href="https://theautotq.com/whitepaper" style="color:'+C.ink2+';text-decoration:none">White paper</a></p>'+
+    (n.foot&&n.foot.why?'<p style="margin:0 0 8px;font:12px/1.6 '+F+';color:'+C.ink3+'">'+newsEsc(n.foot.why)+'</p>':"")+
+    '<p style="margin:0;font:12px/1.6 '+F+';color:'+C.ink3+'">'+newsEsc(NEWS_ADDR)+'<br><a href="{{unsubscribe_url}}" style="color:'+C.ink3+'">Unsubscribe</a></p></td></tr>'+
+    '</table></td></tr></table></body></html>';
+  return o;}
+
+/* the light version: plain text, for a cold tool that sends from real mailboxes */
+function newsText(n){n=n||{};const h=n.hero||{},ct=n.cta||{},fd=n.field||{},L=[];const u=x=>/^(https?:\/\/|mailto:)/i.test(String(x||"").trim())?String(x).trim():"";
+  if(h.head)L.push(h.head,"");if(h.text)L.push(String(h.text).trim(),"");if(u(h.url))L.push((h.btn?titleish(h.btn)+": ":"")+u(h.url),"");
+  (n.tiles||[]).slice(0,2).forEach(t=>{if(t.head)L.push(t.head);if(t.text)L.push(String(t.text).trim());if(u(t.url))L.push(u(t.url));L.push("");});
+  const it=(fd.items||[]).slice(0,3).filter(c=>c.place||c.text);if(it.length){if(fd.title)L.push(fd.title);it.forEach(c=>L.push("- "+[c.place,c.where].filter(Boolean).join(", ")+": "+String(c.text||"").trim()+(u(c.url)?" "+u(c.url):"")));L.push("");}
+  if(ct.head)L.push(ct.head);if(ct.text)L.push(String(ct.text).trim());if(u(ct.url))L.push(u(ct.url));
+  L.push("","--",NEWS_ADDR);return L.join("\n").replace(/\n{3,}/g,"\n\n").trim()+"\n";}
+function titleish(s){s=String(s||"").trim().toLowerCase();return s.charAt(0).toUpperCase()+s.slice(1);}
+
+/* ---------- Newsletter tab (view "news", Max + Hannah): build one issue, preview, test, export. Nothing sends to a list. ---------- */
+const NEWS={cur:"",dev:"desk",saveT:null,drawT:null,focus:null,h:0};
+function newsIssues(){return (DB.mktLib||[]).filter(x=>x&&x.kind==="news"&&!x.removed).sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||"")));}
+function newsCur(){const L=newsIssues();let n=L.find(x=>x.id===NEWS.cur)||L[0];
+  if(!n&&pjInner()){n=Object.assign(newsDefault(),{id:"news-"+uid(),by:USER,createdAt:new Date().toISOString()});n.updatedAt=n.createdAt;put("mktLib",n);}
+  if(n)NEWS.cur=n.id;return n;}
+function newsLocalBase(){try{return new URL("news/img/",location.href).href;}catch(e){return NEWS_IMG_BASE;}}
+function newsGet(o,p){return p.split(".").reduce((a,k)=>a==null?a:a[k],o);}
+function newsSet(o,p,v){const k=p.split(".");let a=o;for(let i=0;i<k.length-1;i++){if(a[k[i]]==null)a[k[i]]=/^\d+$/.test(k[i+1])?[]:{};a=a[k[i]];}a[k[k.length-1]]=v;}
+function newsMail(n){return newsHTML(n);} /* absolute images; mail-out fills {{unsubscribe_url}} */
+function newsSlug(n){return String(n.title||n.subject||"newsletter").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)||"newsletter";}
+
+/* who it would reach: unique addresses, minus the unsubscribed list; cold = on a cold list and nowhere warm */
+function newsReach(){const stop=suppressedSet(),ok=e=>{e=String(e||"").trim().toLowerCase();return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)&&!stop.has(e)?e:"";};
+  const set=a=>{const s=new Set();a.forEach(e=>{e=ok(e);if(e)s.add(e);});return s;};
+  const site=set([...newsletterSet()]);
+  const shows=set((DB.confLeads||[]).filter(l=>l&&!l.removed).map(l=>l.email));
+  const crm=set((DB.people||[]).filter(p=>p&&!p.removed).map(p=>p.email).concat((DB.leads||[]).filter(l=>l&&!l.removed).map(l=>l.email)));
+  const warm=new Set([...site,...shows,...crm]);
+  const cold=set(campaigns().filter(c=>campCold(c)&&!c.removed).flatMap(c=>(c.leads||[]).map(l=>l.email)).filter(e=>!warm.has(String(e||"").trim().toLowerCase())));
+  return {site:site.size,shows:shows.size,crm:crm.size,warm:warm.size,cold:cold.size};}
+
+function newsField(path,label,n,kind){const v=newsGet(n,path);const val=v==null?"":String(v);const id="nf_"+path.replace(/\./g,"_");
+  if(kind==="img")return '<label class="nw-l" for="'+id+'">'+label+'</label><select class="nw-f" id="'+id+'" data-nf="'+path+'"><option value="">No image</option>'+NEWS_LIB.map(o=>'<option value="'+esc(o.f)+'"'+(o.f===val?" selected":"")+'>'+esc(o.t)+'</option>').join("")+(val&&!NEWS_LIB.some(o=>o.f===val)?'<option value="'+esc(val)+'" selected>'+esc(val)+'</option>':"")+'</select>';
+  if(kind==="area")return '<label class="nw-l" for="'+id+'">'+label+'</label><textarea class="nw-f" id="'+id+'" data-nf="'+path+'" rows="'+Math.min(8,Math.max(3,Math.ceil(val.length/60)+1))+'">'+esc(val)+'</textarea>';
+  return '<label class="nw-l" for="'+id+'">'+label+'</label><input class="nw-f" id="'+id+'" data-nf="'+path+'" value="'+esc(val)+'"'+(kind==="url"?' type="url" inputmode="url" placeholder="https://"':"")+' autocomplete="off">';}
+function newsBlock(title,inner,open){return '<details class="nw-blk"'+(open?" open":"")+'><summary>'+title+svg("chevR","nw-chev")+'</summary><div class="nw-fields">'+inner+'</div></details>';}
+
+function mk2ViewNews(){if(!pjInner())return '<div class="mk2-card mk2-empty">Only Max and Hannah can open this tab.</div>';
+  const n=newsCur(),L=newsIssues(),r=newsReach(),f=(p,l,k)=>newsField(p,l,n,k);
+  let h='<div class="mk2-ph"><div><h1>Newsletter</h1><p>One email for a big list, laid out like a newsletter.</p></div><div class="acts">'+
+    '<button class="btn sm" data-act="newsnew">'+svg("plus")+' New issue</button>'+(L.length>1?'<button class="btn sm ghost" data-act="newsdel">Delete this issue</button>':"")+'</div></div>';
+  if(L.length>1)h+='<div class="mk2-chips nw-issues">'+L.map(x=>'<button class="mk2-chip'+(x.id===n.id?" on":"")+'" data-act="newspick" data-v="'+esc(x.id)+'">'+esc(x.title||x.subject||"Untitled")+'</button>').join("")+'</div>';
+  h+='<div class="mk2-card nw-reach"><div class="nw-rt"><b>'+r.warm.toLocaleString()+'</b><span>people who know us</span></div>'+
+    '<div class="nw-rs"><span><b>'+r.site.toLocaleString()+'</b> signed up on theautotq.com</span><span><b>'+r.shows.toLocaleString()+'</b> met us at a show</span><span><b>'+r.crm.toLocaleString()+'</b> in the CRM</span></div>'+
+    '<div class="nw-rc"><b>'+r.cold.toLocaleString()+'</b><span>on the cold lists · light version only, not connected</span></div></div>';
+  h+='<div class="nw-grid"><div class="nw-ed">'+
+    newsBlock("Email",f("title","Issue name (only you see this)")+f("subject","Subject line")+f("pre","Preview line (the grey text after the subject)"),true)+
+    newsBlock("Featured story",f("hero.img","Image","img")+f("hero.kicker","Small label")+f("hero.head","Headline")+f("hero.text","Story","area")+f("hero.btn","Button")+f("hero.url","Button link","url"),true)+
+    [0,1].map(i=>newsBlock("Feature "+(i+1),f("tiles."+i+".img","Image","img")+f("tiles."+i+".head","Headline")+f("tiles."+i+".text","Text","area")+f("tiles."+i+".btn","Button")+f("tiles."+i+".url","Button link","url"))).join("")+
+    newsBlock("In the field",f("field.title","Section title")+[0,1,2].map(i=>'<div class="nw-sub">Story '+(i+1)+'</div>'+f("field.items."+i+".img","Image","img")+f("field.items."+i+".place","Who")+f("field.items."+i+".where","Where")+f("field.items."+i+".text","One line","area")+f("field.items."+i+".url","Read more link (optional)","url")).join(""))+
+    newsBlock("Call to action",f("cta.head","Headline")+f("cta.text","Text","area")+f("cta.btn","Button")+f("cta.url","Button link","url"))+
+    newsBlock("Footer",f("foot.why","Why they're getting it","area"))+
+  '</div><div class="nw-pv"><div class="nw-pvbar"><div class="seg nw-seg"><button class="'+(NEWS.dev==="desk"?"on":"")+'" data-act="newsdev" data-v="desk">Desktop</button><button class="'+(NEWS.dev==="phone"?"on":"")+'" data-act="newsdev" data-v="phone">Phone</button></div>'+
+    '<div class="nw-acts"><button class="btn sm coral" data-act="newstest">'+svg("plane")+' Send me a test</button><button class="btn sm" data-act="newscopy">Copy HTML</button><button class="btn sm" data-act="newsdl">'+svg("dl")+' Download</button><button class="btn sm" data-act="newslight">Copy light version</button></div></div>'+
+    '<div class="nw-frame'+(NEWS.dev==="phone"?" phone":"")+'"><iframe id="nwFrame" title="Newsletter preview" sandbox="allow-same-origin allow-popups" style="height:'+(NEWS.h||1400)+'px"></iframe></div></div></div>';
+  return h;}
+
+function newsDraw(){const fr=document.getElementById("nwFrame"),n=newsCur();if(!fr||!n)return;
+  const d=fr.contentDocument;if(!d)return;d.open();d.write(newsHTML(n,{base:newsLocalBase()}).replace(/\{\{unsubscribe_url\}\}/g,"#"));d.close();
+  const fit=()=>{try{const hh=Math.max(400,Math.ceil(d.body.getBoundingClientRect().height));if(Math.abs(hh-(NEWS.h||0))>2){NEWS.h=hh;fr.style.height=hh+"px";}}catch(e){}};
+  fit();[...d.images].forEach(im=>{if(!im.complete)im.addEventListener("load",fit,{once:true});});
+  d.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("a");if(a){e.preventDefault();const u=a.getAttribute("href");if(/^https?:/i.test(u||""))window.open(u,"_blank","noopener");}});}
+function newsAfter(){if(APP!=="marketing"||view!=="news")return;newsDraw();
+  const F=NEWS.focus;if(F){const el=document.querySelector('[data-nf="'+F.p+'"]');if(el&&document.activeElement!==el){const det=el.closest("details");if(det)det.open=true;el.focus({preventScroll:true});try{if(F.s!=null)el.setSelectionRange(F.s,F.e);}catch(e){}}}}
+function newsSave(n){n.updatedAt=new Date().toISOString();n.updatedBy=USER;SYNC.dirty["mktLib|"+n.id]={collection:"mktLib",id:String(n.id),data:n,deleted:false}; /* dirty at once: a pull mid-typing can't bring the old copy back */
+  clearTimeout(NEWS.saveT);NEWS.saveT=setTimeout(()=>put("mktLib",n),700);}
+
+async function newsTest(){const n=newsCur();if(!n)return;const to=userEmail(USER);
+  const S=senders().filter(s=>s&&s.email&&!s.paused&&!(typeof isMailbox==="function"&&isMailbox(s)));const snd=S.find(s=>/^hello@/i.test(s.email))||S[0];
+  if(!to||!snd){toast("No inbox to send the test from");return;}toast("Sending a test to "+to+"…");
+  try{const r=await supa(MAILOUT,{method:"POST",body:JSON.stringify({action:"send",via:"ses",from:snd.email,fromName:"AutoTQ",replyTo:REPLY_TO,campaign:"newsletter-test",items:[{to,subject:"[Test] "+(n.subject||"Newsletter"),html:newsMail(n),text:newsText(n)}]})});
+    const b=await r.json().catch(()=>({}));const res=(b.results||[])[0]||{};if(!r.ok||!b.ok||!res.msgId)throw new Error(b.error||res.skipped||res.error||("HTTP "+r.status));
+    toast("Sent from "+snd.email+" — check "+to+" in a minute");}catch(e){toast("The test didn't send: "+e.message);}}
+async function newsClip(txt,msg){try{await navigator.clipboard.writeText(txt);toast(msg);}catch(e){toast("Couldn't copy — use Download instead");}}
+
+function newsHandle(a,t){const n=newsCur();
+  if(a==="newsdev"){NEWS.dev=t.dataset.v==="phone"?"phone":"desk";NEWS.h=0;render();return true;}
+  if(a==="newspick"){NEWS.cur=t.dataset.v;NEWS.focus=null;NEWS.h=0;render();return true;}
+  if(a==="newsnew"){const base=n?JSON.parse(JSON.stringify(n)):newsDefault();const k=newsIssues().length+1;
+    const x=Object.assign(base,{id:"news-"+uid(),kind:"news",title:"Issue "+k,by:USER,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),removed:false});delete x.updatedBy;
+    put("mktLib",x);NEWS.cur=x.id;NEWS.focus={p:"title",s:0,e:String(x.title).length};render();toast("New issue — a copy of the one you had open");return true;}
+  if(a==="newsdel"){if(n&&confirm('Delete "'+(n.title||n.subject)+'"?')){n.removed=true;n.removedBy=USER;n.removedAt=new Date().toISOString();put("mktLib",n);NEWS.cur="";NEWS.focus=null;render();toast("Deleted");}return true;}
+  if(!n)return true;
+  if(a==="newstest"){newsTest();return true;}
+  if(a==="newscopy"){newsClip(newsMail(n),"HTML copied — paste it into any email tool");return true;}
+  if(a==="newslight"){newsClip(newsText(n),"Light version copied");return true;}
+  if(a==="newsdl"){const u=URL.createObjectURL(new Blob([newsMail(n)],{type:"text/html"}));livSave(u,newsSlug(n)+".html");setTimeout(()=>URL.revokeObjectURL(u),4000);return true;}
+  return false;}
+document.addEventListener("click",e=>{if(APP!=="marketing")return;const t=e.target.closest&&e.target.closest("[data-act^='news']");if(!t)return;if(newsHandle(t.dataset.act,t)){e.preventDefault();e.stopPropagation();}},true);
+document.addEventListener("input",e=>{const el=e.target;if(APP!=="marketing"||view!=="news"||!el||!el.dataset||!el.dataset.nf)return;const n=newsCur();if(!n)return;
+  newsSet(n,el.dataset.nf,el.value);NEWS.focus={p:el.dataset.nf,s:el.selectionStart,e:el.selectionEnd};newsSave(n);
+  if(el.dataset.nf==="title"){const c=document.querySelector('.nw-issues .mk2-chip.on');if(c)c.textContent=el.value||"Untitled";}
+  clearTimeout(NEWS.drawT);NEWS.drawT=setTimeout(newsDraw,180);},true);
+document.addEventListener("focusin",e=>{const el=e.target;if(el&&el.dataset&&el.dataset.nf)NEWS.focus={p:el.dataset.nf,s:el.selectionStart,e:el.selectionEnd};},true);
+document.addEventListener("focusout",e=>{const el=e.target;if(el&&el.dataset&&el.dataset.nf&&!(e.relatedTarget&&e.relatedTarget.dataset&&e.relatedTarget.dataset.nf))setTimeout(()=>{const a=document.activeElement;if(!(a&&a.dataset&&a.dataset.nf))NEWS.focus=null;},0);},true);
 
 /* boot */
 try{document.title="AutoTQ "+APP_NAME;}catch(e){}
