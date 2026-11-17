@@ -1172,6 +1172,7 @@ button.av:hover{box-shadow:0 0 0 3px rgba(26,25,22,.08)}
 @media (max-width:900px){.glh{display:none}.glr{grid-template-columns:repeat(4,minmax(0,1fr));padding:8px;border:1px solid var(--line);border-radius:10px}.glr input.f:nth-child(5){grid-column:1/-1;order:-1}}
 @media (max-width:640px){.gfr{grid-template-columns:1fr}.gpv input.f,.gpv select.f{max-width:none;width:100%}.gnx{margin-left:0}}
 .invdrop{outline:2px dashed var(--coral,#e8543f);outline-offset:-4px;background:rgba(232,84,63,.06)}
+body.invpagedrag .content{outline:3px dashed var(--coral,#e8543f);outline-offset:-6px}
 </style>
 </head>
 <body>
@@ -8065,6 +8066,47 @@ function tqFoldCopy(coll,id,orders){
 }
 function tqFoldSweep(orders){return (orders||[]).filter(x=>!(x&&tqFoldCopy("orders",x.id,orders)));}
 /*TQ-CORE-END*/
+/*PO-CORE*/
+/* A PO PDF read by the po-scan function → order fields, and finding the order a PO belongs to (Max, 2026-11-17: "drop PDFs
+   that are POs… it adds to her queue and keeps track of the PO, no manual data entry"). Tested by
+   AutoTQ_CRM_scripts/po-scan/po_core_test.ts — keep it free of page globals (uses tqSku from TQ-CORE). */
+function poKey(s){return String(s||"").toUpperCase().replace(/[^A-Z0-9]+/g,"").replace(/^PO(?=[0-9])/,"").replace(/^0+/,"");}
+function poFindOrder(orders,poNo){const k=poKey(poNo);if(!k)return null;return (orders||[]).find(o=>o&&poKey(o.poNo)===k)||null;}
+function poCoKey(n){return String(n||"").toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\b(inc|llc|ltd|corp|corporation|co|company|the)\b/g," ").replace(/\s+/g," ").trim();}
+/* an order keyed in elsewhere (Devin's app) has its own PO number; same customer + same amount + no PDF yet = the same order */
+function poFindLoose(orders,account,amount){const k=poCoKey(account);if(!k||!(+amount>0))return null;
+  return (orders||[]).find(o=>o&&!o.file&&o.status!=="supplier"&&Math.abs((+o.amount||0)-(+amount))<1&&(()=>{const j=poCoKey(o.account);return j===k||(j.length>=6&&k.length>=6&&(j.startsWith(k)||k.startsWith(j)));})())||null;}
+function poLineSku(l){
+  const known=tqSku(String(l.part_number||"").trim());if(TQ_PRODUCTS[known])return known;
+  const d=(String(l.part_number||"")+" "+String(l.description||"")).toLowerCase();
+  if(/demo/.test(d))return "Demo unit";
+  if(/bracket|wall\s*mount/.test(d))return "7000-WB";
+  if(/\bcase\b|hard.?shell/.test(d))return "7000-CC";
+  if(/first.?aid/.test(d))return "7000-FA";
+  if(/cuff/.test(d))return /2x|two|ls2p/.test(d)?"7000-LS2P":"7000-LS-P";
+  if(/autotq|tourniquet|\bkit\b|1000-0005/.test(d))return "1000-0005-TQ";
+  return String(l.part_number||l.description||"").trim();
+}
+function poScanToOrder(po){
+  const addr=a=>{a=a||{};return {name:a.name||"",attn:a.attn||"",street:a.street||"",street2:a.street2||"",city:a.city||"",state:String(a.state||"").toUpperCase(),zip:a.zip||"",phone:""};};
+  const lines=(po.lines||[]).filter(l=>+l.qty>0);
+  const extra=(+po.freight||0)+(+po.tax||0);
+  const items=lines.map(l=>{let unit=+l.unit_price||0;
+    if(!unit&&+l.line_total>0)unit=+l.line_total/+l.qty;
+    if(!unit&&lines.length===1&&+po.total>0)unit=(+po.total-extra)/+l.qty;
+    return {sku:poLineSku(l),qty:+l.qty,unit:Math.round(unit*100)/100};});
+  if(+po.freight>0)items.push({sku:"Freight",qty:1,unit:+po.freight});
+  const sum=items.reduce((s,it)=>s+it.qty*it.unit,0);
+  const flags=[];
+  if(po.is_purchase_order===false)flags.push("may not be a PO");
+  if(!String(po.po_number||"").trim())flags.push("no PO number");
+  if(!(+po.total>0))flags.push("no total");
+  return {poNo:String(po.po_number||"").trim(),poDate:/^\d{4}-\d{2}-\d{2}$/.test(po.po_date||"")?po.po_date:"",
+    contactName:po.contact_name||"",contactEmail:String(po.contact_email||"").toLowerCase(),contactPhone:po.contact_phone||"",
+    payTerms:po.payment_terms||"",shipTo:addr(po.ship_to),billTo:addr(po.bill_to),items:items,
+    amount:Math.round((+po.total>0?+po.total:sum)*100)/100,flags:flags};
+}
+/*PO-CORE-END*/
 function skuNice(m){return SKU_NICE[m]||skuLabel(m)||m;}
 function itemsSummary(o){const it=orderItems(o);if(!it.length)return "";return it.filter(x=>!/freight/i.test(x.sku)).map(x=>(+x.qty||0)+"× "+(SKU_SHORT[x.sku]||x.sku)).join(" + ");}
 function itemsLine(o){const it=orderItems(o).filter(x=>!/freight/i.test(x.sku));if(!it.length)return "";
@@ -8103,8 +8145,9 @@ function invRowHTML(o,i){
         '<td style="padding:3px 0 3px 8px;'+bt+'border-left:1px solid var(--line);text-align:right;color:var(--muted);white-space:nowrap">'+fmtC(it.unit)+'</td></tr>';
       }).join("")+'</table>'
     :'<p style="margin:0;text-align:center;color:var(--hint);font-size:12.5px;padding:4px 0">no line items</p>';
-  return '<div data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer'+(i?';border-top:1px solid var(--line)':'')+'">'+
-    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+esc(shortAcct(o.account)||"—")+'</p>'+
+  const open=invOpenId===o.id;
+  return '<div'+(i?' style="border-top:1px solid var(--line)"':'')+'><div class="invrow" data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer">'+
+    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+'</p>'+
     '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+(o.contactName?'<span style="color:var(--hint)">· '+esc(o.contactName)+'</span>':'')+'</p>'+
     (line?'<p class="invline" style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(line)+'</p>':'')+
     (o.status==="queue"
@@ -8125,7 +8168,102 @@ function invRowHTML(o,i){
            ?'<button class="pill" data-act="invattach" data-id="'+o.id+'" title="The PO PDF is not here yet — tap to add it, or drop the file on this row" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16);font-weight:600;white-space:nowrap">PO PDF missing — add</button>'
            :'<button class="pill" data-act="invattach" data-id="'+o.id+'" title="Attach the PO PDF" style="color:var(--muted);background:rgba(120,120,120,.12);white-space:nowrap">+ PDF</button>')+
     '</div>'+
-  '</div>';
+  '</div>'+(open?invDetailsHTML(o):'')+'</div>';
+}
+/* Invoicing: drop PO PDFs anywhere on the page (or Upload PO PDFs) → each one is read by the po-scan function and either
+   files itself on the order it belongs to or lands as one new row in Laresa's queue — nobody types anything (Max, 2026-11-17). */
+function fileB64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]||"");r.onerror=()=>rej(r.error);r.readAsDataURL(f);});}
+async function poScanFile(f){
+  try{const r=await supa("/functions/v1/po-scan",{method:"POST",body:JSON.stringify({pdf:await fileB64(f),name:f.name})});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok||!j||!j.po)return {error:(j&&j.error)||("the PDF reader answered "+r.status)};
+    return {po:j.po};
+  }catch(e){return {error:String(e&&e.message||e)};}
+}
+function poFillBlanks(o,m,po){
+  ["contactName","contactEmail","contactPhone","payTerms"].forEach(k=>{if(!o[k]&&m[k])o[k]=m[k];});
+  if(!o.shipTo&&m.shipTo.street)o.shipTo=m.shipTo;
+  if(!o.billTo&&m.billTo.street)o.billTo=m.billTo;
+  if(!(o.items||[]).length&&m.items.length)o.items=m.items;
+  if(!(+o.amount)&&m.amount)o.amount=m.amount;
+  if(!o.poDate&&m.poDate)o.poDate=m.poDate;
+  if(m.poNo&&o.poNo!==m.poNo&&poKey(o.poNo)!==poKey(m.poNo))o.custPo=m.poNo; /* the customer's own PO # when ours came from elsewhere */
+  o.scan=po;o.scanAt=new Date().toISOString();o.scanBy=USER;
+}
+let invScanBusy=false;
+async function invScanFiles(files){
+  files=[...(files||[])].filter(f=>f.type==="application/pdf"||/\.pdf$/i.test(f.name));
+  if(!files.length){toast("Drop PDF files — those weren't PDFs");return;}
+  if(invScanBusy){toast("Still reading the last batch — drop again in a moment");return;}
+  invScanBusy=true;DB.orders=DB.orders||[];
+  const prog=t=>{const el=document.getElementById("invProg");if(el)el.textContent=t;};
+  const added=[],filed=[],same=[],failed=[];
+  try{
+    for(let i=0;i<files.length;i++){
+      const f=files[i];
+      prog("Reading "+(files.length>1?(i+1)+" of "+files.length+": ":"")+f.name+" …");
+      const sc=await poScanFile(f);
+      const m=sc.po?poScanToOrder(sc.po):null;
+      const co=sc.po?bcMatchCompany(sc.po.buyer_company):null;
+      const acct=co?co.name:(sc.po&&sc.po.buyer_company)||"";
+      const hit=m?(poFindOrder(DB.orders,m.poNo)||poFindLoose(DB.orders,acct,m.amount)):null;
+      if(hit&&hit.file&&hit.fname===f.name){same.push(shortAcct(hit.account)||hit.poNo);continue;}
+      const id=hit?hit.id:uid();
+      const path="pos/"+id+"_"+String(f.name).replace(/[^\w.\- ]+/g,"_");
+      if(!(await storUpload(path,f))){failed.push(f.name+" (upload failed)");continue;}
+      if(hit){
+        if(!hit.file){hit.file=path;hit.fname=f.name;}else{hit.files=(hit.files||[]).concat([{path:path,fname:f.name,at:new Date().toISOString()}]);}
+        poFillBlanks(hit,m,sc.po);filed.push(shortAcct(hit.account)||hit.poNo);save();continue;
+      }
+      const meta=parsePoFname(f.name);
+      const rec={id:id,addedBy:USER,addedAt:new Date().toISOString(),src:"pdf",status:"queue",file:path,fname:f.name,
+        account:acct||meta.account||f.name.replace(/\.pdf$/i,""),poNo:(m&&m.poNo)||meta.poNo||"",poDate:(m&&m.poDate)||meta.poDate||todayStr(),
+        items:m?m.items:[],amount:m?m.amount:0,notes:"",qbInv:""};
+      if(m){["contactName","contactEmail","contactPhone","payTerms"].forEach(k=>{if(m[k])rec[k]=m[k];});
+        if(m.shipTo.street)rec.shipTo=m.shipTo;if(m.billTo.street)rec.billTo=m.billTo;
+        rec.scan=sc.po;rec.scanAt=rec.addedAt;rec.scanBy=USER;rec.scanFlags=m.flags;}
+      else rec.scanFlags=["couldn't read the PDF — open it and fill the order in"+(sc.error?" ("+sc.error+")":"")];
+      DB.orders.push(rec);added.push(shortAcct(rec.account)||rec.poNo);save();
+    }
+  }finally{invScanBusy=false;prog("");}
+  if(added.length&&invFilter!=="queue"&&invFilter!=="all")invFilter="queue";
+  render();
+  const say=[];
+  if(added.length)say.push(added.length+" new in Needs invoice ("+added.join(", ")+")");
+  if(filed.length)say.push("filed on "+filed.join(", "));
+  if(same.length)say.push(same.length+" already there");
+  if(failed.length)say.push(failed.length+" failed: "+failed.join(", "));
+  toast(say.join(" · ")||"Nothing added");
+}
+/* the order's details, shown under its row when the row is tapped */
+let invOpenId=null;
+function invDetailsHTML(o){
+  const fact=(k,v)=>v?'<div style="display:flex;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px"><span style="color:var(--muted);flex:0 0 110px">'+k+'</span><span style="min-width:0">'+v+'</span></div>':'';
+  const addr=a=>a?[a.name,a.attn?"Attn: "+a.attn:"",a.street,a.street2,[a.city,a.state].filter(Boolean).join(", ")+(a.zip?" "+a.zip:"")].filter(x=>String(x||"").trim()).map(esc).join("<br>"):"";
+  const items=orderItems(o);
+  const td='padding:4px 8px;border-bottom:1px solid var(--line);';
+  const tbl=items.length?'<table style="width:100%;border-collapse:collapse;font-size:13px;margin:8px 0 2px">'+
+    items.map(it=>'<tr><td style="'+td+'padding-left:0"><b>'+esc(skuNice(it.sku))+'</b>'+(SKU_NICE[it.sku]?' <span style="color:var(--hint)">'+esc(it.sku)+'</span>':'')+'</td>'+
+      '<td style="'+td+'text-align:right;color:var(--muted)">'+(+it.qty||0)+' × '+fmtC(it.unit)+'</td>'+
+      '<td style="'+td+'padding-right:0;text-align:right;font-weight:600">'+fmtC((+it.qty||0)*(+it.unit||0))+'</td></tr>').join("")+
+    '<tr><td colspan="2" style="padding:6px 8px 0 0;text-align:right;color:var(--muted)">Total</td><td style="padding:6px 0 0;text-align:right;font-weight:700">'+fmtC(o.amount||itemsTotal(items))+'</td></tr></table>':'';
+  const flags=(o.scanFlags||[]).length?'<p style="margin:6px 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Check: '+o.scanFlags.map(esc).join(" · ")+'</p>':'';
+  const who=teamById(o.addedBy);
+  return '<div class="invdet" style="padding:4px 16px 14px 16px;background:rgba(0,0,0,.018);border-top:1px dashed var(--line)">'+flags+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 24px">'+
+    '<div>'+fact("PO number",esc(o.poNo||"—")+(o.custPo?' <span style="color:var(--hint)">· customer PO '+esc(o.custPo)+'</span>':''))+
+      fact("PO date",o.poDate?esc(usDate(o.poDate)):"")+
+      fact("Contact",[o.contactName,o.contactEmail,o.contactPhone].filter(Boolean).map(esc).join(" · "))+
+      fact("Terms",esc(o.payTerms||""))+fact("Bill-to email",esc(o.billEmail||billToFor(o)||""))+fact("QB invoice",esc(o.qbInv||""))+'</div>'+
+    '<div>'+fact("Ship to",addr(o.shipTo))+fact("Bill to",addr(o.billTo))+
+      fact("Added",(o.src==="pdf"?"Read from the PO PDF · ":"")+esc((who&&who.name)||o.addedBy||"")+(o.addedAt?" · "+esc(usDate(String(o.addedAt).slice(0,10))):""))+'</div></div>'+
+    tbl+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
+     (o.file?'<button class="btn sm" data-act="invview" data-id="'+o.id+'">Open the PO PDF</button>':'<button class="btn sm" data-act="invattach" data-id="'+o.id+'">Add the PO PDF</button>')+
+     (o.files||[]).map(x=>'<button class="btn sm ghost" data-act="invviewx" data-id="'+o.id+'" data-p="'+esc(x.path)+'">'+esc(x.fname)+'</button>').join("")+
+     (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'">Invoiced ✓</button>':'')+
+     '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Full order</button>'+
+     '<button class="btn sm ghost" data-act="invform" data-id="'+o.id+'">Edit</button></div></div>';
 }
 async function attachPoFile(id,file){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o||!file)return;
@@ -9802,7 +9940,8 @@ function viewInvoicing(){
      '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
      '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div></div>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">'+
-     '<button class="btn coral" data-act="invupload">'+svg("plus")+' Upload PO PDFs</button>'+
+     '<button class="btn coral" data-act="invupload" title="Or drop PO PDFs anywhere on this page — each is read and lands in Needs invoice">'+svg("plus")+' Add PO PDFs</button>'+
+     '<span style="font-size:12.5px;color:var(--hint)">or drop PO PDFs anywhere here — they\u2019re read for you</span>'+
      '<input type="file" id="poFiles" accept="application/pdf" multiple style="display:none">'+
      '<button class="btn sm ghost" data-act="invadd">Add order without a PDF</button>'+
      (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button>'+
@@ -10531,7 +10670,7 @@ document.addEventListener("change",e=>{
     if(e.target.dataset.act==="leadcatsel"){l.cat=v;l.catAt=new Date().toISOString();l.catBy=USER;if(v==="dead"&&l.assignee)l.assignee=null;toast(l.name+" → "+(LEAD_CATS.find(x=>x[0]===v)||["",v])[1]);}
     else{if(!v){if(l.assignee){l.assignee=null;if(l.cat==="handed")l.cat="qualified";toast("Taken back");}}else if(l.assignee!==v){leadHand(l,v);toast(l.name+" → "+teamById(v).name);}}
     save();render();return;}
-  if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invUploadFiles(Array.from(e.target.files));e.target.value="";}
+  if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invScanFiles(Array.from(e.target.files));e.target.value="";}
   if(e.target&&e.target.id==="poCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(invImportCsv);e.target.value="";}
   if(e.target&&e.target.id==="upsCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(importUpsCsv);e.target.value="";}
   if(e.target&&e.target.id==="pipeDist"){pipeF.dist=e.target.value;render();}
@@ -10592,12 +10731,14 @@ document.addEventListener("click",e=>{
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
   if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
-  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"],[data-act="shipfor"],[data-act="oconfirm"],[data-stop]'))return;orderSheet(id);return;}
+  if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"],[data-act="shipfor"],[data-act="oconfirm"],[data-stop]'))return;if(t.classList.contains("invrow")){invOpenId=invOpenId===id?null:id;render();return;}orderSheet(id);return;}
   if(a==="invattach"){e.stopPropagation();logState.attachId=id;let inp=document.getElementById("poFileOne");
     if(!inp){inp=document.createElement("input");inp.type="file";inp.accept="application/pdf";inp.id="poFileOne";inp.style.display="none";document.body.appendChild(inp);
       inp.addEventListener("change",()=>{if(inp.files.length)attachPoFile(logState.attachId,inp.files[0]);inp.value="";});}
     inp.click();return;}
   if(a==="invform"){formOrder(id);return;}
+  if(a==="invsheet"){orderSheet(id);return;}
+  if(a==="invviewx"){e.stopPropagation();(async()=>{toast("Opening…");const b=await storBlob(t.dataset.p);if(!b){toast("Couldn't fetch the PDF — are you online?");return;}const u=URL.createObjectURL(b);window.open(u,"_blank");setTimeout(()=>URL.revokeObjectURL(u),60000);})();return;}
   if(a==="invdel"){e.stopPropagation();deleteOrder(id);return;}
   if(a==="invpdf"){invoicePdf(id);return;}
   if(a==="invemail"){formInvoiceEmail(id);return;}
@@ -11286,6 +11427,10 @@ function invDropRow(e){if(view!=="invoicing"||!qdragHas(e))return null;const r=e
 document.addEventListener("dragover",e=>{const r=invDropRow(e);if(!r)return;e.preventDefault();e.dataTransfer.dropEffect="copy";
   document.querySelectorAll(".invdrop").forEach(x=>{if(x!==r)x.classList.remove("invdrop");});r.classList.add("invdrop");});
 document.addEventListener("dragleave",e=>{const r=invDropRow(e);if(r&&!r.contains(e.relatedTarget))r.classList.remove("invdrop");});
+function invPageDrop(e){return view==="invoicing"&&qdragHas(e)&&!invDropRow(e)&&!document.getElementById("scrim").classList.contains("open");}
+window.addEventListener("dragover",e=>{if(invPageDrop(e)){e.preventDefault();e.dataTransfer.dropEffect="copy";document.body.classList.add("invpagedrag");}});
+window.addEventListener("dragleave",e=>{if(!e.relatedTarget)document.body.classList.remove("invpagedrag");});
+window.addEventListener("drop",e=>{document.body.classList.remove("invpagedrag");if(!invPageDrop(e))return;e.preventDefault();invScanFiles(e.dataTransfer.files);});
 document.addEventListener("drop",e=>{const r=invDropRow(e);document.querySelectorAll(".invdrop").forEach(x=>x.classList.remove("invdrop"));if(!r)return;e.preventDefault();
   const f=[...(e.dataTransfer.files||[])].find(x=>x.type==="application/pdf"||/\.pdf$/i.test(x.name));
   if(!f){toast("Drop a PDF — that file isn't one");return;}attachPoFile(r.dataset.id,f);});
