@@ -424,6 +424,17 @@ table.lv th .rz:hover,table.lv th .rz.on{background:linear-gradient(to right,tra
 .pcard .pnext svg.i{width:13px;height:13px;margin-top:1px}
 .pcard .pm{font-size:12px;color:var(--muted);margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .pcard .pv{font-size:14px;font-weight:650;letter-spacing:-.01em;margin-top:8px;display:flex;align-items:center;justify-content:space-between}
+/* deal notes keep their history (2026-11-17): newest first on a guide line, the latest one on cards and rows */
+.nlog{list-style:none;margin:8px 0 6px 5px;padding:0 0 0 15px;border-left:2px solid var(--line)}
+.nlog li{position:relative;padding:0 0 11px}
+.nlog li:last-child{padding-bottom:2px}
+.nlog li::before{content:"";position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--line-2);box-sizing:border-box}
+.nlog li:first-child::before{background:var(--coral);border-color:var(--coral)}
+.nmeta{font-size:12px;color:var(--muted);line-height:1.4}
+.nmeta b{color:var(--ink-2);font-weight:600}
+.ntext{font-size:13.5px;line-height:1.45;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;margin-top:1px}
+.nlast{font-size:12px;line-height:1.4;color:var(--ink-2);margin-top:4px;white-space:normal;overflow-wrap:anywhere}
+.nlast b{font-weight:600;color:var(--muted)}
 .pcard .adv{display:flex;gap:4px}
 .pcard .adv button{width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--surface);border-radius:7px;color:var(--muted);padding:0;
   transition:background .15s,border-color .15s,color .15s}
@@ -1200,7 +1211,8 @@ async function refreshSession(){
   }catch(e){return false;}
 }
 /* ---- sync engine: local-first, record-level, last-write-wins ---- */
-const SYNC={shadow:{},lastPull:"1970-01-01T00:00:00Z",dirty:{},timer:null,pushing:false,online:true,booted:false};
+const SYNC={shadow:{},lastPull:"1970-01-01T00:00:00Z",dirty:{},timer:null,pushing:false,online:true,booted:false,
+  srvAt:{},srvBy:{},healed:false}; /* srvAt/srvBy = each deal's last save on the server (dates a note from before the history) */
 function syncKey(coll,id){return coll+"|"+id;}
 function snapshotShadow(){SYNC.shadow={};SYNC_COLLECTIONS.forEach(coll=>(DB[coll]||[]).forEach(r=>{if(r&&r.id!=null)SYNC.shadow[syncKey(coll,r.id)]=JSON.stringify(r);}));}
 function loadSyncMeta(){try{const m=JSON.parse(localStorage.getItem("autotq_sync_meta")||"{}");SYNC.lastPull=m.lastPull||SYNC.lastPull;SYNC.dirty=m.dirty||{};}catch(e){}}
@@ -1251,17 +1263,19 @@ function queueChanges(){ // diff DB vs shadow → dirty queue
 async function pushDirty(){
   if(SYNC.pushing||!authed())return;
   const keys=Object.keys(SYNC.dirty);if(!keys.length)return;
+  const sent=keys.map(k=>SYNC.dirty[k]);
   SYNC.pushing=true;syncBadge("up");
   try{
     const rows=keys.map(k=>{const d=SYNC.dirty[k];
       return {collection:d.collection,id:d.id,data:d.deleted?{id:d.id}:d.data,deleted:d.deleted,updated_by:USER||""};});
     const res=await supa("/rest/v1/records?on_conflict=collection,id",{method:"POST",
       headers:{"Prefer":"resolution=merge-duplicates,return=minimal"},body:JSON.stringify(rows)});
-    if(res.ok){keys.forEach(k=>delete SYNC.dirty[k]);saveSyncMeta();SYNC.online=true;}
+    /* a record queued again while this push was out (a save, or a merged deal note) stays queued for the next push */
+    if(res.ok){keys.forEach((k,j)=>{if(SYNC.dirty[k]===sent[j])delete SYNC.dirty[k];});saveSyncMeta();SYNC.online=true;}
     else SYNC.online=false;
   }catch(e){SYNC.online=false;}
   SYNC.pushing=false;syncBadge(SYNC.online?"ok":"off");
-  if(SYNC.online)pullChanges();
+  if(SYNC.online){pullChanges();if(Object.keys(SYNC.dirty).length){clearTimeout(SYNC.timer);SYNC.timer=setTimeout(pushDirty,700);}}
 }
 function applyRemote(coll,id,data,deleted){
   if(!DB[coll])DB[coll]=[];
@@ -1270,6 +1284,11 @@ function applyRemote(coll,id,data,deleted){
   if(deleted){if(i>-1)DB[coll].splice(i,1);delete SYNC.shadow[k];return true;}
   const s=JSON.stringify(data);
   if(SYNC.shadow[k]===s)return false;
+  /* a pulled deal keeps the notes only this device has (never overwrite the list) and writes down a note from before the
+     history; the merged deal goes back up */
+  if(coll==="opps"&&data&&oppPullNotes(i>-1?DB[coll][i]:null,data)){
+    if(i>-1)DB[coll][i]=data;else DB[coll].push(data);
+    SYNC.shadow[k]=JSON.stringify(data);SYNC.dirty[k]={collection:coll,id:String(id),data:data,deleted:false};SYNC.healed=true;return true;}
   if(i>-1)DB[coll][i]=data;else DB[coll].push(data);
   SYNC.shadow[k]=s;return true;
 }
@@ -1288,7 +1307,10 @@ async function pullChanges(full){
       rows.forEach(r=>{
         const k=syncKey(r.collection,r.id);
         if(r.updated_at>maxTs)maxTs=r.updated_at;
-        if(SYNC.dirty[k])return; // local unpushed edit wins until pushed
+        if(r.collection==="opps"){SYNC.srvAt[k]=r.updated_at;SYNC.srvBy[k]=r.updated_by||"";}
+        if(SYNC.dirty[k]){ // local unpushed edit wins until pushed — but a deal still takes the notes others added
+          if(r.collection==="opps"&&!r.deleted&&r.data&&oppNotesIntoDirty(k,r.data))changed=true;
+          return;}
         if(r.collection==="whiteboard"&&!futureAccess())return; // Max's Future CRM notes never land on anyone else's device
         if(SYNC_COLLECTIONS.includes(r.collection)&&applyRemote(r.collection,r.id,r.data,r.deleted))changed=true;
       });
@@ -1297,6 +1319,8 @@ async function pullChanges(full){
     }
     SYNC.lastPull=maxTs;
     SYNC.online=true;saveSyncMeta();
+    if(SYNC.healed){SYNC.healed=false;if(SYNC.booted){clearTimeout(SYNC.timer);SYNC.timer=setTimeout(pushDirty,700);}} // boot pushes on its own
+    if(changed){try{oppNoteRedraw();}catch(e){}}
     if(changed){normOppStages();writeCache();
       const ae=document.activeElement;
       if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();else try{fbSync();}catch(e){}}
@@ -3876,7 +3900,7 @@ function dealIssues(o){
 }
 function attnRows(pool){return pool.filter(oppIsOpen).map(o=>({o:o,is:dealIssues(o)})).filter(x=>x.is.length).sort((a,b)=>b.is.length-a.is.length||(b.o.amount||0)-(a.o.amount||0));}
 function attnRow(x){const o=x.o;return '<button class="card" data-act="editopp" data-id="'+o.id+'"><div class="row"><span class="ic '+(x.is.some(i=>i[0]==="dang")?"coral":"warn")+'">'+svg("chart")+'</span>'+
-  '<div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">'+esc(oppAcctLabel(o))+(oppDistLabel(o)?' · via '+esc(oppDistLabel(o)):'')+' · '+money(o.amount||0)+' · '+esc(OPP_SHORT[o.stage]||o.stage)+(profile()!=="sales"&&oppGhRep(o)?' · '+esc(shortName(oppGhRep(o))):'')+'</p></div>'+
+  '<div class="grow"><p class="t1">'+esc(o.name)+'</p><p class="t2">'+esc(oppAcctLabel(o))+(oppDistLabel(o)?' · via '+esc(oppDistLabel(o)):'')+' · '+money(o.amount||0)+' · '+esc(OPP_SHORT[o.stage]||o.stage)+(profile()!=="sales"&&oppGhRep(o)?' · '+esc(shortName(oppGhRep(o))):'')+'</p>'+oppNoteLastHTML(o)+'</div>'+
   '<span class="chips" style="justify-content:flex-end">'+x.is.map(i=>'<span class="pill '+i[0]+'">'+i[1]+'</span>').join("")+'</span>'+chev()+'</div></button>';}
 function leadHomeRow(l){const t=leadLastTouch(l);const from=l.handedBy||(profile(l.by||"")==="outreach"?l.by:"");
   return '<button class="card" data-act="openlead" data-id="'+esc(l.id)+'"><div class="row"><span class="ic info">'+svg("spark")+'</span><div class="grow"><p class="t1">'+esc(l.name)+(l.state?' <span style="color:var(--muted);font-weight:500">· '+esc(l.state)+'</span>':'')+'</p><p class="t2">'+esc([l.company,l.title,l.conf].filter(Boolean).join(" · "))+(from?' · from '+esc(shortName(from)):'')+'</p>'+(t&&t.note?'<p class="t2" style="white-space:normal;color:var(--ink-2)">'+esc(titlecase(t.method||"note"))+' '+esc(t.date)+(t.by?' ('+esc(shortName(t.by))+')':'')+': '+esc(t.note.replace(/^CRM Note:\s*/i,"").replace(/\s+/g," ").slice(0,150))+'</p>':'')+'</div>'+leadCatTag(leadCat(l))+chev()+'</div></button>';}
@@ -5462,7 +5486,7 @@ function oppVal(o,key){
 function oppRow(o){
   const lead=oppAcctLabel(o),isStock=lead&&oppDistLabel(o)&&lead.toLowerCase()===oppDistLabel(o).toLowerCase();
   return '<tr data-act="editopp" data-id="'+o.id+'">'+
-  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':(oppIsOpen(o)&&oppNeedsQuote(o)?' · <span class="pill warn" style="font-size:10.5px" title="A direct sale needs our quote">no quote yet</span>':'');})()+'</div></td>'+
+  '<td><div class="lvname">'+esc(o.name)+'</div><div class="lvsub">'+(isStock?'stocking order':(lead&&lead!=="—"&&lead.toLowerCase()!==(o.name||"").toLowerCase()?esc(lead):esc(o.dealType||"")))+(o.rep?' · '+esc(o.rep):'')+(function(){const qs=oppQuotes(o);return qs.length?' · <span class="pill info" style="font-size:10.5px" title="'+esc(qs.map(q=>q.no+" "+fmtC(quoteTotal(q))).join(", "))+'">'+svg("tag")+' '+(qs.length===1?esc(qs[0].no):qs.length+" quotes")+'</span>':(oppIsOpen(o)&&oppNeedsQuote(o)?' · <span class="pill warn" style="font-size:10.5px" title="A direct sale needs our quote">no quote yet</span>':'');})()+'</div>'+oppNoteLastHTML(o)+'</td>'+
   '<td>'+distCell(o)+'</td>'+
   '<td>'+ghRepCell(o)+'</td>'+
   '<td>'+regionTag(oppRegion(o))+(o.state?' '+stateChip(o.state):'')+'</td>'+
@@ -5520,6 +5544,7 @@ function oppCard(o){
   return '<div class="pcard" data-act="editopp" data-id="'+o.id+'">'+
    '<div class="pn">'+esc(o.name)+'</div>'+
    '<div class="pa">'+esc(oppAcctLabel(o))+(oppDistLabel(o)&&oppDistLabel(o).toLowerCase()!==oppAcctLabel(o).toLowerCase()?' · via '+esc(oppDistLabel(o)):'')+'</div>'+
+   oppNoteLastHTML(o)+
    '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
      (oppNoQuote(o)&&oppIsOpen(o)?'<span class="pill warn" style="font-size:10.5px" title="A direct sale needs our quote">no quote yet</span>':'')+
@@ -5546,7 +5571,7 @@ const PIPE_FIELDS=[
  ["last","Last touch",o=>{const t=oppTouches(o),l=oppLastTouch(o);return l?l+" · "+t+" touch"+(t===1?"":"es"):(t?t+" touch"+(t===1?"":"es"):"");}],
  ["people","People on the deal",o=>{const ps=oppFoldPeople(o).map(c=>{const p=person(c.pid);return p?p.name+" ("+c.role+")":"";}).filter(Boolean);const rn=String(o.rep||"").split(" (")[0].trim().toLowerCase();if(rn&&!ps.some(x=>x.toLowerCase().indexOf(rn)===0))ps.push(o.rep+" (channel rep)");if(o.owner)ps.push("entered by "+teamById(o.owner).name+(o.createdAt?" "+String(o.createdAt).slice(0,10):""));return ps.join("; ");}],
  ["close","Close date",o=>o.closeDate||""],
- ["notes","Notes",o=>[o.probReason?"Why "+oppProb(o)+"%: "+o.probReason:"",o.note||""].filter(Boolean).join(" — ")]
+ ["notes","Notes",o=>[o.probReason?"Why "+oppProb(o)+"%: "+o.probReason:"",oppNotesText(o)].filter(Boolean).join("\n")] /* every note, newest first, one per line */
 ];
 const PIPE_DEFAULT=["name","lead","dist","rep","where","stage","amount","units","next","last","close"];
 /* the thirteen, in four groups (Max, 2026-10-16) */
@@ -6458,8 +6483,8 @@ const REPORTS=[
   run(){return {cols:["Opportunity","Account","Stage","Amount","Units","Prob %","Close","Region","Rep","Source"],
    rows:myOpps().filter(oppIsOpen).map(o=>[o.name,oppAcctLabel(o),OPP_SHORT[o.stage],o.amount||0,o.units||0,oppProb(o),o.closeDate||(o.forecastYear?"FY "+o.forecastYear:""),oppRegion(o),o.rep||"",o.source||"app"])};}},
  {id:"opp-book",name:"Opportunity Book",desc:"All opportunities including closed, with outcomes",
-  run(){return {cols:["Opportunity","Account","Stage","Amount","Units","Prob %","Region","Rep","Deal type","Note"],
-   rows:myOpps().map(o=>[o.name,oppAcctLabel(o),o.stage,o.amount||0,o.units||0,oppProb(o),oppRegion(o),o.rep||"",o.dealType||"",o.note||""])};}},
+  run(){return {cols:["Opportunity","Account","Stage","Amount","Units","Prob %","Region","Rep","Deal type","Latest note"],
+   rows:myOpps().map(o=>[o.name,oppAcctLabel(o),o.stage,o.amount||0,o.units||0,oppProb(o),oppRegion(o),o.rep||"",o.dealType||"",oppNotesText(o,1)])};}},
  {id:"accounts",name:"Accounts by Region",desc:"Full account book with type, stage and order history",
   run(){return {cols:["Account","Type","Region","State","Stage","Contacts","Units","Revenue","Orders","Demos","Website"],
    rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>admin()||inRegion(companyRegion(c))).map(c=>[c.name,typeLabel(c.type),companyRegion(c),c.state||"",c.type==="distributor"?enableStage(c):(c.stage||""),cc[c.id]||0,c.units||0,c.revenue||0,c.orders||0,c.demoCount||0,c.website||""]);})()};}},
@@ -6619,6 +6644,85 @@ function oppFoldPeople(o){
   add(o.distRepPid,"Distributor rep");add(o.manrepPid,"Man-rep");
   return cs;
 }
+/* ---------- Deal notes keep their history (John Cornejo via Max, 2026-11-17: "all those updates should be saved chronologically
+   to show the progress… if all you see is the last update, there is no insight to the history of that opportunity").
+   o.noteLog = [{id, at, by, text}], newest first, append-only: a note is never edited or dropped (a removed:true one is skipped
+   and wins a merge, for a fix by hand). o.note mirrors the newest note, so whatever still reads o.note keeps working.
+   A deal's note from before the history — or one an older copy of the page wrote over o.note — shows as a note of its own
+   (oppNoteStray, id "nl_"+hash of its text, dated by the deal's last save on the server; by whoever entered the deal when it is the
+   deal's only note, else by whoever saved that version). The first time this page pulls or saves such a deal it is written into
+   the list — same id and date on every device, so the copies merge into one.
+   Syncs never overwrite the list: a pulled deal takes the notes only this device has, a deal with an unpushed edit here takes
+   the ones others added, and the merged deal goes back up (applyRemote / oppNotesIntoDirty). ---------- */
+const NOTE_SHOW=3;
+function noteHash(s){let h=0;s=String(s||"");for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return (h>>>0).toString(36);}
+function noteIso(t){if(!t)return "";const d=new Date(t);return isNaN(d)?"":d.toISOString();}
+function isTeamId(id){return !!id&&TEAM.some(t=>t.id===id);}
+function oppNotesSort(list){return list.slice().sort((a,b)=>String(b.at||"").localeCompare(String(a.at||""))||String(b.id).localeCompare(String(a.id)));}
+function oppNoteLive(o){return oppNotesSort(((o&&o.noteLog)||[]).filter(n=>n&&n.id&&!n.removed&&String(n.text||"").trim()));}
+function oppNoteStray(o){
+  const t=String((o&&o.note)||"").trim();if(!t)return null;
+  const all=(o.noteLog||[]).filter(n=>n&&n.id),id="nl_"+noteHash(t);
+  if(all.some(n=>n.id===id||String(n.text||"").trim()===t))return null; /* already in the list (or taken out of it) */
+  const k=syncKey("opps",o.id),by=all.length?SYNC.srvBy[k]:o.owner;
+  return {id:id,at:noteIso(SYNC.srvAt[k])||noteIso(o.createdAt),by:isTeamId(by)?by:"",text:t};
+}
+function oppNotes(o){const s=o?oppNoteStray(o):null;return s?oppNotesSort(oppNoteLive(o).concat([s])):oppNoteLive(o);}
+function oppNoteMaterialize(o){const s=oppNoteStray(o);if(!s)return false;o.noteLog=oppNotesSort((o.noteLog||[]).concat([s]));return true;}
+function oppNoteMirror(o){const l=oppNoteLive(o),t=l.length?String(l[0].text).trim():"";if(String(o.note||"").trim()!==t)o.note=t;}
+function oppAddNote(o,text){
+  text=String(text||"").trim();if(!o||!text)return null;
+  oppNoteMaterialize(o);
+  const n={id:"n"+Date.now().toString(36)+uid(),at:new Date().toISOString(),by:USER||"",text:text};
+  o.noteLog=[n].concat(o.noteLog||[]);oppNoteMirror(o);
+  return n;
+}
+function oppNoteMerge(mine,theirs){ /* theirs ∪ mine by id (a removed copy wins); null when theirs already has everything */
+  const by={};(theirs||[]).forEach(n=>{if(n&&n.id)by[n.id]=n;});
+  let add=false;
+  (mine||[]).forEach(n=>{if(!n||!n.id)return;const t=by[n.id];
+    if(!t){by[n.id]=n;add=true;}
+    else if(n.removed&&!t.removed){by[n.id]=Object.assign({},t,{removed:true});add=true;}});
+  return add?oppNotesSort(Object.values(by)):null;
+}
+function oppPullNotes(local,data){ /* true when the pulled deal changed and has to go back up */
+  let ch=false;
+  if(local){const m=oppNoteMerge(local.noteLog,data.noteLog);if(m){data.noteLog=m;ch=true;}} /* merge first, then a stray o.note */
+  if(oppNoteMaterialize(data))ch=true;
+  if(ch)oppNoteMirror(data);
+  return ch;
+}
+function oppNotesIntoDirty(k,data){
+  const d=SYNC.dirty[k];const o=d&&!d.deleted?(DB.opps||[]).find(x=>x&&String(x.id)===String(d.id)):null;if(!o)return false;
+  const r=Object.assign({},data,{noteLog:(data.noteLog||[]).slice()});oppNoteMaterialize(r);
+  const m=oppNoteMerge(r.noteLog,o.noteLog);
+  if(m)o.noteLog=m;
+  const ch=oppNoteMaterialize(o);
+  if(!ch&&!m)return false;
+  oppNoteMirror(o);SYNC.dirty[k]=Object.assign({},d,{data:o});SYNC.shadow[k]=JSON.stringify(o);SYNC.healed=true;
+  return true;
+}
+function noteDay(at){if(!at)return "";const d=new Date(at);if(isNaN(d))return "";
+  return d.toLocaleDateString(undefined,d.getFullYear()===new Date().getFullYear()?{month:"short",day:"numeric"}:{month:"short",day:"numeric",year:"numeric"});}
+function noteWho(n){return isTeamId(n.by)?shortName(n.by):"";}
+function noteHead(n){return [noteDay(n.at),noteWho(n)].filter(Boolean).join(" · ");}
+function oppNoteListHTML(o,all){
+  const ns=oppNotes(o);
+  if(!ns.length)return '<p class="t2" style="margin:6px 0 2px">No notes yet.</p>';
+  const show=all?ns:ns.slice(0,NOTE_SHOW);
+  return '<ol class="nlog">'+show.map(n=>'<li><div class="nmeta"><b>'+esc(noteDay(n.at)||"Earlier")+'</b>'+(noteWho(n)?' · '+esc(noteWho(n)):'')+'</div><div class="ntext">'+esc(n.text)+'</div></li>').join("")+'</ol>'+
+   (ns.length>show.length?'<button type="button" class="btn sm ghost" data-act="oppNoteAll" data-id="'+esc(o.id)+'">Show all '+ns.length+' notes</button>':'');
+}
+function oppNoteRedraw(){ /* the open deal form's list, after a sync brought someone else's note in */
+  const w=document.getElementById("oNoteLog");if(!w)return;const o=oppById(w.dataset.id);if(o)w.innerHTML=oppNoteListHTML(o,w.dataset.all==="1");
+}
+function oppNoteLastHTML(o){ /* the newest note on a pipeline row, board card or Home row */
+  const ns=oppNotes(o);if(!ns.length)return "";const n=ns[0];
+  return '<div class="nlast clamp2" title="'+esc((ns.length>1?ns.length+" notes · newest: ":"")+n.text)+'">'+(noteHead(n)?'<b>'+esc(noteHead(n))+'</b> ':'')+esc(n.text)+(ns.length>1?' <span class="muted">· '+ns.length+' notes</span>':'')+'</div>';
+}
+function oppNotesText(o,max){ /* for Excel: one line per note, newest first */
+  return oppNotes(o).slice(0,max||1e9).map(n=>{const h=[noteIso(n.at).slice(0,10),noteWho(n)].filter(Boolean).join(" ");return (h?h+": ":"")+n.text;}).join("\n");
+}
 function oppConChips(){
   return (logState.oppContacts||[]).map((c,i)=>{
     const p=person(c.pid);if(!p)return "";
@@ -6644,7 +6748,13 @@ function formOppReadOnly(o){
    row("Channel rep",esc(o.rep||(o.manrepPid&&person(o.manrepPid)?person(o.manrepPid).name:"")))+
    row("Close date",esc(o.closeDate||""))+
    row("Quotes",oppQuotes(o).map(q=>'<a href="#" data-act="quoteopen" data-id="'+q.id+'" style="color:var(--coral-text)">'+quoteLine(q)+'</a>').join("<br>"))+
-   row("Notes",esc(o.note||"")));
+   '<label class="fl">Notes <span style="font-weight:400;color:var(--hint)">— newest first</span></label>'+oppNoteListHTML(o,true));
+}
+function oppNotesFormHTML(o){ /* the edit form: a box for the next note above every earlier one */
+  return '<label class="fl">Notes <span style="font-weight:400;color:var(--hint)">— add an update; earlier notes stay, newest first</span></label>'+
+   '<textarea class="f" id="oNotes" rows="2" placeholder="What happened? e.g. Spoke with purchasing, PO expected next week"></textarea>'+
+   '<div class="row" style="justify-content:flex-end;margin-top:6px"><button type="button" class="btn sm" data-act="oppNoteAdd">'+svg("plus")+' Add note</button></div>'+
+   '<div id="oNoteLog" data-id="'+esc(o.id)+'">'+oppNoteListHTML(o,false)+'</div>';
 }
 function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, name, amount, units, acct} */
   pre=pre||{};
@@ -6678,6 +6788,7 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
   if(!o){formOppSteps(pre,selCid,distLabel,amt0,units0,repChips,dtypes,lbl);return;}
   openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
    (o?nameHTML:'')+
+   (o?oppNotesFormHTML(o):'')+
    lbl("Customer")+comboField("oCidQ","Company or end user",selCid?((company(selCid)||{}).name||""):(o?o.accountName||"":(pre.acct||"")))+
    lbl("Closing distributor",o?"":"optional")+comboField("oDistQ","Who the PO comes through",distLabel)+
    '<div class="row" style="gap:10px;align-items:flex-start"><div style="flex:1;min-width:0">'+lbl("Kits")+'<input class="f" id="oUnits" type="number" min="0" inputmode="numeric" value="'+esc(String(units0))+'" placeholder="40"></div>'+
@@ -6699,7 +6810,6 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
    '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
    '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>'+
    oppQuotesFormHTML()+
-   lbl("Notes")+'<textarea class="f" id="oNotes" placeholder="What\'s the opportunity?">'+(o?esc(o.note||""):esc(pre.note||""))+'</textarea>'+
    lbl("Deal type")+'<select class="f" id="oType">'+dtypes.map(t=>'<option'+((o?o.dealType===t:(preCo&&preCo.type==="distributor"?t==="Stocking Order":false))?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
    '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1 1 120px;min-width:0">'+lbl("State","blank = the account's")+'<input class="f" id="oLoc" value="'+(o?esc(o.state||""):esc(pre.state||""))+'" placeholder="TN" maxlength="2"></div>'+
    '<div style="flex:1 1 150px;min-width:0">'+lbl("Last contact",o&&oppLastTouch(o)?"auto: "+esc(oppLastTouch(o)):"")+'<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'"></div></div>'+
@@ -7060,7 +7170,7 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
     stage:logState.oppStage||"Prospecting",amount:parseFloat(val("oAmt"))||0,
     units:parseInt(val("oUnits"),10)||0,closeDate:document.getElementById("oClose").value||"",
     dealType:document.getElementById("oType").value,state:(val("oLoc")||(c&&c.state)||(logState.oppDistCid&&(company(logState.oppDistCid)||{}).state)||"").toUpperCase().slice(0,2),
-    rep:repTxt,note:val("oNotes"),contacts:(logState.oppContacts||[]).slice(),
+    rep:repTxt,contacts:(logState.oppContacts||[]).slice(), /* the note box adds a note below — it never replaces o.note/noteLog */
     probReason:val("oProbWhy"),nextAction:val("oNextA"),nextActionDate:document.getElementById("oNextAD").value||"",
     touchesExtra:existing?(existing.touchesExtra||0):0,lastContact:document.getElementById("oLastC").value||"",
     distributorId:distSel||null,
@@ -7079,8 +7189,9 @@ function saveOpp(after){ /* after = "newquote" | "extquote": go on to a quote fo
   if(ownerSel)data.owner=ownerSel.value;
   let saved=existing;
   if(existing){if(existing.stage===data.stage&&typeof existing.probability==="number")data.probability=existing.probability;Object.assign(existing,data);}
-  else{const no=Object.assign({id:uid(),owner:USER,source:"app",createdAt:new Date().toISOString()},data);DB.opps.unshift(no);saved=no;
+  else{const no=Object.assign({id:uid(),owner:USER,source:"app",createdAt:new Date().toISOString(),note:""},data);DB.opps.unshift(no);saved=no;
     if(logState.oppFromLead){const l=myLeadById(logState.oppFromLead);if(l){l.oppId=no.id;if(leadCat(l)!=="handed")l.cat="qualified";}logState.oppFromLead=null;}}
+  oppNoteMaterialize(saved);oppAddNote(saved,val("oNotes")); /* a typed note joins the history (nothing typed → nothing added) */
   oppSyncQuotes(saved);
   save();
   if(after==="newquote"){render();formQuote(null,{cid:saved.accountId||null,acct:saved.accountName||"",oppId:saved.id});toast("Deal saved — the new quote goes on it");return;}
@@ -7191,7 +7302,8 @@ function oppFromQuote(q){
     distributorId:dist?dist.id:null,distributorName:dist?dist.name:(stock?"":(q.distName||"")),distRepPid:q.distPid||null,
     contacts:[].concat(q.pid&&person(q.pid)?[{pid:q.pid,role:"Buyer"}]:[],q.distPid&&person(q.distPid)?[{pid:q.distPid,role:"Distributor rep"}]:[]),
     nextAction:"Follow up on quote "+q.no,nextActionDate:ymd(new Date(Date.now()+7*86400000)),closeDate:"",
-    note:"Made from quote "+q.no+".",rep:"",touchesExtra:0,lastContact:"",direct:false};
+    note:"",rep:"",touchesExtra:0,lastContact:"",direct:false};
+  oppAddNote(o,"Made from quote "+q.no+".");
   o.ghRep=profile(USER)==="sales"?USER:oppNoAutoRep(o)?"":(repForRegion(regionFromState(st))||"");
   if(o.ghRep==="house")o.ghRep="";
   DB.opps.unshift(o);q.oppId=o.id;
@@ -10714,6 +10826,12 @@ document.addEventListener("click",e=>{
     document.getElementById("oppCons").innerHTML=oppConChips();return;}
   if(a==="oppDetach"){logState.oppContacts.splice(parseInt(t.dataset.i,10),1);
     document.getElementById("oppCons").innerHTML=oppConChips();return;}
+  /* deal notes: Add note saves just the note (the rest of the form waits for Save changes); earlier notes are never touched */
+  if(a==="oppNoteAdd"){const o=oppById(logState.oppId),i=document.getElementById("oNotes"),txt=val("oNotes");
+    if(!txt){toast("Type the note first");if(i)i.focus();return;}
+    if(!o||!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
+    oppAddNote(o,txt);save();if(i)i.value="";oppNoteRedraw();render();toast("Note added");return;}
+  if(a==="oppNoteAll"){const w=document.getElementById("oNoteLog");if(w){w.dataset.all="1";oppNoteRedraw();}return;}
   if(a==="menu"){menu();return;}
   if(a==="viewaspick"){openSheet('<h2>See a teammate\'s tabs</h2><p style="color:var(--muted);font-size:13.5px;margin:0 0 10px">Shows their left rail exactly as they see it — you stay signed in as you.</p>'+
     TEAM.filter(t=>t.id!==USER).map(t=>'<button class="hub" data-act="viewas" data-v="'+t.id+'"><span class="av" style="background:'+t.c+';width:30px;height:30px;font-size:12px">'+initials(t.name)+'</span><b>'+esc(t.name)+'</b></button>').join("")+
