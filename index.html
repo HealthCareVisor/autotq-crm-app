@@ -10370,6 +10370,59 @@ function shipDoneRowHTML(o,i){
       (o.shippedAt&&!o.shipTracking?'<button class="btn sm ghost" data-act="lnunship" data-id="'+o.id+'" title="Put it back on To ship">Undo</button>':'')+'</div>'+
   '</div>';
 }
+/* Shipping queue print-out (Max, 2026-11-18: "an all-queue print out for shipping … a PDF that summarizes each order so someone can
+   start getting it ready while someone works on labels"). One letter sheet (or more): what to pull in total, then every To-ship order —
+   a ship-together group as one — with tick boxes, ship-to, how it ships, and lines to write serials and box weights on. */
+function shipQueueAddr(o){const t=(o.shipTo&&o.shipTo.street)?o.shipTo:shipToFor(o);
+  return [t.name,t.attn&&t.attn!==t.name?"Attn "+t.attn:"",t.street,t.street2,[t.city,[t.state,t.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")].map(x=>String(x||"").trim()).filter(Boolean).join(" · ");}
+function shipQueueHTML(){
+  const L=toShipList(),rows=L.map(o=>({o,items:(shipMates(o).length?shipGroupItems(o):shipItems(o)).filter(x=>+x.qty>0)}));
+  const tot={},ord=[];rows.forEach(r=>r.items.forEach(x=>{const k=tqSku(x.sku);if(!(k in tot)){tot[k]=0;ord.push(k);}tot[k]+=+x.qty||0;}));
+  const code=k=>{const m=TQ_PRODUCTS[tqSku(k)];return m&&m[1]!==m[2]?m[1]:"";};
+  const bx='<span class="bx"></span>',d=new Date();
+  const dayTxt=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric",year:"numeric"});
+  const units=rows.reduce((n,r)=>n+r.items.reduce((m,x)=>m+(+x.qty||0),0),0);
+  return '<!doctype html><html><head><meta charset="utf-8"><title>Shipping queue — '+esc(dayTxt)+'</title><style>'+
+   '@font-face{font-family:"Inter";src:url('+assetUrl("inter-latin.woff2")+') format("woff2");font-weight:100 900;font-style:normal}'+
+   '@page{size:letter;margin:0.5in}*{box-sizing:border-box}'+
+   'body{font-family:Inter,system-ui,sans-serif;color:#1f1e1b;font-size:12.5px;margin:0;font-variant-numeric:tabular-nums}'+
+   '.wrap{max-width:7.5in;margin:0 auto;padding:16px 0}'+
+   'h1{font-size:21px;margin:0;letter-spacing:-.01em}.sub{color:#6b675f;margin:3px 0 14px}'+
+   '.tot{border:1.5px solid #1f1e1b;border-radius:8px;padding:10px 14px;margin:0 0 14px;break-inside:avoid}'+
+   '.tot h2,.ord h3{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#6b675f;margin:0 0 6px}'+
+   '.tot p{margin:3px 0;font-size:14px}.tot b{display:inline-block;min-width:44px}'+
+   '.ord{border-top:1.5px solid #1f1e1b;padding:11px 0 12px;break-inside:avoid}'+
+   '.hd{display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}'+
+   '.cust{font-size:15.5px;font-weight:700}.who{font-weight:400;color:#6b675f}.po{color:#6b675f;font-size:12px}'+
+   '.it{margin:5px 0 0 26px;font-size:14px}.it b{display:inline-block;min-width:38px}.it .c{color:#8a857b;font-size:11.5px;margin-left:6px}'+
+   '.ln{margin:5px 0 0 26px;color:#4a4740}.ln i{font-style:normal;color:#8a857b}'+
+   '.fill{margin:7px 0 0 26px;color:#8a857b;display:flex;gap:8px;align-items:flex-end}.fill span{flex:1;border-bottom:1px solid #b5b0a6;height:14px}'+
+   '.bx{display:inline-block;width:13px;height:13px;border:1.5px solid #1f1e1b;border-radius:2px;margin-right:9px;vertical-align:-2px}'+
+   '.cust .bx{width:16px;height:16px;vertical-align:-3px}'+
+   '.tag{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:2px}'+
+   '.tag.l{background:#e9f0fa;color:#3b6fb5}.tag.t{background:#f3efe6;color:#6b5a2e}'+
+   '.bar{position:sticky;top:0;background:#f4f2ed;padding:10px;text-align:center;border-bottom:1px solid #ddd8ce}'+
+   '.bar button{font:inherit;font-weight:600;padding:8px 18px;border:0;border-radius:8px;background:#C4502A;color:#fff;cursor:pointer}'+
+   '@media print{.bar{display:none}.wrap{padding:0}}'+
+   '</style></head><body><div class="bar"><button onclick="window.print()">Print / Save as PDF</button></div><div class="wrap">'+
+   '<h1>Shipping queue</h1><p class="sub">'+esc(dayTxt)+' · '+rows.length+' order'+(rows.length===1?'':'s')+' · '+units+' unit'+(units===1?'':'s')+'</p>'+
+   (ord.length?'<div class="tot"><h2>Pull from stock</h2>'+ord.map(k=>'<p>'+bx+'<b>'+tot[k]+' ×</b> '+esc(upsSkuName(k))+(code(k)?' <span style="color:#8a857b;font-size:12px">'+esc(code(k))+'</span>':'')+'</p>').join("")+'</div>':'')+
+   (rows.length?rows.map(({o,items})=>{
+     const grp=shipMates(o).length>0,how=shipHowTxt(o),kits=shipGroup(o).reduce((n,x)=>n+(srNeed(x)||0),0);
+     const who=o.contactName&&o.contactName!==o.account?o.contactName:"";
+     return '<div class="ord"><div class="hd"><div class="cust">'+bx+esc(shortAcct(o.account)||o.account||"—")+(who?' <span class="who">· '+esc(who)+'</span>':'')+
+         (o.status==="loaner"?'<span class="tag l">Demo loaner</span>':'')+(grp?'<span class="tag t">One box · '+shipGroup(o).length+' POs</span>':'')+'</div>'+
+         '<div class="po">PO '+esc(grp?shipGroupPOs(o):(o.poNo||"—"))+(o.poDate?' · '+esc(usDate(o.poDate)):'')+'</div></div>'+
+       (items.length?items.map(x=>'<div class="it">'+bx+'<b>'+(+x.qty)+' ×</b>'+esc(upsSkuName(x.sku))+(code(x.sku)?'<span class="c">'+esc(code(x.sku))+'</span>':'')+'</div>').join("")
+         :'<div class="it" style="color:#a15c00">No items on the order — check the PO</div>')+
+       '<div class="ln"><i>Ship to</i> '+esc(shipQueueAddr(o)||"— no address on the order")+'</div>'+
+       (how?'<div class="ln"><i>Ship</i> <b>'+esc(how)+'</b></div>':'')+
+       (kits?'<div class="fill"><i>Serials</i><span></span></div>':'')+
+       '<div class="fill"><i>Boxes · weight · size</i><span></span></div></div>';}).join("")
+    :'<p style="font-size:15px;color:#6b675f">Nothing waiting to go out.</p>')+
+   '</div><script>window.addEventListener("load",function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});<\/script></body></html>';
+}
+function shipQueuePrint(){const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the shipping queue");return;}w.document.write(shipQueueHTML());w.document.close();}
 function viewShipTab(){
   ensureOrderItems();ensureLoanerBook();
   const L=toShipList();
@@ -10377,7 +10430,8 @@ function viewShipTab(){
   const done=(DB.orders||[]).filter(o=>o&&o.status!=="supplier"&&!shipLead(o)&&(o.shippedAt||o.shipTracking||o.shipCarrier==="Hand delivered")&&String(o.shipDate||o.shippedAt||"").slice(0,10)>=since)
     .sort((a,b)=>String(b.shipDate||b.shippedAt||"").localeCompare(String(a.shipDate||a.shippedAt||"")));
   let h=srPendingBannerHTML();
-  h+='<h2 class="sech" style="margin-top:4px">To ship · '+L.length+'</h2>';
+  h+='<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:4px"><h2 class="sech" style="margin:0">To ship · '+L.length+'</h2>'+
+    (L.length?'<button class="btn sm" data-act="shipqueue" title="One printable sheet: what to pull, then every order to pack">'+svg("dl")+' Print the queue</button>':'')+'</div>';
   h+=L.length?'<div class="card" style="padding:0;overflow:hidden">'+L.map((o,i)=>shipRowHTML(o,i)).join("")+'</div>'
     :'<div class="card" style="padding:22px;text-align:center;color:var(--hint)">Nothing waiting to go out. ✓</div>';
   if(done.length)h+='<h2 class="sech" style="margin-top:22px">Shipped · last 30 days · '+done.length+'</h2>'+
@@ -11554,6 +11608,7 @@ document.addEventListener("click",e=>{
   if(a==="pickOcTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("ocTo");if(p&&i)i.value=p.email||"";sugRender("ocTo",[]);return;}
   if(a==="shipsliporder"){e.stopPropagation();packingSlipOrder(id);return;}
   if(a==="upsship"){e.stopPropagation();formUpsShip(id);return;}
+  if(a==="shipqueue"){shipQueuePrint();return;}
   if(a==="shipjoin"){e.stopPropagation();shipJoin(id,t.dataset.v);return;}
   if(a==="shipsplit"){e.stopPropagation();shipSplit(id);return;}
   if(a==="upssvc"){const S=logState.ups;if(S){S.svc=t.dataset.v;document.querySelectorAll('#upSvc .qchip').forEach(b=>b.classList.toggle("on",b.dataset.v===S.svc));}return;}
