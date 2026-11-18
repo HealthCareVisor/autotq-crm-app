@@ -8527,7 +8527,7 @@ function orderSheet(id){
      (o.status!=="loaner"&&o.status!=="supplier"?'<button class="btn coral" data-act="invemail" data-id="'+o.id+'">Review email & send</button>'+
        '<button class="btn" data-act="invpdf" data-id="'+o.id+'">Invoice PDF only</button>':'')+
      (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'">View PO PDF</button>':'')+
-     (shipAccess()&&o.status!=="supplier"?'<button class="btn'+(o.confirmedAt?'':' coral')+'" data-act="oconfirm" data-id="'+o.id+'">'+(o.confirmedAt?'Send confirmation again':'Send order confirmation')+'</button>':'')+
+     (srShipper()&&o.status!=="supplier"&&o.status!=="loaner"?'<button class="btn'+(o.confirmedAt?'':' coral')+'" data-act="oconfirm" data-id="'+o.id+'">'+(o.confirmedAt?'Send confirmation again':'Send order confirmation')+'</button>':'')+
      (shipAccess()&&o.status!=="supplier"?'<button class="btn" data-act="shipfor" data-id="'+o.id+'">'+(shipmentsFor(o.id).length?'Ship more':'Ship it')+'</button>'+
        '':'')+
      (o.status!=="supplier"?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+upsLabelBtn(o,"btn")+
@@ -9168,15 +9168,21 @@ async function sendOrderConfirm(oid){
   o.contactEmail=to;
   try{
     await sendHtmlMail({from:SALES_FROM,to:to,cc:cc,subject:sub,html:orderConfirmHTML(o)});
-    o.confirmedAt=todayStr();o.confirmedTo=to;
-    const c=acctForOrder(o);
-    if(c)DB.activities.unshift({id:uid(),type:"email",pid:null,cid:c.id,note:"Order confirmation for PO "+(o.poNo||"")+" emailed to "+to,date:new Date().toISOString(),by:USER});
-    save();closeSheet();render();toast("Confirmation sent to "+to+" ✓");
+    ocSent(o,to);save();closeSheet();render();toast("Confirmation sent to "+to+" ✓");
   }catch(e){
-    if(btn){btn.disabled=false;btn.textContent="Send confirmation";}
-    save();toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+") — opening it to copy");
-    htmlCopyWindow(orderConfirmHTML(o),to,sub,SALES_FROM,salesCopyBcc(to,cc));
+    save();
+    /* the copy window has to open from a tap — opened here, after the await, the pop-up blocker eats it */
+    const foot=btn&&btn.parentElement;
+    if(foot)foot.outerHTML='<div style="margin-top:14px"><p style="font-size:13px;color:var(--warn-t,#a15c00);margin:0 0 8px">Couldn’t send it from the CRM ('+esc(String(e.message||e).slice(0,90))+'). Open it, paste it into a new email from '+SALES_FROM+', then mark it sent.</p>'+
+      '<div style="display:flex;gap:8px"><button class="btn coral" data-act="occopy" data-id="'+o.id+'" style="flex:1.4">Open the email to copy</button>'+
+      '<button class="btn" data-act="ocmark" data-id="'+o.id+'" style="flex:1">Mark as sent</button></div></div>';
+    else toast("Couldn't send from here ("+String(e.message||e).slice(0,60)+")");
   }
+}
+function ocSent(o,to){
+  o.confirmedAt=todayStr();o.confirmedTo=to;
+  const c=acctForOrder(o);
+  if(c)DB.activities.unshift({id:uid(),type:"email",pid:null,cid:c.id,note:"Order confirmation for PO "+(o.poNo||"")+" emailed to "+to,date:new Date().toISOString(),by:USER});
 }
 /* ---------- QUOTES (Max, 2026-10-13: "a form that our sales people can use to quote people immediately… input line
    items then send a copy"). One synced record per quote in `quotes`:
@@ -10269,11 +10275,18 @@ function shipSkuLines(o){
   return it.map(x=>{const m=TQ_PRODUCTS[tqSku(x.sku)];
     return '<p style="margin:3px 0 0;font-size:13px"><b>'+(+x.qty)+' ×</b> '+esc(m?m[2]:String(x.sku))+(m?' <span style="color:var(--hint)">'+esc(m[1])+'</span>':'')+'</p>';}).join("");
 }
+/* order acknowledgment on the Shipping tab (Max, 2026-11-18: Federal Signal POs say "ORDER ACKNOWLEDGMENT REQUIRED"; the button
+   had only lived on the retired Shipping view) — the "We've received your AutoTQ order" email from salessupport@ */
+function shipConfirmHTML(o){
+  if(o.status==="loaner"||o.status==="supplier")return "";
+  return o.confirmedAt?'<span class="pill" title="Order confirmation sent to '+esc(o.confirmedTo||"")+'" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Confirmed ✓ '+esc(usDate(o.confirmedAt))+'</span>'
+    :'<button class="pill" data-act="oconfirm" data-id="'+o.id+'" title="Email the order confirmation to the PO contact" style="color:var(--coral,#e8543f);background:rgba(232,84,63,.10);white-space:nowrap;cursor:pointer">Send order confirmation</button>';
+}
 function shipRowHTML(o,i){
   const t=shipBillTag(o),to=lnShipTo(o),who=o.contactName&&o.contactName!==o.account?o.contactName:"";
   return '<div style="'+(i?'border-top:1px solid var(--line);':'')+'box-shadow:inset 4px 0 0 '+t.c+';padding:12px 16px 12px 20px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+
     '<div class="grow" style="min-width:240px">'+
-      '<p style="margin:0;font-size:14.5px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+' '+t.pill+' '+srChipHTML(o)+'</p>'+
+      '<p style="margin:0;font-size:14.5px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+' '+t.pill+' '+srChipHTML(o)+' '+shipConfirmHTML(o)+'</p>'+
       '<p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+(o.status==="loaner"?'requested ':'PO date ')+esc(usDate(o.poDate))+'</span></p>'+
       shipSkuLines(o)+
       '<p style="margin:4px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p>'+
@@ -11446,6 +11459,8 @@ document.addEventListener("click",e=>{
   if(a==="oconfirm"){e.stopPropagation();formOrderConfirm(id);return;}
   if(a==="ocview"){orderConfirmPreview(id);return;}
   if(a==="ocsend"){sendOrderConfirm(id);return;}
+  if(a==="occopy"){const o=orderById(id);if(o){const to=val("ocTo").replace(/^.*<|>.*$/g,"").trim(),cc=val("ocCc").split(/[,;]/).map(x=>x.trim()).filter(Boolean);htmlCopyWindow(orderConfirmHTML(o),to,val("ocSub"),SALES_FROM,salesCopyBcc(to,cc));}return;}
+  if(a==="ocmark"){const o=orderById(id),to=val("ocTo").replace(/^.*<|>.*$/g,"").trim();if(!o)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter their email first");return;}ocSent(o,to);save();closeSheet();render();toast("Marked as sent to "+to);return;}
   if(a==="pickOcTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("ocTo");if(p&&i)i.value=p.email||"";sugRender("ocTo",[]);return;}
   if(a==="shipsliporder"){e.stopPropagation();packingSlipOrder(id);return;}
   if(a==="upsship"){e.stopPropagation();formUpsShip(id);return;}
