@@ -8340,7 +8340,7 @@ function invDetailsHTML(o){
      (o.files||[]).map(x=>'<button class="btn sm ghost" data-act="invviewx" data-id="'+o.id+'" data-p="'+esc(x.path)+'">'+esc(x.fname)+'</button>').join("")+
      (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'">Mark invoiced</button>':'')+
      (gpoAccess()&&gpoForOrder(o)?'<button class="btn sm" data-act="invgpo" data-id="'+gpoForOrder(o).id+'">Grainger SPS steps</button>':'')+
-     (o.status!=="supplier"?'<button class="btn sm" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+
+     (o.status!=="supplier"?'<button class="btn sm" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+upsLabelBtn(o,"btn sm")+
      '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Full order</button>'+
      '<button class="btn sm ghost" data-act="invform" data-id="'+o.id+'">Edit</button></div></div>';
 }
@@ -8530,7 +8530,7 @@ function orderSheet(id){
      (shipAccess()&&o.status!=="supplier"?'<button class="btn'+(o.confirmedAt?'':' coral')+'" data-act="oconfirm" data-id="'+o.id+'">'+(o.confirmedAt?'Send confirmation again':'Send order confirmation')+'</button>':'')+
      (shipAccess()&&o.status!=="supplier"?'<button class="btn" data-act="shipfor" data-id="'+o.id+'">'+(shipmentsFor(o.id).length?'Ship more':'Ship it')+'</button>'+
        '':'')+
-     (o.status!=="supplier"?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+
+     (o.status!=="supplier"?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+upsLabelBtn(o,"btn")+
      '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
      '<button class="btn ghost" data-act="invdel" data-id="'+o.id+'" style="color:var(--dang-t,#b3261e);margin-left:auto">Delete order</button>'+
    '</div>');
@@ -10058,19 +10058,19 @@ function packingSlip(id){
    falls back to an open-and-copy window if that function hasn't been redeployed yet. ---------- */
 function shipNoticeHTML(s,opts){
   opts=opts||{};
-  const url=trackUrl(s.carrier,s.tracking),o=orderById(s.orderId);
+  const url=trackUrl(s.carrier,s.tracking),o=orderById(s.orderId),head=opts.head||"Your AutoTQ order has shipped";
   const items=(s.items||[]).filter(x=>+x.qty>0).map(x=>(+x.qty)+" × "+skuNice(x.sku)).join(", ");
   const meta=[s.tracking?(esc(s.carrier||"")+(s.service?" "+esc(s.service):"")+" · tracking <b>"+esc(s.tracking)+"</b>"):"",
               o&&o.poNo?"PO "+esc(o.poNo):"",items?esc(items):""].filter(Boolean).join("<br>");
   const f='font-family:Helvetica Neue,Helvetica,Arial,sans-serif;';
-  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Your AutoTQ order has shipped</title></head>'+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>'+esc(head)+'</title></head>'+
   '<body style="margin:0;padding:0;background:#f3f3f3;'+f+'">'+
   '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f3f3"><tr><td align="center" style="padding:28px 12px">'+
    '<table role="presentation" width="404" cellpadding="0" cellspacing="0" style="width:404px;max-width:100%;background:#ffffff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.08)">'+
     '<tr><td style="padding:30px 32px 26px;border-bottom:1px solid #eeeeee"><span style="'+f+'font-size:26px;font-weight:800;letter-spacing:-.5px;color:#111111">AutoTQ<sup style="font-size:10px;font-weight:600;vertical-align:top">&reg;</sup></span></td></tr>'+
     '<tr><td style="padding:26px 32px 8px">'+
      '<p style="margin:0 0 10px;'+f+'font-size:9px;letter-spacing:1.6px;font-weight:700;color:#C8102E">ORDER UPDATE</p>'+
-     '<h1 style="margin:0 0 22px;'+f+'font-size:18px;font-weight:700;color:#111111;line-height:1.3">Your AutoTQ order has shipped.</h1>'+
+     '<h1 style="margin:0 0 22px;'+f+'font-size:18px;font-weight:700;color:#111111;line-height:1.3">'+esc(head)+'.</h1>'+
      '<p style="margin:0 0 18px;'+f+'font-size:11px;line-height:1.7;color:#333333">Your AutoTQ shipment is on the way. You can track the shipment using the button below.</p>'+
      (url?'<table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="background:#C8102E;border-radius:3px"><a href="'+esc(url)+'" style="display:inline-block;padding:10px 22px;'+f+'font-size:11px;font-weight:700;color:#ffffff;text-decoration:none">Track Shipment &rarr;</a></td></tr></table>':'')+
      (meta?'<p style="margin:16px 0 0;'+f+'font-size:10.5px;line-height:1.7;color:#666666">'+meta+'</p>':'')+
@@ -10279,10 +10279,11 @@ function shipRowHTML(o,i){
       '<p style="margin:4px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p>'+
       (shipHowTxt(o)?'<p style="margin:3px 0 0;font-size:12.5px;font-weight:600;color:var(--ink)">Ship '+esc(shipHowTxt(o))+'</p>':'')+'</div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;flex:none;align-items:center">'+
+      '<button class="btn sm '+(upsIsFedex(o)?'ghost':'coral')+'" data-act="upsship" data-id="'+o.id+'">Ship with UPS</button>'+
       '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
       '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Serial numbers, carrier and tracking — saving tracking also marks it shipped">Serials &amp; tracking</button>'+
       '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Order</button>'+
-      '<button class="btn sm coral" data-act="lnship" data-id="'+o.id+'">Mark shipped</button></div>'+
+      '<button class="btn sm '+(upsIsFedex(o)?'coral':'ghost')+'" data-act="lnship" data-id="'+o.id+'" title="Hand delivered, FedEx or a label made elsewhere">Mark shipped</button></div>'+
   '</div>';
 }
 function shipDoneRowHTML(o,i){
@@ -10292,8 +10293,13 @@ function shipDoneRowHTML(o,i){
     '<div class="grow" style="min-width:240px"><p style="margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+' '+t.pill+'</p>'+
       '<p style="margin:3px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+esc(lnItems(o))+'</span></p>'+
       '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)"><span style="color:var(--ok-t);font-weight:600">Shipped'+(day?' '+esc(usDate(day)):'')+'</span>'+(o.shipCarrier?' · '+esc(o.shipCarrier):'')+(tl?' '+tl:'')+'</p></div>'+
-    '<div style="display:flex;gap:6px;flex:none">'+
-      '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
+    '<div style="display:flex;gap:6px;flex:none;flex-wrap:wrap;align-items:center">'+
+      (o.notifiedAt?'<span class="pill" title="“Your AutoTQ units have shipped” sent to '+esc(o.notifiedTo||"")+'" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Emailed ✓ '+esc(usDate(o.notifiedAt))+'</span>'+
+        '<button class="btn sm ghost" data-act="osnform" data-id="'+o.id+'">Email again</button>'
+       :'<button class="btn sm coral" data-act="osnform" data-id="'+o.id+'" title="The branded “Your AutoTQ units have shipped” email, tracking link in the button">Email them it shipped</button>')+
+      (!o.shipTracking&&o.shipCarrier!=="Hand delivered"?'<button class="btn sm ghost" data-act="lnship" data-id="'+o.id+'">Add tracking #</button>':'')+
+      '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+upsLabelBtn(o)+
+      (o.upsLabel?'<button class="btn sm ghost" data-act="upsvoid" data-id="'+o.id+'" title="Cancel this label with UPS (no charge if the box hasn’t been scanned)">Void</button>':'')+
       (o.shippedAt&&!o.shipTracking?'<button class="btn sm ghost" data-act="lnunship" data-id="'+o.id+'" title="Put it back on To ship">Undo</button>':'')+'</div>'+
   '</div>';
 }
@@ -10318,6 +10324,268 @@ function lnMarkShipped(id,on){
   save();render();
   toast(on?"Marked shipped — "+(shortAcct(o.account)||"order"):"Back on To ship — "+(shortAcct(o.account)||"order"));
 }
+/* Mark shipped asks for the tracking # (Max, 2026-11-18: "I also need the tracking # + Your AutoTQ units have shipped"):
+   carrier + tracking # + ship date on the order, then straight on to the branded "Your AutoTQ units have shipped" email to
+   the PO contact (shipNoticeHTML on the order, Track Shipment button = the tracking link). o.notifiedAt/notifiedTo record it;
+   new tracking marks the order "to Devin" the same way Serials & tracking does. */
+const OSN_HEAD="Your AutoTQ units have shipped";
+function lnShipCarrier(o){if(o.shipCarrier)return o.shipCarrier;const v=String(o.shipVia||"");return /fedex/i.test(v)?"FedEx":/usps|postal/i.test(v)?"USPS":/hand/i.test(v)?"Hand delivered":"UPS";}
+function lnTrackHint(c){return {UPS:"1Z…",FedEx:"FedEx tracking #",USPS:"USPS tracking #"}[c]||"";}
+function formMarkShipped(id){
+  const o=orderById(id);if(!o)return;
+  const car=logState.lnCar=lnShipCarrier(o),who=String(o.contactName||"").trim().split(/\s+/)[0];
+  const lbl=t=>'<label class="fl">'+t+'</label>';
+  openSheet('<h2>Mark shipped — '+esc(shortAcct(o.account)||"Order")+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+poChip(o.poNo)+' '+esc(lnItems(o))+(shipHowTxt(o)?' · <b>Ship '+esc(shipHowTxt(o))+'</b>':'')+'</p>'+
+   lbl('Shipped with')+'<div id="lnCar" style="display:flex;gap:6px;flex-wrap:wrap">'+SR_CARRIERS.map(c=>'<button class="qchip'+(car===c?" on":"")+'" data-act="lnshipcar" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>'+
+   '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" id="lnTrackWrap" style="min-width:200px'+(car==="Hand delivered"?';display:none':'')+'">'+lbl('Tracking #')+
+    '<input class="f" id="lnTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="'+esc(lnTrackHint(car))+'"></div>'+
+   '<div>'+lbl('Ship date')+'<input class="f" id="lnDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div></div>'+
+   '<button class="btn coral block" data-act="lnshipsave" data-id="'+o.id+'" data-v="email" style="margin-top:16px">Save &amp; email '+esc(who||"them")+' it shipped</button>'+
+   '<button class="btn ghost block" data-act="lnshipsave" data-id="'+o.id+'" style="margin-top:8px">Just mark shipped</button>');
+  setTimeout(()=>{const el=document.getElementById("lnTrack");if(el&&car!=="Hand delivered")el.focus();},60);
+}
+function lnShipCar(c){
+  logState.lnCar=c;
+  document.querySelectorAll("#lnCar .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===c));
+  const w=document.getElementById("lnTrackWrap"),i=document.getElementById("lnTrack");
+  if(w)w.style.display=c==="Hand delivered"?"none":"";if(i)i.placeholder=lnTrackHint(c);
+}
+function saveMarkShipped(id,thenEmail){
+  const o=orderById(id);if(!o)return;
+  const car=logState.lnCar||lnShipCarrier(o),tn=car==="Hand delivered"?"":val("lnTrack").replace(/\s+/g,"");
+  if(!tn&&car!=="Hand delivered"&&!confirm("No tracking # yet. Mark it shipped without one? You can add it later from Shipped."))return;
+  const before=(o.shipCarrier||"")+"|"+(o.shipTracking||""),now=new Date().toISOString();
+  o.shipCarrier=car;o.shipTracking=tn;o.shipDate=val("lnDate")||todayStr();
+  if(!o.shippedAt){o.shippedAt=now;o.shippedBy=USER;}
+  if(tn&&before!==car+"|"+tn)o.devin={state:"todo",at:now,by:USER};
+  save();render();
+  if(thenEmail){formOrderShipNotice(id);return;}
+  closeSheet();toast("Marked shipped — "+(shortAcct(o.account)||"order")+(tn?" · "+car+" "+tn:""));
+}
+function orderNoticeObj(o){
+  const s=orderSlipObj(o);
+  s.items=shipItems(o).map(x=>({sku:x.sku,qty:x.qty}));s.carrier=o.shipCarrier||"";s.tracking=o.shipTracking||"";
+  s.service=(o.upsLabel&&o.upsLabel.service)||"";s.notifyEmail=o.notifyEmail||"";
+  return s;
+}
+function formOrderShipNotice(id){
+  const o=orderById(id);if(!o)return;
+  const s=orderNoticeObj(o),t=o.shipTo||{},to=o.notifyEmail||o.contactEmail||shipNoticeTo(s);
+  openSheet('<h2>Email them it shipped — '+esc(t.name||shortAcct(o.account))+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 8px">The branded &ldquo;'+OSN_HEAD+'&rdquo; email'+(s.tracking?', with the '+esc(s.carrier)+' tracking link in its Track Shipment button':'')+'. Sends from <b>billing@goldenhourmedical.com</b>.</p>'+
+   (s.tracking?'':'<p style="font-size:12.5px;color:var(--warn-t,#a15c00);margin:0 0 8px">No tracking # on this order yet, so the Track Shipment button is left out. <button class="lnk" data-act="lnship" data-id="'+o.id+'">Add the tracking #</button></p>')+
+   (o.notifiedAt?'<p style="font-size:12.5px;color:var(--ok-t);margin:0 0 8px">Already sent to '+esc(o.notifiedTo||"")+' on '+esc(usDate(o.notifiedAt))+' — sending again is fine.</p>':'')+
+   '<label class="fl">To <span style="font-weight:400;color:var(--hint)">— the PO contact; type a name to pick from contacts, or paste an email</span></label>'+comboField("snTo","name or email",to)+
+   '<label class="fl">Cc</label><input class="f" id="snCc" value="'+esc(o.notifyCc||"")+'" placeholder="optional">'+
+   '<label class="fl">Subject</label><input class="f" id="snSub" value="'+esc(OSN_HEAD+(o.poNo?" — PO "+o.poNo:""))+'">'+
+   '<div id="osnFoot" style="display:flex;gap:8px;margin-top:14px"><button class="btn grow" data-act="osnview" data-id="'+o.id+'" style="flex:1">Preview</button>'+
+   '<button class="btn coral" data-act="osnsend" data-id="'+o.id+'" id="osnSend" style="flex:1.6">Send</button></div>');
+}
+function osnHTML(o){return shipNoticeHTML(orderNoticeObj(o),{head:OSN_HEAD});}
+function osnPreview(id){const o=orderById(id);if(!o)return;const w=window.open("","_blank");if(!w){toast("Allow pop-ups to preview");return;}w.document.write(osnHTML(o));w.document.close();}
+function osnTo(){return val("snTo").replace(/^.*<|>.*$/g,"").trim();}
+function osnSent(o,to){
+  o.notifiedAt=todayStr();o.notifiedTo=to;o.notifyEmail=to;
+  const c=acctForOrder(o);
+  if(c)DB.activities.unshift({id:uid(),type:"email",pid:null,cid:c.id,note:"“"+OSN_HEAD+"” emailed to "+to+(o.poNo?" · PO "+o.poNo:"")+(o.shipTracking?" · "+(o.shipCarrier||"")+" "+o.shipTracking:""),date:new Date().toISOString(),by:USER});
+}
+async function sendOrderShipNotice(id){
+  const o=orderById(id);if(!o)return;
+  const to=osnTo(),sub=val("snSub"),cc=val("snCc").split(/[,;]/).map(x=>x.trim()).filter(Boolean);
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter their email");return;}
+  const btn=document.getElementById("osnSend");if(btn){btn.disabled=true;btn.textContent="Sending…";}
+  o.notifyEmail=to;o.notifyCc=cc.join(", ");
+  try{
+    await notifyReady();
+    await sendHtmlMail({to:to,cc:cc,subject:sub,html:osnHTML(o)});
+    osnSent(o,to);save();closeSheet();render();toast("Shipped email sent to "+to+" ✓");
+  }catch(e){
+    save();
+    /* the copy window has to open from a tap — after an await the pop-up blocker would eat it */
+    const f=document.getElementById("osnFoot");
+    if(f)f.outerHTML='<div id="osnFoot" style="margin-top:14px"><p style="font-size:13px;color:var(--warn-t,#a15c00);margin:0 0 8px">Couldn’t send it from the CRM ('+esc(String(e.message||e).slice(0,90))+'). Open it, paste it into a new email from billing@, then mark it emailed.</p>'+
+      '<div style="display:flex;gap:8px"><button class="btn coral" data-act="osncopy" data-id="'+o.id+'" style="flex:1.4">Open the email to copy</button>'+
+      '<button class="btn" data-act="osnmark" data-id="'+o.id+'" style="flex:1">Mark as emailed</button></div></div>';
+  }
+}
+/* ---------- UPS labels inside the CRM (Max, 2026-11-18: "the label gets made inside the CRM and lands on the order";
+   "there should be two downloads now; [Packing Slip] and [UPS Label]"). The ups-bridge edge function
+   (AutoTQ_CRM_scripts/ups-bridge) holds the UPS keys as Supabase secrets UPS_CLIENT_ID / UPS_CLIENT_SECRET / UPS_ACCOUNT
+   (the "AutoTQ Shipment" app on developer.ups.com, shipper 0J2574 — the same app Devin's system uses).
+   Ship with UPS → ship-to, service, boxes, who pays (ours / their UPS account = collect / third party), references →
+   label GIF(s) saved in storage labels/…, tracking + ship date + cost on the order (o.upsLabel), marked shipped.
+   "UPS label" re-opens the 4×6 label to print; Void cancels it with UPS and puts the order back on To ship.
+   Test label = UPS's test system: nothing is charged and the order isn't touched. FedEx is the next route. */
+const UPS_SVCS=[["03","Ground"],["12","3 Day Select"],["02","2nd Day Air"],["13","Next Day Air Saver"],["01","Next Day Air"]];
+/* Cheapest is the default (Max, 2026-11-18: "always goes with the cheapest option"): the bridge rate-shops and ships the lowest
+   price. A specific service is preselected only when the PO asks for a faster one. Prices need the Rating API on the UPS app;
+   without it the bridge ships Ground (UPS's cheapest standard service) and says so. */
+const UPS_CHEAP="cheapest";
+const UPS_SHIPPABLE=["03","12","02","13","01","14","59","93"]; /* = the bridge's SERVICES (93 Ground Saver can be the cheapest) */
+const UPS_BILLS=[["shipper","Golden Hour pays"],["receiver","Their UPS account (collect)"],["thirdparty","Third party"]];
+function upsIsFedex(o){return /fedex/i.test(String(o&&o.shipVia||""));}
+function upsSvcGuess(o){const v=String(o.shipVia||"").toLowerCase();
+  if(/saver/.test(v))return "13";if(/next\s*day|overnight|\bnda\b|1\s*day/.test(v))return "01";
+  if(/2nd|second|2\s*day/.test(v))return "02";if(/3\s*day/.test(v))return "12";return UPS_CHEAP;}
+/* prices beside the service chips — Rating API "Shop", read-only, nothing is charged */
+async function upsRatesLoad(){
+  const S=logState.ups;if(!S)return;const b=upsGather(S.oid);if(!b)return;
+  const note=document.getElementById("upRateNote"),seq=(S.rateSeq=(S.rateSeq||0)+1);
+  const t=b.shipTo;if(!t.street||!t.city||!/^[A-Z]{2}$/.test(t.state)||String(t.zip).replace(/\D/g,"").length<5||!(parseFloat(b.boxes[0].weight)>0)){if(note)note.textContent="Fill in the address and weight to see prices.";return;}
+  if(note)note.textContent="Getting UPS prices…";
+  let j;try{j=await upsBridge({action:"rates",shipTo:t,boxes:b.boxes,residential:b.residential});}
+  catch(e){if(seq!==S.rateSeq)return;S.rates=null;if(note)note.textContent="No prices from UPS ("+String(e.message||e)+") — Cheapest ships Ground.";upsRatesPaint();return;}
+  if(seq!==S.rateSeq||logState.ups!==S)return;
+  S.rates=j.rates||[];upsRatesPaint();
+  const c=S.rates.find(r=>UPS_SHIPPABLE.includes(r.code));
+  if(note)note.textContent=c?"Cheapest right now: "+c.name+" "+fmtC(c.cost)+(c.negotiated!=null&&c.total!=null&&c.total>c.cost?" (list "+fmtC(c.total)+")":""):"UPS returned no prices — Cheapest ships Ground.";
+}
+function upsRatesPaint(){
+  const S=logState.ups;if(!S)return;
+  document.querySelectorAll('#upSvc .qchip').forEach(btn=>{const code=btn.dataset.v,base=btn.dataset.l||btn.textContent;btn.dataset.l=base;
+    let r=null;if(S.rates)r=code===UPS_CHEAP?S.rates.find(x=>UPS_SHIPPABLE.includes(x.code)):S.rates.find(x=>x.code===code);
+    btn.textContent=r?base+" · "+fmtC(r.cost):base;});
+}
+function upsBillGuess(o){const a=String(o.shipAcct||"").trim().toUpperCase(),how=(String(o.shipVia||"")+" "+String(o.freightTerms||"")).toLowerCase();
+  if(/^[A-Z0-9]{6}$/.test(a)&&!/fedex/.test(how))return {type:/third/.test(how)?"thirdparty":"receiver",account:a,zip:""};
+  return {type:"shipper",account:"",zip:""};}
+function upsUnits(o){return (o.items||[]).filter(x=>+x.qty>0&&!/freight/i.test(String(x.sku||""))).reduce((n,x)=>n+(+x.qty||0),0)||(o.status==="loaner"?1:0);}
+function upsBoxMem(){try{return JSON.parse(localStorage.getItem("autotq_ups_box")||"null")||{};}catch(e){return {};}}
+function upsBoxRemember(b){try{localStorage.setItem("autotq_ups_box",JSON.stringify(b));}catch(e){}}
+function formUpsShip(oid){
+  const o=orderById(oid);if(!o)return;
+  const t=Object.assign({name:"",attn:"",street:"",street2:"",city:"",state:"",zip:"",phone:""},(o.shipTo&&o.shipTo.street)?o.shipTo:shipToFor(o));
+  if(!t.attn&&o.contactName&&o.contactName!==t.name)t.attn=o.contactName;
+  if(!t.phone&&o.contactPhone)t.phone=o.contactPhone;
+  const mem=upsBoxMem(),units=upsUnits(o);
+  const bill=upsBillGuess(o);if(bill.type!=="shipper")bill.zip=String(t.zip||"").replace(/\D/g,"").slice(0,5);
+  logState.ups={oid:oid,svc:upsSvcGuess(o),bill:bill};
+  const S=logState.ups,lbl=x=>'<label class="fl">'+x+'</label>',opt=' <span style="font-weight:400;color:var(--hint)">optional</span>';
+  const inp=(id,v,ph,st)=>'<input class="f" id="'+id+'" autocomplete="off" value="'+esc(v==null?"":v)+'" placeholder="'+esc(ph||"")+'"'+(st?' style="'+st+'"':'')+'>';
+  const kits=srNeed(o)||0,extra=Math.max(0,units-kits); /* a kit ships ≈1.4 lb boxed, an accessory ≈0.3 lb, plus the carton */
+  const w=mem.weight&&units<=1?mem.weight:(units?Math.ceil((kits*1.4+extra*0.3+0.6)*10)/10:"");
+  openSheet('<h2>Ship with UPS — '+esc(shortAcct(o.account)||"Order")+'</h2>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+poChip(o.poNo)+' '+esc(lnItems(o))+'</p>'+
+   (upsIsFedex(o)?'<div class="card" style="padding:10px 12px;margin:6px 0;border-left:4px solid var(--warn-t,#a15c00);font-size:13px">The PO says <b>'+esc(o.shipVia)+'</b> — that one goes through FedEx Ship Manager, not UPS.</div>':'')+
+   (shipHowTxt(o)?'<p style="font-size:13px;margin:4px 0 0"><b>PO says:</b> ship '+esc(shipHowTxt(o))+'</p>':'')+
+   '<h3 class="sech" style="margin:14px 0 2px">Ship to</h3>'+
+   '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 10px">'+
+    '<div>'+lbl('Company or name')+inp("upName",t.name)+'</div><div>'+lbl('Attention')+inp("upAttn",t.attn)+'</div>'+
+    '<div>'+lbl('Street')+inp("upStreet",t.street)+'</div><div>'+lbl('Suite / unit'+opt)+inp("upStreet2",t.street2)+'</div></div>'+
+   '<div style="display:flex;gap:0 10px;flex-wrap:wrap">'+
+    '<div style="flex:2 1 160px">'+lbl('City')+inp("upCity",t.city)+'</div><div style="flex:0 0 70px">'+lbl('State')+inp("upState",t.state,"","text-transform:uppercase")+'</div>'+
+    '<div style="flex:0 0 110px">'+lbl('ZIP')+inp("upZip",t.zip)+'</div><div style="flex:1 1 140px">'+lbl('Phone'+opt)+inp("upPhone",t.phone)+'</div></div>'+
+   '<label style="display:flex;gap:8px;align-items:center;margin:8px 0 0;font-size:13.5px"><input type="checkbox" id="upRes"'+(t.residential?' checked':'')+'> It’s a home address (residential)</label>'+
+   '<h3 class="sech" style="margin:16px 0 6px">Service</h3>'+
+   '<div id="upSvc" style="display:flex;gap:6px;flex-wrap:wrap">'+[[UPS_CHEAP,"Cheapest"]].concat(UPS_SVCS).map(s=>'<button class="qchip'+(S.svc===s[0]?" on":"")+'" data-act="upssvc" data-v="'+s[0]+'">'+esc(s[1])+'</button>').join("")+'</div>'+
+   '<p style="margin:6px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span id="upRateNote">'+(S.svc!==UPS_CHEAP?'The PO asks for '+esc(o.shipVia)+'. ':'')+'</span><button class="pill" data-act="upsrates" style="color:var(--muted);background:rgba(120,120,120,.10)">Update prices</button></p>'+
+   '<h3 class="sech" style="margin:16px 0 2px">Boxes</h3>'+
+   '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">'+
+    '<div>'+lbl('Boxes')+'<input class="f" id="upBoxes" inputmode="numeric" value="1" style="width:70px"></div>'+
+    '<div>'+lbl('Weight each (lb)')+'<input class="f" id="upW" inputmode="decimal" value="'+esc(w)+'" style="width:110px"></div>'+
+    '<div>'+lbl('Size each, inches'+opt)+
+     '<div style="display:flex;gap:6px;align-items:center"><input class="f" id="upL" inputmode="decimal" placeholder="L" value="'+esc(mem.l||"")+'" style="width:60px;margin:0">×<input class="f" id="upWd" inputmode="decimal" placeholder="W" value="'+esc(mem.w||"")+'" style="width:60px;margin:0">×<input class="f" id="upH" inputmode="decimal" placeholder="H" value="'+esc(mem.h||"")+'" style="width:60px;margin:0"></div></div></div>'+
+   '<h3 class="sech" style="margin:16px 0 6px">Who pays the shipping</h3>'+
+   '<div id="upBill" style="display:flex;gap:6px;flex-wrap:wrap">'+UPS_BILLS.map(b=>'<button class="qchip'+(S.bill.type===b[0]?" on":"")+'" data-act="upsbill" data-v="'+b[0]+'">'+esc(b[1])+'</button>').join("")+'</div>'+
+   '<div id="upBillAcct" style="display:'+(S.bill.type==="shipper"?'none':'flex')+';gap:10px;flex-wrap:wrap">'+
+    '<div>'+lbl('Their UPS account #')+inp("upAcct",S.bill.account,"6 characters","width:150px;text-transform:uppercase")+'</div>'+
+    '<div>'+lbl('ZIP on that account')+inp("upAcctZip",S.bill.zip,"","width:120px")+'</div></div>'+
+   '<h3 class="sech" style="margin:16px 0 2px">Printed on the label</h3>'+
+   '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 10px">'+
+    '<div>'+lbl('Reference 1')+inp("upRef1",o.poNo?"PO "+o.poNo:"")+'</div>'+
+    '<div>'+lbl('Reference 2'+opt)+inp("upRef2",o.custPo?"Cust PO "+o.custPo:(shortAcct(o.account)||""))+'</div></div>'+
+   '<label style="display:flex;gap:8px;align-items:center;margin:14px 0 0;font-size:13px;color:var(--muted)"><input type="checkbox" id="upTest"> Test label — UPS test system, nothing is charged and the order isn’t changed</label>'+
+   '<button class="btn coral block" data-act="upscreate" data-id="'+o.id+'" style="margin-top:12px">Create UPS label</button>'+
+   '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">The label opens ready to print (4 × 6). Tracking, ship date and cost go on the order and it’s marked shipped.</p>');
+  setTimeout(upsRatesLoad,60);
+}
+function upsGather(oid){
+  const S=logState.ups,o=orderById(oid);if(!S||!o)return null;
+  const n=Math.min(20,Math.max(1,parseInt(val("upBoxes"))||1));
+  const box={weight:val("upW"),l:val("upL"),w:val("upWd"),h:val("upH")};
+  const bill=S.bill.type==="shipper"?{type:"shipper"}:{type:S.bill.type,account:val("upAcct").toUpperCase().replace(/\s+/g,""),zip:val("upAcctZip")};
+  return {orderId:o.id,test:!!(document.getElementById("upTest")||{}).checked,
+    shipTo:{name:val("upName"),attn:val("upAttn"),street:val("upStreet"),street2:val("upStreet2"),city:val("upCity"),state:val("upState").toUpperCase(),zip:val("upZip"),phone:val("upPhone")},
+    residential:!!(document.getElementById("upRes")||{}).checked,service:S.svc,boxes:Array.from({length:n},()=>Object.assign({},box)),bill:bill,
+    refs:[val("upRef1"),val("upRef2")].filter(Boolean),description:"AutoTQ"};
+}
+function upsProblems(b){const p=[],t=b.shipTo;
+  if(!(t.name||t.attn))p.push("ship-to name");if(!t.street)p.push("street");if(!t.city)p.push("city");
+  if(!/^[A-Z]{2}$/.test(t.state))p.push("state (2 letters)");if(String(t.zip).replace(/\D/g,"").length<5)p.push("ZIP");
+  if(!(parseFloat(b.boxes[0].weight)>0))p.push("weight");
+  if(b.bill.type!=="shipper"){if(!/^[A-Z0-9]{6}$/.test(b.bill.account))p.push("their 6-character UPS account #");if(String(b.bill.zip).replace(/\D/g,"").length<5)p.push("the ZIP on their account");}
+  return p;}
+/* the printable label page: 4×6 per label; UPS sends the GIF sideways, so a landscape image is turned upright */
+function upsLabelDoc(imgs,title,note){
+  return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+
+   '@page{size:4in 6in;margin:0}html,body{margin:0;padding:0}body{background:#e9e7e2;font:14px system-ui,sans-serif;color:#2b2a27}'+
+   '.bar{padding:12px 16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}.bar button{font:inherit;padding:8px 18px;border-radius:8px;border:0;background:#C4502A;color:#fff;font-weight:600;cursor:pointer}'+
+   '.pg{width:4in;height:6in;margin:0 auto 16px;background:#fff;position:relative;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.15)}'+
+   '.pg img{position:absolute;top:0;left:0;width:4in;height:6in;object-fit:contain}'+
+   '.pg img.land{width:6in;height:4in;transform-origin:0 0;transform:translateX(4in) rotate(90deg)}'+
+   '@media print{body{background:#fff}.bar{display:none}.pg{margin:0;box-shadow:none;break-after:page}}'+
+   '</style></head><body><div class="bar"><span>'+esc(note||"")+'</span><button onclick="window.print()">Print label'+(imgs.length>1?'s':'')+'</button></div>'+
+   imgs.map(src=>'<div class="pg"><img src="'+src+'" alt="UPS label" onload="if(this.naturalWidth>this.naturalHeight)this.className=\'land\'"></div>').join("")+
+   '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},400);});<\/script></body></html>';
+}
+function upsBridge(body){return supa("/functions/v1/ups-bridge",{method:"POST",body:JSON.stringify(body)}).then(async r=>{
+  const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error((j&&j.error)||("the UPS bridge answered "+r.status));return j;});}
+async function upsCreate(oid){
+  const o=orderById(oid),b=upsGather(oid);if(!o||!b)return;
+  const p=upsProblems(b);if(p.length){toast("Still needed: "+p.join(", "));return;}
+  if(upsIsFedex(o)&&!b.test&&!confirm("The PO says "+o.shipVia+". Make a UPS label anyway?"))return;
+  const w=window.open("","_blank");
+  if(w)w.document.write('<p style="font:15px system-ui,sans-serif;padding:24px">Making the UPS label…</p>');
+  const btn=document.querySelector('[data-act="upscreate"]');const reset=()=>{if(btn){btn.disabled=false;btn.textContent="Create UPS label";}};
+  if(btn){btn.disabled=true;btn.textContent="Making the label…";}
+  let j;
+  try{j=await upsBridge(Object.assign({action:"label"},b));}
+  catch(e){if(w)w.close();reset();toast("No label — "+String(e.message||e));return;}
+  const cost=b.bill.type==="shipper"?(j.negotiated!=null?j.negotiated:j.charges):null;
+  if(!b.test){
+    for(const l of (j.labels||[]))if(!l.path&&l.b64){const path="labels/"+o.id+"_"+l.tracking+".gif";
+      const bin=Uint8Array.from(atob(l.b64),c=>c.charCodeAt(0));if(await storUpload(path,new Blob([bin],{type:"image/gif"})))l.path=path;}
+    const now=new Date().toISOString();
+    o.shipTo=Object.assign({},o.shipTo||{},b.shipTo,{residential:b.residential});
+    o.shipCarrier="UPS";o.shipTracking=j.tracking;o.shipTrackings=j.trackings;o.shipDate=todayStr();o.shipService=j.service;
+    o.shippedAt=now;o.shippedBy=USER;
+    o.upsLabel={shipmentId:j.shipmentId,trackings:j.trackings,paths:(j.labels||[]).map(l=>l.path).filter(Boolean),service:j.service,
+      billedTo:j.billedTo,bill:b.bill.type,charges:j.charges,negotiated:j.negotiated,boxes:b.boxes.length,weight:b.boxes[0].weight,pick:j.pickNote||"",at:now,by:USER};
+    if(cost!=null){o.shipCost=cost;if(o.status==="loaner")o.upsCost=cost;}
+    o.devin={state:"todo",at:now,by:USER};
+    upsBoxRemember({weight:b.boxes[0].weight,l:b.boxes[0].l,w:b.boxes[0].w,h:b.boxes[0].h});
+    save();closeSheet();render();
+  }else reset();
+  const note=(b.test?"TEST label — UPS test system, not a real shipment · ":"")+j.service+(j.pickNote?" ("+j.pickNote+")":"")+" · "+(j.trackings||[j.tracking]).join(", ")+(cost!=null?" · "+fmtC(cost):" · billed to "+j.billedTo);
+  if(w){w.document.open();w.document.write(upsLabelDoc((j.labels||[]).map(l=>"data:image/gif;base64,"+l.b64),"UPS label — "+(shortAcct(o.account)||""),note));w.document.close();}
+  toast((b.test?"Test label made — ":"Label made — ")+j.tracking+(cost!=null?" · "+fmtC(cost):"")+(w?"":" · allow pop-ups, then press UPS label to print"));
+}
+async function upsLabelOpen(oid){
+  const o=orderById(oid),L=o&&o.upsLabel;if(!L)return;
+  const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the UPS label");return;}
+  w.document.write('<p style="font:15px system-ui,sans-serif;padding:24px">Opening the UPS label…</p>');
+  const imgs=[];
+  for(const p of L.paths||[]){const bl=await storBlob(p);
+    if(bl)imgs.push(await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(new Blob([bl],{type:"image/gif"}));}));}
+  if(!imgs.length){w.close();toast("Couldn’t fetch the label — are you online?");return;}
+  w.document.open();w.document.write(upsLabelDoc(imgs,"UPS label — "+(shortAcct(o.account)||""),(L.service||"UPS")+" · "+(L.trackings||[o.shipTracking]).join(", ")));w.document.close();
+}
+async function upsVoid(oid){
+  const o=orderById(oid),L=o&&o.upsLabel;if(!L)return;
+  if(!confirm("Void UPS label "+(L.trackings||[o.shipTracking]).join(", ")+"?\n\nUPS cancels it and doesn’t charge as long as the box hasn’t been scanned. The order goes back on To ship."))return;
+  toast("Voiding with UPS…");
+  try{await upsBridge({action:"void",shipmentId:L.shipmentId});}
+  catch(e){toast("Not voided — "+String(e.message||e));return;}
+  const now=new Date().toISOString(),c=L.negotiated!=null?L.negotiated:L.charges;
+  o.upsVoided=(o.upsVoided||[]).concat([Object.assign({},L,{voidedAt:now,voidedBy:USER})]);
+  delete o.upsLabel;["shipTracking","shipTrackings","shippedAt","shippedBy","shipService","shipDate"].forEach(k=>delete o[k]);
+  if(L.bill==="shipper"&&c!=null){if(o.shipCost===c)delete o.shipCost;if(o.status==="loaner"&&o.upsCost===c)delete o.upsCost;}
+  o.devin={state:"todo",at:now,by:USER};
+  save();render();toast("Label voided — back on To ship");
+}
+/* the two downloads on an order: [Download packing slip] [UPS label] */
+function upsLabelBtn(o,cls){return o&&o.upsLabel?'<button class="'+(cls||"btn sm ghost")+'" data-act="upslabel" data-id="'+o.id+'" title="'+esc((o.upsLabel.service||"UPS")+" · "+(o.upsLabel.trackings||[]).join(", "))+'">UPS label</button>':'';}
 function viewInvoicing(){
   ensureOrderItems();ensureLoanerBook();
   const all=ordersAll().filter(o=>o.status!=="supplier"&&invRangeOk(o.poDate));
@@ -11140,7 +11408,14 @@ document.addEventListener("click",e=>{
   if(a==="invnopdf"){const o=orderById(id);if(o){o.noPdf=true;save();render();toast("OK — no PDF expected for "+(shortAcct(o.account)||"this order"));}return;}
   if(a==="invsec"){goView(t.dataset.v);return;}
   if(a==="srform"){formSerials(id);return;}
-  if(a==="lnship"){lnMarkShipped(id,true);return;}
+  if(a==="lnship"){formMarkShipped(id);return;}
+  if(a==="lnshipcar"){lnShipCar(t.dataset.v);return;}
+  if(a==="lnshipsave"){saveMarkShipped(id,t.dataset.v==="email");return;}
+  if(a==="osnform"){formOrderShipNotice(id);return;}
+  if(a==="osnview"){osnPreview(id);return;}
+  if(a==="osnsend"){sendOrderShipNotice(id);return;}
+  if(a==="osncopy"){const o=orderById(id);if(o)htmlCopyWindow(osnHTML(o),osnTo(),val("snSub"),"billing@goldenhourmedical.com");return;}
+  if(a==="osnmark"){const o=orderById(id),to=osnTo();if(!o)return;if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Enter their email first");return;}osnSent(o,to);save();closeSheet();render();toast("Marked as emailed to "+to);return;}
   if(a==="lnunship"){lnMarkShipped(id,false);return;}
   if(a==="sradd"){const el=document.getElementById("srIn");srAddCodes(serialSplit(el?el.value:""));if(el){el.value="";el.focus();}return;}
   if(a==="srbuild"){const r=serialBuild(val("srY"),val("srM"),val("srL"),val("srS"));if(r.error){toast(r.error);return;}srAddCodes(r.codes);const el=document.getElementById("srS");if(el){el.value="";el.focus();}return;}
@@ -11173,6 +11448,13 @@ document.addEventListener("click",e=>{
   if(a==="ocsend"){sendOrderConfirm(id);return;}
   if(a==="pickOcTo"){const p=DB.people.find(x=>x.id===t.dataset.id);const i=document.getElementById("ocTo");if(p&&i)i.value=p.email||"";sugRender("ocTo",[]);return;}
   if(a==="shipsliporder"){e.stopPropagation();packingSlipOrder(id);return;}
+  if(a==="upsship"){e.stopPropagation();formUpsShip(id);return;}
+  if(a==="upssvc"){const S=logState.ups;if(S){S.svc=t.dataset.v;document.querySelectorAll('#upSvc .qchip').forEach(b=>b.classList.toggle("on",b.dataset.v===S.svc));}return;}
+  if(a==="upsrates"){upsRatesLoad();return;}
+  if(a==="upsbill"){const S=logState.ups;if(S){S.bill.type=t.dataset.v;document.querySelectorAll('#upBill .qchip').forEach(b=>b.classList.toggle("on",b.dataset.v===S.bill.type));const w=document.getElementById("upBillAcct");if(w)w.style.display=S.bill.type==="shipper"?"none":"flex";const z=document.getElementById("upAcctZip");if(z&&!z.value)z.value=val("upZip").replace(/\D/g,"").slice(0,5);}return;}
+  if(a==="upscreate"){upsCreate(id);return;}
+  if(a==="upslabel"){e.stopPropagation();upsLabelOpen(id);return;}
+  if(a==="upsvoid"){e.stopPropagation();upsVoid(id);return;}
   if(a==="shipshowall"){shipShowAll=!shipShowAll;render();return;}
   if(a==="shipupscsv"){const i=document.getElementById("upsCsv");if(i)i.click();return;}
   if(a==="shipquick"){e.stopPropagation();quickShip(id);return;}
