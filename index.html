@@ -8164,6 +8164,9 @@ function poScanToOrder(po){
     payTerms:po.payment_terms||"",shipTo:addr(po.ship_to),billTo:addr(po.bill_to),items:items,
     amount:Math.round((+po.total>0?+po.total:sum)*100)/100,flags:flags};
 }
+/* website checkout orders carry a generated number (PO-YYYYMMDD-…); loaners, $0 units and those have no customer PO PDF */
+function poWebOrder(o){return /^PO-\d{8}-/i.test(String(o&&o.poNo||"").trim());}
+function poPdfNeeded(o){return !!o&&!o.file&&!o.noPdf&&(o.status==="queue"||o.status==="invoiced"||o.status==="paid")&&(+o.amount||0)>0&&!poWebOrder(o)&&!/^LNR-/i.test(String(o.poNo||""));}
 /*PO-CORE-END*/
 function skuNice(m){return SKU_NICE[m]||skuLabel(m)||m;}
 function itemsSummary(o){const it=orderItems(o);if(!it.length)return "";return it.filter(x=>!/freight/i.test(x.sku)).map(x=>(+x.qty||0)+"× "+(SKU_SHORT[x.sku]||x.sku)).join(" + ");}
@@ -8205,26 +8208,26 @@ function invRowHTML(o,i){
     :'<p style="margin:0;text-align:center;color:var(--hint);font-size:12.5px;padding:4px 0">no line items</p>';
   const open=invOpenId===o.id;
   return '<div'+(i?' style="border-top:1px solid var(--line)"':'')+'><div class="invrow" data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer">'+
-    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+(srNeed(o)||srHave(o)?' '+srChipHTML(o):'')+'</p>'+
+    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+(srHave(o)||srPending(o)?' '+srChipHTML(o):'')+'</p>'+
     '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+(o.contactName?'<span style="color:var(--hint)">· '+esc(o.contactName)+'</span>':'')+'</p>'+
     (line?'<p class="invline" style="margin:4px 0 0;font-size:13.5px;font-weight:700">'+esc(line)+'</p>':'')+
     (o.status==="queue"
-      ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00)">Next: create the QB invoice'+(invPortalFor(o)?' → submit via <b>'+esc(invPortalFor(o))+'</b> (portal)':bill?' → email it to <b>'+esc(bill)+'</b>':'')+'</p>'
+      ?(invPortalFor(o)||bill?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Invoice '+(invPortalFor(o)?'via <b>'+esc(invPortalFor(o))+'</b> (portal)':'to <b>'+esc(bill)+'</b>')+'</p>':'')
       :o.status==="loaner"
-      ?'<p style="margin:3px 0 0;font-size:12.5px;color:'+(o.upsCost?'var(--hint)':'#3b6fb5')+'">'+(o.upsCost?'UPS cost '+fmtC(o.upsCost)+' · on the Demo Map':'Demo unit out — no invoice. Next: add the UPS shipping cost')+'</p>'
+      ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Loaner / demo — no invoice'+(o.upsCost?' · UPS '+fmtC(o.upsCost):'')+'</p>'
       :o.status==="invoiced"
       ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'add the invoice date for Net-30 tracking')+(bill?' → '+esc(bill):'')+'</p>';})()
       :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+shipLineHTML(o)+'</div>'+
     '<div class="invmid">'+midRows+'</div>'+
     '<div class="invright">'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
-    invChip(o.status)+
+    (invFilter==="all"||view!=="invoicing"?invChip(o.status):'')+
     (o.status==="queue"?'<button class="pill" data-act="invmark" data-id="'+o.id+'" title="Check it off once the QuickBooks invoice is made" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Invoiced ✓</button>':'')+
-    (o.status==="loaner"?'<button class="pill" data-act="invups" data-id="'+o.id+'" style="color:'+(o.upsCost?'var(--hint)':'var(--ok-t)')+';background:'+(o.upsCost?'rgba(120,120,120,.12)':'rgba(0,160,90,.12)')+';white-space:nowrap">'+(o.upsCost?'UPS cost':'Resolve?')+'</button>':'')+
+    (o.status==="loaner"?'<button class="pill" data-act="invups" data-id="'+o.id+'" style="color:var(--hint);background:rgba(120,120,120,.10);white-space:nowrap">'+(o.upsCost?'UPS cost':'+ UPS cost')+'</button>':'')+
     (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="View the PO PDF">PO</button>'
-           :o.status==="queue"
+           :poPdfNeeded(o)&&o.status==="queue"
            ?'<button class="pill" data-act="invattach" data-id="'+o.id+'" title="The PO PDF is not here yet — tap to add it, or drop the file on this row" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16);font-weight:600;white-space:nowrap">PO PDF missing — add</button>'
-           :'<button class="pill" data-act="invattach" data-id="'+o.id+'" title="Attach the PO PDF" style="color:var(--muted);background:rgba(120,120,120,.12);white-space:nowrap">+ PDF</button>')+
+           :o.status==="loaner"?'':'<button class="pill" data-act="invattach" data-id="'+o.id+'" title="Attach the PO PDF" style="color:var(--muted);background:rgba(120,120,120,.12);white-space:nowrap">+ PDF</button>')+
     '</div>'+
   '</div>'+(open?invDetailsHTML(o):'')+'</div>';
 }
@@ -8318,6 +8321,7 @@ function invDetailsHTML(o){
     tbl+srDetailsHTML(o)+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
      (o.file?'<button class="btn sm" data-act="invview" data-id="'+o.id+'">Open the PO PDF</button>':'<button class="btn sm" data-act="invattach" data-id="'+o.id+'">Add the PO PDF</button>')+
+     (poPdfNeeded(o)?'<button class="btn sm ghost" data-act="invnopdf" data-id="'+o.id+'" title="This order has no customer PO PDF (phone or email order)">No PDF for this one</button>':'')+
      (o.files||[]).map(x=>'<button class="btn sm ghost" data-act="invviewx" data-id="'+o.id+'" data-p="'+esc(x.path)+'">'+esc(x.fname)+'</button>').join("")+
      (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'">Invoiced ✓</button>':'')+
      '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Full order</button>'+
@@ -8402,7 +8406,7 @@ function srDevinDone(oid){const o=orderById(oid);if(!o)return;o.devin={state:"do
 /* the dropdown's serial + shipping block */
 function srDetailsHTML(o){
   const need=srNeed(o),have=srHave(o);
-  if(!need&&!have&&!o.shipTracking&&!srShipper())return "";
+  if(!need&&!have&&!o.shipTracking)return "";
   const tl=o.shipTracking?(trackUrl(o.shipCarrier,o.shipTracking)?'<a href="'+esc(trackUrl(o.shipCarrier,o.shipTracking))+'" target="_blank" rel="noopener" data-stop="1" style="color:var(--coral,#e8543f);font-weight:600">'+esc(o.shipTracking)+' ↗</a>':esc(o.shipTracking)):"";
   return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:13px">'+
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>Serials</b> '+(need||have?srChipHTML(o):'<span style="color:var(--hint)">none needed</span>')+
@@ -8643,7 +8647,7 @@ function formMarkInv(id){
   openSheet('<h2>Mark invoiced — '+esc(shortAcct(o.account))+'</h2>'+
    '<p style="color:var(--muted);font-size:14px;margin:0 0 8px">PO '+esc(o.poNo||"—")+' · '+fmtC(o.amount)+'</p>'+
    (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'" style="margin:0 0 6px">Open the PO PDF</button>'
-          :'<p style="font-size:13px;color:var(--warn-t,#a15c00);margin:0 0 6px">No PO PDF on this order yet — <button class="pill" data-act="invattach" data-id="'+o.id+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">add it</button></p>')+
+          :!poPdfNeeded(o)?'':'<p style="font-size:13px;color:var(--warn-t,#a15c00);margin:0 0 6px">No PO PDF on this order yet — <button class="pill" data-act="invattach" data-id="'+o.id+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">add it</button></p>')+
    '<div style="display:flex;gap:10px"><div class="grow"><label class="fl">QB invoice #</label><input class="f" id="miQb" value="'+esc(o.qbInv||"")+'" placeholder="e.g. 1175"></div>'+
    '<div class="grow"><label class="fl">Invoice date <span style="font-weight:400;color:var(--hint)">(drives Net 30)</span></label><input class="f" id="miDate" type="date" value="'+esc(o.invoicedAt||todayStr())+'"></div></div>'+
    '<label class="fl">Bill-to email (AP) <span style="font-weight:400;color:var(--hint)">— saves for next time</span></label><input class="f" id="miBill" value="'+esc(o.billEmail||billToFor(o)||"")+'" placeholder="ap@customer.com">'+
@@ -10058,7 +10062,7 @@ function billingHome(){
    (lnNeed.length?' <b>'+lnNeed.length+' loaner'+(lnNeed.length>1?'s':'')+'</b> need'+(lnNeed.length>1?'':'s')+' a UPS cost.':'')+'</p></div>';
   h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px">'+
    '<div class="kpi"><b>Needs invoice</b><span>'+q.length+(q.length?' · '+money(owed):'')+'</span></div>'+
-   '<div class="kpi"><b>Loaners out</b><span>'+ln.length+(lnNeed.length?' · '+lnNeed.length+' need UPS':'')+'</span></div>'+
+   '<div class="kpi"><b>Loaners out</b><span>'+ln.length+'</span></div>'+
    '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
    '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div>'+
    '<div class="kpi"><b>Billed to date</b><span>'+money(billed)+'</span></div></div>';
@@ -10101,7 +10105,7 @@ function viewInvoicing(){
   let h=invSecHTML("inv");
   h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+
      '<div class="kpi"><b>Needs invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
-     '<div class="kpi"><b>Loaners out</b><span>'+ln.length+(lnNeed.length?' · '+lnNeed.length+' need UPS':'')+'</span></div>'+
+     '<div class="kpi"><b>Loaners out</b><span>'+ln.length+'</span></div>'+
      '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
      '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div></div>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">'+
@@ -10116,7 +10120,7 @@ function viewInvoicing(){
   h+='<div class="lvhead" style="margin-bottom:10px">'+filterBar("inv",[fltGroup("Orders","invfilter",[["queue","Needs invoice",q.length],["loaner","Loaners",ln.length],["invoiced","Invoiced",inv.length],["paid","Paid",paid.length],["all","All",os.length],["supplier","Supplier"]],invFilter,"queue")])+'</div>';
   const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
   h+=srPendingBannerHTML();
-  const noPdf=q.filter(o=>!o.file);
+  const noPdf=q.filter(poPdfNeeded);
   if(noPdf.length&&(invFilter==="queue"||invFilter==="all"))h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
     '<b>'+noPdf.length+' paid PO'+(noPdf.length>1?'s are':' is')+' missing the PDF</b> — '+noPdf.map(o=>esc(shortAcct(o.account)||o.poNo||"—")).join(", ")+
     '.<br><span style="color:var(--muted)">Drop the PO PDF on its row (or tap <b>PO PDF missing — add</b>). Laresa invoices from it, then taps <b>Invoiced ✓</b>.</span></div>';
@@ -10904,6 +10908,7 @@ document.addEventListener("click",e=>{
     inp.click();return;}
   if(a==="invform"){formOrder(id);return;}
   if(a==="invsheet"){orderSheet(id);return;}
+  if(a==="invnopdf"){const o=orderById(id);if(o){o.noPdf=true;save();render();toast("OK — no PDF expected for "+(shortAcct(o.account)||"this order"));}return;}
   if(a==="invsec"){goView(t.dataset.v);return;}
   if(a==="srform"){formSerials(id);return;}
   if(a==="sradd"){const el=document.getElementById("srIn");srAddCodes(serialSplit(el?el.value:""));if(el){el.value="";el.focus();}return;}
