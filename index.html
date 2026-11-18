@@ -10359,7 +10359,7 @@ function shipDoneRowHTML(o,i){
   return '<div style="'+(i?'border-top:1px solid var(--line);':'')+'box-shadow:inset 4px 0 0 '+t.c+';padding:10px 16px 10px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
     '<div class="grow" style="min-width:240px"><p style="margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+' '+t.pill+'</p>'+
       '<p style="margin:3px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+shipGroup(o).map(x=>poChip(x.poNo)).join("")+'<span>'+esc(shipMates(o).length?lnItems({items:shipGroupItems(o)}):lnItems(o))+'</span></p>'+
-      '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)"><span style="color:var(--ok-t);font-weight:600">Shipped'+(day?' '+esc(usDate(day)):'')+'</span>'+(o.shipCarrier?' · '+esc(o.shipCarrier):'')+(tl?' '+tl:'')+'</p></div>'+
+      '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)"><span style="color:var(--ok-t);font-weight:600">Shipped'+(day?' '+esc(usDate(day)):'')+'</span>'+(o.shipCarrier?' · '+esc(o.shipCarrier):'')+(tl?' '+tl:'')+'</p>'+shipBoxesHTML(o)+'</div>'+
     '<div style="display:flex;gap:6px;flex:none;flex-wrap:wrap;align-items:center">'+
       (o.notifiedAt?'<span class="pill" title="“Your AutoTQ units have shipped” sent to '+esc(o.notifiedTo||"")+'" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Emailed ✓ '+esc(usDate(o.notifiedAt))+'</span>'+
         '<button class="btn sm ghost" data-act="osnform" data-id="'+o.id+'">Email again</button>'
@@ -10530,10 +10530,14 @@ function formUpsShip(oid){
   logState.ups={oid:o.id,svc:upsSvcGuess(o),bill:bill};
   const S=logState.ups,lbl=x=>'<label class="fl">'+x+'</label>',opt=' <span style="font-weight:400;color:var(--hint)">optional</span>';
   const inp=(id,v,ph,st)=>'<input class="f" id="'+id+'" autocomplete="off" value="'+esc(v==null?"":v)+'" placeholder="'+esc(ph||"")+'"'+(st?' style="'+st+'"':'')+'>';
-  const kits=grp?shipGroup(o).reduce((n,x)=>n+(srNeed(x)||0),0):(srNeed(o)||0),extra=Math.max(0,units-kits); /* a kit ships ≈1.4 lb boxed, an accessory ≈0.3 lb, plus the carton */
-  const w=mem.weight&&units<=1?mem.weight:(units?Math.ceil((kits*1.4+extra*0.3+0.6)*10)/10:"");
+  /* boxes differ (Max, 2026-11-18: "boxes will differ in sizes; for our recording add contents in each box"): one row per box with its
+     own weight, size and contents; it starts as one box holding everything, or the boxes already recorded on the order */
+  S.skus=(grp?gItems.items:shipItems(o)).filter(x=>+x.qty>0).map(x=>({sku:tqSku(x.sku),qty:+x.qty}));
+  S.boxes=(o.boxes&&o.boxes.length)?o.boxes.map(b=>({weight:b.weight||"",l:b.l||"",w:b.w||"",h:b.h||"",items:Object.fromEntries((b.items||[]).map(x=>[x.sku,+x.qty||0])),auto:false}))
+    :[{weight:"",l:mem.l||"",w:mem.w||"",h:mem.h||"",items:Object.fromEntries(S.skus.map(x=>[x.sku,x.qty])),auto:true}];
+  S.boxes.forEach(b=>{if(b.auto)b.weight=upsBoxEst(b.items);});
   openSheet('<h2>Ship with UPS — '+esc(shortAcct(o.account)||"Order")+'</h2>'+
-   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+shipGroup(o).map(x=>poChip(x.poNo)).join(" ")+' '+esc(lnItems(gItems))+(grp?' · <b>one box</b>':'')+'</p>'+
+   '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+shipGroup(o).map(x=>poChip(x.poNo)).join(" ")+' '+esc(lnItems(gItems))+'</p>'+
    (upsIsFedex(o)?'<div class="card" style="padding:10px 12px;margin:6px 0;border-left:4px solid var(--warn-t,#a15c00);font-size:13px">The PO says <b>'+esc(o.shipVia)+'</b> — that one goes through FedEx Ship Manager, not UPS.</div>':'')+
    (shipHowTxt(o)?'<p style="font-size:13px;margin:4px 0 0"><b>PO says:</b> ship '+esc(shipHowTxt(o))+'</p>':'')+
    '<h3 class="sech" style="margin:14px 0 2px">Ship to</h3>'+
@@ -10547,12 +10551,8 @@ function formUpsShip(oid){
    '<h3 class="sech" style="margin:16px 0 6px">Service</h3>'+
    '<div id="upSvc" style="display:flex;gap:6px;flex-wrap:wrap">'+[[UPS_CHEAP,"Cheapest"]].concat(UPS_SVCS).map(s=>'<button class="qchip'+(S.svc===s[0]?" on":"")+'" data-act="upssvc" data-v="'+s[0]+'">'+esc(s[1])+'</button>').join("")+'</div>'+
    '<p style="margin:6px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span id="upRateNote">'+(S.svc!==UPS_CHEAP?'The PO asks for '+esc(o.shipVia)+'. ':'')+'</span><button class="pill" data-act="upsrates" style="color:var(--muted);background:rgba(120,120,120,.10)">Update prices</button></p>'+
-   '<h3 class="sech" style="margin:16px 0 2px">Boxes</h3>'+
-   '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">'+
-    '<div>'+lbl('Boxes')+'<input class="f" id="upBoxes" inputmode="numeric" value="1" style="width:70px"></div>'+
-    '<div>'+lbl('Weight each (lb)')+'<input class="f" id="upW" inputmode="decimal" value="'+esc(w)+'" style="width:110px"></div>'+
-    '<div>'+lbl('Size each, inches'+opt)+
-     '<div style="display:flex;gap:6px;align-items:center"><input class="f" id="upL" inputmode="decimal" placeholder="L" value="'+esc(mem.l||"")+'" style="width:60px;margin:0">×<input class="f" id="upWd" inputmode="decimal" placeholder="W" value="'+esc(mem.w||"")+'" style="width:60px;margin:0">×<input class="f" id="upH" inputmode="decimal" placeholder="H" value="'+esc(mem.h||"")+'" style="width:60px;margin:0"></div></div></div>'+
+   '<h3 class="sech" style="margin:16px 0 2px">Boxes <span style="font-weight:400;font-size:12.5px;color:var(--hint)">— pack first, then weigh each box</span></h3>'+
+   '<div id="upBoxes">'+upsBoxesHTML()+'</div>'+
    '<h3 class="sech" style="margin:16px 0 6px">Who pays the shipping</h3>'+
    '<div id="upBill" style="display:flex;gap:6px;flex-wrap:wrap">'+UPS_BILLS.map(b=>'<button class="qchip'+(S.bill.type===b[0]?" on":"")+'" data-act="upsbill" data-v="'+b[0]+'">'+esc(b[1])+'</button>').join("")+'</div>'+
    '<div id="upBillAcct" style="display:'+(S.bill.type==="shipper"?'none':'flex')+';gap:10px;flex-wrap:wrap">'+
@@ -10567,20 +10567,51 @@ function formUpsShip(oid){
    '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">The label opens ready to print (4 × 6). Tracking, ship date and cost go on the order and it’s marked shipped.</p>');
   setTimeout(upsRatesLoad,60);
 }
+function upsBoxEst(items){let kits=0,other=0;Object.keys(items||{}).forEach(k=>{const q=+items[k]||0;if(isKitSku(k)||/demo/i.test(k))kits+=q;else other+=q;});
+  return kits+other?Math.ceil((kits*1.4+other*0.3+0.6)*10)/10:"";} /* a kit ≈1.4 lb boxed, an accessory ≈0.3 lb, plus the carton */
+function upsSkuName(sku){const m=TQ_PRODUCTS[tqSku(sku)];return m?m[2]:String(sku);}
+function upsBoxesHTML(){const S=logState.ups;if(!S||!S.boxes)return "";
+  return S.boxes.map((b,i)=>'<div class="card" style="padding:10px 12px;margin:6px 0">'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">'+
+     '<b style="align-self:center;min-width:48px">Box '+(i+1)+'</b>'+
+     '<div><label class="fl">Weight (lb)</label><input class="f" data-bx="'+i+'" data-k="weight" inputmode="decimal" value="'+esc(b.weight)+'" style="width:90px;margin:0"></div>'+
+     '<div><label class="fl">Size, inches <span style="font-weight:400;color:var(--hint)">optional</span></label><div style="display:flex;gap:6px;align-items:center">'+
+      ["l","w","h"].map(k=>'<input class="f" data-bx="'+i+'" data-k="'+k+'" inputmode="decimal" placeholder="'+k.toUpperCase()+'" value="'+esc(b[k]||"")+'" style="width:56px;margin:0">').join("×")+'</div></div>'+
+     (S.boxes.length>1?'<button class="ibtn" data-act="upsboxdel" data-i="'+i+'" title="Remove box '+(i+1)+'" aria-label="Remove box '+(i+1)+'" style="margin-left:auto">'+svg("x")+'</button>':'')+
+    '</div>'+
+    (S.skus.length?'<div style="display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:8px;font-size:13px;align-items:center"><span style="color:var(--muted)">In this box:</span>'+
+      S.skus.map(x=>'<label style="display:flex;gap:6px;align-items:center"><input class="f" data-bx="'+i+'" data-sku="'+esc(x.sku)+'" inputmode="numeric" value="'+(+b.items[x.sku]||0)+'" style="width:56px;margin:0;padding:4px 6px">'+esc(upsSkuName(x.sku))+'</label>').join("")+'</div>':'')+
+  '</div>').join("")+
+  '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:4px"><button class="btn sm ghost" data-act="upsboxadd">+ Add a box</button><span id="upPackNote" style="font-size:12.5px">'+upsPackNote()+'</span></div>';
+}
+function upsPackIssues(){const S=logState.ups;if(!S||!S.skus||!S.skus.length)return [];
+  return S.skus.map(x=>({x,left:x.qty-S.boxes.reduce((n,b)=>n+(+b.items[x.sku]||0),0)})).filter(d=>d.left)
+    .map(d=>d.left>0?d.left+" × "+upsSkuName(d.x.sku)+" not in a box yet":(-d.left)+" × "+upsSkuName(d.x.sku)+" more than the order");}
+function upsPackNote(){const S=logState.ups;if(!S||!S.skus||!S.skus.length)return "";const p=upsPackIssues();
+  return p.length?'<span style="color:var(--warn-t,#a15c00);font-weight:600">'+esc(p.join(" · "))+'</span>':'<span style="color:var(--ok-t);font-weight:600">Everything is in a box ✓</span>';}
+function upsBoxesRedraw(){const el=document.getElementById("upBoxes");if(el)el.innerHTML=upsBoxesHTML();}
+document.addEventListener("input",e=>{const el=e.target,S=logState.ups;if(!el||!el.dataset||el.dataset.bx==null||!S||!S.boxes)return;
+  const i=+el.dataset.bx,b=S.boxes[i];if(!b)return;
+  if(el.dataset.sku){b.items[el.dataset.sku]=Math.max(0,parseInt(el.value)||0);
+    if(b.auto){b.weight=upsBoxEst(b.items);const wi=document.querySelector('[data-bx="'+i+'"][data-k="weight"]');if(wi)wi.value=b.weight;}
+    const n=document.getElementById("upPackNote");if(n)n.innerHTML=upsPackNote();}
+  else if(el.dataset.k){b[el.dataset.k]=el.value.trim();if(el.dataset.k==="weight")b.auto=false;}
+});
+function shipBoxesHTML(o){const B=(o&&o.boxes)||[];if(!B.length)return "";
+  return B.map(b=>'<p style="margin:2px 0 0;font-size:12px;color:var(--muted)"><b style="color:var(--ink);font-weight:600">Box '+esc(b.n)+'</b>'+(b.tracking?' · '+esc(b.tracking):'')+' · '+
+    esc((b.items||[]).map(x=>x.qty+" × "+upsSkuName(x.sku)).join(" + ")||"contents not recorded")+(b.weight?' · '+esc(b.weight)+' lb':'')+(b.l&&b.w&&b.h?' · '+esc(b.l+"×"+b.w+"×"+b.h)+' in':'')+'</p>').join("");}
 function upsGather(oid){
   const S=logState.ups,o=orderById(oid);if(!S||!o)return null;
-  const n=Math.min(20,Math.max(1,parseInt(val("upBoxes"))||1));
-  const box={weight:val("upW"),l:val("upL"),w:val("upWd"),h:val("upH")};
   const bill=S.bill.type==="shipper"?{type:"shipper"}:{type:S.bill.type,account:val("upAcct").toUpperCase().replace(/\s+/g,""),zip:val("upAcctZip")};
   return {orderId:o.id,test:!!(document.getElementById("upTest")||{}).checked,
     shipTo:{name:val("upName"),attn:val("upAttn"),street:val("upStreet"),street2:val("upStreet2"),city:val("upCity"),state:val("upState").toUpperCase(),zip:val("upZip"),phone:val("upPhone")},
-    residential:!!(document.getElementById("upRes")||{}).checked,service:S.svc,boxes:Array.from({length:n},()=>Object.assign({},box)),bill:bill,
+    residential:!!(document.getElementById("upRes")||{}).checked,service:S.svc,boxes:S.boxes.slice(0,20).map(x=>({weight:x.weight,l:x.l,w:x.w,h:x.h})),bill:bill,
     refs:[val("upRef1"),val("upRef2")].filter(Boolean),description:"AutoTQ"};
 }
 function upsProblems(b){const p=[],t=b.shipTo;
   if(!(t.name||t.attn))p.push("ship-to name");if(!t.street)p.push("street");if(!t.city)p.push("city");
   if(!/^[A-Z]{2}$/.test(t.state))p.push("state (2 letters)");if(String(t.zip).replace(/\D/g,"").length<5)p.push("ZIP");
-  if(!(parseFloat(b.boxes[0].weight)>0))p.push("weight");
+  b.boxes.forEach((x,i)=>{if(!(parseFloat(x.weight)>0))p.push(b.boxes.length>1?"weight for box "+(i+1):"weight");});
   if(b.bill.type!=="shipper"){if(!/^[A-Z0-9]{6}$/.test(b.bill.account))p.push("their 6-character UPS account #");if(String(b.bill.zip).replace(/\D/g,"").length<5)p.push("the ZIP on their account");}
   return p;}
 /* the printable label page: 4×6 per label; UPS sends the GIF sideways, so a landscape image is turned upright */
@@ -10602,6 +10633,8 @@ async function upsCreate(oid){
   const o=orderById(oid),b=upsGather(oid);if(!o||!b)return;
   const p=upsProblems(b);if(p.length){toast("Still needed: "+p.join(", "));return;}
   if(upsIsFedex(o)&&!b.test&&!confirm("The PO says "+o.shipVia+". Make a UPS label anyway?"))return;
+  const pk=upsPackIssues();if(pk.length&&!b.test&&!confirm("The boxes don't match the order:\n"+pk.join("\n")+"\n\nMake the label anyway?"))return;
+  const SB=(logState.ups&&logState.ups.boxes||[]).map(x=>Object.assign({},x,{items:Object.assign({},x.items)}));
   const w=window.open("","_blank");
   if(w)w.document.write('<p style="font:15px system-ui,sans-serif;padding:24px">Making the UPS label…</p>');
   const btn=document.querySelector('[data-act="upscreate"]');const reset=()=>{if(btn){btn.disabled=false;btn.textContent="Create UPS label";}};
@@ -10618,7 +10651,9 @@ async function upsCreate(oid){
     o.shipCarrier="UPS";o.shipTracking=j.tracking;o.shipTrackings=j.trackings;o.shipDate=todayStr();o.shipService=j.service;
     o.shippedAt=now;o.shippedBy=USER;
     o.upsLabel={shipmentId:j.shipmentId,trackings:j.trackings,paths:(j.labels||[]).map(l=>l.path).filter(Boolean),service:j.service,
-      billedTo:j.billedTo,bill:b.bill.type,charges:j.charges,negotiated:j.negotiated,boxes:b.boxes.length,weight:b.boxes[0].weight,pick:j.pickNote||"",at:now,by:USER};
+      billedTo:j.billedTo,bill:b.bill.type,charges:j.charges,negotiated:j.negotiated,boxes:b.boxes.length,weight:Math.round(b.boxes.reduce((t,x)=>t+(parseFloat(x.weight)||0),0)*10)/10,pick:j.pickNote||"",at:now,by:USER};
+    o.boxes=SB.map((x,i)=>({n:i+1,weight:x.weight,l:x.l,w:x.w,h:x.h,items:Object.keys(x.items).filter(k=>+x.items[k]>0).map(k=>({sku:k,qty:+x.items[k]})),
+      tracking:(j.labels&&j.labels[i]&&j.labels[i].tracking)||(j.trackings||[])[i]||""}));
     if(cost!=null){o.shipCost=cost;if(o.status==="loaner")o.upsCost=cost;}
     o.devin={state:"todo",at:now,by:USER};
     upsBoxRemember({weight:b.boxes[0].weight,l:b.boxes[0].l,w:b.boxes[0].w,h:b.boxes[0].h});
@@ -10647,6 +10682,7 @@ async function upsVoid(oid){
   const now=new Date().toISOString(),c=L.negotiated!=null?L.negotiated:L.charges;
   o.upsVoided=(o.upsVoided||[]).concat([Object.assign({},L,{voidedAt:now,voidedBy:USER})]);
   delete o.upsLabel;["shipTracking","shipTrackings","shippedAt","shippedBy","shipService","shipDate"].forEach(k=>delete o[k]);
+  (o.boxes||[]).forEach(x=>{delete x.tracking;}); /* the packing stays recorded; the tracking #s died with the label */
   if(L.bill==="shipper"&&c!=null){if(o.shipCost===c)delete o.shipCost;if(o.status==="loaner"&&o.upsCost===c)delete o.upsCost;}
   o.devin={state:"todo",at:now,by:USER};
   shipSyncMates(o);save();render();toast("Label voided — back on To ship");
@@ -11522,6 +11558,8 @@ document.addEventListener("click",e=>{
   if(a==="shipsplit"){e.stopPropagation();shipSplit(id);return;}
   if(a==="upssvc"){const S=logState.ups;if(S){S.svc=t.dataset.v;document.querySelectorAll('#upSvc .qchip').forEach(b=>b.classList.toggle("on",b.dataset.v===S.svc));}return;}
   if(a==="upsrates"){upsRatesLoad();return;}
+  if(a==="upsboxadd"){const S=logState.ups;if(S&&S.boxes){const L=S.boxes[S.boxes.length-1]||{};S.boxes.push({weight:"",l:L.l||"",w:L.w||"",h:L.h||"",items:{},auto:true});upsBoxesRedraw();}return;}
+  if(a==="upsboxdel"){const S=logState.ups;if(S&&S.boxes&&S.boxes.length>1){S.boxes.splice(+t.dataset.i,1);upsBoxesRedraw();}return;}
   if(a==="upsbill"){const S=logState.ups;if(S){S.bill.type=t.dataset.v;document.querySelectorAll('#upBill .qchip').forEach(b=>b.classList.toggle("on",b.dataset.v===S.bill.type));const w=document.getElementById("upBillAcct");if(w)w.style.display=S.bill.type==="shipper"?"none":"flex";const z=document.getElementById("upAcctZip");if(z&&!z.value)z.value=val("upZip").replace(/\D/g,"").slice(0,5);}return;}
   if(a==="upscreate"){upsCreate(id);return;}
   if(a==="upslabel"){e.stopPropagation();upsLabelOpen(id);return;}
