@@ -8184,7 +8184,8 @@ function poScanToOrder(po){
   if(!(+po.total>0))flags.push("no total");
   return {poNo:String(po.po_number||"").trim(),poDate:/^\d{4}-\d{2}-\d{2}$/.test(po.po_date||"")?po.po_date:"",
     contactName:po.contact_name||"",contactEmail:String(po.contact_email||"").toLowerCase(),contactPhone:po.contact_phone||"",
-    payTerms:po.payment_terms||"",shipTo:addr(po.ship_to),billTo:addr(po.bill_to),items:items,
+    payTerms:po.payment_terms||"",shipVia:String(po.ship_via||"").trim(),freightTerms:String(po.freight_terms||"").trim(),
+    shipAcct:String(po.ship_account||"").trim(),shipTo:addr(po.ship_to),billTo:addr(po.bill_to),items:items,
     amount:Math.round((+po.total>0?+po.total:sum)*100)/100,flags:flags};
 }
 /* website checkout orders carry a generated number (PO-YYYYMMDD-…); loaners, $0 units and those have no customer PO PDF */
@@ -8254,7 +8255,7 @@ async function poScanFile(f){
   }catch(e){return {error:String(e&&e.message||e)};}
 }
 function poFillBlanks(o,m,po){
-  ["contactName","contactEmail","contactPhone","payTerms"].forEach(k=>{if(!o[k]&&m[k])o[k]=m[k];});
+  ["contactName","contactEmail","contactPhone","payTerms","shipVia","freightTerms","shipAcct"].forEach(k=>{if(!o[k]&&m[k])o[k]=m[k];});
   if(!o.shipTo&&m.shipTo.street)o.shipTo=m.shipTo;
   if(!o.billTo&&m.billTo.street)o.billTo=m.billTo;
   if(!(o.items||[]).length&&m.items.length)o.items=m.items;
@@ -8292,7 +8293,7 @@ async function invScanFiles(files){
       const rec={id:id,addedBy:USER,addedAt:new Date().toISOString(),src:"pdf",status:"queue",file:path,fname:f.name,
         account:acct||meta.account||f.name.replace(/\.pdf$/i,""),poNo:(m&&m.poNo)||meta.poNo||"",poDate:(m&&m.poDate)||meta.poDate||todayStr(),
         items:m?m.items:[],amount:m?m.amount:0,notes:"",qbInv:""};
-      if(m){["contactName","contactEmail","contactPhone","payTerms"].forEach(k=>{if(m[k])rec[k]=m[k];});
+      if(m){["contactName","contactEmail","contactPhone","payTerms","shipVia","freightTerms","shipAcct"].forEach(k=>{if(m[k])rec[k]=m[k];});
         if(m.shipTo.street)rec.shipTo=m.shipTo;if(m.billTo.street)rec.billTo=m.billTo;
         rec.scan=sc.po;rec.scanAt=rec.addedAt;rec.scanBy=USER;rec.scanFlags=m.flags;}
       else rec.scanFlags=["couldn't read the PDF — open it and fill the order in"+(sc.error?" ("+sc.error+")":"")];
@@ -8327,7 +8328,7 @@ function invDetailsHTML(o){
     '<div>'+fact("PO number",esc(o.poNo||"—")+(o.custPo?' <span style="color:var(--hint)">· customer PO '+esc(o.custPo)+'</span>':''))+
       fact("PO date",o.poDate?esc(usDate(o.poDate)):"")+
       fact("Contact",[o.contactName,o.contactEmail,o.contactPhone].filter(Boolean).map(esc).join(" · "))+
-      fact("Terms",esc(o.payTerms||""))+fact("Bill-to email",esc(o.billEmail||billToFor(o)||""))+fact("QB invoice",esc(o.qbInv||""))+'</div>'+
+      fact("Terms",esc(o.payTerms||""))+fact("Ship via",esc(shipHowTxt(o)))+fact("Bill-to email",esc(o.billEmail||billToFor(o)||""))+fact("QB invoice",esc(o.qbInv||""))+'</div>'+
     '<div>'+fact("Ship to",addr(o.shipTo))+fact("Bill to",addr(o.billTo))+
       fact("Added",(o.src==="pdf"?"Read from the PO PDF · ":"")+esc((who&&who.name)||o.addedBy||"")+(o.addedAt?" · "+esc(usDate(String(o.addedAt).slice(0,10))):""))+'</div></div>'+
     tbl+
@@ -8507,6 +8508,7 @@ function orderSheet(id){
    '<div style="margin:10px 0 6px">'+repLine+
      fact("Contact",o.contactName||o.contactEmail?esc(o.contactName||"")+(o.contactEmail?(o.contactName?' · ':'')+'<a href="mailto:'+esc(o.contactEmail)+'" style="color:var(--coral,#e8543f)">'+esc(o.contactEmail)+'</a>':''):"")+
      (shipAccess()&&o.status!=="supplier"?fact("Order confirmation",o.confirmedAt?'sent to '+esc(o.confirmedTo||"")+' · '+esc(usDate(o.confirmedAt)):'<span style="color:var(--coral,#e8543f)">not sent</span>'):"")+
+     fact("Ship via",esc(shipHowTxt(o)))+
      fact("QB invoice #",o.qbInv?esc(o.qbInv):"")+
      fact("Invoice date",o.invoicedAt?esc(usDate(o.invoicedAt)):(o.status==="invoiced"?'<span style="color:var(--warn-t,#a15c00)">not set — add it (drives Net 30)</span>':""))+
      (dd?fact("Terms",'Net 30 — '+(dd.over?'<span style="color:var(--dang-t,#b3261e)">OVERDUE since '+dd.label+'</span>':'due '+dd.label)):'')+
@@ -8988,10 +8990,12 @@ function packingSlipHTML(s){
    '<div class="card"><h4>BILL TO</h4><p contenteditable>'+(bill.length?'<b>'+esc(bill[0])+'</b>'+(bill.length>1?'<br>'+bill.slice(1).map(esc).join("<br>"):''):'—')+'</p></div>'+
    '<div class="card"><h4>SHIP TO</h4><p contenteditable>'+(ship.length?'<b>'+esc(ship[0])+'</b>'+(ship.length>1?'<br>'+ship.slice(1).map(esc).join("<br>"):''):'<b>'+esc(o.account||"")+'</b><br>Street address…')+'</p></div>'+
    '<div class="card"><h4>DETAILS</h4>'+
-    '<div class="kv"><span>Order no.</span><b contenteditable>'+esc(s.poNo||o.poNo||"—")+'</b></div>'+
+    '<div class="kv"><span>PO number</span><b contenteditable>'+esc(s.poNo||o.poNo||"—")+'</b></div>'+
+    (o.custPo?'<div class="kv"><span>Customer PO</span><b contenteditable>'+esc(o.custPo)+'</b></div>':'')+
     (o.poDate?'<div class="kv"><span>PO date</span><b contenteditable>'+esc(usDate(o.poDate))+'</b></div>':'')+
     '<div class="kv"><span>Ship date</span><b contenteditable>'+esc(usDate(d))+'</b></div>'+
-    '<div class="kv"><span>Ship via</span><b contenteditable>'+esc(svc||"UPS")+'</b></div>'+
+    '<div class="kv"><span>Ship via</span><b contenteditable>'+esc(o.shipVia||svc||"UPS")+'</b></div>'+
+    (o.shipAcct||o.freightTerms?'<div class="kv"><span>Freight</span><b contenteditable>'+esc([o.freightTerms||(o.shipAcct?"Collect":""),o.shipAcct?"acct "+o.shipAcct:""].filter(Boolean).join(" · "))+'</b></div>':'')+
     (s.tracking?'<div class="kv"><span>Tracking</span><b contenteditable>'+esc(s.tracking)+'</b></div>':'')+
     (ref?'<div class="kv"><span>Reference</span><b contenteditable>'+esc(ref)+'</b></div>':'')+
     (s.boxes||s.weight?'<div class="kv"><span>Boxes / wt</span><b contenteditable>'+esc((s.boxes||"—")+(s.weight?" / "+s.weight+" lb":""))+'</b></div>':'')+
@@ -9065,7 +9069,8 @@ function marchSlipHTML(s){
    '<p contenteditable>2029 Okeechobee Blvd Ste. 1 #1010, West Palm Beach, FL 33409<br><span class="em">info@themarchfoundation.org</span> · marchsafety.org</p></div>'+
    '<div class="inv"><div class="word">PACKING SLIP</div><div class="no" contenteditable>PO '+esc(s.poNo||o.poNo||"—")+'</div><div class="pill" contenteditable>'+pill+'</div></div></div>'+
   '<div class="cards">'+card("BILL TO","var(--m)",bill)+card("SHIP TO","var(--a)",ship.length?ship:[o.account||"","Street address…"])+
-   '<div class="card"><h4 style="--k:var(--r)">DETAILS</h4>'+kv("Order no.",s.poNo||o.poNo||"")+(o.poDate?kv("PO date",usDate(o.poDate)):"")+kv("Ship date",usDate(d))+kv("Ship via",svc||"UPS")+kv("Tracking",s.tracking||"")+'</div></div>'+
+   '<div class="card"><h4 style="--k:var(--r)">DETAILS</h4>'+kv("PO number",s.poNo||o.poNo||"")+(o.custPo?kv("Customer PO",o.custPo):"")+(o.poDate?kv("PO date",usDate(o.poDate)):"")+kv("Ship date",usDate(d))+kv("Ship via",o.shipVia||svc||"UPS")+
+   (o.shipAcct||o.freightTerms?kv("Freight",[o.freightTerms||(o.shipAcct?"Collect":""),o.shipAcct?"acct "+o.shipAcct:""].filter(Boolean).join(" · ")):"")+kv("Tracking",s.tracking||"")+'</div></div>'+
   '<div class="items"><div class="ih"><span>ITEM</span><span class="r">QTY</span></div>'+rows+'</div>'+
   '<div class="totwrap"><div class="tot"><div class="due"><b>TOTAL UNITS</b><span class="amt" contenteditable>'+(units||"")+'</span></div></div></div>'+
   '<div class="pay"><h4 style="--k:var(--c)">IN THIS BOX</h4><div class="paycols">'+
@@ -10225,6 +10230,13 @@ function toShipList(){return (DB.orders||[]).filter(o=>o&&!o.dupOf&&["queue","in
   .sort((a,b)=>String(a.poDate||"").localeCompare(String(b.poDate||"")));}
 function lnItems(o){return (o.items||[]).filter(it=>+it.qty>0&&!/freight/i.test(String(it.sku||""))).map(it=>{const m=TQ_PRODUCTS[tqSku(it.sku)];
   return (+it.qty)+" × "+(m?m[2]:String(it.sku));}).join(" + ")||(o.status==="loaner"?"Demo unit":"Items not listed");}
+/* how the PO says to ship it (Max, 2026-11-18: Jetstream/Blasters "UPS Parcel Collect, account 758959"): o.shipVia / o.freightTerms /
+   o.shipAcct come from the PO reader or the order form */
+function shipHowTxt(o){
+  const v=String(o&&o.shipVia||"").trim(),t=String(o&&o.freightTerms||"").trim(),a=String(o&&o.shipAcct||"").trim();
+  if(!v&&!t&&!a)return "";
+  return [v,t&&!v.toLowerCase().includes(t.toLowerCase())?t:"",a?"bill their account "+a:""].filter(Boolean).join(" · ");
+}
 function lnShipTo(o){const s=o.shipTo||{};return [s.name&&s.name!==o.contactName&&s.name!==o.account?s.name:"",s.street,[s.city,[s.state,s.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(" · ");}
 /* an order's ship state, as its own line on the Invoicing row */
 function shipSignLineHTML(o){
@@ -10262,7 +10274,8 @@ function shipRowHTML(o,i){
       '<p style="margin:0;font-size:14.5px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+' '+t.pill+' '+srChipHTML(o)+'</p>'+
       '<p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+(o.status==="loaner"?'requested ':'PO date ')+esc(usDate(o.poDate))+'</span></p>'+
       shipSkuLines(o)+
-      '<p style="margin:4px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p></div>'+
+      '<p style="margin:4px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p>'+
+      (shipHowTxt(o)?'<p style="margin:3px 0 0;font-size:12.5px;font-weight:600;color:var(--ink)">Ship '+esc(shipHowTxt(o))+'</p>':'')+'</div>'+
     '<div style="display:flex;gap:6px;flex-wrap:wrap;flex:none;align-items:center">'+
       '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
       '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Serial numbers, carrier and tracking — saving tracking also marks it shipped">Serials &amp; tracking</button>'+
@@ -10381,6 +10394,8 @@ function formOrder(id,keepItems){
     Object.keys(INV_STATUS).map(s=>'<button class="qchip'+((o?o.status:"queue")===s?" on":"")+'" data-act="invsetst" data-v="'+s+'">'+INV_STATUS[s][0]+'</button>').join("")+'</div>'+
    '<label class="fl">QB invoice #(s)</label><input class="f" id="ivQb" value="'+esc(o?o.qbInv:"")+'" placeholder="e.g. 1172">'+
    '<label class="fl">Bill-to email (AP)</label><input class="f" id="ivBill" value="'+esc(o&&o.billEmail?o.billEmail:"")+'" placeholder="Where this customer wants invoices sent">'+
+   '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" style="min-width:200px"><label class="fl">Ship via <span style="font-weight:400;color:var(--hint)">— as the PO asks</span></label><input class="f" id="ivShipVia" value="'+esc(o&&o.shipVia?o.shipVia:"")+'" placeholder="e.g. UPS Ground, UPS Parcel Collect"></div>'+
+   '<div class="grow" style="min-width:200px"><label class="fl">Freight account <span style="font-weight:400;color:var(--hint)">— their UPS / FedEx # for collect</span></label><input class="f" id="ivShipAcct" value="'+esc(o&&o.shipAcct?o.shipAcct:"")+'" placeholder="blank = we ship prepaid"></div></div>'+
    '<label class="fl">Notes</label><textarea class="f" id="ivNotes" rows="2">'+esc(o?o.notes:"")+'</textarea>'+
    '<button class="btn coral block" data-act="invsave" data-id="'+(o?o.id:"")+'" style="margin-top:16px">Save</button>'+
    (o?'<button class="btn ghost block" data-act="invdel" data-id="'+o.id+'" style="margin-top:8px;color:var(--dang-t,#b3261e)">Delete this order</button>':''));
@@ -10394,6 +10409,7 @@ function saveOrder(id){
   rec.items=items;
   rec.amount=items.length?Math.round(itemsTotal(items)*100)/100:(parseFloat(String(val("ivAmt")).replace(/[$,]/g,""))||0);
   rec.status=logState.invStatus||"queue";rec.qbInv=val("ivQb");rec.billEmail=val("ivBill");rec.notes=val("ivNotes");
+  rec.shipVia=val("ivShipVia").trim();rec.shipAcct=val("ivShipAcct").trim();
   if(!o){DB.orders=DB.orders||[];DB.orders.push(rec);}
   save();closeSheet();render();toast("Order saved");
 }
