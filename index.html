@@ -8933,7 +8933,7 @@ function deleteShipment(id){
    ring watermark, lockup footer). Works from a shipment record OR straight from the PO (orderSlipObj). */
 function assetUrl(n){return new URL("AutoTQ_CRM_assets/"+n,location.href).href;}
 const THUMB_FILE={"1000-0005-TQ":"thumb_1000_0005_TQ.jpg","Demo unit":"thumb_Demo_unit.jpg","7000-WB":"thumb_7000_WB.jpg","7000-CC":"thumb_7000_CC.jpg","7000-LS-P":"thumb_7000_LS_P.jpg"};
-const SKU_DESC={"1000-0005-TQ":"Includes: 1× Reusable Inflator · 1× USB-C Cable · 2× Disposable Cuffs (Arm & Leg)","Demo unit":"AutoTQ demo kit — loaner unit","7000-WB":"Wall mount bracket for the AutoTQ Kit","7000-CC":"Hard carry case","7000-LS-P":"Disposable cuff pack (arm & leg)"};
+const SKU_DESC={"1000-0005-TQ":"Includes: 1× Reusable Inflator · 1× USB-C Cable · 2× Disposable Cuffs (Arm & Leg)","Demo unit":"AutoTQ demo kit","7000-WB":"Wall mount bracket for the AutoTQ Kit","7000-CC":"Hard carry case","7000-LS-P":"Disposable cuff pack (arm & leg)"};
 const SLIP_CONTACT={name:"Max Herbst",email:"max@goldenhourmedical.com",phone:"561-609-5411"};
 function billToLines(o){
   const b=o.billTo;
@@ -8946,12 +8946,12 @@ function packingSlipHTML(s){
   const bill=billToLines(o),ship=shipToLines(s.shipTo);
   const d=s.shipDate||todayStr(),svc=(s.carrier||"")+(s.service?" "+s.service:"");
   const items=(s.items||[]).filter(x=>+x.qty>0),units=items.reduce((t,x)=>t+(+x.qty||0),0);
-  const ref=s.tracking?"":(loaner?"Demo loaner":(o.contactName||""));
+  const ref=s.tracking?"":(loaner?"Demo":(o.contactName||""));
   const pill=s.status==="delivered"?"DELIVERED":s.status==="shipped"?"SHIPPED "+usDate(d):"READY TO SHIP";
   const rows=(items.length?items:[{sku:"1000-0005-TQ",qty:""}]).map(it=>{const k=tqSku(it.sku),th=THUMB_FILE[k];
     return '<tr><td><div class="pn">'+(th?'<img src="'+assetUrl(th)+'" alt="">':'<span class="ph"></span>')+'<span><b contenteditable>'+esc(skuNice(k))+'</b><small contenteditable>'+esc(SKU_NICE[k]?k:(it.sku||""))+'</small></span></div></td>'+
       '<td class="desc" contenteditable>'+esc(SKU_DESC[k]||skuLabel(k)||"")+'</td><td class="r qty" contenteditable>'+(+it.qty||"")+'</td></tr>';}).join("");
-  const note=loaner?"Demo unit — loaner provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
+  const note=loaner?"Demo unit — provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Packing Slip — PO '+esc(s.poNo||o.poNo||"")+' — '+esc(shortAcct(s.account||o.account)||"")+'</title><style>'+
   '@font-face{font-family:"Inter";src:url('+assetUrl("inter-latin.woff2")+') format("woff2");font-weight:100 900;font-style:normal}'+
   ':root{--ink:#14181c;--gray:#5c6670;--faint:#9aa3ab;--line:#e7e3dd;--card:#f7f5f2;--coral:#e8402e}'+
@@ -9031,7 +9031,7 @@ function marchSlipHTML(s){
   const pill=s.status==="delivered"?"DELIVERED":s.status==="shipped"?"SHIPPED "+usDate(d):"READY TO SHIP";
   const rows=(items.length?items:[{sku:"1000-0005-TQ",qty:""}]).map(it=>{const k=tqSku(it.sku),th=THUMB_FILE[k];
     return '<div class="ir"><div class="pn">'+(th?'<img src="'+assetUrl(th)+'" alt="">':'<span class="ph"></span>')+'<span><b contenteditable>'+esc(skuNice(k))+'</b><small contenteditable>'+esc((SKU_NICE[k]?k:(it.sku||""))+(SKU_DESC[k]?" · "+SKU_DESC[k]:""))+'</small></span></div><div class="r" contenteditable><b>'+(+it.qty||"")+'</b></div></div>';}).join("");
-  const note=loaner?"Demo unit — loaner provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
+  const note=loaner?"Demo unit — provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
   const kv=(k,v)=>'<div class="kv"><span>'+k+'</span>'+(v?'<b contenteditable>'+esc(v)+'</b>':'<b class="blank" contenteditable></b>')+'</div>';
   const card=(h,c,lines)=>'<div class="card"><h4 style="--k:'+c+'">'+h+'</h4><p contenteditable>'+(lines.length?'<b>'+esc(lines[0])+'</b>'+(lines.length>1?'<br>'+lines.slice(1).map(esc).join("<br>"):''):'—')+'</p></div>';
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>MARCH Packing Slip — PO '+esc(s.poNo||o.poNo||"")+'</title><style>'+
@@ -9086,6 +9086,28 @@ function marchSlipHTML(s){
    '<div class="legal">Thank you for your order. The MARCH Safety Foundation is a 501(c)(3) nonprofit organization · TIN 33-2195206.</div></div>'+
   '</div></body></html>';
 }
+/* one-unit orders print the slip on the top half of the Letter sheet, dashed cut line under it (Max, 2026-11-18: "for any single
+   unit orders… half the current size so it can be cut"). Same slip (AutoTQ or MARCH), tightened by these overrides on .page.half. */
+const SLIP_HALF_CSS=
+  '.page.half{height:528px;padding:0 44px;border-bottom:1px dashed #9aa3ab}'+
+  '.page.half .crest{margin-top:14px}.page.half .crest img{height:24px}.page.half .head{margin-top:14px}'+
+  '.page.half .co p{font-size:10px;line-height:1.5;margin-top:6px}.page.half .head .wm{font-size:20px!important}'+
+  '.page.half .inv .word{font-size:19px;letter-spacing:5px}.page.half .inv .no{font-size:16px}.page.half .inv .pill{margin-top:5px;padding:4px 11px;font-size:9.5px}'+
+  '.page.half .cards{gap:10px;margin-top:12px}.page.half .card{padding:9px 12px;border-radius:9px}.page.half h4{margin-bottom:5px;font-size:9px}'+
+  '.page.half .card p{font-size:10.5px;line-height:1.45}.page.half .card .kv{font-size:10px;line-height:1.55}'+
+  '.page.half table{margin-top:12px}.page.half th{padding:0 8px 5px;font-size:9px}.page.half td{padding:6px 8px;font-size:12px}.page.half td.desc{font-size:10.5px;line-height:1.4}.page.half td.qty{font-size:14px}'+
+  '.page.half .pn{gap:10px}.page.half .pn img,.page.half .pn .ph{width:40px;height:30px;border-radius:6px}.page.half .pn b{font-size:12px}.page.half .pn small{font-size:9.5px}'+
+  '.page.half .items{margin-top:10px}.page.half .ih{padding-bottom:5px}.page.half .ih span{font-size:9px}.page.half .ir{padding:6px 0;font-size:12px}.page.half .ir .r b{font-size:14px}'+
+  '.page.half .totwrap{margin-top:8px;gap:14px}.page.half .note{padding:7px 12px;min-height:0;border-radius:9px}.page.half .note p{font-size:10px;line-height:1.45}'+
+  '.page.half .tot{width:200px}.page.half .tot .due{padding:8px 14px;border-radius:9px}.page.half .tot .due b{font-size:11px}.page.half .tot .due .amt{font-size:17px}'+
+  '.page.half .sig{margin-top:18px;gap:30px}'+
+  '.page.half .pay{margin-top:6px;padding:6px 12px;border-radius:10px}.page.half .paycol{padding-right:14px}.page.half .paycol+.paycol{padding-left:14px}.page.half .paycol b{font-size:9.5px;margin-bottom:2px}.page.half .paycol p{font-size:9.5px;line-height:1.4}'+
+  '.page.half .accept{margin-top:6px}.page.half .accept h4{margin-bottom:3px}.page.half .sign div{height:14px}.page.half .sign span{margin-top:3px}'+
+  '.page.half .watermark{display:none}'+
+  '.page.half .foot{left:44px;right:44px;bottom:12px}.page.half .foot .rule{margin-bottom:7px}.page.half .frow img{height:20px}.page.half .frow .wm{font-size:12px!important}.page.half .frow p{font-size:8.5px;line-height:1.45}.page.half .legal{display:none}'+
+  '@media print{.page.half{height:5.5in}}';
+function slipHalf(html){return html.replace("</style>",SLIP_HALF_CSS+"</style>").replace('<div class="page">','<div class="page half">');}
+function slipUnits(s){return (s.items||[]).filter(x=>+x.qty>0&&!/freight/i.test(String(x.sku||""))).reduce((t,x)=>t+(+x.qty||0),0);}
 /* ---------- Order confirmation — "We've received your order", from Sales Support to the PO's point of contact ---------- */
 const SALES_FROM="salessupport@goldenhourmedical.com";
 /* Max (2026-11-11): "every sales support email … directly to me". send-invoice blind-copies him on everything sent as
@@ -10049,8 +10071,8 @@ function packingSlipOrder(oid){
   const o=orderById(oid);if(!o)return;
   const w=window.open("","_blank");
   if(!w){toast("Allow pop-ups to open the packing slip");return;}
-  const s=orderSlipObj(o);
-  w.document.write((isMarchOrder(o)?marchSlipHTML(s):packingSlipHTML(s)).replace("</body>",
+  const s=orderSlipObj(o),full=isMarchOrder(o)?marchSlipHTML(s):packingSlipHTML(s);
+  w.document.write((slipUnits(s)===1?slipHalf(full):full).replace("</body>",
     '<script>window.addEventListener("load",function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});<\/script></body>'));
   w.document.close();
 }
