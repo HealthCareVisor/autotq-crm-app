@@ -8227,10 +8227,10 @@ function invRowHTML(o,i){
     (o.status==="queue"
       ?(invPortalFor(o)||bill?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Invoice '+(invPortalFor(o)?'via <b>'+esc(invPortalFor(o))+'</b> (portal)':'to <b>'+esc(bill)+'</b>')+'</p>':'')
       :o.status==="loaner"
-      ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Loaner / demo — no invoice'+(o.upsCost?' · UPS '+fmtC(o.upsCost):'')+lnShipNoteHTML(o)+'</p>'
+      ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Loaner / demo — no invoice'+(o.upsCost?' · UPS '+fmtC(o.upsCost):'')+'</p>'
       :o.status==="invoiced"
       ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'add the invoice date for Net-30 tracking')+(bill?' → '+esc(bill):'')+'</p>';})()
-      :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+shipLineHTML(o)+'</div>'+
+      :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+shipLineHTML(o)+shipSignLineHTML(o)+'</div>'+
     '<div class="invright">'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
     (invMode==="done"||view!=="invoicing"?invChip(o.status):'')+
@@ -10212,44 +10212,48 @@ function gpoForOrder(o){
   const gs=typeof gposAll==="function"?gposAll():[];if(!gs.length||!o)return null;
   return gs.find(g=>g.crm&&g.crm.orderId===o.id)||gs.find(g=>[g.po,g.custPo].some(x=>x&&poKey(x)===poKey(o.poNo)))||null;
 }
-/* Loaners to ship (Max, 2026-11-18: "show loaners that haven't shipped as of yet; I need to mark shipped too").
-   A loaner counts as shipped once it has o.shippedAt (the Mark shipped button), tracking or "Hand delivered" from the
-   Serials & tracking sheet, a UPS cost, a shipments record, or o.noShip. Loaners dated before LN_SHIP_FROM were never
-   tracked, so they're taken as shipped. */
-const LN_SHIP_FROM="2026-11-01";
+/* To ship (Max, 2026-11-18): "show loaners that haven't shipped as of yet; I need to mark shipped too", then "orders shouldn't
+   just disappear from me upon being invoiced because I still need to know what needs to be shipped". Shipping is tracked apart from
+   invoicing: every order and demo loaner dated from SHIP_FROM on stays on To ship until it's marked shipped, invoiced or not.
+   Shipped = o.shippedAt (Mark shipped), tracking or "Hand delivered" from Serials & tracking, a UPS cost, a shipments record, or
+   o.noShip (nothing to ship). Older orders were never tracked, so they count as shipped. */
+const SHIP_FROM="2026-11-01";
 function lnShipped(o){return !!(o.shippedAt||o.shipTracking||o.shipCarrier==="Hand delivered"||o.upsCost||o.noShip||shipmentsFor(o.id).length);}
-function lnToShip(){return (DB.orders||[]).filter(o=>o&&o.status==="loaner"&&String(o.poDate||"")>=LN_SHIP_FROM&&!lnShipped(o))
+function toShipList(){return (DB.orders||[]).filter(o=>o&&!o.dupOf&&["queue","invoiced","paid","loaner"].includes(o.status)&&String(o.poDate||"")>=SHIP_FROM&&!lnShipped(o)&&
+    (o.status==="loaner"||(o.items||[]).some(it=>+it.qty>0&&!/freight/i.test(String(it.sku||"")))||+o.amount>0))
   .sort((a,b)=>String(a.poDate||"").localeCompare(String(b.poDate||"")));}
 function lnItems(o){return (o.items||[]).filter(it=>+it.qty>0&&!/freight/i.test(String(it.sku||""))).map(it=>{const m=TQ_PRODUCTS[tqSku(it.sku)];
-  return (+it.qty)+" × "+(m?m[2]:String(it.sku));}).join(" + ")||"Demo unit";}
+  return (+it.qty)+" × "+(m?m[2]:String(it.sku));}).join(" + ")||(o.status==="loaner"?"Demo unit":"Items not listed");}
 function lnShipTo(o){const s=o.shipTo||{};return [s.name&&s.name!==o.contactName&&s.name!==o.account?s.name:"",s.street,[s.city,[s.state,s.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(" · ");}
-/* the loaner's ship state, for its Invoicing row */
-function lnShipNoteHTML(o){
-  if(o.status!=="loaner")return "";
+/* an order's ship state, as its own line on the Invoicing row */
+function shipSignLineHTML(o){
+  if(!o||o.status==="supplier")return "";
   if(o.shippedAt||o.shipTracking||o.shipCarrier==="Hand delivered"){
     const day=o.shipDate||String(o.shippedAt||"").slice(0,10);
     const tl=o.shipTracking?(trackUrl(o.shipCarrier,o.shipTracking)?'<a href="'+esc(trackUrl(o.shipCarrier,o.shipTracking))+'" target="_blank" rel="noopener" data-stop="1" style="color:var(--coral,#e8543f);font-weight:600">'+esc(o.shipTracking)+' ↗</a>':esc(o.shipTracking)):"";
-    return ' · <span style="color:var(--ok-t)">Shipped'+(day?' '+esc(usDate(day)):'')+'</span>'+(o.shipCarrier&&o.shipCarrier!=="UPS"||tl?' · '+esc(o.shipCarrier||"")+(tl?' '+tl:''):'')+
-      (o.shippedAt&&!o.shipTracking&&srShipper()?' <button class="pill" data-act="lnunship" data-id="'+o.id+'" title="Put it back on Loaners to ship" style="color:var(--muted);background:rgba(120,120,120,.10)">Undo</button>':'');
+    return '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)"><span style="color:var(--ok-t);font-weight:600">Shipped'+(day?' '+esc(usDate(day)):'')+'</span>'+
+      (o.shipCarrier&&o.shipCarrier!=="UPS"||tl?' · '+esc(o.shipCarrier||"")+(tl?' '+tl:''):'')+
+      (o.shippedAt&&!o.shipTracking&&srShipper()?' <button class="pill" data-act="lnunship" data-id="'+o.id+'" title="Put it back on To ship" style="color:var(--muted);background:rgba(120,120,120,.10)">Undo</button>':'')+'</p>';
   }
-  return String(o.poDate||"")>=LN_SHIP_FROM&&!lnShipped(o)?' · <span style="color:#3b6fb5;font-weight:600">Not shipped yet</span>':'';
+  return String(o.poDate||"")>=SHIP_FROM&&!lnShipped(o)?'<p style="margin:3px 0 0;font-size:12.5px;color:#3b6fb5;font-weight:600">Not shipped yet</p>':'';
 }
-function lnToShipHTML(){
-  const L=lnToShip();if(!L.length)return "";
-  const can=srShipper();
+/* top of Invoicing for whoever ships (srShipper), on both the Not invoiced and Invoiced tabs */
+function toShipHTML(){
+  if(!srShipper())return "";
+  const L=toShipList();if(!L.length)return "";
   return '<div class="card" style="padding:0;overflow:hidden;margin:0 0 12px;border-left:4px solid #3b6fb5">'+
-    '<div style="padding:10px 16px 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><b style="font-size:14.5px">Loaners to ship · '+L.length+'</b>'+
-    '<span style="font-size:12.5px;color:var(--hint)">demo units that haven’t gone out yet, oldest first</span></div>'+
+    '<div style="padding:10px 16px 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><b style="font-size:14.5px">To ship · '+L.length+'</b>'+
+    '<span style="font-size:12.5px;color:var(--hint)">orders and demo loaners that haven’t gone out yet, invoiced or not · oldest first</span></div>'+
     L.map(o=>{const to=lnShipTo(o),who=o.contactName&&o.contactName!==o.account?o.contactName:"";
       return '<div style="border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
         '<div class="grow" style="min-width:220px">'+
-          '<p style="margin:0;font-size:14px;font-weight:600">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+'</p>'+
-          '<p style="margin:3px 0 0;font-size:13px;color:var(--muted)">'+esc(lnItems(o))+' · requested '+esc(usDate(o.poDate))+'</p>'+
-          '<p style="margin:2px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address on this loaner')+'</p></div>'+
-        (can?'<div style="display:flex;gap:6px;flex:none">'+
+          '<p style="margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+' '+invChip(o.status)+'</p>'+
+          '<p style="margin:3px 0 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+esc(lnItems(o))+' · '+(o.status==="loaner"?'requested ':'PO ')+esc(usDate(o.poDate))+'</span></p>'+
+          '<p style="margin:2px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p></div>'+
+        '<div style="display:flex;gap:6px;flex:none">'+
           '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
           '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Add the tracking number and serials — saving tracking also marks it shipped">Tracking</button>'+
-          '<button class="btn sm coral" data-act="lnship" data-id="'+o.id+'">Mark shipped</button></div>':'')+
+          '<button class="btn sm coral" data-act="lnship" data-id="'+o.id+'">Mark shipped</button></div>'+
       '</div>';}).join("")+
   '</div>';
 }
@@ -10258,7 +10262,7 @@ function lnMarkShipped(id,on){
   if(on){o.shippedAt=new Date().toISOString();o.shippedBy=USER;if(!o.shipDate)o.shipDate=todayStr();}
   else{delete o.shippedAt;delete o.shippedBy;if(!o.shipTracking&&o.shipCarrier!=="Hand delivered")delete o.shipDate;}
   save();render();
-  toast(on?"Marked shipped — "+(shortAcct(o.account)||"loaner"):"Back on Loaners to ship — "+(shortAcct(o.account)||"loaner"));
+  toast(on?"Marked shipped — "+(shortAcct(o.account)||"order"):"Back on To ship — "+(shortAcct(o.account)||"order"));
 }
 function viewInvoicing(){
   ensureOrderItems();ensureLoanerBook();
@@ -10281,7 +10285,7 @@ function viewInvoicing(){
      (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button><input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
   h+=srPendingBannerHTML();
-  h+=lnToShipHTML();
+  h+=toShipHTML();
   if(invMode==="open"){
     const noPdf=q.filter(poPdfNeeded);
     if(noPdf.length)h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
