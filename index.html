@@ -1198,7 +1198,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -10068,12 +10068,12 @@ function orderSlipObj(o){o=shipLead(o)||o;const st=orderShipState(o),car=o.shipC
     shipDate:o.shipDate||todayStr(),tracking:o.shipTracking||"",status:o.shippedAt||o.shipTracking?"shipped":"",boxes:0,weight:0};}
 /* "Download packing slip" on every order (Max, 2026-11-18): MARCH orders get the MARCH slip, everything else the AutoTQ slip.
    It opens the slip and the browser's print window straight away — pick "Save as PDF" to keep the file. */
+function orderSlipDocHTML(o){const s=orderSlipObj(o),full=isMarchOrder(o)?marchSlipHTML(s):packingSlipHTML(s);return slipUnits(s)===1?slipHalf(full):full;}
 function packingSlipOrder(oid){
   const o=orderById(oid);if(!o)return;
   const w=window.open("","_blank");
   if(!w){toast("Allow pop-ups to open the packing slip");return;}
-  const s=orderSlipObj(o),full=isMarchOrder(o)?marchSlipHTML(s):packingSlipHTML(s);
-  w.document.write((slipUnits(s)===1?slipHalf(full):full).replace("</body>",
+  w.document.write(orderSlipDocHTML(o).replace("</body>",
     '<script>window.addEventListener("load",function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});<\/script></body>'));
   w.document.close();
 }
@@ -10349,6 +10349,7 @@ function shipRowHTML(o,i){
     '<div style="display:flex;gap:6px;flex-wrap:wrap;flex:none;align-items:center">'+
       '<button class="btn sm '+(upsIsFedex(o)?'ghost':'coral')+'" data-act="upsship" data-id="'+o.id+'">Ship with UPS</button>'+
       '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
+      '<button class="btn sm ghost" data-act="spform" data-id="'+o.id+'" title="Email the packing slip (and label, if made) to the HP printer">Send to printer</button>'+
       '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Serial numbers, carrier and tracking — saving tracking also marks it shipped">Serials &amp; tracking</button>'+
       '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Order</button>'+
       '<button class="btn sm '+(upsIsFedex(o)?'coral':'ghost')+'" data-act="lnship" data-id="'+o.id+'" title="Hand delivered, FedEx or a label made elsewhere">Mark shipped</button></div>'+
@@ -10367,6 +10368,7 @@ function shipDoneRowHTML(o,i){
        :'<button class="btn sm coral" data-act="osnform" data-id="'+o.id+'" title="The branded “Your AutoTQ units have shipped” email, tracking link in the button">Email them it shipped</button>')+
       (!o.shipTracking&&o.shipCarrier!=="Hand delivered"?'<button class="btn sm ghost" data-act="lnship" data-id="'+o.id+'">Add tracking #</button>':'')+
       '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+upsLabelBtn(o)+
+      '<button class="btn sm ghost" data-act="spform" data-id="'+o.id+'" title="Email the packing slip and UPS label to the HP printer">Send to printer</button>'+
       (o.upsLabel?'<button class="btn sm ghost" data-act="upsvoid" data-id="'+o.id+'" title="Cancel this label with UPS (no charge if the box hasn’t been scanned)">Void</button>':'')+
       (o.shippedAt&&!o.shipTracking?'<button class="btn sm ghost" data-act="lnunship" data-id="'+o.id+'" title="Put it back on To ship">Undo</button>':'')+'</div>'+
   '</div>';
@@ -10424,6 +10426,107 @@ function shipQueueHTML(){
    '</div><script>window.addEventListener("load",function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});<\/script></body></html>';
 }
 function shipQueuePrint(){const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the shipping queue");return;}w.document.write(shipQueueHTML());w.document.close();}
+/* Send to printer (Max, 2026-11-18: "can I email stuff to the printer for it to send on the HP we have instead of having to connect to
+   GHMunit5"; "allow a how many would you like to print in case there is multiple boxes"). The HP's ePrint address is one synced record
+   (settings/"printer"). Packing slips (each .page) and the shipping queue are drawn to a PDF in the browser — html2canvas + jsPDF from
+   cdnjs, loaded only when sending — UPS labels go upright on a letter page; N copies = the same pages N times. send-invoice notify mails
+   it from billing@ with an empty body (the printer would print a body too); billing@ has to be an allowed sender in HP Smart. */
+const H2C_URL="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js",JSPDF_URL="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+const PRINT_FROM="billing@goldenhourmedical.com";
+function loadScriptOnce(src){window.__ls=window.__ls||{};if(window.__ls[src])return window.__ls[src];
+  return window.__ls[src]=new Promise((res,rej)=>{const el=document.createElement("script");el.src=src;el.onload=()=>res();
+    el.onerror=()=>{delete window.__ls[src];rej(new Error("couldn't load the PDF maker — are you online?"));};document.head.appendChild(el);});}
+function printerEmail(){const r=(DB.settings||[]).find(x=>x&&x.id==="printer");return (r&&r.email)||"";}
+function setPrinterEmail(v){DB.settings=DB.settings||[];let r=DB.settings.find(x=>x&&x.id==="printer");if(!r){r={id:"printer"};DB.settings.push(r);}
+  if(r.email===v)return;r.email=v;r.by=USER;r.at=new Date().toISOString();save();}
+/* html → letter-page JPEGs: a page that has .page boxes (the slips) gives one image per box; anything else (the queue) is cut into
+   pages between its top-level blocks, never through one */
+async function htmlToPages(html){
+  await loadScriptOnce(H2C_URL);
+  const f=document.createElement("iframe");f.setAttribute("aria-hidden","true");
+  f.style.cssText="position:fixed;left:-12000px;top:0;width:816px;height:1056px;border:0";
+  document.body.appendChild(f);
+  try{
+    const ready=new Promise(r=>{f.onload=r;});
+    f.srcdoc=html.replace(/<script[\s\S]*?<\/script>/gi,"");await ready;
+    const d=f.contentDocument;if(d.fonts&&d.fonts.ready)await d.fonts.ready;
+    await Promise.all([...d.images].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r;})));
+    d.querySelectorAll(".bar").forEach(x=>x.remove());d.body.style.background="#fff";
+    const shot=el=>window.html2canvas(el,{scale:2,backgroundColor:"#ffffff",useCORS:true,logging:false,windowWidth:816});
+    const pages=[...d.querySelectorAll(".page")];
+    if(pages.length){const out=[];for(const pg of pages){pg.style.margin="0";pg.style.boxShadow="none";out.push((await shot(pg)).toDataURL("image/jpeg",0.88));}return out;}
+    const root=d.querySelector(".wrap")||d.body;root.style.padding="0";root.style.maxWidth="720px";root.style.margin="0";
+    f.style.height=Math.max(1056,d.body.scrollHeight+40)+"px";
+    const c=await shot(root),k=c.width/root.getBoundingClientRect().width,top=root.getBoundingClientRect().top;
+    const cuts=[...root.children].map(ch=>{const r=ch.getBoundingClientRect();return {a:(r.top-top)*k,b:(r.bottom-top)*k};});
+    const usable=960*k,out=[];let y=0;
+    while(y<c.height-2){let end=y+usable;const blk=cuts.find(x=>x.a<end&&x.b>end&&x.a>y);if(blk)end=blk.a;if(end<=y)end=y+usable;end=Math.min(end,c.height);
+      const pc=document.createElement("canvas");pc.width=Math.round(816*k);pc.height=Math.round(1056*k);const g=pc.getContext("2d");
+      g.fillStyle="#fff";g.fillRect(0,0,pc.width,pc.height);g.drawImage(c,0,y,c.width,end-y,48*k,48*k,c.width,end-y);
+      out.push(pc.toDataURL("image/jpeg",0.88));y=end;}
+    return out;
+  }finally{f.remove();}
+}
+/* a UPS label GIF (sideways, 1400×800) → an upright 4×6 PNG */
+function labelUpright(dataUrl){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const land=im.naturalWidth>im.naturalHeight,c=document.createElement("canvas");
+  c.width=land?im.naturalHeight:im.naturalWidth;c.height=land?im.naturalWidth:im.naturalHeight;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);
+  if(land){g.translate(c.width,0);g.rotate(Math.PI/2);}g.drawImage(im,0,0);res(c.toDataURL("image/png"));};im.onerror=()=>rej(new Error("couldn't read the label image"));im.src=dataUrl;});}
+async function upsLabelImages(o){const L=o&&o.upsLabel;if(!L)return [];const out=[];
+  for(const p of L.paths||[]){const bl=await storBlob(p);if(!bl)continue;
+    const du=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(new Blob([bl],{type:"image/gif"}));});out.push(await labelUpright(du));}
+  return out;}
+/* parts: [{kind:"page"|"label", img, copies}] → one PDF, base64 */
+async function partsToPdf(parts){
+  await loadScriptOnce(JSPDF_URL);const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:"in",format:"letter",compress:true});let first=true;
+  parts.forEach((p,i)=>{for(let n=0;n<p.copies;n++){if(!first)doc.addPage("letter","portrait");first=false;
+    if(p.kind==="label")doc.addImage(p.img,"PNG",2.25,0.5,4,6,"img"+i,"FAST");else doc.addImage(p.img,"JPEG",0,0,8.5,11,"img"+i,"FAST");}});
+  return doc.output("datauristring").split(",")[1];}
+function spCopies(id,def){const v=parseInt(val(id));return Math.max(0,Math.min(20,isNaN(v)?def:v));}
+function formSendPrinter(oid){
+  const o=oid?orderById(oid):null,lead=o?(shipLead(o)||o):null,pe=printerEmail();
+  const nBox=lead&&lead.boxes&&lead.boxes.length?lead.boxes.length:1,nLbl=lead&&lead.upsLabel?((lead.upsLabel.paths||[]).length||1):0;
+  const row=(id,label,def,note)=>'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px">'+
+    '<label style="display:flex;gap:8px;align-items:center;font-weight:600;flex:1;min-width:180px"><input type="checkbox" id="'+id+'On" checked> '+label+'</label>'+
+    '<span style="font-size:13px;color:var(--muted)">How many?</span><input class="f" id="'+id+'N" inputmode="numeric" value="'+def+'" style="width:64px;margin:0">'+
+    (note?'<span style="font-size:12px;color:var(--hint);flex-basis:100%">'+note+'</span>':'')+'</div>';
+  openSheet('<h2>Send to printer'+(lead?' — '+esc(shortAcct(lead.account)||"Order"):'')+'</h2>'+
+   (lead?'<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+shipGroup(lead).map(x=>poChip(x.poNo)).join(" ")+' '+esc(lnItems(shipMates(lead).length?{items:shipGroupItems(lead)}:lead))+'</p>':'')+
+   '<label class="fl">Printer email <span style="font-weight:400;color:var(--hint)">— the HP’s ePrint address; saved for the whole team</span></label>'+
+   '<input class="f" id="spTo" type="email" autocomplete="off" value="'+esc(pe)+'" placeholder="name@hpeprint.com">'+
+   (lead?row("spSlip","Packing slip",nBox,nBox>1?"One per box — this order is packed in "+nBox+" boxes.":"")+
+         (nLbl?row("spLbl","UPS label"+(nLbl>1?"s ("+nLbl+", one per box)":""),1,"Each label prints upright on its own letter page."):'')
+       :row("spQueue","Shipping queue",1,toShipList().length+" orders to go out."))+
+   '<button class="btn coral block" data-act="spsend" data-id="'+(lead?lead.id:"")+'" style="margin-top:12px">Send to printer</button>'+
+   '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">Emailed from '+PRINT_FROM+' with nothing in the body. If nothing prints, add that address to the printer’s allowed senders in HP Smart.</p>');
+  if(!pe)setTimeout(()=>{const el=document.getElementById("spTo");if(el)el.focus();},60);
+}
+async function sendToPrinter(oid){
+  const to=val("spTo").trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)){toast("Add the printer’s email first");const el=document.getElementById("spTo");if(el)el.focus();return;}
+  const o=oid?orderById(oid):null,on=id=>!!(document.getElementById(id+"On")||{}).checked;
+  const want={slip:o&&on("spSlip")?spCopies("spSlipN",1):0,lbl:o&&on("spLbl")?spCopies("spLblN",1):0,queue:!o&&on("spQueue")?spCopies("spQueueN",1):0};
+  if(!want.slip&&!want.lbl&&!want.queue){toast("Nothing picked to print");return;}
+  setPrinterEmail(to);
+  const btn=document.querySelector('[data-act="spsend"]'),reset=t=>{if(btn){btn.disabled=false;btn.textContent=t||"Send to printer";}};
+  if(btn){btn.disabled=true;btn.textContent="Making the PDF…";}
+  try{
+    const parts=[],what=[];
+    if(want.slip){(await htmlToPages(orderSlipDocHTML(o))).forEach(img=>parts.push({kind:"page",img,copies:want.slip}));what.push(want.slip+" packing slip"+(want.slip>1?"s":""));}
+    if(want.lbl){const L=await upsLabelImages(o);if(!L.length)throw new Error("couldn't fetch the UPS label");L.forEach(img=>parts.push({kind:"label",img,copies:want.lbl}));what.push(L.length*want.lbl+" UPS label"+(L.length*want.lbl>1?"s":""));}
+    if(want.queue){(await htmlToPages(shipQueueHTML())).forEach(img=>parts.push({kind:"page",img,copies:want.queue}));what.push((want.queue>1?want.queue+" × ":"")+"the shipping queue");}
+    const b64=await partsToPdf(parts);
+    if(b64.length*0.75>3e6)throw new Error("the PDF is too big to email ("+Math.round(b64.length*0.75/1e5)/10+" MB) — print fewer copies at a time");
+    if(btn)btn.textContent="Sending…";
+    const name=(o?"AutoTQ "+(shortAcct(o.account)||"order")+" PO "+(shipGroupPOs(o)||o.poNo||""):"AutoTQ shipping queue "+todayStr()).replace(/[^\w .+-]+/g,"").trim()+".pdf";
+    const r=await supa("/functions/v1/send-invoice",{method:"POST",body:JSON.stringify({action:"notify",to:to,from:PRINT_FROM,subject:"Print: "+what.join(" + ")+(o?" — "+(shortAcct(o.account)||""):""),html:"",
+      attachments:[{name:name,contentType:"application/pdf",b64:b64}]})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.ok)throw new Error(j.error||("the mail service answered "+r.status));
+    if(o){o.printSent=(o.printSent||[]).concat([{at:new Date().toISOString(),by:USER,what:what.join(" + ")}]).slice(-10);save();}
+    closeSheet();toast("Sent to the printer — "+what.join(" + "));
+  }catch(e){reset();toast("Not sent — "+String(e.message||e));}
+}
 function viewShipTab(){
   ensureOrderItems();ensureLoanerBook();
   const L=toShipList();
@@ -10432,7 +10535,8 @@ function viewShipTab(){
     .sort((a,b)=>String(b.shipDate||b.shippedAt||"").localeCompare(String(a.shipDate||a.shippedAt||"")));
   let h=srPendingBannerHTML();
   h+='<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:4px"><h2 class="sech" style="margin:0">To ship · '+L.length+'</h2>'+
-    (L.length?'<button class="btn sm" data-act="shipqueue" title="One printable sheet: what to pull, then every order to pack">'+svg("dl")+' Print the queue</button>':'')+'</div>';
+    (L.length?'<span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-act="shipqueue" title="One printable sheet: what to pull, then every order to pack">'+svg("dl")+' Print the queue</button>'+
+      '<button class="btn sm ghost" data-act="spform" data-id="" title="Email the queue sheet to the HP printer">Send queue to printer</button></span>':'')+'</div>';
   h+=L.length?'<div class="card" style="padding:0;overflow:hidden">'+L.map((o,i)=>shipRowHTML(o,i)).join("")+'</div>'
     :'<div class="card" style="padding:22px;text-align:center;color:var(--hint)">Nothing waiting to go out. ✓</div>';
   if(done.length)h+='<h2 class="sech" style="margin-top:22px">Shipped · last 30 days · '+done.length+'</h2>'+
@@ -11656,6 +11760,8 @@ document.addEventListener("click",e=>{
   if(a==="shipsliporder"){e.stopPropagation();packingSlipOrder(id);return;}
   if(a==="upsship"){e.stopPropagation();formUpsShip(id);return;}
   if(a==="shipqueue"){shipQueuePrint();return;}
+  if(a==="spform"){e.stopPropagation();formSendPrinter(id||null);return;}
+  if(a==="spsend"){sendToPrinter(id||null);return;}
   if(a==="freightok"){e.stopPropagation();freightOk(id);return;}
   if(a==="shipjoin"){e.stopPropagation();shipJoin(id,t.dataset.v);return;}
   if(a==="shipsplit"){e.stopPropagation();shipSplit(id);return;}
