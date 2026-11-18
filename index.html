@@ -8336,6 +8336,7 @@ function invDetailsHTML(o){
      (o.files||[]).map(x=>'<button class="btn sm ghost" data-act="invviewx" data-id="'+o.id+'" data-p="'+esc(x.path)+'">'+esc(x.fname)+'</button>').join("")+
      (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'">Mark invoiced</button>':'')+
      (gpoAccess()&&gpoForOrder(o)?'<button class="btn sm" data-act="invgpo" data-id="'+gpoForOrder(o).id+'">Grainger SPS steps</button>':'')+
+     (o.status!=="supplier"?'<button class="btn sm" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+
      '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Full order</button>'+
      '<button class="btn sm ghost" data-act="invform" data-id="'+o.id+'">Edit</button></div></div>';
 }
@@ -8523,7 +8524,8 @@ function orderSheet(id){
      (o.file?'<button class="btn" data-act="invview" data-id="'+o.id+'">View PO PDF</button>':'')+
      (shipAccess()&&o.status!=="supplier"?'<button class="btn'+(o.confirmedAt?'':' coral')+'" data-act="oconfirm" data-id="'+o.id+'">'+(o.confirmedAt?'Send confirmation again':'Send order confirmation')+'</button>':'')+
      (shipAccess()&&o.status!=="supplier"?'<button class="btn" data-act="shipfor" data-id="'+o.id+'">'+(shipmentsFor(o.id).length?'Ship more':'Ship it')+'</button>'+
-       (orderNeedsShip(o)&&!orderShipState(o).covered?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Packing slip</button>':''):'')+
+       '':'')+
+     (o.status!=="supplier"?'<button class="btn" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>':'')+
      '<button class="btn ghost" data-act="invform" data-id="'+o.id+'">Edit order</button>'+
      '<button class="btn ghost" data-act="invdel" data-id="'+o.id+'" style="color:var(--dang-t,#b3261e);margin-left:auto">Delete order</button>'+
    '</div>');
@@ -8927,7 +8929,10 @@ function assetUrl(n){return new URL("AutoTQ_CRM_assets/"+n,location.href).href;}
 const THUMB_FILE={"1000-0005-TQ":"thumb_1000_0005_TQ.jpg","Demo unit":"thumb_Demo_unit.jpg","7000-WB":"thumb_7000_WB.jpg","7000-CC":"thumb_7000_CC.jpg","7000-LS-P":"thumb_7000_LS_P.jpg"};
 const SKU_DESC={"1000-0005-TQ":"Includes: 1× Reusable Inflator · 1× USB-C Cable · 2× Disposable Cuffs (Arm & Leg)","Demo unit":"AutoTQ demo kit — loaner unit","7000-WB":"Wall mount bracket for the AutoTQ Kit","7000-CC":"Hard carry case","7000-LS-P":"Disposable cuff pack (arm & leg)"};
 const SLIP_CONTACT={name:"Max Herbst",email:"max@goldenhourmedical.com",phone:"561-609-5411"};
-function billToLines(o){const c=acctForOrder(o);const city=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
+function billToLines(o){
+  const b=o.billTo;
+  if(b&&b.street)return [b.name||o.account||"",b.attn?"Attn: "+b.attn:"",b.street,b.street2||"",[b.city,b.state].filter(Boolean).join(", ")+(b.zip?" "+b.zip:""),b.phone||"",o.billEmail||""].map(x=>String(x||"").trim()).filter(Boolean);
+  const c=acctForOrder(o);const city=c&&(c.city||c.state)?[c.city,c.state].filter(Boolean).join(", "):"";
   return [o.account||"",o.contactName?"Attn: "+o.contactName:"",city].filter(Boolean);}
 function packingSlipHTML(s){
   const o=orderById(s.orderId)||{account:s.account,poNo:s.poNo};
@@ -8937,13 +8942,14 @@ function packingSlipHTML(s){
   const items=(s.items||[]).filter(x=>+x.qty>0),units=items.reduce((t,x)=>t+(+x.qty||0),0);
   const ref=s.tracking?"":(loaner?"Demo loaner":(o.contactName||""));
   const pill=s.status==="delivered"?"DELIVERED":s.status==="shipped"?"SHIPPED "+usDate(d):"READY TO SHIP";
-  const rows=(items.length?items:[{sku:"1000-0005-TQ",qty:""}]).map(it=>{const th=THUMB_FILE[it.sku];
-    return '<tr><td><div class="pn">'+(th?'<img src="'+assetUrl(th)+'" alt="">':'<span class="ph"></span>')+'<span><b contenteditable>'+esc(skuNice(it.sku))+'</b><small contenteditable>'+esc(SKU_NICE[it.sku]?it.sku:(it.sku||""))+'</small></span></div></td>'+
-      '<td class="desc" contenteditable>'+esc(SKU_DESC[it.sku]||skuLabel(it.sku)||"")+'</td><td class="r qty" contenteditable>'+(+it.qty||"")+'</td></tr>';}).join("");
+  const rows=(items.length?items:[{sku:"1000-0005-TQ",qty:""}]).map(it=>{const k=tqSku(it.sku),th=THUMB_FILE[k];
+    return '<tr><td><div class="pn">'+(th?'<img src="'+assetUrl(th)+'" alt="">':'<span class="ph"></span>')+'<span><b contenteditable>'+esc(skuNice(k))+'</b><small contenteditable>'+esc(SKU_NICE[k]?k:(it.sku||""))+'</small></span></div></td>'+
+      '<td class="desc" contenteditable>'+esc(SKU_DESC[k]||skuLabel(k)||"")+'</td><td class="r qty" contenteditable>'+(+it.qty||"")+'</td></tr>';}).join("");
   const note=loaner?"Demo unit — loaner provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
   return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Packing Slip — PO '+esc(s.poNo||o.poNo||"")+' — '+esc(shortAcct(s.account||o.account)||"")+'</title><style>'+
+  '@font-face{font-family:"Inter";src:url('+assetUrl("inter-latin.woff2")+') format("woff2");font-weight:100 900;font-style:normal}'+
   ':root{--ink:#14181c;--gray:#5c6670;--faint:#9aa3ab;--line:#e7e3dd;--card:#f7f5f2;--coral:#e8402e}'+
-  '*{box-sizing:border-box;margin:0}body{background:#777;font-family:"Segoe UI",Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:var(--ink)}'+
+  '*{box-sizing:border-box;margin:0}body{background:#777;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:var(--ink)}'+
   '.page{position:relative;width:816px;height:1056px;margin:20px auto;background:#fff;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,.35);padding:0 64px}'+
   '.topbar{position:absolute;top:0;left:0;right:0;height:7px;background:var(--coral)}'+
   '.crest{display:flex;align-items:center;gap:18px;justify-content:center;margin-top:34px}.crest img{height:46px}.crest .rule{flex:1;height:1px;background:var(--line)}'+
@@ -8982,7 +8988,8 @@ function packingSlipHTML(s){
    '<div class="card"><h4>SHIP TO</h4><p contenteditable>'+(ship.length?'<b>'+esc(ship[0])+'</b>'+(ship.length>1?'<br>'+ship.slice(1).map(esc).join("<br>"):''):'<b>'+esc(o.account||"")+'</b><br>Street address…')+'</p></div>'+
    '<div class="card"><h4>DETAILS</h4>'+
     '<div class="kv"><span>Order no.</span><b contenteditable>'+esc(s.poNo||o.poNo||"—")+'</b></div>'+
-    '<div class="kv"><span>Date</span><b contenteditable>'+esc(usDate(d))+'</b></div>'+
+    (o.poDate?'<div class="kv"><span>PO date</span><b contenteditable>'+esc(usDate(o.poDate))+'</b></div>':'')+
+    '<div class="kv"><span>Ship date</span><b contenteditable>'+esc(usDate(d))+'</b></div>'+
     '<div class="kv"><span>Ship via</span><b contenteditable>'+esc(svc||"UPS")+'</b></div>'+
     (s.tracking?'<div class="kv"><span>Tracking</span><b contenteditable>'+esc(s.tracking)+'</b></div>':'')+
     (ref?'<div class="kv"><span>Reference</span><b contenteditable>'+esc(ref)+'</b></div>':'')+
@@ -8996,6 +9003,78 @@ function packingSlipHTML(s){
   '<div class="foot"><div class="rule"></div><div class="frow"><img src="'+assetUrl("lockup.png")+'" alt="AutoTQ">'+
    '<p contenteditable><b>CONTACT FOR ANY QUESTIONS</b><br>'+esc(SLIP_CONTACT.name)+' · '+esc(SLIP_CONTACT.email)+' · '+esc(SLIP_CONTACT.phone)+'</p></div>'+
    '<div class="legal">'+(o.fname?'Source: '+esc(o.fname)+' · ':'')+'Golden Hour Medical, Inc. · 6590 W Rogers Cir Ste 5, Boca Raton, FL 33487 · theautotq.com</div></div>'+
+  '</div></body></html>';
+}
+/* MARCH Safety Foundation packing slip (Max, 2026-11-18: "an AutoTQ packing slip & a March Safety packing slip template… it should just
+   say Download packing slip on the order"). Same fields as the AutoTQ slip, in the MARCH quote's design (crayon bar, wordmark with a
+   crayon chip under each MARCH letter, colour-keyed section labels, navy total box, 501(c)(3) footer). Used for MARCH orders. */
+const MARCH_CHIPS=[["#E27B7B","M10.0 3.0 L14.7 3.6 L19.5 2.6 L24.2 4.0 L28.9 4.8 L33.7 2.8 L38.4 2.5 L43.2 5.6 L47.9 2.4 L52.6 2.0 L57.4 5.8 L62.1 4.1 L66.8 6.2 L71.6 4.6 L76.3 4.7 L81.1 1.9 L85.8 3.8 L90.5 5.2 L95.3 4.4 L100.0 5.8 L104.7 5.4 L109.5 2.2 L114.2 4.6 L118.9 3.6 L123.7 2.7 L128.4 2.2 L133.2 6.4 L137.9 4.5 L142.6 5.0 L147.4 5.1 L152.1 4.2 L156.8 5.5 L161.6 3.8 L166.3 6.1 L171.1 4.4 L175.8 6.0 L180.5 5.1 L185.3 1.4 L190.0 2.0 L192.9 5.4 L197.3 9.3 L198.2 15.1 L199.3 22.0 L197.9 28.9 L196.4 34.7 L193.2 38.6 L189.6 40.1 L185.5 40.9 L181.1 40.8 L176.9 41.4 L171.6 38.4 L167.4 42.7 L162.8 41.4 L157.5 39.7 L153.1 40.8 L146.7 37.8 L143.7 41.3 L136.7 40.2 L132.9 37.7 L127.8 41.1 L124.8 38.6 L119.3 39.1 L114.9 40.2 L110.6 42.6 L104.8 41.9 L99.4 37.2 L95.6 36.8 L89.6 38.8 L86.1 38.4 L79.7 42.3 L75.8 43.1 L72.8 40.4 L66.7 40.5 L62.5 40.1 L57.5 39.6 L54.0 38.9 L47.7 40.2 L42.4 39.1 L39.9 40.8 L33.8 38.9 L28.7 41.3 L22.8 40.9 L19.9 37.7 L15.1 38.9 L10.5 38.3 L7.0 38.6 L4.1 34.7 L0.7 28.9 L0.1 22.0 L2.0 15.1 L4.6 9.3 L6.1 5.4Z"],["#F2BAF2","M10.0 2.2 L14.7 1.5 L19.5 3.2 L24.2 2.8 L28.9 2.9 L33.7 4.2 L38.4 5.9 L43.2 4.7 L47.9 4.4 L52.6 2.4 L57.4 4.5 L62.1 3.8 L66.8 3.2 L71.6 2.3 L76.3 2.1 L81.1 5.1 L85.8 5.1 L90.5 5.7 L95.3 6.1 L100.0 3.3 L104.7 3.2 L109.5 3.9 L114.2 4.2 L118.9 5.2 L123.7 6.0 L128.4 3.0 L133.2 5.1 L137.9 4.7 L142.6 3.4 L147.4 1.8 L152.1 3.6 L156.8 2.6 L161.6 6.7 L166.3 6.2 L171.1 4.2 L175.8 2.5 L180.5 5.0 L185.3 4.0 L190.0 6.1 L194.1 5.4 L196.4 9.3 L198.1 15.1 L199.2 22.0 L198.2 28.9 L195.7 34.7 L193.1 38.6 L190.9 38.7 L183.9 40.6 L179.9 39.5 L175.7 38.2 L172.5 37.7 L166.1 38.3 L162.0 39.3 L156.4 42.0 L151.6 41.3 L148.6 39.0 L141.3 38.8 L138.7 39.8 L132.4 38.2 L127.5 38.8 L122.3 40.5 L120.1 42.3 L114.9 43.0 L108.0 40.2 L106.1 41.9 L99.7 42.0 L95.6 40.7 L89.9 37.6 L85.6 37.4 L80.7 41.6 L75.8 38.2 L70.2 39.5 L67.7 40.5 L61.5 38.9 L58.8 39.7 L51.8 37.4 L46.6 37.5 L43.7 37.5 L37.0 39.6 L32.9 42.6 L27.8 41.1 L25.0 40.7 L20.9 40.6 L14.0 39.6 L8.6 38.9 L6.1 38.6 L4.4 34.7 L2.3 28.9 L1.0 22.0 L0.7 15.1 L3.1 9.3 L6.0 5.4Z"],["#A3E192","M10.0 3.0 L14.7 3.6 L19.5 2.6 L24.2 4.0 L28.9 4.8 L33.7 2.8 L38.4 2.5 L43.2 5.6 L47.9 2.4 L52.6 2.0 L57.4 5.8 L62.1 4.1 L66.8 6.2 L71.6 4.6 L76.3 4.7 L81.1 1.9 L85.8 3.8 L90.5 5.2 L95.3 4.4 L100.0 5.8 L104.7 5.4 L109.5 2.2 L114.2 4.6 L118.9 3.6 L123.7 2.7 L128.4 2.2 L133.2 6.4 L137.9 4.5 L142.6 5.0 L147.4 5.1 L152.1 4.2 L156.8 5.5 L161.6 3.8 L166.3 6.1 L171.1 4.4 L175.8 6.0 L180.5 5.1 L185.3 1.4 L190.0 2.0 L192.9 5.4 L197.3 9.3 L198.2 15.1 L199.3 22.0 L197.9 28.9 L196.4 34.7 L193.2 38.6 L189.6 40.1 L185.5 40.9 L181.1 40.8 L176.9 41.4 L171.6 38.4 L167.4 42.7 L162.8 41.4 L157.5 39.7 L153.1 40.8 L146.7 37.8 L143.7 41.3 L136.7 40.2 L132.9 37.7 L127.8 41.1 L124.8 38.6 L119.3 39.1 L114.9 40.2 L110.6 42.6 L104.8 41.9 L99.4 37.2 L95.6 36.8 L89.6 38.8 L86.1 38.4 L79.7 42.3 L75.8 43.1 L72.8 40.4 L66.7 40.5 L62.5 40.1 L57.5 39.6 L54.0 38.9 L47.7 40.2 L42.4 39.1 L39.9 40.8 L33.8 38.9 L28.7 41.3 L22.8 40.9 L19.9 37.7 L15.1 38.9 L10.5 38.3 L7.0 38.6 L4.1 34.7 L0.7 28.9 L0.1 22.0 L2.0 15.1 L4.6 9.3 L6.1 5.4Z"],["#F9D27C","M10.0 3.8 L14.7 4.8 L19.5 5.7 L24.2 6.7 L28.9 5.6 L33.7 5.8 L38.4 1.3 L43.2 3.1 L47.9 5.7 L52.6 5.1 L57.4 6.6 L62.1 2.9 L66.8 3.8 L71.6 2.2 L76.3 3.4 L81.1 4.1 L85.8 2.3 L90.5 3.5 L95.3 3.6 L100.0 5.7 L104.7 4.5 L109.5 1.7 L114.2 5.0 L118.9 2.8 L123.7 5.3 L128.4 2.9 L133.2 1.7 L137.9 5.0 L142.6 2.0 L147.4 2.5 L152.1 6.6 L156.8 6.4 L161.6 3.6 L166.3 5.9 L171.1 3.5 L175.8 4.0 L180.5 2.5 L185.3 6.4 L190.0 5.6 L194.4 5.4 L197.2 9.3 L197.9 15.1 L198.7 22.0 L197.6 28.9 L195.7 34.7 L192.6 38.6 L189.4 41.5 L183.8 41.7 L180.0 39.5 L176.7 39.5 L170.5 39.0 L166.9 37.0 L163.0 37.2 L157.6 41.5 L150.7 42.0 L147.0 41.4 L141.2 39.0 L136.9 42.4 L132.2 40.7 L129.7 41.0 L123.2 38.3 L119.0 40.5 L113.0 41.1 L110.4 42.3 L103.3 43.0 L98.8 40.2 L95.6 42.2 L90.0 41.5 L85.9 38.2 L80.5 37.5 L75.1 37.8 L72.1 42.2 L65.8 38.8 L63.6 41.2 L57.1 39.8 L52.9 41.8 L47.8 39.2 L41.8 40.9 L37.0 38.9 L34.7 37.7 L29.6 42.0 L24.6 42.0 L18.3 40.8 L13.7 42.4 L9.4 40.1 L7.6 38.6 L4.3 34.7 L2.6 28.9 L0.9 22.0 L1.7 15.1 L4.1 9.3 L6.5 5.4Z"],["#A2CCEB","M10.0 3.0 L14.7 3.6 L19.5 2.6 L24.2 4.0 L28.9 4.8 L33.7 2.8 L38.4 2.5 L43.2 5.6 L47.9 2.4 L52.6 2.0 L57.4 5.8 L62.1 4.1 L66.8 6.2 L71.6 4.6 L76.3 4.7 L81.1 1.9 L85.8 3.8 L90.5 5.2 L95.3 4.4 L100.0 5.8 L104.7 5.4 L109.5 2.2 L114.2 4.6 L118.9 3.6 L123.7 2.7 L128.4 2.2 L133.2 6.4 L137.9 4.5 L142.6 5.0 L147.4 5.1 L152.1 4.2 L156.8 5.5 L161.6 3.8 L166.3 6.1 L171.1 4.4 L175.8 6.0 L180.5 5.1 L185.3 1.4 L190.0 2.0 L192.9 5.4 L197.3 9.3 L198.2 15.1 L199.3 22.0 L197.9 28.9 L196.4 34.7 L193.2 38.6 L189.6 40.1 L185.5 40.9 L181.1 40.8 L176.9 41.4 L171.6 38.4 L167.4 42.7 L162.8 41.4 L157.5 39.7 L153.1 40.8 L146.7 37.8 L143.7 41.3 L136.7 40.2 L132.9 37.7 L127.8 41.1 L124.8 38.6 L119.3 39.1 L114.9 40.2 L110.6 42.6 L104.8 41.9 L99.4 37.2 L95.6 36.8 L89.6 38.8 L86.1 38.4 L79.7 42.3 L75.8 43.1 L72.8 40.4 L66.7 40.5 L62.5 40.1 L57.5 39.6 L54.0 38.9 L47.7 40.2 L42.4 39.1 L39.9 40.8 L33.8 38.9 L28.7 41.3 L22.8 40.9 L19.9 37.7 L15.1 38.9 L10.5 38.3 L7.0 38.6 L4.1 34.7 L0.7 28.9 L0.1 22.0 L2.0 15.1 L4.6 9.3 L6.1 5.4Z"]];
+function isMarchOrder(o){return !!o&&(/\bmarch\b[\s\S]*(safety|foundation)/i.test(String(o.account||""))||/marchsafety|themarchfoundation/i.test(String(o.billEmail||"")));}
+function marchWordmark(px){
+  return '<span class="wm" style="font-size:'+px+'px" aria-label="MARCH Safety Foundation"><span class="wm-m">'+"MARCH".split("").map((ch,i)=>'<b>'+ch+'<svg class="chip" viewBox="0 0 200 44" preserveAspectRatio="none"><path d="'+MARCH_CHIPS[i][1]+'" fill="'+MARCH_CHIPS[i][0]+'"/></svg></b>').join("")+'</span><span class="wm-rest">Safety Foundation</span></span>';}
+function marchSlipHTML(s){
+  const o=orderById(s.orderId)||{account:s.account,poNo:s.poNo};
+  const loaner=!!(o.id&&(o.status==="loaner"||isLoanerOrder(o)));
+  const st=s.shipTo||{},uniq=a=>a.map(x=>String(x||"").trim()).filter((x,i,arr)=>x&&arr.indexOf(x)===i);
+  const bill=o.billTo&&o.billTo.street?billToLines(o):uniq([st.name||o.contactName||"",o.contactName||"",o.contactEmail||"",st.phone||""]);
+  const ship=shipToLines(st);
+  const d=s.shipDate||todayStr(),svc=(s.carrier||"")+(s.service?" "+s.service:"");
+  const items=(s.items||[]).filter(x=>+x.qty>0),units=items.reduce((t,x)=>t+(+x.qty||0),0);
+  const pill=s.status==="delivered"?"DELIVERED":s.status==="shipped"?"SHIPPED "+usDate(d):"READY TO SHIP";
+  const rows=(items.length?items:[{sku:"1000-0005-TQ",qty:""}]).map(it=>{const k=tqSku(it.sku),th=THUMB_FILE[k];
+    return '<div class="ir"><div class="pn">'+(th?'<img src="'+assetUrl(th)+'" alt="">':'<span class="ph"></span>')+'<span><b contenteditable>'+esc(skuNice(k))+'</b><small contenteditable>'+esc((SKU_NICE[k]?k:(it.sku||""))+(SKU_DESC[k]?" · "+SKU_DESC[k]:""))+'</small></span></div><div class="r" contenteditable><b>'+(+it.qty||"")+'</b></div></div>';}).join("");
+  const note=loaner?"Demo unit — loaner provided at no charge.":(o.notes&&/blind|drop.?ship|lift ?gate|residential|appt/i.test(o.notes)?o.notes:"");
+  const kv=(k,v)=>'<div class="kv"><span>'+k+'</span>'+(v?'<b contenteditable>'+esc(v)+'</b>':'<b class="blank" contenteditable></b>')+'</div>';
+  const card=(h,c,lines)=>'<div class="card"><h4 style="--k:'+c+'">'+h+'</h4><p contenteditable>'+(lines.length?'<b>'+esc(lines[0])+'</b>'+(lines.length>1?'<br>'+lines.slice(1).map(esc).join("<br>"):''):'—')+'</p></div>';
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>MARCH Packing Slip — PO '+esc(s.poNo||o.poNo||"")+'</title><style>'+
+  '@font-face{font-family:"Inter";src:url('+assetUrl("inter-latin.woff2")+') format("woff2");font-weight:100 900;font-style:normal}'+
+  ':root{--ink:#1B2238;--ink2:#434A61;--ink3:#5E6479;--faint:#8D93A5;--line:rgba(27,34,56,.13);--card:#F3F5F9;--night:#131A2D;--m:#E27B7B;--a:#F2BAF2;--r:#A3E192;--c:#F9D27C;--h:#A2CCEB}'+
+  '*{box-sizing:border-box;margin:0}body{background:#777;font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink);font-feature-settings:"cv11" 1,"calt" 1;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+  '.page{position:relative;width:816px;height:1056px;margin:20px auto;background:#fff;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,.35);padding:0 64px}'+
+  '.topbar{position:absolute;top:0;left:0;right:0;height:7px;display:flex}.topbar i{flex:1}'+
+  '.wm{display:inline-flex;align-items:baseline;gap:.34em;font-weight:560;letter-spacing:-.022em;line-height:1;white-space:nowrap;color:var(--ink)}'+
+  '.wm-m{display:inline-flex;font-weight:820;letter-spacing:-.02em}.wm-m b{position:relative;font-weight:inherit;padding-bottom:.26em;margin-right:.015em}'+
+  '.wm-m .chip{position:absolute;left:-.04em;bottom:0;width:calc(100% + .08em);height:.2em}.wm-rest{padding-bottom:.26em}'+
+  '.head{display:flex;justify-content:space-between;align-items:flex-start;margin-top:46px}.co p{font-size:11px;color:var(--ink3);line-height:1.65;margin-top:14px}.co .em{color:var(--ink);font-weight:600}'+
+  '.inv{text-align:right}.inv .word{font-size:27px;font-weight:200;letter-spacing:7px;margin-right:-7px;color:var(--faint);line-height:1.1;white-space:nowrap}.inv .no{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-top:4px}'+
+  '.inv .pill{display:inline-block;margin-top:10px;background:var(--c);color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.7px;padding:6px 14px;border-radius:999px}'+
+  '.cards{display:flex;gap:14px;margin-top:34px}.card{flex:1;background:var(--card);border-radius:12px;padding:16px 18px}'+
+  'h4{font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:7px}h4::before{content:"";width:9px;height:9px;border-radius:2.5px;background:var(--k)}'+
+  '.card p{font-size:12px;line-height:1.65;color:var(--ink2)}.card p b{color:var(--ink)}.card .kv{display:flex;justify-content:space-between;gap:10px;font-size:11.5px;line-height:1.9}.card .kv span{color:var(--ink3)}.card .kv b{text-align:right}'+
+  '.blank{display:inline-block;min-width:96px;border-bottom:1px solid var(--ink3);height:14px;vertical-align:bottom}'+
+  '.items{margin-top:34px;display:grid;grid-template-columns:1fr auto}.ih,.ir{display:grid;grid-column:1/-1;grid-template-columns:subgrid;align-items:center}'+
+  '.ih{border-bottom:2px solid var(--ink);padding-bottom:9px}.ih span{font-size:10px;font-weight:700;letter-spacing:1.4px;padding:0 8px}'+
+  '.ir{border-bottom:1px solid var(--line);padding:12px 0;font-size:13px}.ir>div{padding:0 8px}.r{text-align:right;font-variant-numeric:tabular-nums}.ir .r b{font-size:15px}'+
+  '.pn{display:flex;align-items:center;gap:14px}.pn img,.pn .ph{width:54px;height:40px;object-fit:cover;border-radius:8px;border:1px solid var(--line);flex:none;display:block;background:var(--card)}'+
+  '.pn b{font-size:13.5px}.pn small{display:block;color:var(--faint);font-size:10.5px;margin-top:2px}'+
+  '.totwrap{display:flex;justify-content:flex-end;margin-top:22px}.tot{width:268px}.tot .due{display:flex;justify-content:space-between;align-items:center;background:var(--night);color:#fff;border-radius:12px;padding:14px 18px}'+
+  '.tot .due b{font-size:12.5px;letter-spacing:1px}.tot .due .amt{font-size:24px;font-weight:800;color:var(--c);font-variant-numeric:tabular-nums}'+
+  '.pay{background:var(--card);border-radius:14px;padding:18px 22px 16px;margin-top:28px}.paycols{display:flex}.paycol{flex:1;padding-right:22px}.paycol+.paycol{border-left:1px solid var(--line);padding-left:22px}'+
+  '.paycol b{font-size:11px;letter-spacing:.4px;display:block;margin-bottom:5px}.paycol p{font-size:10.5px;color:var(--ink3);line-height:1.6}'+
+  '.accept{margin-top:26px}.sign{display:grid;grid-template-columns:1.5fr 1.5fr 1fr;gap:22px;margin-top:4px}.sign div{border-bottom:1px solid var(--ink3);height:30px}.sign span{font-size:9.5px;color:var(--faint);letter-spacing:.3px;display:block;margin-top:6px}'+
+  '.foot{position:absolute;left:64px;right:64px;bottom:40px}.foot .rule{height:1px;background:var(--line);margin-bottom:18px}.frow{display:flex;justify-content:space-between;align-items:center}'+
+  '.frow p{font-size:10px;color:var(--ink3);text-align:right;line-height:1.7}.legal{font-size:8.5px;color:var(--faint);margin-top:12px;text-align:center}'+
+  '[contenteditable]:hover{outline:1px dashed var(--m);outline-offset:2px}'+
+  '.bar{position:fixed;top:10px;right:12px;display:flex;gap:8px;z-index:5}.bar button{font:600 13px/1 Arial;padding:9px 16px;border:0;border-radius:8px;cursor:pointer}.bar .p{background:var(--night);color:#fff}.bar .h{background:#eee}'+
+  '@media print{@page{size:Letter;margin:0}body{background:#fff}.page{margin:0;box-shadow:none;width:8.5in;height:11in}.bar{display:none}}'+
+  '</style></head><body>'+
+  '<div class="bar"><button class="h" onclick="document.designMode=document.designMode===\'on\'?\'off\':\'on\'">Edit all</button><button class="p" onclick="window.print()">Print / Save PDF</button></div>'+
+  '<div class="page"><div class="topbar">'+MARCH_CHIPS.map(c=>'<i style="background:'+c[0]+'"></i>').join("")+'</div>'+
+  '<div class="head"><div class="co">'+marchWordmark(30)+
+   '<p contenteditable>2029 Okeechobee Blvd Ste. 1 #1010, West Palm Beach, FL 33409<br><span class="em">info@themarchfoundation.org</span> · marchsafety.org</p></div>'+
+   '<div class="inv"><div class="word">PACKING SLIP</div><div class="no" contenteditable>PO '+esc(s.poNo||o.poNo||"—")+'</div><div class="pill" contenteditable>'+pill+'</div></div></div>'+
+  '<div class="cards">'+card("BILL TO","var(--m)",bill)+card("SHIP TO","var(--a)",ship.length?ship:[o.account||"","Street address…"])+
+   '<div class="card"><h4 style="--k:var(--r)">DETAILS</h4>'+kv("Order no.",s.poNo||o.poNo||"")+(o.poDate?kv("PO date",usDate(o.poDate)):"")+kv("Ship date",usDate(d))+kv("Ship via",svc||"UPS")+kv("Tracking",s.tracking||"")+'</div></div>'+
+  '<div class="items"><div class="ih"><span>ITEM</span><span class="r">QTY</span></div>'+rows+'</div>'+
+  '<div class="totwrap"><div class="tot"><div class="due"><b>TOTAL UNITS</b><span class="amt" contenteditable>'+(units||"")+'</span></div></div></div>'+
+  '<div class="pay"><h4 style="--k:var(--c)">IN THIS BOX</h4><div class="paycols">'+
+   '<div class="paycol"><b>'+(note?'NOTE':'EACH AUTOTQ KIT')+'</b><p contenteditable>'+(note?esc(note):'Inflator, charging cable,<br>arm &amp; leg cuffs and case.<br>Training at theautotq.com/training.')+'</p></div>'+
+   '<div class="paycol"><b>QUESTIONS</b><p contenteditable>'+esc(SLIP_CONTACT.name)+'<br>info@themarchfoundation.org</p></div>'+
+   '<div class="paycol"><b>ON ARRIVAL</b><p contenteditable>Please check the contents<br>against this slip and let us<br>know if anything is missing.</p></div></div></div>'+
+  '<div class="accept"><h4 style="--k:var(--h)">RECEIVED BY</h4><div class="sign"><div></div><div></div><div></div></div><div class="sign" style="margin-top:0"><span>Name</span><span>Signature</span><span>Date</span></div></div>'+
+  '<div class="foot"><div class="rule"></div><div class="frow">'+marchWordmark(16)+
+   '<p>The MARCH Safety Foundation · 2029 Okeechobee Blvd Ste. 1 #1010, West Palm Beach, FL 33409<br>marchsafety.org · info@themarchfoundation.org</p></div>'+
+   '<div class="legal">Thank you for your order. The MARCH Safety Foundation is a 501(c)(3) nonprofit organization · TIN 33-2195206.</div></div>'+
   '</div></body></html>';
 }
 /* ---------- Order confirmation — "We've received your order", from Sales Support to the PO's point of contact ---------- */
@@ -9945,13 +10024,20 @@ function quoteSendFallback(id,why,to,sub,cc,msg){
    '<button class="btn ghost block" data-act="quotesend" data-id="'+q.id+'" style="margin-top:8px">Try sending from the CRM again</button>');
 }
 /* packing slip straight from the PO — no shipment record needed yet */
-function orderSlipObj(o){const st=orderShipState(o);
-  return {id:"order-"+o.id,orderId:o.id,account:o.account,poNo:o.poNo,shipTo:shipToFor(o),items:(st.remaining.length?st.remaining:shipItems(o)).map(x=>({sku:x.sku,qty:x.qty})),carrier:"UPS",service:"Ground",shipDate:todayStr(),tracking:"",boxes:0,weight:0};}
+function orderSlipObj(o){const st=orderShipState(o),car=o.shipCarrier||"UPS";
+  return {id:"order-"+o.id,orderId:o.id,account:o.account,poNo:o.poNo,shipTo:o.shipTo&&o.shipTo.street?Object.assign({},o.shipTo):shipToFor(o),
+    items:(st.remaining.length?st.remaining:shipItems(o)).map(x=>({sku:x.sku,qty:x.qty})),carrier:car,service:car==="UPS"?"Ground":"",
+    shipDate:o.shipDate||todayStr(),tracking:o.shipTracking||"",status:o.shippedAt||o.shipTracking?"shipped":"",boxes:0,weight:0};}
+/* "Download packing slip" on every order (Max, 2026-11-18): MARCH orders get the MARCH slip, everything else the AutoTQ slip.
+   It opens the slip and the browser's print window straight away — pick "Save as PDF" to keep the file. */
 function packingSlipOrder(oid){
   const o=orderById(oid);if(!o)return;
   const w=window.open("","_blank");
   if(!w){toast("Allow pop-ups to open the packing slip");return;}
-  w.document.write(packingSlipHTML(orderSlipObj(o)));w.document.close();
+  const s=orderSlipObj(o);
+  w.document.write((isMarchOrder(o)?marchSlipHTML(s):packingSlipHTML(s)).replace("</body>",
+    '<script>window.addEventListener("load",function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){setTimeout(function(){window.print();},300);});});<\/script></body>'));
+  w.document.close();
 }
 function packingSlip(id){
   const s=(DB.shipments||[]).find(x=>x.id===id);if(!s)return;
@@ -10161,6 +10247,7 @@ function lnToShipHTML(){
           '<p style="margin:3px 0 0;font-size:13px;color:var(--muted)">'+esc(lnItems(o))+' · requested '+esc(usDate(o.poDate))+'</p>'+
           '<p style="margin:2px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address on this loaner')+'</p></div>'+
         (can?'<div style="display:flex;gap:6px;flex:none">'+
+          '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
           '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Add the tracking number and serials — saving tracking also marks it shipped">Tracking</button>'+
           '<button class="btn sm coral" data-act="lnship" data-id="'+o.id+'">Mark shipped</button></div>':'')+
       '</div>';}).join("")+
