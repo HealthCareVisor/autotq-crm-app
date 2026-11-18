@@ -1515,7 +1515,7 @@ function openSheet(html){document.getElementById("sheet").classList.remove("rawi
 function closeSheet(){document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}}
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
-document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;},true);
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.fold==="invln")logState.invLnOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
@@ -8221,7 +8221,7 @@ function invRowHTML(o,i){
     '<div class="invmid">'+midRows+'</div>'+
     '<div class="invright">'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
-    (invFilter==="all"||view!=="invoicing"?invChip(o.status):'')+
+    (invMode==="done"||view!=="invoicing"?invChip(o.status):'')+
     (o.status==="queue"?'<button class="pill" data-act="invmark" data-id="'+o.id+'" title="Check it off once the QuickBooks invoice is made" style="color:var(--ok-t);background:rgba(0,160,90,.12);white-space:nowrap">Invoiced ✓</button>':'')+
     (o.status==="loaner"?'<button class="pill" data-act="invups" data-id="'+o.id+'" style="color:var(--hint);background:rgba(120,120,120,.10);white-space:nowrap">'+(o.upsCost?'UPS cost':'+ UPS cost')+'</button>':'')+
     (o.file?'<button class="btn sm ghost" data-act="invview" data-id="'+o.id+'" title="View the PO PDF">PO</button>'
@@ -8287,7 +8287,7 @@ async function invScanFiles(files){
       DB.orders.push(rec);added.push(shortAcct(rec.account)||rec.poNo);save();
     }
   }finally{invScanBusy=false;prog("");}
-  if(added.length&&invFilter!=="queue"&&invFilter!=="all")invFilter="queue";
+  if(added.length)invMode="open";
   render();
   const say=[];
   if(added.length)say.push(added.length+" new in Needs invoice ("+added.join(", ")+")");
@@ -8324,6 +8324,7 @@ function invDetailsHTML(o){
      (poPdfNeeded(o)?'<button class="btn sm ghost" data-act="invnopdf" data-id="'+o.id+'" title="This order has no customer PO PDF (phone or email order)">No PDF for this one</button>':'')+
      (o.files||[]).map(x=>'<button class="btn sm ghost" data-act="invviewx" data-id="'+o.id+'" data-p="'+esc(x.path)+'">'+esc(x.fname)+'</button>').join("")+
      (o.status==="queue"?'<button class="btn sm coral" data-act="invmark" data-id="'+o.id+'">Invoiced ✓</button>':'')+
+     (gpoAccess()&&gpoForOrder(o)?'<button class="btn sm" data-act="invgpo" data-id="'+gpoForOrder(o).id+'">Grainger SPS steps</button>':'')+
      '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Full order</button>'+
      '<button class="btn sm ghost" data-act="invform" data-id="'+o.id+'">Edit</button></div></div>';
 }
@@ -10097,37 +10098,57 @@ function invSecHTML(cur){
     '<button class="'+(cur==="inv"?"on":"")+'" data-act="invsec" data-v="invoicing">Orders'+(q?' · '+q:'')+'</button>'+
     '<button class="'+(cur==="gr"?"on":"")+'" data-act="invsec" data-v="grainger">Grainger · SPS'+(g?' · '+g:'')+'</button></div>';
 }
+/* Invoicing (Max, 2026-11-17): one switch — Not invoiced | Invoiced — and a date range; loaners fold under the open orders;
+   Grainger SPS POs are reached from their own order (and a link), not a tab of their own. */
+let invMode="open",invRange="all";
+const INV_RANGES=[["all","Any date"],["30","Last 30 days"],["month","This month"],["lastmonth","Last month"],["quarter","This quarter"],["year","This year"],["lastyear","Last year"]];
+function invRangeOk(day){
+  if(invRange==="all")return true;
+  day=String(day||"").slice(0,10);if(!day)return false;
+  const t=new Date(),y=t.getFullYear(),m=t.getMonth(),p=n=>String(n).padStart(2,"0"),d=(Y,M,D)=>{const x=new Date(Y,M,D);return x.getFullYear()+"-"+p(x.getMonth()+1)+"-"+p(x.getDate());};
+  const today=d(y,m,t.getDate());
+  const r={"30":[d(y,m,t.getDate()-30),today],month:[d(y,m,1),today],lastmonth:[d(y,m-1,1),d(y,m,0)],
+    quarter:[d(y,m-m%3,1),today],year:[d(y,0,1),today],lastyear:[d(y-1,0,1),d(y-1,11,31)]}[invRange];
+  return !r||(day>=r[0]&&day<=r[1]);
+}
+function gpoForOrder(o){
+  const gs=typeof gposAll==="function"?gposAll():[];if(!gs.length||!o)return null;
+  return gs.find(g=>g.crm&&g.crm.orderId===o.id)||gs.find(g=>[g.po,g.custPo].some(x=>x&&poKey(x)===poKey(o.poNo)))||null;
+}
 function viewInvoicing(){
   ensureOrderItems();ensureLoanerBook();
-  const os=ordersAll();
-  const q=os.filter(o=>o.status==="queue"),ln=os.filter(o=>o.status==="loaner"),inv=os.filter(o=>o.status==="invoiced"),paid=os.filter(o=>o.status==="paid");
-  const lnNeed=ln.filter(o=>!o.upsCost);
-  let h=invSecHTML("inv");
-  h+='<div class="kpis" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">'+
-     '<div class="kpi"><b>Needs invoice</b><span>'+q.length+(q.length?' · '+money(q.reduce((s,o)=>s+(o.amount||0),0)):'')+'</span></div>'+
-     '<div class="kpi"><b>Loaners out</b><span>'+ln.length+'</span></div>'+
-     '<div class="kpi"><b>Invoiced</b><span>'+inv.length+'</span></div>'+
-     '<div class="kpi"><b>Paid</b><span>'+paid.length+'</span></div></div>';
-  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">'+
-     '<button class="btn coral" data-act="invupload" title="Or drop PO PDFs anywhere on this page — each is read and lands in Needs invoice">'+svg("plus")+' Add PO PDFs</button>'+
-     '<span style="font-size:12.5px;color:var(--hint)">or drop PO PDFs anywhere here — they\u2019re read for you</span>'+
+  const all=ordersAll().filter(o=>o.status!=="supplier"&&invRangeOk(o.poDate));
+  const q=all.filter(o=>o.status==="queue"),ln=all.filter(o=>o.status==="loaner"),done=all.filter(o=>o.status==="invoiced"||o.status==="paid");
+  const sum=a=>money(a.reduce((s,o)=>s+(+o.amount||0),0));
+  const gOpen=gpoAccess()?gposAll().filter(g=>!gpoComplete(g)).length:0,gAll=gpoAccess()?gposAll().length:0;
+  let h='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 12px">'+
+    '<div class="seg" style="max-width:340px;margin:0">'+
+      '<button class="'+(invMode==="open"?"on":"")+'" data-act="invmode" data-v="open">Not invoiced · '+q.length+'</button>'+
+      '<button class="'+(invMode==="done"?"on":"")+'" data-act="invmode" data-v="done">Invoiced · '+done.length+'</button></div>'+
+    '<select class="f" id="invRange" aria-label="Date range" style="width:auto;margin:0;min-width:150px">'+INV_RANGES.map(r=>'<option value="'+r[0]+'"'+(invRange===r[0]?' selected':'')+'>'+r[1]+'</option>').join("")+'</select>'+
+    '<span style="font-size:13px;color:var(--muted)">'+(invMode==="open"?(q.length?sum(q)+' to invoice':''):(done.length?sum(done)+' invoiced':''))+'</span></div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px">'+
+     '<button class="btn coral" data-act="invupload" title="Or drop PO PDFs anywhere on this page — each is read and lands in Not invoiced">'+svg("plus")+' Add PO PDFs</button>'+
+     '<span style="font-size:12.5px;color:var(--hint)">or drop PO PDFs anywhere here — they’re read for you</span>'+
      '<input type="file" id="poFiles" accept="application/pdf" multiple style="display:none">'+
      '<button class="btn sm ghost" data-act="invadd">Add order without a PDF</button>'+
-     (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button>'+
-     '<input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
+     (gAll?'<button class="btn sm ghost" data-act="invsec" data-v="grainger">Grainger SPS POs'+(gOpen?' · '+gOpen+' open':'')+'</button>':'')+
+     (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button><input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
-  FLT_RESET.inv=()=>{invFilter="queue";};
-  h+='<div class="lvhead" style="margin-bottom:10px">'+filterBar("inv",[fltGroup("Orders","invfilter",[["queue","Needs invoice",q.length],["loaner","Loaners",ln.length],["invoiced","Invoiced",inv.length],["paid","Paid",paid.length],["all","All",os.length],["supplier","Supplier"]],invFilter,"queue")])+'</div>';
-  const list=os.filter(o=>invFilter==="all"?o.status!=="supplier":o.status===invFilter);
   h+=srPendingBannerHTML();
-  const noPdf=q.filter(poPdfNeeded);
-  if(noPdf.length&&(invFilter==="queue"||invFilter==="all"))h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
-    '<b>'+noPdf.length+' paid PO'+(noPdf.length>1?'s are':' is')+' missing the PDF</b> — '+noPdf.map(o=>esc(shortAcct(o.account)||o.poNo||"—")).join(", ")+
-    '.<br><span style="color:var(--muted)">Drop the PO PDF on its row (or tap <b>PO PDF missing — add</b>). Laresa invoices from it, then taps <b>Invoiced ✓</b>.</span></div>';
-  if(!list.length)h+='<div class="card" style="padding:26px;text-align:center;color:var(--hint)">'+
-    (invFilter==="queue"&&os.length?"Nothing waiting on an invoice. ✓":os.length?"Nothing in this view.":"No orders yet.")+'</div>';
-  else{
-    h+='<div class="card" style="padding:0;overflow:hidden">'+list.map((o,i)=>invRowHTML(o,i)).join("")+'</div>';
+  if(invMode==="open"){
+    const noPdf=q.filter(poPdfNeeded);
+    if(noPdf.length)h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
+      '<b>'+noPdf.length+' PO'+(noPdf.length>1?'s are':' is')+' missing the PDF</b> — '+noPdf.map(o=>esc(shortAcct(o.account)||o.poNo||"—")).join(", ")+
+      '.<br><span style="color:var(--muted)">Drop the PO PDF on its row. Laresa invoices from it, then taps <b>Invoiced ✓</b>.</span></div>';
+    h+=q.length?'<div class="card" style="padding:0;overflow:hidden">'+q.map((o,i)=>invRowHTML(o,i)).join("")+'</div>'
+      :'<div class="card" style="padding:22px;text-align:center;color:var(--hint)">Nothing waiting on an invoice'+(invRange==="all"?'':' in this date range')+'. ✓</div>';
+    if(ln.length)h+='<details class="fold" style="margin-top:14px"'+(logState.invLnOpen?' open':'')+' data-fold="invln"><summary style="cursor:pointer;font-weight:600;font-size:14px;padding:6px 0">Loaners &amp; free units — no invoice · '+ln.length+'</summary>'+
+      '<div class="card" style="padding:0;overflow:hidden;margin-top:6px">'+ln.map((o,i)=>invRowHTML(o,i)).join("")+'</div></details>';
+  }else{
+    const list=done.slice().sort((a,b)=>String(b.invoicedAt||b.poDate||"").localeCompare(String(a.invoicedAt||a.poDate||"")));
+    h+=list.length?'<div class="card" style="padding:0;overflow:hidden">'+list.map((o,i)=>invRowHTML(o,i)).join("")+'</div>'
+      :'<div class="card" style="padding:22px;text-align:center;color:var(--hint)">Nothing invoiced'+(invRange==="all"?'':' in this date range')+'.</div>';
   }
   return h;
 }
@@ -10720,7 +10741,7 @@ function gpoRowHTML(g){const st=g.shipTo||{};
 function viewGrainger(){gpoSeed();
   if(curGpo){const g=gpoById(curGpo);if(g&&!g.removed)return viewGpo(g);curGpo=null;}
   const all=gposAll(),open=all.filter(g=>!gpoComplete(g)),done=all.filter(gpoComplete);
-  let h=invSecHTML("gr")+'<div class="gact" style="margin:4px 0 14px"><button class="btn coral" data-act="gponew">'+svg("plus")+' New Grainger PO</button></div>';
+  let h='<div class="gact" style="margin:4px 0 14px"><button class="btn coral" data-act="gponew">'+svg("plus")+' New Grainger PO</button></div>';
   h+='<div class="sech" style="margin-bottom:8px">Open <span class="cnt">'+open.length+'</span></div>';
   h+=open.length?'<div class="list">'+open.map(gpoRowHTML).join("")+'</div>':'<div class="card empty" style="padding:22px">No open Grainger POs.</div>';
   h+='<div class="sech" style="margin:18px 0 8px">History <span class="cnt">'+done.length+'</span></div>';
@@ -10840,6 +10861,7 @@ document.addEventListener("change",e=>{
     if(e.target.dataset.act==="leadcatsel"){l.cat=v;l.catAt=new Date().toISOString();l.catBy=USER;if(v==="dead"&&l.assignee)l.assignee=null;toast(l.name+" → "+(LEAD_CATS.find(x=>x[0]===v)||["",v])[1]);}
     else{if(!v){if(l.assignee){l.assignee=null;if(l.cat==="handed")l.cat="qualified";toast("Taken back");}}else if(l.assignee!==v){leadHand(l,v);toast(l.name+" → "+teamById(v).name);}}
     save();render();return;}
+  if(e.target&&e.target.id==="invRange"){invRange=e.target.value;render();return;}
   if(e.target&&e.target.id==="poFiles"&&e.target.files.length){invScanFiles(Array.from(e.target.files));e.target.value="";}
   if(e.target&&e.target.id==="poCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(invImportCsv);e.target.value="";}
   if(e.target&&e.target.id==="upsCsv"&&e.target.files.length){const f=e.target.files[0];f.text().then(importUpsCsv);e.target.value="";}
@@ -10899,6 +10921,8 @@ document.addEventListener("click",e=>{
   if(a==="invcsv"){document.getElementById("poCsv").click();return;}
   if(a==="invadd"){formOrder(null);return;}
   if(a==="invfilter"){invFilter=t.dataset.v;render();return;}
+  if(a==="invmode"){invMode=t.dataset.v==="done"?"done":"open";render();return;}
+  if(a==="invgpo"){pushNav();view="grainger";curGpo=t.dataset.id;render();window.scrollTo(0,0);return;}
   if(a==="invview"){e.stopPropagation();invOpenFile(id,false);return;}
   if(a==="invdl"){e.stopPropagation();invOpenFile(id,true);return;}
   if(a==="invedit"){if(e.target.closest('[data-act="invview"],[data-act="invdl"],[data-act="invmark"],[data-act="invups"],[data-act="invattach"],[data-act="shipfor"],[data-act="oconfirm"],[data-stop]'))return;if(t.classList.contains("invrow")){invOpenId=invOpenId===id?null:id;render();return;}orderSheet(id);return;}
