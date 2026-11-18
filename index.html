@@ -8168,6 +8168,8 @@ function poLineSku(l){
   if(/autotq|tourniquet|\bkit\b|1000-0005/.test(d))return "1000-0005-TQ";
   return String(l.part_number||l.description||"").trim();
 }
+/* "2349527 - OP" (Federal Signal prints the PO number with a document-type code) → "2349527"; only a trailing 1–3 letter code after a digit */
+function poNumClean(s){s=String(s||"").trim();const m=s.match(/^(.*\d)\s*-\s*[A-Za-z]{1,3}$/);return m?m[1].trim():s;}
 function poScanToOrder(po){
   const addr=a=>{a=a||{};return {name:a.name||"",attn:a.attn||"",street:a.street||"",street2:a.street2||"",city:a.city||"",state:String(a.state||"").toUpperCase(),zip:a.zip||"",phone:""};};
   const lines=(po.lines||[]).filter(l=>+l.qty>0);
@@ -8182,7 +8184,7 @@ function poScanToOrder(po){
   if(po.is_purchase_order===false)flags.push("may not be a PO");
   if(!String(po.po_number||"").trim())flags.push("no PO number");
   if(!(+po.total>0))flags.push("no total");
-  return {poNo:String(po.po_number||"").trim(),poDate:/^\d{4}-\d{2}-\d{2}$/.test(po.po_date||"")?po.po_date:"",
+  return {poNo:poNumClean(po.po_number),poDate:/^\d{4}-\d{2}-\d{2}$/.test(po.po_date||"")?po.po_date:"",
     contactName:po.contact_name||"",contactEmail:String(po.contact_email||"").toLowerCase(),contactPhone:po.contact_phone||"",
     payTerms:po.payment_terms||"",shipVia:String(po.ship_via||"").trim(),freightTerms:String(po.freight_terms||"").trim(),
     shipAcct:String(po.ship_account||"").trim(),shipTo:addr(po.ship_to),billTo:addr(po.bill_to),items:items,
