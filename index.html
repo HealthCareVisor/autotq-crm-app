@@ -595,6 +595,15 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 @media (max-width:1100px){.scrow{grid-template-columns:1fr}.scgo{flex-basis:auto;padding-left:0;margin-left:auto}.sctiles,.sctiles.fu7{grid-template-columns:repeat(3,minmax(0,1fr))}.sctiles>.sct.fu{grid-column:1/-1}.fuband .fumost{margin-left:0;flex-basis:100%}}
 @media (max-width:640px){.sctiles,.sctiles.fu7{grid-template-columns:repeat(2,minmax(0,1fr))}.scv{font-size:20px}.scwks{grid-template-columns:repeat(4,minmax(0,1fr))}.scdays{grid-template-columns:repeat(4,minmax(0,1fr))}
   .scli{grid-template-columns:52px minmax(0,1fr);row-gap:4px}.scli .scw,.scli .scx,.scli .sctag{grid-column:2}.scupd{margin-left:0;flex-basis:100%}}
+/* the pipeline box (scPipeHTML): three numbers stacked, total at the foot */
+.scrow.pp{grid-template-columns:230px minmax(0,1fr) 178px}
+.scpipe{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:9px;padding:9px 12px 10px;display:flex;flex-direction:column;gap:9px;min-width:0;cursor:pointer;animation:scpop .32s cubic-bezier(.2,.8,.3,1.2) .26s both}
+.scpipe:hover{background:var(--sunken)}.scpipe:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.spl{display:flex;flex-direction:column;gap:2px;min-width:0}.spl .scv{font-size:20px}.spl .scv small{font-size:11.5px}
+.spl.tot{margin-top:auto;border-top:1px solid var(--line);padding-top:8px}.spl.tot .scv{font-size:24px}
+@media (prefers-reduced-motion:reduce){.scpipe{animation:none}}
+@media (max-width:1100px){.scrow.pp{grid-template-columns:1fr}.scpipe{flex-direction:row;flex-wrap:wrap;gap:10px 16px}.spl{flex:1 1 130px}.spl.tot{margin-top:0;border-top:0;padding-top:0;border-left:1px solid var(--line);padding-left:16px}}
+@media (max-width:640px){.spl{flex:1 1 40%}.spl.tot{flex-basis:100%;border-left:0;padding-left:0;border-top:1px solid var(--line);padding-top:8px}}
 @media print{body.scprint .side,body.scprint .tbar,body.scprint .nav,body.scprint #fbdock,body.scprint .scnoprint,body.scprint #toast{display:none!important}
   body.scprint .work,body.scprint .console{display:block;margin:0;padding:0}body.scprint .content{max-width:none;padding:0}body.scprint .sct,body.scprint .scday{break-inside:avoid}body.scprint .sct{animation:none}}
 /* rep analysis — "View analysis" (the Tim Ford report layout, any rep) */
@@ -3034,6 +3043,19 @@ function fuPublish(){if(!USER||!SYNC.booted||cacheLoading)return;
   const sig=JSON.stringify(fu)+todayStr();if(sig===fuPubLast)return;fuPubLast=sig;
   bookStore("readwrite").then(st=>{st.put({at:new Date().toISOString(),fu:fu},"autotq_summary");}).catch(()=>{});}
 function fuSchedule(){clearTimeout(fuPubT);fuPubT=setTimeout(()=>{try{fuPublish();}catch(e){}},1500);}
+/* the pipeline box at the end of each scorecard row (Max, 2026-11-18: "new pipeline, to close next 30 days, to close next 60 days …
+   total pipeline on the bottom"). Deals count for their Golden Hour sales person (oppGhRep). New pipeline = deals added in the week
+   shown (any stage now); To close = open deals whose close date is today … +30 / +60 days (the 60 includes the 30); Total = every
+   open deal. Tap → the Pipeline filtered to that rep. */
+function scPipe(u,mon){const days=goalDays(mon),T=todayStr(),plus=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d);},d30=plus(30),d60=plus(60);
+  const mine=myOpps().filter(o=>o&&oppGhRep(o)===u),open=mine.filter(oppIsOpen),cd=o=>String(o.closeDate||"").slice(0,10);
+  const added=mine.filter(o=>{const d=localDay(o.createdAt);return d>=days[0]&&d<=days[6];});
+  return {added:added,c30:open.filter(o=>cd(o)>=T&&cd(o)<=d30),c60:open.filter(o=>cd(o)>=T&&cd(o)<=d60),open:open,late:open.filter(oppOverdue).length};}
+function scPipeHTML(u,mon){const p=scPipe(u,mon),amt=l=>fmtK(l.reduce((s,o)=>s+(+o.amount||0),0)),n=(l,w)=>l.length+" "+w+(l.length===1?"":"s");
+  const line=(lbl,l,sub,cls)=>'<span class="spl'+(cls||"")+'"><span class="scl">'+lbl+'</span><b class="scv">'+amt(l)+'<small> '+esc(sub)+'</small></b></span>';
+  return '<button class="scpipe" data-act="pipef" data-k="rep" data-v="'+u+'" title="Deals where '+esc(teamById(u).name)+' is the Golden Hour sales person. New pipeline: deals added '+(mon===goalMonday()?"this week":"that week")+'. To close: open deals with a close date in the next 30 / 60 days (60 includes the 30). Total: every open deal. Tap for the Pipeline.">'+
+   line("New pipeline",p.added,n(p.added,"deal"))+line("To close · next 30 days",p.c30,n(p.c30,"deal"))+line("To close · next 60 days",p.c60,n(p.c60,"deal"))+
+   line("Total pipeline",p.open,n(p.open,"open deal")+(p.late?" · "+p.late+" past close":"")," tot")+'</button>';}
 function scWeekNavHTML(mon){const cur=goalMonday(),d=goalDays(mon);
   return '<div class="scnav"><button class="ibtn" data-act="scweek" data-v="-1" title="Previous week" aria-label="Previous week">'+svg("chevL")+'</button>'+
    '<span>'+(mon===cur?"This week · ":"")+goalMD(d[0])+' – '+goalMD(d[6])+'</span>'+
@@ -3044,9 +3066,9 @@ function scHomeHTML(){
   const mon=logState.scWeek||goalMonday();
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
-    return '<div class="scrow"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
+    return '<div class="scrow pp"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox?'':fuTileHTML(u,s.today))+'</div></div>';}).join("")+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span style="--c:var(--faint)">Grey: nothing logged yet today</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
