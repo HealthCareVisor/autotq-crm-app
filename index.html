@@ -1656,6 +1656,7 @@ function sideBadge(v){
       return profile()==="outreach"?L.filter(l=>leadCat(l)==="new").length:L.filter(l=>leadRep(l)===USER&&!(l.touches||[]).some(t=>t.by===USER)).length;}
     if(v==="invoicing")return (invAccess()?ordersAll().filter(o=>o.status==="queue").length:0)+(gpoAccess()?gposAll().filter(g=>!gpoComplete(g)).length:0);
     if(v==="grainger")return gpoAccess()?gposAll().filter(g=>!gpoComplete(g)).length:0;
+    if(v==="shipping")return srShipper()?toShipList().length:0;
   }catch(e){}
   return 0;
 }
@@ -1666,8 +1667,8 @@ function sideGroups(NU){
      ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]]]
    :railGroups(NU); /* per-profile rail (2026-10-16): sales / outreach / admin — see railGroups() */
   const nuInv=(NU==="max"||NU==="jamie"||NU==="laresa"); /* Kellan's rail is outreach only (2026-10-16) */
-  if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]); /* Grainger is a section inside Invoicing (2026-11-17) */ /* Shipping tab retired 2026-10-16; Grainger drop ships 2026-11-11 */
-  else if(NU==="hannah")groups.unshift(["Back office",[["invoicing","file","Invoicing"]]]); /* Hannah sends 855s / ASNs in SPS */
+  if(nuInv&&NU!=="laresa")groups.unshift(["Back office",[["invoicing","file","Invoicing"],["shipping","truck","Shipping"]]]); /* Grainger is a section inside Invoicing (2026-11-17); Shipping is back (2026-11-18) */ /* Shipping tab retired 2026-10-16; Grainger drop ships 2026-11-11 */
+  else if(NU==="hannah")groups.unshift(["Back office",[["invoicing","file","Invoicing"],["shipping","truck","Shipping"]]]); /* Hannah sends 855s / ASNs in SPS */
   return groups;
 }
 function recentList(){
@@ -1918,7 +1919,7 @@ function render(){
     invoicing:(function(){const os=ordersAll();const q=os.filter(o=>o.status==="queue");return os.length+" orders · "+q.length+" awaiting invoice"+(q.length?" ("+money(q.reduce((s,o)=>s+(o.amount||0),0))+")":"");})(),
     grainger:(function(){const g=curGpo?gpoById(curGpo):null;if(g){const st=g.shipTo||{};return esc([st.name,[st.city,st.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")||"SPS Commerce drop ship");}
       const o=gposAll().filter(x=>!gpoComplete(x)).length;return "SPS drop ships — PO, 855, FedEx on Grainger's account, 856, 810"+(o?" · "+o+" open":"");})(),
-    shipping:(function(){const t=ordersToShip().length,tr=(DB.shipments||[]).filter(s=>s.status==="shipped").length;return (t?t+" new order"+(t>1?"s":"")+" to send out":"Nothing waiting to go out")+(tr?" · "+tr+" in transit":"");})()
+    shipping:(function(){const t=toShipList().length;return t?t+" to go out — orders and demo loaners, invoiced or not":"Nothing waiting to go out";})()
   };
   let body="";
   if(view==="today")body=viewToday();
@@ -1948,7 +1949,7 @@ function render(){
   else if(view==="search")body=searchView();
   else if(view==="invoicing")body=invAccess()?viewInvoicing():viewToday();
   else if(view==="grainger")body=gpoAccess()?viewGrainger():viewToday();
-  else if(view==="shipping")body=shipAccess()?viewShipping():viewToday();
+  else if(view==="shipping")body=srShipper()?viewShipTab():viewToday();
   else if(view==="quotes")body=viewQuotes();
   else if(view==="board")body=viewBoard();
   else body=viewToday();
@@ -1999,7 +2000,7 @@ function navValid(st){
   if(st.view==="search")return !!String(st.searchQ||"").trim();
   if(st.view==="invoicing")return invAccess();
   if(st.view==="grainger")return gpoAccess()&&(!st.curGpo||!!gpoById(st.curGpo));
-  if(st.view==="shipping")return shipAccess();
+  if(st.view==="shipping")return srShipper();
   return true;
 }
 function restoreNav(st){view=st.view;curGpo=st.curGpo||null;logState.goalSee=st.goalSee||null;curRep=st.curRep||null;curPerson=st.curPerson;curCompany=st.curCompany;curReport=st.curReport;curConf=st.curConf;curList=st.curList;curCampaign=st.curCampaign||null;searchQ=st.searchQ||"";listQ=st.listQ||"";if(view==="map")mapState=null;}
@@ -8221,7 +8222,7 @@ function invRowHTML(o,i){
   const bill=billToFor(o),line=itemsLine(o);
   const open=invOpenId===o.id;
   return '<div'+(i?' style="border-top:1px solid var(--line)"':'')+'><div class="invrow" data-act="invedit" data-id="'+o.id+'" style="display:flex;gap:14px;align-items:center;padding:12px 16px;cursor:pointer">'+
-    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+((srHave(o)&&srHave(o)<srNeed(o))||srPending(o)?' '+srChipHTML(o):'')+'</p>'+
+    '<div class="grow" style="min-width:0"><p class="t1" style="font-size:14.5px;margin:0">'+svg(open?"chevD":"chevR","chev")+' '+esc(shortAcct(o.account)||"—")+((o.scanFlags||[]).length?' <span class="pill" title="'+esc(o.scanFlags.join(" · "))+'" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16)">check</span>':'')+'</p>'+
     '<p class="t2" style="margin:3px 0 0;white-space:normal;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+fmtDay(o.poDate&&o.poDate.length===10?o.poDate+"T12:00:00":o.poDate)+'</span>'+(o.contactName?'<span style="color:var(--hint)">· '+esc(o.contactName)+'</span>':'')+'</p>'+
     (line?'<p style="margin:4px 0 0;font-size:13px;color:var(--muted)">'+esc(line)+'</p>':'')+
     (o.status==="queue"
@@ -8329,7 +8330,7 @@ function invDetailsHTML(o){
       fact("Terms",esc(o.payTerms||""))+fact("Bill-to email",esc(o.billEmail||billToFor(o)||""))+fact("QB invoice",esc(o.qbInv||""))+'</div>'+
     '<div>'+fact("Ship to",addr(o.shipTo))+fact("Bill to",addr(o.billTo))+
       fact("Added",(o.src==="pdf"?"Read from the PO PDF · ":"")+esc((who&&who.name)||o.addedBy||"")+(o.addedAt?" · "+esc(usDate(String(o.addedAt).slice(0,10))):""))+'</div></div>'+
-    tbl+srDetailsHTML(o)+
+    tbl+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
      (o.file?'<button class="btn sm" data-act="invview" data-id="'+o.id+'">Open the PO PDF</button>':'<button class="btn sm" data-act="invattach" data-id="'+o.id+'">Add the PO PDF</button>')+
      (poPdfNeeded(o)?'<button class="btn sm ghost" data-act="invnopdf" data-id="'+o.id+'" title="This order has no customer PO PDF (phone or email order)">No PDF for this one</button>':'')+
@@ -10237,25 +10238,63 @@ function shipSignLineHTML(o){
   }
   return String(o.poDate||"")>=SHIP_FROM&&!lnShipped(o)?'<p style="margin:3px 0 0;font-size:12.5px;color:#3b6fb5;font-weight:600">Not shipped yet</p>':'';
 }
-/* top of Invoicing for whoever ships (srShipper), on both the Not invoiced and Invoiced tabs */
-function toShipHTML(){
-  if(!srShipper())return "";
-  const L=toShipList();if(!L.length)return "";
-  return '<div class="card" style="padding:0;overflow:hidden;margin:0 0 12px;border-left:4px solid #3b6fb5">'+
-    '<div style="padding:10px 16px 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><b style="font-size:14.5px">To ship · '+L.length+'</b>'+
-    '<span style="font-size:12.5px;color:var(--hint)">orders and demo loaners that haven’t gone out yet, invoiced or not · oldest first</span></div>'+
-    L.map(o=>{const to=lnShipTo(o),who=o.contactName&&o.contactName!==o.account?o.contactName:"";
-      return '<div style="border-top:1px solid var(--line);padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
-        '<div class="grow" style="min-width:220px">'+
-          '<p style="margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+' '+invChip(o.status)+'</p>'+
-          '<p style="margin:3px 0 0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+esc(lnItems(o))+' · '+(o.status==="loaner"?'requested ':'PO ')+esc(usDate(o.poDate))+'</span></p>'+
-          '<p style="margin:2px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p></div>'+
-        '<div style="display:flex;gap:6px;flex:none">'+
-          '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
-          '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Add the tracking number and serials — saving tracking also marks it shipped">Tracking</button>'+
-          '<button class="btn sm coral" data-act="lnship" data-id="'+o.id+'">Mark shipped</button></div>'+
-      '</div>';}).join("")+
+/* Shipping tab (Max, 2026-11-18: "maybe we need a shipping tab and that is where the SKUs and stuff go; once Laresa invoices they
+   disappear from hers and a special color or thing goes on the shipping tab confirming that they've been invoiced").
+   Invoicing stays Laresa's; Shipping is for whoever ships (srShipper: Max, Hannah, Jamie, admins). Every order and demo loaner from
+   SHIP_FROM on sits under To ship until it's marked shipped, invoiced or not. The left edge + pill say where billing stands:
+   green "Invoiced ✓ · QB n" / amber "Not invoiced yet" / blue "Loaner · no invoice". Serials & tracking, the packing slip and
+   Mark shipped live here. */
+function shipBillTag(o){
+  if(o.status==="invoiced"||o.status==="paid")return {c:"var(--ok-t)",pill:'<span class="pill" style="color:var(--ok-t);background:rgba(0,160,90,.12);font-weight:700;white-space:nowrap">'+(o.status==="paid"?"Paid ✓":"Invoiced ✓")+(o.qbInv?' · QB '+esc(o.qbInv):'')+'</span>'};
+  if(o.status==="loaner")return {c:"#3b6fb5",pill:'<span class="pill" style="color:#3b6fb5;background:rgba(60,110,180,.12);font-weight:600;white-space:nowrap">Loaner · no invoice</span>'};
+  return {c:"var(--warn-t,#a15c00)",pill:'<span class="pill" style="color:var(--warn-t,#a15c00);background:rgba(255,180,0,.16);font-weight:600;white-space:nowrap">Not invoiced yet</span>'};
+}
+function shipSkuLines(o){
+  const it=(o.items||[]).filter(x=>+x.qty>0&&!/freight/i.test(String(x.sku||"")));
+  if(!it.length)return '<p style="margin:3px 0 0;font-size:13px;color:var(--warn-t,#a15c00)">No items on this order yet — check the PO</p>';
+  return it.map(x=>{const m=TQ_PRODUCTS[tqSku(x.sku)];
+    return '<p style="margin:3px 0 0;font-size:13px"><b>'+(+x.qty)+' ×</b> '+esc(m?m[2]:String(x.sku))+(m?' <span style="color:var(--hint)">'+esc(m[1])+'</span>':'')+'</p>';}).join("");
+}
+function shipRowHTML(o,i){
+  const t=shipBillTag(o),to=lnShipTo(o),who=o.contactName&&o.contactName!==o.account?o.contactName:"";
+  return '<div style="'+(i?'border-top:1px solid var(--line);':'')+'box-shadow:inset 4px 0 0 '+t.c+';padding:12px 16px 12px 20px;display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">'+
+    '<div class="grow" style="min-width:240px">'+
+      '<p style="margin:0;font-size:14.5px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+(who?' <span style="font-weight:400;color:var(--muted)">· '+esc(who)+'</span>':'')+' '+t.pill+' '+srChipHTML(o)+'</p>'+
+      '<p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+(o.status==="loaner"?'requested ':'PO date ')+esc(usDate(o.poDate))+'</span></p>'+
+      shipSkuLines(o)+
+      '<p style="margin:4px 0 0;font-size:12.5px;color:'+(to?'var(--hint)':'var(--warn-t,#a15c00)')+'">'+(to?'Ship to '+esc(to):'No ship-to address yet — check the PO')+'</p></div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;flex:none;align-items:center">'+
+      '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
+      '<button class="btn sm ghost" data-act="srform" data-id="'+o.id+'" title="Serial numbers, carrier and tracking — saving tracking also marks it shipped">Serials &amp; tracking</button>'+
+      '<button class="btn sm ghost" data-act="invsheet" data-id="'+o.id+'">Order</button>'+
+      '<button class="btn sm coral" data-act="lnship" data-id="'+o.id+'">Mark shipped</button></div>'+
   '</div>';
+}
+function shipDoneRowHTML(o,i){
+  const t=shipBillTag(o),day=o.shipDate||String(o.shippedAt||"").slice(0,10);
+  const tl=o.shipTracking?(trackUrl(o.shipCarrier,o.shipTracking)?'<a href="'+esc(trackUrl(o.shipCarrier,o.shipTracking))+'" target="_blank" rel="noopener" style="color:var(--coral,#e8543f);font-weight:600">'+esc(o.shipTracking)+' ↗</a>':esc(o.shipTracking)):"";
+  return '<div style="'+(i?'border-top:1px solid var(--line);':'')+'box-shadow:inset 4px 0 0 '+t.c+';padding:10px 16px 10px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
+    '<div class="grow" style="min-width:240px"><p style="margin:0;font-size:14px;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+esc(shortAcct(o.account)||"—")+' '+t.pill+'</p>'+
+      '<p style="margin:3px 0 0;font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+poChip(o.poNo)+'<span>'+esc(lnItems(o))+'</span></p>'+
+      '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)"><span style="color:var(--ok-t);font-weight:600">Shipped'+(day?' '+esc(usDate(day)):'')+'</span>'+(o.shipCarrier?' · '+esc(o.shipCarrier):'')+(tl?' '+tl:'')+'</p></div>'+
+    '<div style="display:flex;gap:6px;flex:none">'+
+      '<button class="btn sm ghost" data-act="shipsliporder" data-id="'+o.id+'">Download packing slip</button>'+
+      (o.shippedAt&&!o.shipTracking?'<button class="btn sm ghost" data-act="lnunship" data-id="'+o.id+'" title="Put it back on To ship">Undo</button>':'')+'</div>'+
+  '</div>';
+}
+function viewShipTab(){
+  ensureOrderItems();ensureLoanerBook();
+  const L=toShipList();
+  const since=ymd(new Date(Date.now()-30*864e5));
+  const done=(DB.orders||[]).filter(o=>o&&o.status!=="supplier"&&(o.shippedAt||o.shipTracking||o.shipCarrier==="Hand delivered")&&String(o.shipDate||o.shippedAt||"").slice(0,10)>=since)
+    .sort((a,b)=>String(b.shipDate||b.shippedAt||"").localeCompare(String(a.shipDate||a.shippedAt||"")));
+  let h=srPendingBannerHTML();
+  h+='<h2 class="sech" style="margin-top:4px">To ship · '+L.length+'</h2>';
+  h+=L.length?'<div class="card" style="padding:0;overflow:hidden">'+L.map((o,i)=>shipRowHTML(o,i)).join("")+'</div>'
+    :'<div class="card" style="padding:22px;text-align:center;color:var(--hint)">Nothing waiting to go out. ✓</div>';
+  if(done.length)h+='<h2 class="sech" style="margin-top:22px">Shipped · last 30 days · '+done.length+'</h2>'+
+    '<div class="card" style="padding:0;overflow:hidden">'+done.map((o,i)=>shipDoneRowHTML(o,i)).join("")+'</div>';
+  return h;
 }
 function lnMarkShipped(id,on){
   const o=orderById(id);if(!o)return;
@@ -10284,8 +10323,6 @@ function viewInvoicing(){
      (gAll?'<button class="btn sm ghost" data-act="invsec" data-v="grainger">Grainger SPS POs'+(gOpen?' · '+gOpen+' open':'')+'</button>':'')+
      (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button><input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
-  h+=srPendingBannerHTML();
-  h+=toShipHTML();
   if(invMode==="open"){
     const noPdf=q.filter(poPdfNeeded);
     if(noPdf.length)h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
