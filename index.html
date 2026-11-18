@@ -8234,7 +8234,7 @@ function invRowHTML(o,i){
       ?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Loaner / demo — no invoice'+(o.upsCost?' · UPS '+fmtC(o.upsCost):'')+'</p>'
       :o.status==="invoiced"
       ?(function(){const dd=netDue(o);return '<p style="margin:3px 0 0;font-size:12.5px;color:'+(dd&&dd.over?'var(--dang-t,#b3261e)':'var(--hint)')+'">'+(o.qbInv?'QB inv '+esc(o.qbInv)+' · ':'')+(dd?('Net 30 — '+(dd.over?'OVERDUE since ':'due ')+dd.label):'add the invoice date for Net-30 tracking')+(bill?' → '+esc(bill):'')+'</p>';})()
-      :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+shipLineHTML(o)+shipSignLineHTML(o)+'</div>'+
+      :(o.qbInv?'<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">QB inv '+esc(o.qbInv)+(bill?' → '+esc(bill):'')+'</p>':''))+invFreightHTML(o)+shipLineHTML(o)+shipSignLineHTML(o)+'</div>'+
     '<div class="invright">'+
     '<b style="flex:none;font-size:14.5px">'+(o.amount?fmtC(o.amount):(o.status==="loaner"&&o.upsCost?'<span style="color:var(--hint);font-weight:600;font-size:13px">UPS '+fmtC(o.upsCost)+'</span>':"—"))+'</b>'+
     (invMode==="done"||view!=="invoicing"?invChip(o.status):'')+
@@ -8413,6 +8413,7 @@ function saveSerials(oid){
   o.serials=S.codes.map(c=>old[c]||{code:c,at:now,by:USER});
   o.shipCarrier=S.carrier;o.shipTracking=val("srTrack").replace(/\s+/g,"");o.shipDate=val("srDate")||todayStr();
   o.shipCost=parseFloat(String(val("srCost")).replace(/[$,]/g,""))||0;
+  if(o.shipCost>0&&!(o.upsLabel&&o.upsLabel.bill&&o.upsLabel.bill!=="shipper"))orderSetUpsFreight(o,o.shipCost,{service:o.shipService||o.shipCarrier,tracking:o.shipTracking});
   const after=JSON.stringify([o.serials.map(s=>s.code),o.shipCarrier,o.shipTracking]);
   if(after!==before&&(o.serials.length||o.shipTracking))o.devin={state:"todo",at:now,by:USER};
   shipSyncMates(o);save();closeSheet();render();
@@ -10461,7 +10462,8 @@ function formMarkShipped(id){
    lbl('Shipped with')+'<div id="lnCar" style="display:flex;gap:6px;flex-wrap:wrap">'+SR_CARRIERS.map(c=>'<button class="qchip'+(car===c?" on":"")+'" data-act="lnshipcar" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>'+
    '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" id="lnTrackWrap" style="min-width:200px'+(car==="Hand delivered"?';display:none':'')+'">'+lbl('Tracking #')+
     '<input class="f" id="lnTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="'+esc(lnTrackHint(car))+'"></div>'+
-   '<div>'+lbl('Ship date')+'<input class="f" id="lnDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div></div>'+
+   '<div>'+lbl('Ship date')+'<input class="f" id="lnDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div>'+
+   '<div>'+lbl('Shipping we paid <span style="font-weight:400;color:var(--hint)">— blank if they pay</span>')+'<input class="f" id="lnCost" inputmode="decimal" value="'+(o.shipCost||"")+'" placeholder="$" style="width:120px"></div></div>'+
    '<button class="btn coral block" data-act="lnshipsave" data-id="'+o.id+'" data-v="email" style="margin-top:16px">Save &amp; email '+esc(who||"them")+' it shipped</button>'+
    '<button class="btn ghost block" data-act="lnshipsave" data-id="'+o.id+'" style="margin-top:8px">Just mark shipped</button>');
   setTimeout(()=>{const el=document.getElementById("lnTrack");if(el&&car!=="Hand delivered")el.focus();},60);
@@ -10478,6 +10480,7 @@ function saveMarkShipped(id,thenEmail){
   if(!tn&&car!=="Hand delivered"&&!confirm("No tracking # yet. Mark it shipped without one? You can add it later from Shipped."))return;
   const before=(o.shipCarrier||"")+"|"+(o.shipTracking||""),now=new Date().toISOString();
   o.shipCarrier=car;o.shipTracking=tn;o.shipDate=val("lnDate")||todayStr();
+  const lc=parseFloat(String(val("lnCost")).replace(/[$,]/g,""));if(lc>0){o.shipCost=Math.round(lc*100)/100;orderSetUpsFreight(o,lc,{service:car,tracking:tn});}
   if(!o.shippedAt){o.shippedAt=now;o.shippedBy=USER;}
   if(tn&&before!==car+"|"+tn)o.devin={state:"todo",at:now,by:USER};
   shipSyncMates(o);save();render();
@@ -10708,7 +10711,7 @@ async function upsCreate(oid){
       billedTo:j.billedTo,bill:b.bill.type,charges:j.charges,negotiated:j.negotiated,boxes:b.boxes.length,weight:Math.round(b.boxes.reduce((t,x)=>t+(parseFloat(x.weight)||0),0)*10)/10,pick:j.pickNote||"",at:now,by:USER};
     o.boxes=SB.map((x,i)=>({n:i+1,weight:x.weight,l:x.l,w:x.w,h:x.h,items:Object.keys(x.items).filter(k=>+x.items[k]>0).map(k=>({sku:k,qty:+x.items[k]})),
       tracking:(j.labels&&j.labels[i]&&j.labels[i].tracking)||(j.trackings||[])[i]||""}));
-    if(cost!=null){o.shipCost=cost;if(o.status==="loaner")o.upsCost=cost;}
+    if(cost!=null){o.shipCost=cost;orderSetUpsFreight(o,cost,{service:j.service,tracking:j.tracking});}
     o.devin={state:"todo",at:now,by:USER};
     upsBoxRemember({weight:b.boxes[0].weight,l:b.boxes[0].l,w:b.boxes[0].w,h:b.boxes[0].h});
     shipSyncMates(o);save();closeSheet();render();
@@ -10737,12 +10740,50 @@ async function upsVoid(oid){
   o.upsVoided=(o.upsVoided||[]).concat([Object.assign({},L,{voidedAt:now,voidedBy:USER})]);
   delete o.upsLabel;["shipTracking","shipTrackings","shippedAt","shippedBy","shipService","shipDate"].forEach(k=>delete o[k]);
   (o.boxes||[]).forEach(x=>{delete x.tracking;}); /* the packing stays recorded; the tracking #s died with the label */
-  if(L.bill==="shipper"&&c!=null){if(o.shipCost===c)delete o.shipCost;if(o.status==="loaner"&&o.upsCost===c)delete o.upsCost;}
+  if(L.bill==="shipper"&&c!=null){if(o.shipCost===c)delete o.shipCost;orderSetUpsFreight(o,0,{service:L.service,tracking:(L.trackings||[])[0]});}
   o.devin={state:"todo",at:now,by:USER};
   shipSyncMates(o);save();render();toast("Label voided — back on To ship");
 }
 /* the two downloads on an order: [Download packing slip] [UPS label] */
 function upsLabelBtn(o,cls){return o&&o.upsLabel?'<button class="'+(cls||"btn sm ghost")+'" data-act="upslabel" data-id="'+o.id+'" title="'+esc((o.upsLabel.service||"UPS")+" · "+(o.upsLabel.trackings||[]).join(", "))+'">UPS label</button>':'';}
+/* UPS charges → Laresa's invoice (Max, 2026-11-18: "in order for Laresa to invoice orders, she needs to know the UPS charges as
+   well; if I'm billing to another account it won't apply"). What Golden Hour pays to ship an order lands on it as a Freight line
+   (fromShip — replaces the 0.01 placeholder; a freight price typed from the PO is left alone) and the amount follows; a loaner keeps
+   it as o.upsCost. Collect / third-party labels add nothing. If the order was already invoiced, o.freightLate flags it on Invoicing
+   until Laresa updates the QuickBooks invoice ("Added in QuickBooks ✓" → freightLate.doneAt); voiding the label flags it the other way. */
+function orderSetUpsFreight(o,cost,meta){
+  if(!o)return;meta=meta||{};
+  if(o.status==="loaner"||isLoanerOrder(o)){if(cost>0)o.upsCost=Math.round(cost*100)/100;else delete o.upsCost;return;}
+  const items=orderItems(o).slice(),i=items.findIndex(it=>/freight/i.test(String(it.sku||"")));
+  const before=i>-1?(+items[i].unit||0)*(+items[i].qty||1):0;
+  if(cost>0){const line={sku:"Freight",qty:1,unit:Math.round(cost*100)/100,fromShip:true,ups:meta.tracking||""};
+    if(i>-1){if(items[i].fromShip||!(+items[i].unit>0.05))items[i]=line;else return;}else items.push(line);}
+  else if(i>-1&&items[i].fromShip)items.splice(i,1);
+  else return;
+  o.items=items;o.amount=Math.round(itemsTotal(items)*100)/100;
+  const after=cost>0?Math.round(cost*100)/100:0;
+  if((o.status==="invoiced"||o.status==="paid")&&Math.abs(after-before)>0.004)
+    o.freightLate={from:Math.round(before*100)/100,to:after,service:meta.service||"",tracking:meta.tracking||"",at:new Date().toISOString(),by:USER};
+}
+function orderFreightLine(o){return orderItems(o).find(it=>/freight/i.test(String(it.sku||"")))||null;}
+/* the freight line under an Invoicing row: what to bill, that it's the customer's account, or that it rides on another PO */
+function invFreightHTML(o){
+  if(!o||o.status==="supplier")return "";
+  const L=shipLead(o);
+  if(L)return '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Shipped in one box with PO '+esc(L.poNo||"—")+' — any UPS freight is on that order</p>';
+  const F=o.freightLate;
+  if(F&&!F.doneAt)return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--warn-t,#a15c00);font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+    (F.to>0?'UPS freight '+fmtC(F.to)+(F.from>0?' (was '+fmtC(F.from)+')':'')+' came after invoicing':'UPS label voided — take the '+fmtC(F.from)+' freight back off')+
+    (o.qbInv?' — update QB inv '+esc(o.qbInv):' — update the QuickBooks invoice')+
+    '<button class="pill" data-act="freightok" data-id="'+o.id+'" style="color:var(--ok-t);background:rgba(0,160,90,.12)">'+(F.to>0?'Added':'Fixed')+' in QuickBooks ✓</button></p>';
+  const U=o.upsLabel;
+  if(U&&U.bill&&U.bill!=="shipper")return '<p style="margin:3px 0 0;font-size:12.5px;color:var(--hint)">Shipping billed to '+esc(U.billedTo||"their UPS account")+' — no freight to invoice</p>';
+  const fl=orderFreightLine(o);
+  if(fl&&fl.fromShip)return '<p style="margin:3px 0 0;font-size:12.5px;color:var(--ink)"><b>UPS freight '+fmtC((+fl.unit||0)*(+fl.qty||1))+'</b> <span style="color:var(--hint)">· in the total'+(o.shipService?' · '+esc(o.shipService):'')+(fl.ups?' · '+esc(fl.ups):'')+'</span></p>';
+  return "";
+}
+function freightLateList(){return (DB.orders||[]).filter(o=>o&&o.freightLate&&!o.freightLate.doneAt&&(o.status==="invoiced"||o.status==="paid"));}
+function freightOk(id){const o=orderById(id);if(!o||!o.freightLate)return;o.freightLate.doneAt=new Date().toISOString();o.freightLate.doneBy=USER;save();render();toast("Noted — the QuickBooks invoice has the freight");}
 function viewInvoicing(){
   ensureOrderItems();ensureLoanerBook();
   const all=ordersAll().filter(o=>o.status!=="supplier"&&invRangeOk(o.poDate));
@@ -10763,6 +10804,12 @@ function viewInvoicing(){
      (gAll?'<button class="btn sm ghost" data-act="invsec" data-v="grainger">Grainger SPS POs'+(gOpen?' · '+gOpen+' open':'')+'</button>':'')+
      (admin()?'<button class="btn sm ghost" data-act="invcsv">Import order history (CSV)</button><input type="file" id="poCsv" accept=".csv,text/csv" style="display:none">':'')+
      '<span id="invProg" style="font-size:13px;color:var(--hint)"></span></div>';
+  const late=freightLateList();
+  if(late.length)h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px"><b>UPS freight changed on invoices already sent</b>'+
+    late.map(o=>'<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px">'+esc(shortAcct(o.account)||"—")+' '+poChip(o.poNo)+(o.qbInv?'<span style="color:var(--muted)">QB inv '+esc(o.qbInv)+'</span>':'')+
+      '<b>'+(o.freightLate.to>0?'+'+fmtC(o.freightLate.to)+(o.freightLate.from>0?' (was '+fmtC(o.freightLate.from)+')':''):'−'+fmtC(o.freightLate.from)+' (label voided)')+'</b>'+
+      (o.freightLate.service?'<span style="color:var(--hint)">'+esc(o.freightLate.service)+(o.freightLate.tracking?' · '+esc(o.freightLate.tracking):'')+'</span>':'')+
+      '<button class="pill" data-act="freightok" data-id="'+o.id+'" style="color:var(--ok-t);background:rgba(0,160,90,.12)">'+(o.freightLate.to>0?'Added':'Fixed')+' in QuickBooks ✓</button></div>').join("")+'</div>';
   if(invMode==="open"){
     const noPdf=q.filter(poPdfNeeded);
     if(noPdf.length)h+='<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid var(--warn-t,#a15c00);font-size:13.5px">'+
@@ -11609,6 +11656,7 @@ document.addEventListener("click",e=>{
   if(a==="shipsliporder"){e.stopPropagation();packingSlipOrder(id);return;}
   if(a==="upsship"){e.stopPropagation();formUpsShip(id);return;}
   if(a==="shipqueue"){shipQueuePrint();return;}
+  if(a==="freightok"){e.stopPropagation();freightOk(id);return;}
   if(a==="shipjoin"){e.stopPropagation();shipJoin(id,t.dataset.v);return;}
   if(a==="shipsplit"){e.stopPropagation();shipSplit(id);return;}
   if(a==="upssvc"){const S=logState.ups;if(S){S.svc=t.dataset.v;document.querySelectorAll('#upSvc .qchip').forEach(b=>b.classList.toggle("on",b.dataset.v===S.svc));}return;}
