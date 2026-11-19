@@ -1209,6 +1209,8 @@ div.dlrow{cursor:default}
 .dllate{color:var(--warn-t)!important;font-weight:600}
 .dlhist{background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r);padding:8px 12px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--ink-2)}
 .dlhist p{margin:2px 0}
+.dlproof{font-size:13px;line-height:1.5;color:var(--ink-2);background:var(--ok-b);border-radius:var(--r);padding:8px 12px;margin:-4px 0 14px}
+.dlproof b{display:block;font-size:11.5px;letter-spacing:.02em;color:var(--ok-t);margin-bottom:1px}
 .dlctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;min-height:44px}
 .dlctl.on{background:var(--ok-b);border-radius:var(--r);padding:6px 8px}
 .dlstat{font-weight:600;color:var(--ok-t);margin-right:6px;font-variant-numeric:tabular-nums}
@@ -6270,13 +6272,34 @@ function dialPhoneHTML(){
   if(s==="unset")return '<span class="dldot warn"></span>Phone not set up yet — Call opens your computer’s phone app';
   if(s==="error")return '<span class="dldot bad"></span>'+esc(DIAL.err||"Phone error")+' <button class="lnk" data-act="dialinit">Try again</button>';
   return '<span class="dldot"></span><button class="lnk" data-act="dialinit">Connect the phone</button>';}
+/* "Who like them has bought" (Max, 2026-11-19: "target those exact markets with use cases from previous sales; utilize organizations
+   names that have bought"). Real orders only (order book + won deals, 2026-11-19); the Kentucky trading-company site stays unnamed
+   (Max's rule for Toyota Tsusho). Matched on the person's company, title, account type and list. */
+const DIAL_PROOF=[
+ [/county|city of|public works|road|highway|transport|\bdot\b|utilit|municipal|port of|transit|water district|government/i,"King County Road Services bought 55 kits through National Safety Inc in Kent. The City of Lakeland, FL stocked 15."],
+ [/universit|college|campus|school|district|academy|education|\besd\b|student|iaclea|nasn|nurse/i,"Florida Atlantic University put AutoTQ beside every AED on campus and in each of its police vehicles (150 kits). Boca Christian School bought 30."],
+ [/police|sheriff|law enforcement|public safety|tribal|nation|marshal|fbi|security/i,"Cape Coral PD's chief: “To have a product like this… was not even a question.” Comanche Nation PD bought 7, and Rescue One bought 6 for FBI training."],
+ [/construct|contract|builder|electric|mechanical|concrete|paving|crane|roof|excavat|sellen|walsh|flatiron/i,"Moss Construction bought 44 kits; Terry's Electric bought 11 through Safety Products Inc."],
+ [/aero|manufactur|steel|metal|plant|fabricat|industrial|foundry|mill|recycl|chemical|semiconductor|fluke|boeing|paccar|hexcel|plastics|composite|seafood|fish|food|processing|marine|maritime|shipyard/i,"Howmet Aerospace put AutoTQ in its plants; a global trading company's Kentucky metals site started with 9 and planned 30 more. Omco, MacLean-Foss and Seamen Corp. bought too."],
+ [/arena|stadium|sport|hockey|kraken|athletic|team|venue|rink|seahawks|mariners|sounders/i,"The Florida Panthers carry AutoTQ at their arena, at their practice rink and on the road."],
+ [/hospital|health|medical|clinic|ems|fire|rescue|ambulance|paramedic/i,"Children's Hospital of Michigan ordered through Grainger; FAH Emergency Medical Service took 3 for its crews."],
+ [/rental|sunbelt|united rentals|equipment/i,"Sunbelt Rentals ordered through Safety Products Inc."]
+];
+const DIAL_PROOF_CHANNEL="In Washington, National Safety Inc (Kent) closed a 55-kit King County order, and Ballard Industries stocks AutoTQ. UniFirst stocked 150 and Medique 150.";
+function dialProof(e){const r=e.rec||{},c=r.cid?company(r.cid):null;
+  if((c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor")return DIAL_PROOF_CHANNEL;
+  const hay=[e.co,e.title,c&&c.industry,c&&c.name,r.conf,r.source].filter(Boolean).join(" ");
+  const hit=DIAL_PROOF.find(x=>x[0].test(hay));return hit?hit[1]:"King County Road Services bought 55 kits through National Safety Inc, right here in Kent.";}
+function dialPersonal(e){const r=e.rec||{};return /usphonebook/i.test(String(r.phoneSrc||""))&&(r.mobile||r.phone)&&dialDigits(r.mobile||r.phone)===e.d;}
 function dialCardHTML(e){
   const S=dialS(),tm=dialSeattleTime(),hist=dialHist(e);
   return '<div class="card dlcard"><div class="dlwho"><div class="grow"><button class="dlname" data-act="dialopen" data-id="'+esc(e.key)+'">'+esc(e.name)+'</button>'+
     '<p class="t2">'+esc([e.title,e.co].filter(Boolean).join(" · ")||"—")+'</p>'+
     '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.grp?dialGroupLabel(e.grp):"",e.src].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
+    (dialPersonal(e)?'<span class="pill gray" title="Found on USPhoneBook — a personal cell. Check it against the Do Not Call list before you dial.">Personal cell · check DNC</span>':'')+
     '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' in Seattle'+(tm.late?' · after hours':'')+'</span></div></div>'+
+    '<div class="dlproof"><b>Who like them has bought</b> '+esc(dialProof(e))+'</div>'+
     (hist.length?'<div class="dlhist">'+hist.map(x=>'<p><b>'+esc(x.t)+'</b> '+esc(mdStamp(x.at))+(x.by&&x.by!==USER?' · '+esc(shortName(x.by)):'')+(x.note?' — '+esc(x.note.slice(0,160)):'')+'</p>').join("")+'</div>'
       :'<div class="dlhist"><p class="t2">No calls logged yet</p></div>')+
     '<div id="dlctl">'+dialCtlHTML(e)+'</div>'+
