@@ -3187,7 +3187,7 @@ function scDialState(u,mon,days){
     {label:"End-user calls",v:E.n,sub:E.sub,title:"Calls to everyone else: customers, conference leads, end users",bar:false}];
   const today=calls.filter(c=>localDay(c.at)===T).length;
   return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:null,tiles:tiles,status:null,today:today>0,live:false,
-    dial:true,logged:calls.length,loggedT:today,mix:"Dialer",
+    dial:true,logged:calls.length,loggedT:today,mix:"WA & OR calling test · Dialer", /* Max, 2026-11-19: "I'm not the West Rep… test this strategy of only focusing calling one territory" */
     line:pl(calls.length,"call")+" "+(mon===goalMonday()?"this week · "+today+" today":"that week")};
 }
 function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
@@ -3275,7 +3275,7 @@ function scHomeHTML(){
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:scReps(mon)).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow pp"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
-     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.line?esc(s.line):s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
+     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+(s.dial?'':esc(userRegion(u)||"")+' · ')+esc(s.mix)+'</small><small class="sclogd">'+(s.line?esc(s.line):s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
      '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+scBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox||s.dial?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
