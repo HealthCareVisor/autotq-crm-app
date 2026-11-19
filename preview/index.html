@@ -1224,6 +1224,35 @@ div.dlrow{cursor:default}
 .dlmerr{color:var(--dang-t)}
 .dlinrow summary{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;cursor:pointer;list-style:none;border-bottom:1px solid var(--line-2)}
 .dlinbody{padding:10px 14px 14px 84px;font-size:13.5px;line-height:1.5;color:var(--ink-2);white-space:normal}
+/* AutoTQ Dialer page */
+.dhub{min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+.dhbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:22px;padding:10px 28px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--sh-1)}
+.dhbrand{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink)}
+.dhbrand img{height:24px;display:block}
+.dhbrand span{font-size:19px;font-weight:800;letter-spacing:-.015em;padding-left:14px;border-left:1px solid var(--line-3);line-height:26px}
+.dhtabs{display:flex;gap:2px;background:var(--sunken);border-radius:11px;padding:3px}
+.dhtabs button{display:flex;align-items:center;gap:7px;border:0;background:none;padding:8px 16px;border-radius:9px;font:600 13.5px/1 var(--font);color:var(--ink-2);cursor:pointer;transition:background .15s,color .15s}
+.dhtabs button:hover{color:var(--ink)}
+.dhtabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(26,25,22,.12)}
+.dhn{min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--coral-btn);color:#fff;font-size:11.5px;line-height:20px;text-align:center}
+.dhright{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:13px;color:var(--ink-2)}
+.dhphone{display:inline-flex;align-items:center;white-space:nowrap}
+.dhfun{width:100%;max-width:1440px;margin:0 auto;padding:16px 28px 0}
+.dhfun .dlfun{min-width:0}
+.dhmain{width:100%;max-width:1440px;margin:0 auto;padding:14px 28px 48px;flex:1}
+.dhub .dlgrid{grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:20px}
+.dhub .dlrows{max-height:calc(100vh - 262px)}
+.dhub .dlcard{padding:26px 30px;border-radius:var(--r-xl)}
+.dhub .dlname{font-size:28px}
+.dhub .dlnum b{font-size:22px}
+.dhub .btn.dlcall{min-height:52px;padding:0 26px;font-size:16px;border-radius:12px}
+.dhub .qchip kbd{font:600 10.5px/1 var(--font);color:var(--muted);background:var(--sunken);border-radius:4px;padding:2px 4px;margin-right:6px}
+.dhub .qchip.on kbd{background:rgba(255,255,255,.6);color:var(--coral-tt)}
+.dhdeny{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+.dhdeny img{height:30px}.dhdeny h1{font-size:22px;margin:0}
+@media (max-width:900px){.dhbar{flex-wrap:wrap;gap:12px;padding:10px 16px}.dhtabs{order:3;width:100%}.dhtabs button{flex:1;justify-content:center;padding:9px 6px}
+  .dhfun{padding:12px 16px 0}.dhmain{padding:12px 16px 40px}.dhub .dlgrid{grid-template-columns:1fr}.dhub .dlrows{max-height:260px}.dhphone{display:none}
+  .dhub .dlcard{padding:18px}.dhub .dlname{font-size:23px}.dhub .dlwho{flex-direction:column;gap:6px}.dhub .dlnum{align-items:flex-start}}
 .dlproof{font-size:13px;line-height:1.5;color:var(--ink-2);background:var(--ok-b);border-radius:var(--r);padding:8px 12px;margin:-4px 0 14px}
 .dlproof b{display:block;font-size:11.5px;letter-spacing:.02em;color:var(--ok-t);margin-bottom:1px}
 .dlctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;min-height:44px}
@@ -1418,7 +1447,7 @@ async function bootSync(){
   await pullChanges(true);      // full pull — server is the source of truth
   snapshotShadow();             // then baseline the shadow from merged state
   SYNC.booted=true;
-  if(dialAccess())setTimeout(dialInit,1200); /* the dialer's phone: ready to call, and callbacks ring here */
+  if(dialAccess()&&DIALER_HUB)setTimeout(dialInit,1200); /* the dialer's phone: ready to call, and callbacks ring here */
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});
@@ -1604,7 +1633,7 @@ document.addEventListener("keydown",e=>{
 function renderLogin(){
   {const fd=document.getElementById("fbdock");if(fd)fd.remove();}
   const step=logState.setPw?"setpw":(logState.otpEmail?"code":(logState.pwEmail?"pw":"email"));
-  let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Channel CRM</div>';
+  let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+(DIALER_HUB?"Dialer":"Channel CRM")+'</div>';
   if(step==="email"){
     h+='<div class="who">Tap your name to sign in</div><div class="list">'+
      TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em||t.vacant)return"";
@@ -1785,6 +1814,7 @@ function sideHTML(NU,me){
      (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+wsl("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a>'+
      '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+wsl("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
      (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+wsl("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
+    (dialAccess()?'<a class="sitem" href="'+DIAL_URL+'" data-act="extlink">'+wsl("#D12020",SVG.phone)+'<span class="lbl">AutoTQ Dialer<small>Call, follow up, push</small></span></a>':'')+
      (FUT?'<button class="sitem" data-act="hubcrm">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+crmProf+'</small></span></button>'
          :'<button class="sitem on" data-act="sidepopclose">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button>')+
      (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+futIco+'<span class="lbl">Future CRM<small>The new version · only you</small></span>'+svg("check","ck")+'</button>'
@@ -1801,6 +1831,7 @@ function sideHTML(NU,me){
     '<div class="phd">'+esc(me.name)+' · '+esc(roleShort(me))+'</div>'+
     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+svg("box")+'<span class="lbl">Switch to AutoTQ Catalog</span></a>':'')+
     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+svg("check")+'<span class="lbl">Switch to AutoTQ Progress</span></a>':'')+
+    (dialAccess()?'<a class="sitem" href="'+DIAL_URL+'" data-act="extlink">'+svg("phone")+'<span class="lbl">Switch to AutoTQ Dialer</span></a>':'')+
     (futureAccess()?(FUT?'<button class="sitem" data-act="hubcrm">'+svg("chart")+'<span class="lbl">Switch to AutoTQ CRM</span></button>':'<button class="sitem" data-act="hubfuture">'+svg("spark")+'<span class="lbl">Switch to Future CRM</span></button>'):'')+
     (can?'<div class="sep"></div>':'')+
     '<button class="sitem" data-act="chpw">'+svg("user")+'<span class="lbl">Change my password</span></button>'+
@@ -1824,6 +1855,7 @@ function hubMenuHTML(){if(!hubSwitchAccess())return "";const ic=(c,p)=>'<span cl
     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+ic("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, calls, to do</small></span></a>'+
     '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+ic("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+ic("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
+    (dialAccess()?'<a class="sitem" href="'+DIAL_URL+'" data-act="extlink">'+ic("#D12020",SVG.phone)+'<span class="lbl">AutoTQ Dialer<small>Call, follow up, push</small></span></a>':'')+
     (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>You are here</small></span></button>'
         :'<button class="sitem" data-act="hubfuture">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>The new version · only you</small></span></button>'):'')+
     '</div></div>';}
@@ -1866,6 +1898,7 @@ function palItems(q){
     ["help","How this CRM works","Help",()=>{helpSheet();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]];
   if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}],["box","Switch to AutoTQ Catalog","Catalog",()=>{location.href=CAT_URL;}]);
   if(progAccess())acts.push(["check","Switch to AutoTQ Progress","Progress",()=>{location.href=PROG_URL;}]);
+  if(dialAccess())acts.push(["phone","Switch to AutoTQ Dialer","Dialer",()=>{location.href=DIAL_URL;}]);
   if(futureAccess())acts.push(FUT?["chart","Switch to AutoTQ CRM","CRM",()=>{switchHub("crm");}]:["spark","Switch to Future CRM","Future",()=>{switchHub("future");}]);
   const hit=s=>!q||String(s).toLowerCase().includes(q);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2]===t[1]?"":t[2],t[3]));
@@ -1930,6 +1963,7 @@ function render(){
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
   ensureActIds(); // older logged activities may predate ids — editing needs one
   normActTypes(); // meetings → visits, voicemails → calls (left voicemail), travel → visits with company
+  if(DIALER_HUB){renderDialerHub();return;}
   const me=teamById(USER);
   if(!logState.landed){logState.landed=true;if(view==="today")applyRoleDefaults();} /* admins land on Team (Max, 2026-10-16) */
   if(view==="invoicing"&&!invAccess())view="today";
@@ -2438,6 +2472,8 @@ document.addEventListener("dblclick",e=>{
   const b=e.target.closest&&e.target.closest("#wboard");if(!b||e.target!==b)return;
   const r=b.getBoundingClientRect();wbAdd(e.clientX-r.left-WB_W/2,e.clientY-r.top-14);
 });
+const DIAL_URL="dialer/"; /* AutoTQ Dialer (2026-11-19): this same page served at /dialer/ — full-screen, Max's seat only (DIALER_HUB) */
+const DIALER_HUB=/\/dialer\/(index\.html)?$/.test(location.pathname)||new URLSearchParams(location.search).get("hub")==="dialer";
 const PROG_URL="progress/"; /* AutoTQ Progress (2026-11-06): Max's own day-by-day hub (tasks + ideas: Expansion / Marketing / CRM), the Marketing hub page served at /progress/ */
 function progAccess(){return USER==="max";}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
@@ -2452,7 +2488,7 @@ function railGroups(u){
   const p=profile(u);
   /* "dumb simple: Home — Activity — Pipeline — Leads — Quotes" (Max, 2026-10-16 evening) */
   /* Field Map + Conferences are back on the sales rail (Max, 2026-10-20: "add the Field Map back… conference leads back") */
-  if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat(dialAccess(u)?[["dialer","phone","Dialer"]]:[],[["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt",goalsOn()?"My goals":"My KPIs"]])],
+  if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat([["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt",goalsOn()?"My goals":"My KPIs"]])],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
     ["Field",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
   if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["quotes","tag","Quotes"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
@@ -2461,7 +2497,7 @@ function railGroups(u){
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
   const g=[];
   const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(profile(u)==="admin")mg.push(["teamcal","cal","Team calendar"]);if(mg.length)g.push(["Manage",mg]); /* Campaigns tab removed 2026-10-16 — handled outside the CRM */
-  g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat(dialAccess(u)?[["dialer","phone","Dialer"]]:[],[["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]])],
+  g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat([["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]])],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["export","dl","Lists"]]],
     ["Insight",[["insight","spark","Insight"],["map","pin","Field Map"],["conf","cal","Conferences"]]]);
   return g;
@@ -6300,7 +6336,7 @@ function viewDialDial(st){
   const S=dialS(),q=dialQueue(),e=dialCur(q);
   if(e&&!S.cur)S.cur=e.key;
   const srcs=dialSources();if(!srcs.some(x=>x[0]===S.src))S.src="seattle";
-  let h='<div class="dlbar"><span id="dlphone">'+dialPhoneHTML()+'</span><span class="grow"></span>'+
+  let h='<div class="dlbar">'+(DIALER_HUB?'':'<span id="dlphone">'+dialPhoneHTML()+'</span>')+'<span class="grow"></span>'+
     '<label class="dlauto"><input type="checkbox" id="dialAuto"'+(S.auto?" checked":"")+'> Dial the next one automatically</label></div>';
   h+='<div class="dlgrid"><aside class="dlq"><div class="dlqh"><select class="f" id="dialSrc" aria-label="Who to call">'+
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
@@ -6399,7 +6435,7 @@ function dialClock(secs){if(secs==null)secs=DIAL.accepted?Math.round((Date.now()
 function dialCdHTML(){if(!DIAL.cd)return "";const e=DIAL.cdKey&&dialRecByKey(DIAL.cdKey);
   return '<div class="dlcdbox">Calling '+esc(e?e.name:"the next one")+' in <b>'+DIAL.cdLeft+'</b>… <button class="btn sm" data-act="dialpause">Pause</button></div>';}
 function dialOutsHTML(){const S=dialS();
-  return DIAL_OUTS.map(x=>'<span class="qchip'+(S.out===x[0]?" on":"")+(x[0]==="dnc"||x[0]==="wrong"?" dlwarn":"")+'" data-act="dialout" data-v="'+x[0]+'">'+x[1]+'</span>').join("");}
+  return DIAL_OUTS.map((x,i)=>'<span class="qchip'+(S.out===x[0]?" on":"")+(x[0]==="dnc"||x[0]==="wrong"?" dlwarn":"")+'" data-act="dialout" data-v="'+x[0]+'">'+(DIALER_HUB?'<kbd>'+(i+1)+'</kbd>':'')+x[1]+'</span>').join("");}
 /* who could take the order: the account's "Who they buy from" first, then the Washington distributors that have bought */
 function dialDistChoices(e){const r=(e&&e.rec)||{},out=[],add=c=>{if(c&&c.type==="distributor"&&!out.some(x=>x.id===c.id))out.push(c);};
   const co=r.cid?company(r.cid):null;((co&&co.buysFrom)||[]).forEach(b=>add(b.cid&&company(b.cid)));
@@ -6584,6 +6620,39 @@ function dialMeetingOpp(c,e){ensureOpps();const r=e.rec,m=c.meet||{},now=new Dat
     lastContact:localDay(c.at),direct:false,ghRep:USER};
   oppAddNote(o,"Meeting booked from the Dialer"+(c.note?": "+c.note:"."));
   DB.opps.unshift(o);return o;}
+/* ================= AutoTQ Dialer page (Max, 2026-11-19: "Build this thing out beautifully, make it on a new domain like the CRM is…
+   a separate URL only I have access to"). The CRM page served at /dialer/ (or ?hub=dialer): same sign-in and data, its own full-screen
+   shell — brand bar with Dial · Email · Push to CRM, the phone, the day's funnel — and only the dialer seat (DIAL_USERS) gets in. */
+function renderDialerHub(){
+  view="dialer";document.title="AutoTQ Dialer";
+  const me=teamById(USER),scr=document.getElementById("screen");
+  if(!dialAccess()){scr.innerHTML='<div class="dhdeny"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><h1>This page is just for Max.</h1>'+
+    '<a class="btn coral" href="../">Open the CRM</a></div>';return;}
+  const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
+  const body=S.tab==="push"?viewDialPush():(S.tab==="email"?viewDialEmail():viewDialDial(st));
+  const tab=(k,l,n)=>'<button class="'+(S.tab===k?"on":"")+'" data-act="dialtab" data-v="'+k+'">'+esc(l)+(n?'<span class="dhn">'+n+'</span>':'')+'</button>';
+  scr.innerHTML='<div class="dhub"><header class="dhbar"><a class="dhbrand" href="../" title="Back to the CRM"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><span>Dialer</span></a>'+
+    '<nav class="dhtabs">'+tab("dial","Dial",0)+tab("email","Email",drafts)+tab("push","Push to CRM",st.unpushed)+'</nav>'+
+    '<div class="dhright"><span id="dlphone" class="dhphone">'+dialPhoneHTML()+'</span>'+
+    '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'">'+(SYNC.online?"":"Offline")+'</span>'+
+    '<button class="av" style="background:'+me.c+'" data-act="dhmenu" title="'+esc(me.name)+'">'+initials(me.name)+'</button></div></header>'+
+    '<div class="dhfun">'+dialFunnelHTML(st)+'</div><main class="dhmain">'+body+'</main></div>';
+  try{dialAfterRender();}catch(e){}
+  try{trackUsage();}catch(e){}}
+function dialHubMenu(){openSheet('<h2>AutoTQ Dialer</h2><div class="list">'+
+  '<a class="hub" href="../" style="text-decoration:none">'+svg("home")+'<b class="grow">Open the CRM</b>'+chev()+'</a>'+
+  '<button class="hub" data-act="switch">'+svg("users")+'<b class="grow">Sign out</b></button></div>');}
+/* keys on the Dial tab (not while typing): 1–9 = the outcomes in order, C = call, H = hang up, S = skip */
+document.addEventListener("keydown",e=>{
+  if(!DIALER_HUB||!USER||!dialAccess()||dialS().tab!=="dial"||e.ctrlKey||e.metaKey||e.altKey)return;
+  const ae=document.activeElement;if(ae&&(/INPUT|TEXTAREA|SELECT/.test(ae.tagName)||ae.isContentEditable))return;
+  if(document.getElementById("scrim").classList.contains("open"))return;
+  const k=String(e.key).toLowerCase();
+  if(/^[1-9]$/.test(k)){const o=DIAL_OUTS[+k-1];if(o){e.preventDefault();const S=dialS();S.out=S.out===o[0]?"":o[0];if(S.out!=="callback"&&S.out!=="interested")S.cb="";if(S.out!=="meeting")S.meet=null;dialPaint();}}
+  else if(k==="c"){e.preventDefault();dialCall();}
+  else if(k==="h"){if(DIAL.call){e.preventDefault();DIAL.call.disconnect();}}
+  else if(k==="s"){e.preventDefault();const b=document.querySelector('[data-act="dialskip"]');if(b)b.click();}
+});
 /* ================= Dialer email (Max, 2026-11-19: "an email tab on the dialer that will automatically send follow up based on call,
    I approve and it sends… it tailors literature to them"; "use max@goldenhourmedical.com… have like an email inbox and outbound in the
    dialer"). A call with an email address gets a draft in the synced `dialMail` collection (dialer seat only); Claude writes it (dialer
@@ -6621,14 +6690,15 @@ function dialDraftAfter(c,e){
   const m={id:uid(),callId:c.id,key:c.key,to:to,toName:c.name,co:c.co||"",out:c.out,subject:"",body:"",lit:"",status:"drafting",at:new Date().toISOString(),by:USER};
   dialMails().unshift(m);save();dialWrite(m,e);}
 function dialTemplate(m,c,e,lits){
-  const first=String(m.toName||"").split(" ")[0]||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig="\n\n"+((teamById(USER)||{}).name||"Max Herbst")+"\nGolden Hour Medical · AutoTQ";
+  /* casual, the way Max texts a work contact (Max, 2026-11-19: "use the language I taught you for follow ups. Make them sound casual") */
+  const first=String(m.toName||"").split(" ")[0]||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig="\n\n"+(((teamById(USER)||{}).name||"Max").split(" ")[0]);
   const what="We built AutoTQ, an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.";
-  if(m.out==="vm")return {subject:"Tried you just now",lit:"",body:"Hi "+first+",\n\nI just left you a voicemail. The short version: if someone at "+co+" started bleeding badly, would the person closest to them know how to stop it?\n\n"+what+(proof?" "+proof:"")+"\n\nWorth a quick look?"+sig};
+  if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail. Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+(proof?" "+proof:"")+"\n\nWorth a quick look?"+sig};
   const lit=(lits[0]||{}).id||"";
   if(m.out==="meeting"){const w=c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10))+" at "+fmtTimeShort(c.meet.when):"our time";
-    return {subject:"See you "+(c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10)):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today. Looking forward to "+w+". I'll walk you through how AutoTQ works and where it would go at "+co+(c.meet&&c.meet.distName?", and "+c.meet.distName+" can supply it locally":"")+".\n\nI've attached a short overview in case it's useful before then."+sig};}
-  if(m.out==="callback")return {subject:"Calling you back",lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll call you back "+(c.cb?fmtDay(c.cb):"soon")+". In the meantime, here's a one-page look at AutoTQ.\n\n"+what+sig};
-  return {subject:"Good talking today",lit:lit,body:"Hi "+first+",\n\nThanks for the time on the phone"+(c.note?" — "+c.note:"")+".\n\n"+what+(proof?" "+proof:"")+"\n\nI've attached a short overview. Would it help if I put together a station plan for "+co+"?"+sig};}
+    return {subject:"see you "+(c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10)):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today, looking forward to "+w+". I'll show you how it works and where it'd go at "+co+(c.meet&&c.meet.distName?" — "+c.meet.distName+" can get it to you locally":"")+".\n\nSent over a quick overview in case it's handy before then."+sig};}
+  if(m.out==="callback")return {subject:"talk "+(c.cb?fmtDay(c.cb):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?fmtDay(c.cb):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+sig};
+  return {subject:"good talking today",lit:lit,body:"Hi "+first+",\n\nGood talking with you today.\n\n"+what+(proof?" "+proof:"")+"\n\nSent over a quick overview. Want me to sketch out where they'd go at "+co+"?"+sig};}
 async function dialWrite(m,e){
   e=e||dialRecByKey(m.key);const c=dialCalls().find(x=>x.id===m.callId)||{},lits=dialLitFor(e||{rec:{},co:m.co});
   const hist=e?dialHist(e).filter(h=>h.at!==c.at).slice(0,3).map(h=>h.t+" "+mdStamp(h.at)+(h.note?" — "+String(h.note).slice(0,80):"")):[];
@@ -6757,6 +6827,7 @@ function dialAct(a,t){
   if(a==="dialmsend"){dialMailSend(t.dataset.id);return true;}
   if(a==="dialmskip"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m){m.status="skipped";save();render();toast("Skipped · "+m.toName,()=>{m.status="draft";save();render();});}return true;}
   if(a==="dialmredo"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m)dialWrite(m);return true;}
+  if(a==="dhmenu"){dialHubMenu();return true;}
   if(a==="dialtab"){S.tab=t.dataset.v;dialStopCd();render();window.scrollTo(0,0);return true;}
   if(a==="dialmdist"){const m=S.meet||(S.meet={});m.distCid=t.dataset.v;m.distName=t.dataset.v==="none"?"":((company(t.dataset.v)||{}).name||"");m.repPid="";dialPaint();return true;}
   if(a==="dialmrep"){const m=S.meet||(S.meet={});m.repPid=m.repPid===t.dataset.v?"":t.dataset.v;dialPaint();return true;}
@@ -6776,7 +6847,7 @@ function dialAct(a,t){
   if(a==="dialdec"){if(DIAL.incoming){const c=DIAL.incoming;DIAL.incoming=null;c.reject();dialPaint();}return true;}
   if(a==="dialgo"){goView("dialer");return true;}
   if(a==="dialopen"){const e=dialRecByKey(t.dataset.id);if(!e)return true;
-    if(e.k==="p"){pushNav();curPerson=e.id;view="person";render();window.scrollTo(0,0);}
+    if(e.k==="p"){if(DIALER_HUB)openSheet(personSheetHTML(e.id));else{pushNav();curPerson=e.id;view="person";render();window.scrollTo(0,0);}}
     else if(e.k==="lead")formLeadRec(e.id);else formLead(e.id);
     return true;}
   return false;}
@@ -8542,6 +8613,7 @@ function menu(){const FUT=inFuture();openSheet('<h2>'+esc(teamById(USER).name)+'
  (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>'+
    '<a class="hub" href="'+CAT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("box")+'<b class="grow">Switch to AutoTQ Catalog</b>'+chev()+'</a>':'')+
  (progAccess()?'<a class="hub" href="'+PROG_URL+'" data-act="extlink" style="text-decoration:none">'+svg("check")+'<b class="grow">Switch to AutoTQ Progress</b>'+chev()+'</a>':'')+
+ (dialAccess()?'<a class="hub" href="'+DIAL_URL+'" data-act="extlink" style="text-decoration:none">'+svg("phone")+'<b class="grow">Switch to AutoTQ Dialer</b>'+chev()+'</a>':'')+
  (futureAccess()?(FUT?'<button class="hub" data-act="hubcrm">'+svg("chart")+'<b class="grow">Switch to AutoTQ CRM</b>'+chev()+'</button>':'<button class="hub" data-act="hubfuture">'+svg("spark")+'<b class="grow">Switch to Future CRM</b>'+chev()+'</button>'):'')+
  (FUT?'':'<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>')+
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+
