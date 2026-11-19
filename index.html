@@ -1642,7 +1642,8 @@ function toast(m,undo){const t=document.getElementById("toast");t.textContent=m;
   if(undo){const b=document.createElement("button");b.type="button";b.className="tundo";b.textContent="Undo";b.onclick=e=>{e.stopPropagation();t.classList.remove("show");undo();};t.appendChild(b);}
   t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?5000:1900);}
 function openSheet(html){document.getElementById("sheet").classList.remove("rawide");document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");try{fbUpdate();}catch(e){}}
-function closeSheet(){document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}}
+function closeSheet(){document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}
+  if(logState.srStale){logState.srStale=false;render();}} /* serials saved while the sheet was open */
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.fold==="invln")logState.invLnOpen=e.target.open;},true);
@@ -9605,7 +9606,8 @@ function srChipHTML(o){
 function srListHTML(){
   const S=logState.sr;if(!S)return "";
   const o=orderById(S.oid),need=o?srNeed(o):0;
-  return '<p style="margin:10px 0 6px;font-size:13px"><b>'+S.codes.length+(need?' / '+need:'')+'</b> serial'+(S.codes.length===1?'':'s')+(need&&S.codes.length>=need?' — all units covered ✓':need?' — '+(need-S.codes.length)+' to go':'')+'</p>'+
+  return '<p style="margin:10px 0 6px;font-size:13px"><b>'+S.codes.length+(need?' / '+need:'')+'</b> serial'+(S.codes.length===1?'':'s')+(need&&S.codes.length>=need?' — all units covered ✓':need?' — '+(need-S.codes.length)+' to go':'')+
+    (S.codes.length?' <span style="color:var(--ok-t)">· saved to the order</span>':'')+'</p>'+
     (S.codes.length?'<div style="display:flex;flex-wrap:wrap;gap:6px">'+S.codes.map((c,i)=>'<span class="pill" style="display:inline-flex;gap:6px;align-items:center;background:rgba(120,120,120,.10);color:var(--ink)" title="'+esc(c)+'">'+esc(serialLabel(c))+
       '<button class="tkdel" data-act="srdel" data-i="'+i+'" aria-label="Remove '+esc(serialLabel(c))+'" style="width:18px;height:18px">'+svg("x")+'</button></span>').join("")+'</div>':'');
 }
@@ -9632,7 +9634,7 @@ function formSerials(oid){
    '<div>'+lbl('Ship date')+'<input class="f" id="srDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div>'+
    '<div>'+lbl('Shipping cost <span style="font-weight:400;color:var(--hint)">optional</span>')+'<input class="f" id="srCost" inputmode="decimal" value="'+(o.shipCost||"")+'" placeholder="$" style="width:110px"></div></div>'+
    '<button class="btn coral block" data-act="srsave" data-id="'+o.id+'" style="margin-top:16px">Save</button>'+
-   '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">Saved here first. Then it’s marked <b>to Devin</b> until it’s entered in Devin’s order system.</p>');
+   '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">Each serial is saved to the order the moment you add it — closing this loses nothing. Save keeps the carrier and tracking. Then it’s marked <b>to Devin</b> until it’s entered in Devin’s order system.</p>');
   setTimeout(()=>{const el=document.getElementById("srIn");if(el)el.focus();},60);
 }
 function srAddCodes(codes){
@@ -9644,9 +9646,21 @@ function srAddCodes(codes){
     if(other&&!confirm("Serial "+serialLabel(c)+" is already on "+(shortAcct(other.account)||"another order")+" (PO "+(other.poNo||"—")+").\n\nAdd it here too? (OK only if that unit came back, e.g. a returned loaner.)")){dup.push(serialLabel(c)+" (on "+shortAcct(other.account)+")");continue;}
     S.codes.push(c);added.push(c);
   }
+  if(added.length)srCommit();
   const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();
   if(dup.length)toast("Skipped: "+dup.join(", "));
   else if(added.length)toast(added.length===1?"Added "+serialLabel(added[0]):"Added "+added.length+" serials");
+}
+/* every add or remove lands on the order and syncs right away (Max, 2026-11-19: 55 National Safety serials vanished — they lived
+   only in the open sheet, and a click outside it or Esc closed it before Save). Save still owns carrier / tracking / cost. */
+function srCommit(){
+  const S=logState.sr;if(!S)return;const o=orderById(S.oid);if(!o)return;
+  const now=new Date().toISOString(),old={};(o.serials||[]).forEach(s=>{old[s.code]=s;});
+  const before=(o.serials||[]).map(s=>s.code).join("\n");
+  if(S.codes.join("\n")===before)return;
+  o.serials=S.codes.map(c=>old[c]||{code:c,at:now,by:USER});
+  if(o.serials.length)o.devin={state:"todo",at:now,by:USER};
+  save();logState.srStale=true; /* the list behind the sheet redraws when it closes */
 }
 function saveSerials(oid){
   const o=orderById(oid),S=logState.sr;if(!o||!S)return;
@@ -12971,7 +12985,7 @@ document.addEventListener("click",e=>{
   if(a==="lnunship"){lnMarkShipped(id,false);return;}
   if(a==="sradd"){const el=document.getElementById("srIn");srAddCodes(serialSplit(el?el.value:""));if(el){el.value="";el.focus();}return;}
   if(a==="srbuild"){const r=serialBuild(val("srY"),val("srM"),val("srL"),val("srS"));if(r.error){toast(r.error);return;}srAddCodes(r.codes);const el=document.getElementById("srS");if(el){el.value="";el.focus();}return;}
-  if(a==="srdel"){const S=logState.sr;if(S){S.codes.splice(+t.dataset.i,1);const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();}return;}
+  if(a==="srdel"){const S=logState.sr;if(S){S.codes.splice(+t.dataset.i,1);srCommit();const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();}return;}
   if(a==="srcar"){const S=logState.sr;if(S){S.carrier=t.dataset.v;document.querySelectorAll('#srCar .qchip').forEach(x=>x.classList.toggle("on",x.dataset.v===S.carrier));}return;}
   if(a==="srsave"){saveSerials(id);return;}
   if(a==="srdevin"){srDevinDone(id);return;}
