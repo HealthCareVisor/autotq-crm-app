@@ -1227,6 +1227,8 @@ button.dlrow:hover{background:var(--hover)}
 div.dlrow{cursor:default}
 .dlrn{font-size:13.5px;font-weight:600;display:flex;gap:6px;align-items:center}
 .dlrs{font-size:12px;color:var(--muted)}
+.dlorg{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;gap:8px;margin:0;padding:7px 12px 5px;background:var(--surface-2);border-bottom:1px solid var(--line-2);font-size:12px;font-weight:700;color:var(--ink)}
+.dlorg span{font-weight:500;color:var(--muted)}
 .dldone summary{font-size:13px;color:var(--ink-2);cursor:pointer;margin:4px 2px 8px}
 .dlcard{padding:20px 22px}
 .dlwho{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
@@ -6526,7 +6528,8 @@ function dialQueue0(){
     const nx=dialNextTry(e.key);if(nx&&nx.date>T)return;
     e.last=last[e.key]||"";e.next=nx;e.due=due.has(e.key)||!!(nx&&nx.why==="call back");
     e.rank=e.due?0:(nx?1:(e.last?3:2));q.push(e);});
-  q.sort((a,b)=>a.rank-b.rank||String(a.last).localeCompare(String(b.last))||a.name.localeCompare(b.name));
+  if(dialByOrg(S.src))q.sort((a,b)=>(a.due?0:1)-(b.due?0:1)||dialOrgKey(a).localeCompare(dialOrgKey(b))||a.name.localeCompare(b.name));
+  else q.sort((a,b)=>a.rank-b.rank||String(a.last).localeCompare(String(b.last))||a.name.localeCompare(b.name));
   const sk=S.skipped||[];
   return q.filter(e=>!sk.includes(e.key)).concat(sk.map(k=>q.find(e=>e.key===k)).filter(Boolean));}
 /* the card stays on the person you're calling or writing up, even if a sync drops them from the queue */
@@ -6597,6 +6600,28 @@ function dialMapHTML(q,cur){const S=dialS(),G=window.US_GEO&&US_GEO.states;if(!G
     (S.city?'<button class="qchip on" data-act="dialcity" data-v="">'+esc(dialCityName(S.city))+' · '+((by[S.city]||{}).n||0)+' '+svg("x")+'</button>':'');
   return '<div class="dlmap">'+svgh+'<p class="dlmapn">'+(chips||(pts.length?'Tap a state or a city to call only the people there':'Nobody left to call here today'))+
     (none?'<span class="t2"> · '+none+' with no city</span>':'')+'</p></div>';}
+/* Distributor reps and Cold distributors go organization by organization (Max, 2026-11-19: "sort by organization"): the queue, the
+   rows (a heading per organization) and Call / Save / auto-dial all follow it. Call-backs that are due stay on top. */
+function dialByOrg(src){return src==="t:dist"||src==="t:cold";}
+function dialOrgKey(e){return String(e.co||"~").trim().toLowerCase();}
+/* the same tab's people with no phone number on file (Washington / Oregon by home or coverage state), by organization */
+function dialNoNumber(t){const S=dialS(),sold=dialSold(),out=[];
+  DB.people.forEach(p=>{if(!p||p.removed)return;const e=dialEntry("p",p);if(e.d)return;
+    const area=dialAreaStates(personStates(p).concat(p.state?[p.state]:[]),"");if(!area.length||(S.st&&!area.includes(S.st)))return;
+    if(dialTabE(e,sold)===t)out.push(e);});
+  return out.sort((a,b)=>dialOrgKey(a).localeCompare(dialOrgKey(b))||a.name.localeCompare(b.name));}
+function dialOrgRowsHTML(q,e,S){let h="",org=null;const cnt={};q.forEach(x=>{if(!x.due){const k=dialOrgKey(x);cnt[k]=(cnt[k]||0)+1;}});
+  q.forEach(x=>{const k=x.due?"\u0000due":dialOrgKey(x);
+    if(k!==org){org=k;h+='<p class="dlorg">'+(x.due?'Call-backs due':esc(x.co||"No organization")+'<span>'+cnt[k]+'</span>')+'</p>';}
+    h+='<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
+      '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
+      '<span class="dlrs">'+esc([x.due?x.co:"",x.title,x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>';});
+  return h;}
+function dialNoNumberHTML(t){const l=dialNoNumber(t);if(!l.length)return "";let org=null,h="";
+  l.forEach(x=>{const k=dialOrgKey(x);if(k!==org){org=k;h+='<p class="dlorg">'+esc(x.co||"No organization")+'<span>'+l.filter(y=>dialOrgKey(y)===k).length+'</span></p>';}
+    h+='<button class="dlrow" data-act="dialopen" data-id="'+esc(x.key)+'"><span class="dlrn">'+esc(x.name)+'</span><span class="dlrs">'+
+      esc([x.title,x.rec.email?"email only":"no email either"].filter(Boolean).join(" · "))+'</span></button>';});
+  return '<details class="fold dldone"><summary>No number yet · '+l.length+'</summary><div class="list dlrows">'+h+'</div></details>';}
 function viewDialDial(st){
   const S=dialS(),qAll=dialQueue(),tabQ=S.src.indexOf("t:")===0;
   const q=dialQueueView(qAll),e=dialCur(q);
@@ -6613,11 +6638,12 @@ function viewDialDial(st){
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+(tabOn?dialMapHTML(qAll,e):'')+
     '<p class="dlqn">'+q.length+' to call'+(tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
-    (q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
+    (q.length&&dialByOrg(S.src)?dialOrgRowsHTML(q,e,S):q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
       '<span class="dlrs">'+esc([x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
+    (dialByOrg(S.src)?dialNoNumberHTML(S.src.slice(2)):'')+
     (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,60).map(c=>
       '<div class="dlrow"><span class="dlrn">'+esc(c.name||"—")+'</span><span class="dlrs">'+esc(dialOutLabel(c.out)+" · "+fmtTimeShort(c.at)+(c.pushed?" · in the CRM":""))+'</span></div>').join("")+'</div></details>':'')+
     '</aside><section class="dlmain">'+(e?dialCardHTML(e):'<div class="card empty">Nobody to call right now.</div>')+'</section></div>';
