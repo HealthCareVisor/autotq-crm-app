@@ -1209,8 +1209,9 @@ body.invpagedrag .content{outline:3px dashed var(--coral,#e8543f);outline-offset
 .dltmain{display:flex;flex-direction:column;gap:10px;padding:16px 18px}.dlthead{display:flex;align-items:center;gap:10px}
 @media (max-width:900px){.dltgrid{grid-template-columns:1fr}.dltlist{max-height:220px;overflow:auto}}
 .dlmap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg,12px);padding:8px 8px 6px;margin:0 0 8px}
-.dlmapsvg{display:block;width:100%;height:auto}
-.dlmapwa{fill:var(--sunken);stroke:var(--line);stroke-width:.6;stroke-linejoin:round}
+.dlmapsvg{display:block;width:100%;height:auto}.dlmapsvg.both{max-height:300px}
+.dlmapwa{fill:var(--sunken);stroke:var(--line);stroke-width:.6;stroke-linejoin:round;cursor:pointer;transition:opacity .12s}
+.dlmapwa:hover{stroke:var(--muted)}.dlmapwa.dim{opacity:.45}
 .dlmdot{cursor:pointer}.dlmdot circle{fill:var(--coral-btn);fill-opacity:.62;stroke:#fff;stroke-width:.55;transition:fill-opacity .12s}
 .dlmdot:hover circle{fill-opacity:.9}.dlmdot.on circle{fill-opacity:1}.dlmdot.dim circle{fill-opacity:.22}
 .dlmcur{fill:none;stroke:var(--ink);stroke-width:.7;pointer-events:none}
@@ -6269,8 +6270,9 @@ function listReadChips(f){
    same way the rest of the CRM does (contact / confLeadCall / lead touch), with dialer:true, secs and phone. */
 const DIAL_USERS=["max"];
 /*DIAL-CORE*/
-/* The Dialer's three Washington tabs, its city table and the map projection (Max, 2026-11-19: "Distributor Reps, End User Reps and
-   Cold Distributors all their own tabs… a web in the state showing the contacts"). Tested on its own by
+/* The Dialer's three tabs, its Washington and Oregon city tables and the map projection (Max, 2026-11-19: "Distributor Reps, End User
+   Reps and Cold Distributors all their own tabs… a web in the state showing the contacts"; Oregon added the same evening: "Yes, add
+   Oregon"). Tested on its own by
    AutoTQ_CRM_scripts/dialer/core_test.ts — keep it free of page globals. */
 const DIAL_TABS=[["dist","Distributor reps"],["enduser","End users"],["cold","Cold distributors"]];
 /* the scorecard's call kinds (scCallKind: rep / src / eu) are the tabs, so a call counts in the KPI of the tab it was made from */
@@ -6296,7 +6298,7 @@ const WA_CITY_LL={"seattle":[47.606,-122.332],"bellevue":[47.610,-122.201],"redm
   "bremerton":[47.567,-122.633],"port orchard":[47.540,-122.636],"silverdale":[47.645,-122.695],"poulsbo":[47.736,-122.646],
   "bainbridge island":[47.626,-122.521],"port townsend":[48.117,-122.760],"port angeles":[48.118,-123.430],"sequim":[48.080,-123.102],
   "forks":[47.950,-124.385],"aberdeen":[46.975,-123.816],"hoquiam":[46.981,-123.889],"ocean shores":[46.973,-124.156],
-  "raymond":[46.686,-123.733],"long beach":[46.352,-124.054],"shelton":[47.215,-123.101],
+  "raymond":[46.686,-123.733],"long beach":[46.352,-124.054],"ilwaco":[46.309,-124.043],"westport":[46.890,-124.104],"shelton":[47.215,-123.101],
   "olympia":[47.038,-122.900],"lacey":[47.034,-122.823],"tumwater":[47.007,-122.909],"centralia":[46.716,-122.954],
   "chehalis":[46.662,-122.964],"morton":[46.558,-122.275],"longview":[46.138,-122.938],"kelso":[46.147,-122.908],
   "vancouver":[45.639,-122.661],"camas":[45.587,-122.400],"washougal":[45.583,-122.353],"battle ground":[45.781,-122.533],
@@ -6311,14 +6313,51 @@ const WA_CITY_LL={"seattle":[47.606,-122.332],"bellevue":[47.610,-122.201],"redm
   "liberty lake":[47.675,-117.111]};
 const WA_CITY_FIX={"sedro wooley":"sedro-woolley","sedro-wooley":"sedro-woolley","sedro woolley":"sedro-woolley","sea-tac":"seatac",
   "bainbridge":"bainbridge island","univ place":"university place","du pont":"dupont"};
-/* the table key for a typed city name ("" when it isn't a Washington city we know) */
-function dialCityKey(city){
-  let c=String(city==null?"":city).trim().toLowerCase().replace(/\s+/g," ").replace(/,.*$/,"");
+/* Oregon's table is keyed "<city>|or" on the map, so Redmond / North Bend OR never share a dot with Redmond / North Bend WA.
+   St. Helens sits a hair inland: the drawn outline puts its riverbank in Washington. */
+const OR_CITY_LL={"portland":[45.515,-122.679],"gresham":[45.498,-122.431],"troutdale":[45.539,-122.387],"fairview":[45.539,-122.434],
+  "beaverton":[45.487,-122.804],"hillsboro":[45.523,-122.990],"forest grove":[45.520,-123.111],"cornelius":[45.520,-123.060],
+  "tigard":[45.431,-122.771],"tualatin":[45.384,-122.764],"sherwood":[45.357,-122.840],"wilsonville":[45.300,-122.774],
+  "lake oswego":[45.421,-122.671],"west linn":[45.366,-122.612],"oregon city":[45.357,-122.607],"milwaukie":[45.446,-122.639],
+  "clackamas":[45.408,-122.570],"happy valley":[45.447,-122.530],"canby":[45.263,-122.692],"molalla":[45.148,-122.577],
+  "estacada":[45.290,-122.334],"sandy":[45.397,-122.261],"aurora":[45.231,-122.756],"donald":[45.222,-122.838],"hubbard":[45.182,-122.808],
+  "woodburn":[45.144,-122.855],"silverton":[45.005,-122.783],"keizer":[44.990,-123.026],"salem":[44.943,-123.035],
+  "stayton":[44.801,-122.794],"monmouth":[44.849,-123.234],"independence":[44.851,-123.187],"dallas":[44.919,-123.317],
+  "mcminnville":[45.210,-123.199],"newberg":[45.300,-122.973],"st helens":[45.850,-122.860],"scappoose":[45.754,-122.877],
+  "astoria":[46.188,-123.831],"warrenton":[46.165,-123.924],"seaside":[45.993,-123.923],"tillamook":[45.456,-123.844],
+  "lincoln city":[44.958,-124.018],"newport":[44.637,-124.053],"albany":[44.637,-123.106],"corvallis":[44.565,-123.262],
+  "lebanon":[44.537,-122.907],"sweet home":[44.398,-122.736],"junction city":[44.219,-123.205],"eugene":[44.052,-123.087],
+  "springfield":[44.046,-123.022],"veneta":[44.049,-123.351],"creswell":[43.918,-123.024],"cottage grove":[43.798,-123.059],
+  "florence":[43.983,-124.100],"reedsport":[43.702,-124.096],"coos bay":[43.367,-124.218],"north bend":[43.407,-124.224],
+  "empire":[43.390,-124.280],"roseburg":[43.217,-123.342],"grants pass":[42.439,-123.328],"medford":[42.327,-122.876],
+  "central point":[42.376,-122.916],"white city":[42.437,-122.859],"eagle point":[42.473,-122.803],"jacksonville":[42.313,-122.967],
+  "ashland":[42.195,-122.709],"klamath falls":[42.225,-121.782],"lakeview":[42.189,-120.346],"bend":[44.058,-121.315],
+  "redmond":[44.272,-121.174],"prineville":[44.300,-120.834],"madras":[44.633,-121.129],"sisters":[44.291,-121.549],
+  "la pine":[43.680,-121.503],"the dalles":[45.594,-121.178],"hood river":[45.705,-121.521],"pendleton":[45.672,-118.788],
+  "hermiston":[45.840,-119.289],"umatilla":[45.917,-119.343],"boardman":[45.840,-119.701],"la grande":[45.325,-118.088],
+  "baker city":[44.775,-117.834],"ontario":[44.027,-116.963],"burns":[43.586,-119.054],"john day":[44.416,-118.953],
+  "brookings":[42.053,-124.284],"gold beach":[42.407,-124.422]};
+const DIAL_AC={WA:new Set(["206","253","360","425","509","564"]),OR:new Set(["503","541","458","971"])};
+/* the table key for a typed city name ("" when it isn't a Washington or Oregon city we know). The record's state picks the table
+   first ("Redmond" + OR → Redmond OR), then the other one; no state → Washington first. A ", OR" / ", Washington" on the name counts. */
+function dialCityKey(city,st){
+  let c=String(city==null?"":city).trim().toLowerCase().replace(/\s+/g," ");
+  const m=/,\s*(wa|or|washington|oregon)\b/.exec(c);if(m)st=m[1].slice(0,1)==="o"?"OR":"WA";
+  c=c.replace(/,.*$/,"").replace(/\./g,"").trim();
   if(!c)return "";
   c=c.replace(/^(sw|se|nw|ne|n|s|e|w|way)\s+/,"");
-  c=WA_CITY_FIX[c]||c;
-  return WA_CITY_LL[c]?c:"";}
-function dialCityLL(city){const k=dialCityKey(city);return k?WA_CITY_LL[k]:null;}
+  const wa=()=>{const k=WA_CITY_FIX[c]||c;return WA_CITY_LL[k]?k:"";},or=()=>OR_CITY_LL[c]?c+"|or":"";
+  return String(st||"").trim().toUpperCase().slice(0,2)==="OR"?(or()||wa()):(wa()||or());}
+function dialKeyLL(k){k=String(k||"");return /\|or$/.test(k)?OR_CITY_LL[k.slice(0,-3)]||null:WA_CITY_LL[k]||null;}
+function dialCityLL(city,st){const k=dialCityKey(city,st);return k?dialKeyLL(k):null;}
+/* "portland|or" → "Portland, OR" (short: "Portland", for map labels) */
+function dialCityName(k,short){k=String(k||"");const or=/\|or$/.test(k),n=k.replace(/\|or$/,"").replace(/(^|[\s-])\w/g,x=>x.toUpperCase());
+  return or&&!short?n+", OR":n;}
+/* which of the Dialer's two states a record is in: its home and coverage states decide; with none, the phone's area code */
+function dialAreaStates(sts,digits){
+  const s=(sts||[]).map(x=>String(x==null?"":x).trim().toUpperCase()).filter(Boolean).map(x=>x==="WASHINGTON"?"WA":x==="OREGON"?"OR":x);
+  if(s.length)return ["WA","OR"].filter(x=>s.includes(x));
+  const ac=String(digits||"").slice(0,3);return ["WA","OR"].filter(x=>DIAL_AC[x].has(ac));}
 /* the projection us_geo.js was drawn in (Albers USA, 960×600): equal-area conic, parallels 29.5° / 45.5°, rotated 96°, scale 1280 */
 function waXY(lat,lon){
   const r=Math.PI/180,p0=29.5*r,p1=45.5*r,n=(Math.sin(p0)+Math.sin(p1))/2,C=Math.cos(p0)*Math.cos(p0)+2*n*Math.sin(p0),r0=Math.sqrt(C)/n;
@@ -6386,28 +6425,27 @@ function dialPool(src){
     return L?(L.items||[]).map(it=>it.pid&&person(it.pid)?dialEntry("p",person(it.pid)):null).filter(Boolean):[];}
   if(src.indexOf("imp:")===0){const conf=src.slice(4);return DB.leads.filter(l=>!l.removed&&l.conf===conf).map(l=>dialEntry("lead",l));}
   if(src.indexOf("t:")===0){const t=src.slice(2),cust=dialCustomerCids(),sold=dialSold();
-    return dialEveryone().filter(dialIsWa).filter(e=>{e.tab=dialTabE(e,sold);if(e.tab!==t)return false;e.grp=dialGroup(e,cust);return true;});}
+    return dialEveryone().filter(dialInArea).filter(e=>{e.tab=dialTabE(e,sold);if(e.tab!==t)return false;e.grp=dialGroup(e,cust);return true;});}
   if(src==="confwest")return (DB.confLeads||[]).filter(l=>!l.removed&&WEST_ST.has(String(l.state||"").trim().toUpperCase().slice(0,2))).map(l=>dialEntry("cl",l));
   if(src==="wa"||src.indexOf("wa:")===0){const g=src.slice(3),cust=dialCustomerCids();
-    return dialEveryone().filter(dialIsWa).filter(e=>{e.grp=dialGroup(e,cust);return !g||e.grp===g;});}
+    return dialEveryone().filter(dialInArea).filter(e=>{e.grp=dialGroup(e,cust);return !g||e.grp===g;});}
   return dialEveryone().filter(dialSeattle);}
 function dialEveryone(){ensureLeads();const out=[]; /* contacts first, so a person who is also a lead is dialed (and logged) as the contact */
   DB.people.forEach(p=>{if(!p.removed)out.push(dialEntry("p",p));});
   DB.leads.forEach(l=>{if(!l.removed)out.push(dialEntry("lead",l));});
   (DB.confLeads||[]).forEach(l=>{if(!l.removed)out.push(dialEntry("cl",l));});
   return out;}
-/* Washington (Max, 2026-11-19: "ALL leads we've ever come in contact with through Washington… group them"): a WA state, or no state
-   and a Washington area code. Grouped so a calling session can take one kind of conversation at a time. */
-const WA_AC=new Set(["206","253","360","425","509","564"]);
+/* Washington and Oregon (Max, 2026-11-19: "ALL leads we've ever come in contact with through Washington… group them"; Oregon the same
+   evening): a WA / OR home or coverage state, or no state and a WA / OR area code (dialAreaStates). Grouped so a calling session can
+   take one kind of conversation at a time. */
 const WEST_ST=new Set("WA OR CA ID MT NV AZ UT CO NM WY AK HI".split(" "));
 function dialConfWestCount(){const seen=new Set();dialPool("confwest").forEach(e=>{if(e.d&&!e.rec.dnc)seen.add(e.d);});return seen.size;}
 const DIAL_GROUPS=[["channel","Channel partners"],["customers","Customers & demos"],["conference","Conference leads"],["inbound","Inbound inquiries"],["endusers","Other end users"]];
 function dialGroupLabel(g){return (DIAL_GROUPS.find(x=>x[0]===g)||["",""])[1];}
-function dialIsWa(e){if(!e.d)return false;
-  if(e.k==="p"){const sts=personStates(e.rec).concat(e.rec.state?[e.rec.state]:[]).map(s=>String(s||"").trim().toUpperCase()).filter(Boolean); /* home state or a coverage state */
-    if(sts.length)return sts.includes("WA")||sts.includes("WASHINGTON");}
-  else if(e.state)return e.state==="WA";
-  return WA_AC.has(e.d.slice(0,3));}
+function dialAreaOf(e){if(e.area)return e.area;if(!e.d)return e.area=[];
+  const sts=e.k==="p"?personStates(e.rec).concat(e.rec.state?[e.rec.state]:[]):[e.rec.state]; /* home state or a coverage state */
+  return e.area=dialAreaStates(sts,e.d);}
+function dialInArea(e){return dialAreaOf(e).length>0;}
 /* accounts that bought from us, took a loaner or hold a demo unit ($0 web orders and the old order book's counts included) */
 /* short-lived memo for lookups that walk every order (each ~70 ms on the full book); the key moves when records are added */
 function dialMemo(name,key,fn,ttl){const M=DIAL.memo||(DIAL.memo={}),c=M[name],now=Date.now();
@@ -6439,7 +6477,7 @@ function dialTabE(e,sold){if(e.k==="cl"&&String(e.rec.segment||"")==="Set Aside"
 /* people per tab (one per number, Do not call and wrong numbers left out) — the counts on the tabs */
 function dialTabCounts(){const n={dist:0,enduser:0,cold:0},seen=new Set();
   const sold=dialSold();
-  dialEveryone().filter(dialIsWa).forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
+  dialEveryone().filter(dialInArea).forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
   return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
 /* ---- the Dialer's own call log (Max, 2026-11-19: "Activity doesn't auto log into CRM until I push it"): every Save lands in the
@@ -6494,7 +6532,9 @@ function dialQueue0(){
 /* the card stays on the person you're calling or writing up, even if a sync drops them from the queue */
 /* the queue the card works from: the tab's queue, narrowed to the city picked on the map. Call, Save, Skip and the auto-dial all use
    it, so nothing can act on someone the card isn't showing */
-function dialQueueView(qAll){const S=dialS();qAll=qAll||dialQueue();return S.src.indexOf("t:")===0&&S.city?qAll.filter(x=>dialCityE(x)===S.city):qAll;}
+function dialQueueView(qAll){const S=dialS();qAll=qAll||dialQueue();if(S.src.indexOf("t:")!==0)return qAll;
+  if(S.st)qAll=qAll.filter(x=>dialAreaOf(x).includes(S.st));
+  return S.city?qAll.filter(x=>dialCityE(x)===S.city):qAll;}
 function dialCur(q){const S=dialS();q=q||dialQueueView();
   const hit=S.cur&&q.find(e=>e.key===S.cur);if(hit)return hit;
   if(S.cur&&(DIAL.callKey===S.cur||S.out||S.note||S.hold===S.cur)){const e=dialRecByKey(S.cur);if(e)return e;}
@@ -6513,7 +6553,7 @@ function dialSeattleTime(){const d=new Date(),t=d.toLocaleTimeString("en-US",{ti
 function dialSources(){ensureLeads();
   const imps=[...new Set(DB.leads.filter(l=>!l.removed&&/^Dialer: /.test(l.conf||"")).map(l=>l.conf))];
   const lists=(DB.lists||[]).filter(l=>!l.removed),wc=dialWaCounts();
-  return [["seattle","Seattle area"],["wa","Washington · everyone ("+wc.all+")"],["confwest","Conference leads · West ("+dialConfWestCount()+")"]].concat(
+  return [["seattle","Seattle area"],["wa","Washington & Oregon · everyone ("+wc.all+")"],["confwest","Conference leads · West ("+dialConfWestCount()+")"]].concat(
     imps.map(c=>["imp:"+c,c.slice(8)+" (imported)"]),lists.map(l=>["list:"+l.id,l.name+" (list)"]));}
 /* ---- view ---- */
 const DIAL_GOAL=150;
@@ -6529,25 +6569,34 @@ function dialFunnelHTML(st){const pct=Math.min(100,Math.round(st.n/DIAL_GOAL*100
   return '<div class="dlfun"><div class="dlfunbar"><span style="width:'+pct+'%"></span></div><p class="t2"><b>'+st.n+'</b> / '+DIAL_GOAL+' dials · <b>'+st.talk+
     '</b> conversation'+(st.talk===1?'':'s')+' · <b>'+st.meet+'</b> meeting'+(st.meet===1?'':'s')+' booked · <b>'+st.hot+'</b> interested</p></div>';}
 /* where a person is on the map: their own city, else their account's */
+/* an account's city stands in for a person with none only when the account is in one of the person's states (or has no state) */
+function dialAccountCityOk(e,c){const s=dialAreaStates([c.state],"");return !String(c.state||"").trim()||s.some(x=>dialAreaOf(e).includes(x));}
 function dialCityE(e){if(e.cityKey!=null)return e.cityKey;const c=e.k==="p"&&e.rec.cid?company(e.rec.cid):null;
-  e.cityKey=dialCityKey(e.city)||(c?dialCityKey(c.city):"");return e.cityKey;}
-function dialCityName(k){return String(k||"").replace(/(^|[\s-])\w/g,m=>m.toUpperCase());}
-/* Washington with a dot per city for the tab's queue (Max, 2026-11-19: "a web in the state showing the contacts"); tap a city to call
-   only the people there */
-function dialMapHTML(q,cur){const S=dialS(),geo=window.US_GEO&&US_GEO.states&&US_GEO.states.WA;if(!geo)return "";
-  const by={};let none=0;
-  q.forEach(e=>{const k=dialCityE(e);if(!k){none++;return;}(by[k]=by[k]||{k:k,n:0}).n++;});
-  const pts=Object.values(by).map(c=>{const ll=WA_CITY_LL[c.k],xy=waXY(ll[0],ll[1]);return Object.assign(c,{x:xy[0],y:xy[1],r:Math.round((1.9+1.25*Math.sqrt(c.n))*10)/10});})
+  e.cityKey=dialCityKey(e.city,e.state)||(c&&dialAccountCityOk(e,c)?dialCityKey(c.city,c.state):"");return e.cityKey;}
+/* Washington and Oregon with a dot per city for the tab's queue (Max, 2026-11-19: "a web in the state showing the contacts"); tap a
+   state to call only the people there (the map zooms to it), tap a city to call only that city */
+const DIAL_STATES=[["WA","Washington","56 13 127 95"],["OR","Oregon","27 69 147 123"]];
+const DIAL_MAP_BOTH="27 14 154 178";
+function dialStateName(st){return (DIAL_STATES.find(x=>x[0]===st)||["",""])[1];}
+function dialMapHTML(q,cur){const S=dialS(),G=window.US_GEO&&US_GEO.states;if(!G||!G.WA||!G.OR)return "";
+  const by={},nSt={WA:0,OR:0};let none=0;
+  q.forEach(e=>{dialAreaOf(e).forEach(s=>nSt[s]++);if(S.st&&!dialAreaOf(e).includes(S.st))return;
+    const k=dialCityE(e);if(!k){none++;return;}(by[k]=by[k]||{k:k,n:0}).n++;});
+  const pts=Object.values(by).map(c=>{const ll=dialKeyLL(c.k),xy=waXY(ll[0],ll[1]);return Object.assign(c,{x:xy[0],y:xy[1],r:Math.round((1.9+1.25*Math.sqrt(c.n))*10)/10});})
     .sort((a,b)=>b.n-a.n);
-  const ck=cur?dialCityE(cur):"",lab=[];
-  pts.forEach(c=>{if(lab.length<5&&!lab.some(o=>Math.abs(o.y-c.y)<6&&Math.abs(o.x-c.x)<24))lab.push(c);}); /* biggest cities first, no overlaps */
-  let svgh='<svg class="dlmapsvg" viewBox="56 13 127 95" role="img" aria-label="Washington map of the people to call"><path class="dlmapwa" d="'+geo.d+'"/>'+
+  const ck=cur?dialCityE(cur):"",lab=[],vb=S.st?(DIAL_STATES.find(x=>x[0]===S.st)||[])[2]:DIAL_MAP_BOTH,big=!S.st;
+  pts.forEach(c=>{if(lab.length<(big?6:5)&&!lab.some(o=>Math.abs(o.y-c.y)<(big?8:6)&&Math.abs(o.x-c.x)<(big?30:24)))lab.push(c);}); /* biggest cities first, no overlaps */
+  let svgh='<svg class="dlmapsvg'+(big?' both':'')+'" viewBox="'+vb+'" role="img" aria-label="Map of the people to call in Washington and Oregon">'+
+    DIAL_STATES.map(s=>'<path class="dlmapwa'+(S.st===s[0]?" on":S.st?" dim":"")+'" data-act="dialst" data-v="'+s[0]+'" d="'+G[s[0]].d+'"><title>'+
+      esc(s[1]+" · "+nSt[s[0]]+" — tap to call only "+s[1])+'</title></path>').join("")+
     pts.slice().reverse().map(c=>'<g class="dlmdot'+(S.city===c.k?" on":"")+(S.city&&S.city!==c.k?" dim":"")+'" data-act="dialcity" data-v="'+esc(c.k)+'">'+
       '<circle cx="'+c.x+'" cy="'+c.y+'" r="'+c.r+'"/><title>'+esc(dialCityName(c.k)+" · "+c.n)+'</title></g>').join("")+
     (ck&&by[ck]?'<circle class="dlmcur" cx="'+by[ck].x+'" cy="'+by[ck].y+'" r="'+(by[ck].r+1.6)+'"/>':'')+
-    lab.map(c=>'<text class="dlmlab" x="'+(c.x+c.r+1.2)+'" y="'+(c.y+1.4)+'">'+esc(dialCityName(c.k))+'</text>').join("")+'</svg>';
-  return '<div class="dlmap">'+svgh+'<p class="dlmapn">'+(S.city?'<button class="qchip on" data-act="dialcity" data-v="">'+esc(dialCityName(S.city))+' · '+((by[S.city]||{}).n||0)+' '+svg("x")+'</button>':
-    (pts.length?'Tap a city to call only the people there':'Nobody left to call here today'))+(none?'<span class="t2"> · '+none+' with no city</span>':'')+'</p></div>';}
+    lab.map(c=>'<text class="dlmlab" x="'+(c.x+c.r+1.2)+'" y="'+(c.y+1.4)+'">'+esc(dialCityName(c.k,true))+'</text>').join("")+'</svg>';
+  const chips=(S.st?'<button class="qchip on" data-act="dialst" data-v="">'+esc(dialStateName(S.st))+' · '+nSt[S.st]+' '+svg("x")+'</button>':'')+
+    (S.city?'<button class="qchip on" data-act="dialcity" data-v="">'+esc(dialCityName(S.city))+' · '+((by[S.city]||{}).n||0)+' '+svg("x")+'</button>':'');
+  return '<div class="dlmap">'+svgh+'<p class="dlmapn">'+(chips||(pts.length?'Tap a state or a city to call only the people there':'Nobody left to call here today'))+
+    (none?'<span class="t2"> · '+none+' with no city</span>':'')+'</p></div>';}
 function viewDialDial(st){
   const S=dialS(),qAll=dialQueue(),tabQ=S.src.indexOf("t:")===0;
   const q=dialQueueView(qAll),e=dialCur(q);
@@ -6563,7 +6612,7 @@ function viewDialDial(st){
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+(tabOn?dialMapHTML(qAll,e):'')+
-    '<p class="dlqn">'+q.length+' to call'+(tabOn?' · '+esc(tabLbl)+' in Washington':S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington':'')+'</p><div class="list dlrows">'+
+    '<p class="dlqn">'+q.length+' to call'+(tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
     (q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
       '<span class="dlrs">'+esc([x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
@@ -6627,7 +6676,7 @@ function dialCardHTML(e){
     '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab&&e.tab!=="enduser"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp?dialGroupLabel(e.grp):""),e.src].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
     (dialPersonal(e)?'<span class="pill gray" title="Found on USPhoneBook — a personal cell. Check it against the Do Not Call list before you dial.">Personal cell · check DNC</span>':'')+
-    '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' in Seattle'+(tm.late?' · after hours':'')+'</span></div></div>'+
+    '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' Pacific'+(tm.late?' · after hours':'')+'</span></div></div>'+
     '<div class="dlproof"><b>Who like them has bought</b> '+esc(dialProof(e))+'</div>'+
     (hist.length?'<div class="dlhist">'+hist.map(x=>'<p><b>'+esc(x.t)+'</b> '+esc(mdStamp(x.at))+(x.by&&x.by!==USER?' · '+esc(shortName(x.by)):'')+(x.note?' — '+esc(x.note.slice(0,160)):'')+'</p>').join("")+'</div>'
       :'<div class="dlhist"><p class="t2">No calls logged yet</p></div>')+
@@ -6826,17 +6875,18 @@ function dialCdHTML(){if(!DIAL.cd)return "";const e=DIAL.cdKey&&dialRecByKey(DIA
   return '<div class="dlcdbox">Calling '+esc(e?e.name:"the next one")+' in <b>'+DIAL.cdLeft+'</b>… <button class="btn sm" data-act="dialpause">Pause</button></div>';}
 function dialOutsHTML(){const S=dialS();
   return DIAL_OUTS.map((x,i)=>'<span class="qchip'+(S.out===x[0]?" on":"")+(x[0]==="dnc"||x[0]==="wrong"?" dlwarn":"")+'" data-act="dialout" data-v="'+x[0]+'">'+(DIALER_HUB?'<kbd>'+(i+1)+'</kbd>':'')+x[1]+'</span>').join("");}
-/* who could take the order: the account's "Who they buy from" first, then the Washington distributors that have bought */
+/* who could take the order: the account's "Who they buy from" first, then the Washington / Oregon distributors that have bought */
 function dialDistChoices(e){const r=(e&&e.rec)||{},out=[],add=c=>{if(c&&c.type==="distributor"&&!out.some(x=>x.id===c.id))out.push(c);};
   const co=r.cid?company(r.cid):null;((co&&co.buysFrom)||[]).forEach(b=>add(b.cid&&company(b.cid)));
-  ["Ballard Industries","National Safety","Grainger","Central Welding","Fastenal","Unifirst","Oxarc","Mallory"].forEach(n=>add(DB.companies.find(c=>c.type==="distributor"&&String(c.name).toLowerCase().indexOf(n.toLowerCase())===0)));
+  ["Ballard Industries","National Safety","Grainger","Central Welding","Fastenal","Unifirst","Oxarc","Mallory","Ritz Safety"].forEach(n=>add(DB.companies.find(c=>c.type==="distributor"&&String(c.name).toLowerCase().indexOf(n.toLowerCase())===0)));
   return out;}
-function dialDistReps(cid){const isWa=p=>personStates(p).concat(p.state?[p.state]:[]).map(x=>String(x).toUpperCase()).includes("WA");
+function dialDistReps(cid,st){const sts=p=>personStates(p).concat(p.state?[p.state]:[]).map(x=>String(x).toUpperCase().slice(0,2)),
+    isWa=p=>{const s=sts(p);return s.includes("WA")||s.includes("OR");},mine=p=>st&&sts(p).includes(st)?1:0;
   const c=company(cid),same=c?DB.companies.filter(x=>x.type==="distributor"&&String(x.name).split(" ")[0].toLowerCase()===String(c.name).split(" ")[0].toLowerCase()).map(x=>x.id):[cid];
-  return DB.people.filter(p=>same.includes(p.cid)&&isWa(p)&&(p.email||p.phone)).slice(0,8);}
+  return DB.people.filter(p=>same.includes(p.cid)&&isWa(p)&&(p.email||p.phone)).sort((a,b)=>mine(b)-mine(a)).slice(0,8);}
 function dialMeetHTML(e){const S=dialS(),m=S.meet||(S.meet={}),ds=dialDistChoices(e);
   if(!m.distCid&&ds.length&&m.distCid!=="none"){m.distCid=ds[0].id;m.distName=ds[0].name;}
-  const reps=m.distCid&&m.distCid!=="none"?dialDistReps(m.distCid):[];
+  const reps=m.distCid&&m.distCid!=="none"?dialDistReps(m.distCid,(e&&(dialAreaOf(e)[0]||e.state))||""):[];
   return '<p class="fl">Meeting</p><div class="qa-types"><input class="f dlmeetwhen" type="datetime-local" id="dialMeetWhen" value="'+esc(m.when||"")+'"></div>'+
     '<p class="fl">Order through</p><div class="qa-types">'+ds.map(c=>'<span class="qchip'+(m.distCid===c.id?" on":"")+'" data-act="dialmdist" data-v="'+esc(c.id)+'">'+esc(c.name)+'</span>').join("")+
     '<span class="qchip'+(m.distCid==="none"?" on":"")+'" data-act="dialmdist" data-v="none">Not sure yet</span></div>'+
@@ -7226,14 +7276,16 @@ function dialImport(f){
 /* ---- clicks ---- */
 function dialBusy(){const S=dialS();return !!(DIAL.call||S.out||String(S.note||"").trim()||S.hold||S.secs);}
 function dialSetSrc(src){dialStopCd();const S=dialS();
-  if(dialBusy())Object.assign(S,{src:src,city:"",hold:S.cur});
-  else Object.assign(S,{src:src,cur:"",out:"",note:"",cb:"",secs:0,hold:"",city:"",meet:null,mail:null,text:null});
+  if(dialBusy())Object.assign(S,{src:src,city:"",st:"",hold:S.cur});
+  else Object.assign(S,{src:src,cur:"",out:"",note:"",cb:"",secs:0,hold:"",city:"",st:"",meet:null,mail:null,text:null});
   if(src.indexOf("t:")===0){try{localStorage.setItem("autotq_dial_tab",src);}catch(e){}}
   render();}
 function dialAct(a,t){
   const S=dialS();
   if(a==="dialsrc"){dialSetSrc(t.dataset.v);return true;}
   if(a==="dialcity"){dialStopCd();const v=t.dataset.v||"";S.city=S.city===v?"":v;
+    if(dialBusy())S.hold=S.cur;else Object.assign(S,{cur:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});render();return true;}
+  if(a==="dialst"){dialStopCd();const v=t.dataset.v||"";S.st=S.st===v?"":v;S.city="";
     if(dialBusy())S.hold=S.cur;else Object.assign(S,{cur:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});render();return true;}
   if(a==="dialpick"){dialStopCd();if(S.cur!==t.dataset.id){Object.assign(S,{cur:t.dataset.id,out:"",note:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});}render();return true;}
   if(a==="dialcwrite"){dialCardWrite();return true;}
