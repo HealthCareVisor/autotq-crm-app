@@ -6149,7 +6149,7 @@ function dialEntry(k,r){
   const raw=[r.phone,r.mobile].find(x=>dialDigits(x))||"";
   return {key:k+":"+r.id,k:k,id:r.id,rec:r,name:r.name||"(no name)",title:(k==="p"?r.role:r.title)||"",
     co:(k==="p"?((c&&c.name)||r.branch):r.company)||"",raw:raw,d:dialDigits(raw),ext:dialExt(raw),city:r.city||"",
-    state:String((k==="p"?personStates(r)[0]:r.state)||"").toUpperCase().slice(0,2),src:k==="p"?"Contact":(k==="cl"?(r.conf||"Conference lead"):(r.conf||"Lead"))};}
+    state:String((k==="p"?(r.state||personStates(r)[0]):r.state)||"").toUpperCase().slice(0,2),src:k==="p"?"Contact":(k==="cl"?(r.conf||"Conference lead"):(r.conf||"Lead"))};}
 function dialRecByKey(key){const i=key.indexOf(":"),k=key.slice(0,i),id=key.slice(i+1);
   const r=k==="p"?person(id):(k==="cl"?leadById(id):myLeadById(id));return r?dialEntry(k,r):null;}
 /* Seattle area: a WA record in a metro city or a 206 / 253 / 425 number; no state → the area code decides */
@@ -6160,11 +6160,44 @@ function dialPool(src){
   if(src.indexOf("list:")===0){const L=(DB.lists||[]).find(x=>x.id===src.slice(5));
     return L?(L.items||[]).map(it=>it.pid&&person(it.pid)?dialEntry("p",person(it.pid)):null).filter(Boolean):[];}
   if(src.indexOf("imp:")===0){const conf=src.slice(4);return DB.leads.filter(l=>!l.removed&&l.conf===conf).map(l=>dialEntry("lead",l));}
-  const out=[]; /* contacts first, so a person who is also a lead is dialed (and logged) as the contact */
+  if(src==="wa"||src.indexOf("wa:")===0){const g=src.slice(3),cust=dialCustomerCids();
+    return dialEveryone().filter(dialIsWa).filter(e=>{e.grp=dialGroup(e,cust);return !g||e.grp===g;});}
+  return dialEveryone().filter(dialSeattle);}
+function dialEveryone(){ensureLeads();const out=[]; /* contacts first, so a person who is also a lead is dialed (and logged) as the contact */
   DB.people.forEach(p=>{if(!p.removed)out.push(dialEntry("p",p));});
   DB.leads.forEach(l=>{if(!l.removed)out.push(dialEntry("lead",l));});
   (DB.confLeads||[]).forEach(l=>{if(!l.removed)out.push(dialEntry("cl",l));});
-  return out.filter(dialSeattle);}
+  return out;}
+/* Washington (Max, 2026-11-19: "ALL leads we've ever come in contact with through Washington… group them"): a WA state, or no state
+   and a Washington area code. Grouped so a calling session can take one kind of conversation at a time. */
+const WA_AC=new Set(["206","253","360","425","509","564"]);
+const DIAL_GROUPS=[["channel","Channel partners"],["customers","Customers & demos"],["conference","Conference leads"],["inbound","Inbound inquiries"],["endusers","Other end users"]];
+function dialGroupLabel(g){return (DIAL_GROUPS.find(x=>x[0]===g)||["",""])[1];}
+function dialIsWa(e){if(!e.d)return false;
+  if(e.k==="p"){const sts=personStates(e.rec).concat(e.rec.state?[e.rec.state]:[]).map(s=>String(s||"").trim().toUpperCase()).filter(Boolean); /* home state or a coverage state */
+    if(sts.length)return sts.includes("WA")||sts.includes("WASHINGTON");}
+  else if(e.state)return e.state==="WA";
+  return WA_AC.has(e.d.slice(0,3));}
+/* accounts that bought from us, took a loaner or hold a demo unit ($0 web orders and the old order book's counts included) */
+function dialCustomerCids(){const s=new Set();
+  (DB.orders||[]).forEach(o=>{if(!o||o.dupOf)return;if(["invoiced","paid","loaner"].includes(o.status)||isLoanerOrder(o)){const c=orderCompany(o);if(c)s.add(c.id);}});
+  (DB.demos||[]).forEach(d=>{if(d&&d.cid)s.add(d.cid);});
+  DB.companies.forEach(c=>{if((+c.orders||0)>0||(+c.units||0)>0||(+c.demoCount||0)>0||c.lastOrder)s.add(c.id);});
+  return s;}
+function dialGroup(e,cust){const r=e.rec;
+  if(e.k==="cl")return "conference";
+  if(e.k==="lead"){if(r.waGroup)return r.waGroup;if(r.kind==="distributor")return "channel";
+    if(/website|form/i.test((r.conf||"")+" "+(r.source||"")))return "inbound";
+    if(r.refId||/ASSP|NSC|EMS World|IACLEA|NASN|expo|show|conference/i.test(r.conf||""))return "conference";
+    return "endusers";}
+  const c=r.cid?company(r.cid):null;
+  if(c&&(c.type==="distributor"||c.type==="manrep"))return "channel";
+  if(c&&cust.has(c.id))return "customers";
+  return "endusers";}
+/* dialable people per group (one per number, Do not call and wrong numbers left out) — the counts in the picker */
+function dialWaCounts(){const seen=new Set(),n={all:0};
+  dialPool("wa").forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);n.all++;n[e.grp]=(n[e.grp]||0)+1;});
+  return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
 /* who was called today (by anyone), as record keys and as phone numbers */
 function dialToday(){const T=todayStr(),keys=new Set(),nums=new Set();
@@ -6204,8 +6237,9 @@ function dialSeattleTime(){const d=new Date(),t=d.toLocaleTimeString("en-US",{ti
   const h=+d.toLocaleString("en-US",{timeZone:"America/Los_Angeles",hour:"numeric",hour12:false});return {t:t,late:h<8||h>=18};}
 function dialSources(){ensureLeads();
   const imps=[...new Set(DB.leads.filter(l=>!l.removed&&/^Dialer: /.test(l.conf||"")).map(l=>l.conf))];
-  const lists=(DB.lists||[]).filter(l=>!l.removed);
-  return [["seattle","Seattle area"]].concat(imps.map(c=>["imp:"+c,c.slice(8)+" (imported)"]),lists.map(l=>["list:"+l.id,l.name+" (list)"]));}
+  const lists=(DB.lists||[]).filter(l=>!l.removed),wc=dialWaCounts();
+  return [["seattle","Seattle area"],["wa","Washington · everyone ("+wc.all+")"]].concat(DIAL_GROUPS.map(g=>["wa:"+g[0],"Washington · "+g[1]+" ("+(wc[g[0]]||0)+")"]),
+    imps.map(c=>["imp:"+c,c.slice(8)+" (imported)"]),lists.map(l=>["list:"+l.id,l.name+" (list)"]));}
 /* ---- view ---- */
 function viewDialer(){
   const S=dialS(),q=dialQueue(),e=dialCur(q),st=dialStats();
@@ -6218,10 +6252,10 @@ function viewDialer(){
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+
-    '<p class="dlqn">'+q.length+' to call'+(S.src==="seattle"?' in the Seattle area':'')+'</p><div class="list dlrows">'+
+    '<p class="dlqn">'+q.length+' to call'+(S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington':'')+'</p><div class="list dlrows">'+
     (q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':'')+'</span>'+
-      '<span class="dlrs">'+esc([x.co,x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
+      '<span class="dlrs">'+esc([x.co,S.src==="wa"&&x.grp?dialGroupLabel(x.grp):"",x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
     (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,40).map(a=>
@@ -6240,7 +6274,7 @@ function dialCardHTML(e){
   const S=dialS(),tm=dialSeattleTime(),hist=dialHist(e);
   return '<div class="card dlcard"><div class="dlwho"><div class="grow"><button class="dlname" data-act="dialopen" data-id="'+esc(e.key)+'">'+esc(e.name)+'</button>'+
     '<p class="t2">'+esc([e.title,e.co].filter(Boolean).join(" · ")||"—")+'</p>'+
-    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.src].filter(Boolean).join(" · "))+'</p></div>'+
+    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.grp?dialGroupLabel(e.grp):"",e.src].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
     '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' in Seattle'+(tm.late?' · after hours':'')+'</span></div></div>'+
     (hist.length?'<div class="dlhist">'+hist.map(x=>'<p><b>'+esc(x.t)+'</b> '+esc(mdStamp(x.at))+(x.by&&x.by!==USER?' · '+esc(shortName(x.by)):'')+(x.note?' — '+esc(x.note.slice(0,160)):'')+'</p>').join("")+'</div>'
