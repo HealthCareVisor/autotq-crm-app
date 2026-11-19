@@ -1190,6 +1190,33 @@ body.invpagedrag .content{outline:3px dashed var(--coral,#e8543f);outline-offset
 .dlauto{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);cursor:pointer}
 .dlgrid{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:16px;align-items:start}
 .dlqh{display:flex;gap:8px;margin-bottom:6px}.dlqh select{flex:1;min-width:0}
+.dlsrctabs{margin-bottom:8px}.dlsrctabs button{padding:0 6px;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:normal;line-height:1.15;min-height:38px}
+.dlcnt{font-size:11px;font-weight:650;color:var(--muted);background:var(--surface);border-radius:99px;padding:1px 6px}.dlsrctabs button.on .dlcnt{background:var(--coral-btn);color:#fff}
+.f.dlother{color:var(--muted)}
+.dlmline{display:flex;align-items:center;gap:6px}.dlmline svg{width:13px;height:13px;flex:none}.f.dlmto{max-width:280px;min-height:30px;padding:4px 8px;font-size:13px}
+.dlcmail{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r)}
+.dlcmail .fl{margin:0}.dlcmrow{display:flex;align-items:center;gap:8px}.dlcmrow .t2{width:24px;flex:none}
+.f.dlcmbody{min-height:150px;line-height:1.5}
+.dlcmsend{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:550;cursor:pointer}.dlcmsend input{width:16px;height:16px;accent-color:var(--coral-btn)}
+.dlcmsend.off{color:var(--muted);cursor:default}
+.dlctext{display:flex;flex-direction:column;gap:8px;margin-top:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r)}
+.dlctext .fl{margin:0}.f.dlctbody{min-height:64px;line-height:1.45}
+.dltthread{display:flex;flex-direction:column;gap:6px}.dltthread.big{max-height:52vh;overflow:auto;padding:4px 2px 10px}
+.dltb{max-width:78%;display:flex;flex-direction:column;gap:2px}.dltb p{margin:0;padding:7px 11px;border-radius:14px;font-size:13.5px;line-height:1.4;white-space:pre-wrap;word-break:break-word}
+.dltb span{font-size:11px;color:var(--muted);padding:0 6px}.dltb.out{align-self:flex-end;align-items:flex-end}.dltb.out p{background:var(--coral-btn);color:#fff;border-bottom-right-radius:4px}
+.dltb.in{align-self:flex-start}.dltb.in p{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.dltgrid{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:16px;align-items:start}
+.dltmain{display:flex;flex-direction:column;gap:10px;padding:16px 18px}.dlthead{display:flex;align-items:center;gap:10px}
+@media (max-width:900px){.dltgrid{grid-template-columns:1fr}.dltlist{max-height:220px;overflow:auto}}
+.dlmap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg,12px);padding:8px 8px 6px;margin:0 0 8px}
+.dlmapsvg{display:block;width:100%;height:auto}
+.dlmapwa{fill:var(--sunken);stroke:var(--line);stroke-width:.6;stroke-linejoin:round}
+.dlmdot{cursor:pointer}.dlmdot circle{fill:var(--coral-btn);fill-opacity:.62;stroke:#fff;stroke-width:.55;transition:fill-opacity .12s}
+.dlmdot:hover circle{fill-opacity:.9}.dlmdot.on circle{fill-opacity:1}.dlmdot.dim circle{fill-opacity:.22}
+.dlmcur{fill:none;stroke:var(--ink);stroke-width:.7;pointer-events:none}
+.dlmlab{font:600 4.1px Inter,system-ui,sans-serif;fill:var(--ink-2);pointer-events:none;paint-order:stroke;stroke:var(--surface);stroke-width:1.1px}
+.dlmapn{margin:4px 2px 0;font-size:12px;color:var(--muted);display:flex;align-items:center;flex-wrap:wrap;gap:4px}.dlmapn .qchip{min-height:26px}
+.dlmapn .qchip svg{width:12px;height:12px;margin-left:2px}
 .dlqn{font-size:12.5px;color:var(--muted);margin:2px 2px 8px}
 .dlrows{max-height:calc(100vh - 270px);overflow:auto}
 .dlrow{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:9px 12px;border:0;border-bottom:1px solid var(--line-2);background:none;font:inherit;color:var(--ink);cursor:pointer}
@@ -1289,7 +1316,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail","dialTexts"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1419,7 +1446,7 @@ async function pullChanges(full){
           if(r.collection==="opps"&&!r.deleted&&r.data&&oppNotesIntoDirty(k,r.data))changed=true;
           return;}
         if(r.collection==="whiteboard"&&!futureAccess())return; // Max's Future CRM notes never land on anyone else's device
-        if((r.collection==="dialCalls"||r.collection==="dialMail")&&!dialAccess())return; // the Dialer's call log + emails: the dialer seat only
+        if((r.collection==="dialCalls"||r.collection==="dialMail"||r.collection==="dialTexts")&&!dialAccess())return; // the Dialer's call log, emails and texts: the dialer seat only
         if(SYNC_COLLECTIONS.includes(r.collection)&&applyRemote(r.collection,r.id,r.data,r.deleted))changed=true;
       });
       if(rows.length<1000)break;
@@ -1429,6 +1456,7 @@ async function pullChanges(full){
     SYNC.online=true;saveSyncMeta();
     if(SYNC.healed){SYNC.healed=false;if(SYNC.booted){clearTimeout(SYNC.timer);SYNC.timer=setTimeout(pushDirty,700);}} // boot pushes on its own
     if(changed){try{oppNoteRedraw();}catch(e){}}
+    if(changed){try{dialTextsTick();}catch(e){}}
     if(changed){normOppStages();writeCache();
       const ae=document.activeElement;
       if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();else try{fbSync();}catch(e){}}
@@ -6239,6 +6267,79 @@ function listReadChips(f){
    up, Call opens the computer's phone app (tel:) and the queue + notes still work. Every Save logs a `call` activity the
    same way the rest of the CRM does (contact / confLeadCall / lead touch), with dialer:true, secs and phone. */
 const DIAL_USERS=["max"];
+/*DIAL-CORE*/
+/* The Dialer's three Washington tabs, its city table and the map projection (Max, 2026-11-19: "Distributor Reps, End User Reps and
+   Cold Distributors all their own tabs… a web in the state showing the contacts"). Tested on its own by
+   AutoTQ_CRM_scripts/dialer/core_test.ts — keep it free of page globals. */
+const DIAL_TABS=[["dist","Distributor reps"],["enduser","End users"],["cold","Cold distributors"]];
+/* the scorecard's call kinds (scCallKind: rep / src / eu) are the tabs, so a call counts in the KPI of the tab it was made from */
+const DIAL_KIND_TAB={rep:"dist",src:"cold",eu:"enduser"};
+const WA_CITY_LL={"seattle":[47.606,-122.332],"bellevue":[47.610,-122.201],"redmond":[47.674,-122.121],"kirkland":[47.681,-122.209],
+  "bothell":[47.762,-122.205],"woodinville":[47.754,-122.163],"kenmore":[47.757,-122.244],"lake forest park":[47.757,-122.281],
+  "shoreline":[47.756,-122.341],"lynnwood":[47.821,-122.315],"edmonds":[47.811,-122.377],"mountlake terrace":[47.788,-122.309],
+  "mukilteo":[47.945,-122.304],"everett":[47.979,-122.202],"mill creek":[47.860,-122.204],"snohomish":[47.913,-122.098],
+  "marysville":[48.052,-122.177],"lake stevens":[48.015,-122.064],"granite falls":[48.084,-121.968],"arlington":[48.199,-122.125],
+  "monroe":[47.855,-121.971],"duvall":[47.742,-121.986],"carnation":[47.648,-121.914],"stanwood":[48.241,-122.371],
+  "mount vernon":[48.421,-122.334],"burlington":[48.476,-122.325],"sedro-woolley":[48.504,-122.236],"anacortes":[48.512,-122.612],
+  "concrete":[48.539,-121.748],"oak harbor":[48.293,-122.643],"coupeville":[48.220,-122.686],"bellingham":[48.760,-122.488],
+  "ferndale":[48.847,-122.591],"lynden":[48.946,-122.452],"friday harbor":[48.534,-123.017],
+  "renton":[47.482,-122.217],"kent":[47.381,-122.235],"tukwila":[47.474,-122.261],"seatac":[47.444,-122.301],"burien":[47.470,-122.347],
+  "normandy park":[47.436,-122.341],"des moines":[47.402,-122.324],"federal way":[47.322,-122.313],"auburn":[47.307,-122.228],
+  "covington":[47.358,-122.122],"maple valley":[47.393,-122.046],"black diamond":[47.309,-122.003],"enumclaw":[47.204,-121.991],
+  "newcastle":[47.539,-122.156],"mercer island":[47.571,-122.222],"issaquah":[47.530,-122.033],"sammamish":[47.616,-122.036],
+  "north bend":[47.495,-121.787],"snoqualmie":[47.529,-121.825],
+  "tacoma":[47.253,-122.444],"lakewood":[47.172,-122.518],"puyallup":[47.186,-122.293],"fife":[47.239,-122.357],"milton":[47.248,-122.313],
+  "edgewood":[47.250,-122.294],"university place":[47.236,-122.550],"fircrest":[47.232,-122.516],"steilacoom":[47.170,-122.603],
+  "gig harbor":[47.329,-122.580],"sumner":[47.203,-122.240],"bonney lake":[47.177,-122.186],"orting":[47.098,-122.204],
+  "spanaway":[47.104,-122.435],"dupont":[47.097,-122.631],"lakebay":[47.266,-122.770],
+  "bremerton":[47.567,-122.633],"port orchard":[47.540,-122.636],"silverdale":[47.645,-122.695],"poulsbo":[47.736,-122.646],
+  "bainbridge island":[47.626,-122.521],"port townsend":[48.117,-122.760],"port angeles":[48.118,-123.430],"sequim":[48.080,-123.102],
+  "forks":[47.950,-124.385],"aberdeen":[46.975,-123.816],"hoquiam":[46.981,-123.889],"ocean shores":[46.973,-124.156],
+  "raymond":[46.686,-123.733],"long beach":[46.352,-124.054],"shelton":[47.215,-123.101],
+  "olympia":[47.038,-122.900],"lacey":[47.034,-122.823],"tumwater":[47.007,-122.909],"centralia":[46.716,-122.954],
+  "chehalis":[46.662,-122.964],"morton":[46.558,-122.275],"longview":[46.138,-122.938],"kelso":[46.147,-122.908],
+  "vancouver":[45.639,-122.661],"camas":[45.587,-122.400],"washougal":[45.583,-122.353],"battle ground":[45.781,-122.533],
+  "ridgefield":[45.815,-122.743],"stevenson":[45.696,-121.885],"white salmon":[45.728,-121.486],"goldendale":[45.820,-120.822],
+  "yakima":[46.602,-120.506],"sunnyside":[46.324,-120.009],"toppenish":[46.378,-120.308],"grandview":[46.256,-119.902],
+  "ellensburg":[46.997,-120.548],"wenatchee":[47.424,-120.311],"east wenatchee":[47.416,-120.293],"leavenworth":[47.596,-120.661],
+  "chelan":[47.840,-120.017],"quincy":[47.234,-119.853],"ephrata":[47.318,-119.553],"moses lake":[47.130,-119.278],
+  "othello":[46.826,-119.176],"omak":[48.411,-119.528],"okanogan":[48.361,-119.583],"colville":[48.547,-117.905],
+  "richland":[46.286,-119.284],"kennewick":[46.211,-119.137],"pasco":[46.240,-119.101],"burbank":[46.200,-119.010],
+  "walla walla":[46.065,-118.343],"pullman":[46.731,-117.180],"clarkston":[46.416,-117.045],
+  "spokane":[47.659,-117.426],"spokane valley":[47.673,-117.239],"airway heights":[47.645,-117.593],"cheney":[47.487,-117.576],
+  "liberty lake":[47.675,-117.111]};
+const WA_CITY_FIX={"sedro wooley":"sedro-woolley","sedro-wooley":"sedro-woolley","sedro woolley":"sedro-woolley","sea-tac":"seatac",
+  "bainbridge":"bainbridge island","univ place":"university place","du pont":"dupont"};
+/* the table key for a typed city name ("" when it isn't a Washington city we know) */
+function dialCityKey(city){
+  let c=String(city==null?"":city).trim().toLowerCase().replace(/\s+/g," ").replace(/,.*$/,"");
+  if(!c)return "";
+  c=c.replace(/^(sw|se|nw|ne|n|s|e|w|way)\s+/,"");
+  c=WA_CITY_FIX[c]||c;
+  return WA_CITY_LL[c]?c:"";}
+function dialCityLL(city){const k=dialCityKey(city);return k?WA_CITY_LL[k]:null;}
+/* the projection us_geo.js was drawn in (Albers USA, 960×600): equal-area conic, parallels 29.5° / 45.5°, rotated 96°, scale 1280 */
+function waXY(lat,lon){
+  const r=Math.PI/180,p0=29.5*r,p1=45.5*r,n=(Math.sin(p0)+Math.sin(p1))/2,C=Math.cos(p0)*Math.cos(p0)+2*n*Math.sin(p0),r0=Math.sqrt(C)/n;
+  const raw=(l,f)=>{const rho=Math.sqrt(C-2*n*Math.sin(f))/n;return [rho*Math.sin(l*n),r0-rho*Math.cos(l*n)];};
+  const c=raw(-0.6*r,38.7*r),p=raw((lon+96)*r,lat*r);
+  return [Math.round((479.5+1280*(p[0]-c[0]))*10)/10,Math.round((303.4-1280*(p[1]-c[1]))*10)/10];}
+function dialEmailOk(s){return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(s==null?"":s).trim());}
+/* a "YYYY-MM-DD" day for casual copy: today / tomorrow / the weekday within a week / "Nov 20"; built from its parts so it's the
+   same calendar day everywhere (a bare date string parses as UTC midnight — the day before in every US time zone) */
+function dialDayTxt(ymd,today){const p=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||""));return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
+  const d=p(ymd);if(!d)return "";const t=p(today);
+  if(t){const n=Math.round((d-t)/86400000);if(n===0)return "today";if(n===1)return "tomorrow";if(n>1&&n<7)return d.toLocaleDateString("en-US",{weekday:"long"});}
+  return d.toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+/* "Hi <first>," — the person's first name, or "" when the record's name isn't a person's ("(no name)", "The Urban Prepper (store)") */
+function dialFirstName(n){const s=String(n==null?"":n).replace(/\([^)]*\)/g," ").trim();if(!s)return "";
+  const w=s.split(/\s+/)[0].replace(/[,;:]+$/,"");
+  if(!/^[A-Za-z][A-Za-z.'’-]*$/.test(w)||/^(the|a|an|mr|mrs|ms|dr|no)\.?$/i.test(w))return "";
+  return w===w.toUpperCase()&&w.length>1?w.toLowerCase().replace(/(^|[-'’.])[a-z]/g,m=>m.toUpperCase()):w;}
+/* a whole text that opts out / back in (carrier keywords) */
+function dialIsStop(b){return /^\s*(stop|stopall|unsubscribe|cancel|end|quit)\s*$/i.test(String(b==null?"":b));}
+function dialIsStart(b){return /^\s*(start|unstop|yes)\s*$/i.test(String(b==null?"":b));}
+/*DIAL-CORE-END*/
 function dialAccess(u){return DIAL_USERS.includes(u||USER);}
 const DIAL_SDK="https://cdn.jsdelivr.net/npm/@twilio/voice-sdk@2.18.5/dist/twilio.min.js";
 const SEA_CITIES=new Set(("seattle,bellevue,redmond,kirkland,bothell,woodinville,kenmore,lake forest park,shoreline,lynnwood,edmonds,"+
@@ -6263,8 +6364,9 @@ function dialExt(raw){const m=String(raw||"").match(/(?:ext\.?|x|#)\s*(\d+)\s*$/
 function dialFmt(d){return d&&d.length===10?"("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6):"";}
 function dialOutLabel(o){return (DIAL_OUTS.find(x=>x[0]===o)||["","Call"])[1];}
 function dialS(){
-  if(!logState.dial){let auto=true;try{auto=localStorage.getItem("autotq_dial_auto")!=="0";}catch(e){}
-    logState.dial={src:"seattle",cur:"",out:"",note:"",cb:"",secs:0,auto:auto,skipped:[]};}
+  if(!logState.dial){let auto=true,src="t:dist";try{auto=localStorage.getItem("autotq_dial_auto")!=="0";
+      const t=localStorage.getItem("autotq_dial_tab");if(t&&DIAL_TABS.some(x=>"t:"+x[0]===t))src=t;}catch(e){}
+    logState.dial={src:src,cur:"",out:"",note:"",cb:"",secs:0,auto:auto,skipped:[],city:""};}
   return logState.dial;}
 function dialEntry(k,r){
   const c=k==="p"&&r.cid?company(r.cid):null;
@@ -6282,6 +6384,8 @@ function dialPool(src){
   if(src.indexOf("list:")===0){const L=(DB.lists||[]).find(x=>x.id===src.slice(5));
     return L?(L.items||[]).map(it=>it.pid&&person(it.pid)?dialEntry("p",person(it.pid)):null).filter(Boolean):[];}
   if(src.indexOf("imp:")===0){const conf=src.slice(4);return DB.leads.filter(l=>!l.removed&&l.conf===conf).map(l=>dialEntry("lead",l));}
+  if(src.indexOf("t:")===0){const t=src.slice(2),cust=dialCustomerCids(),sold=dialSold();
+    return dialEveryone().filter(dialIsWa).filter(e=>{e.tab=dialTabE(e,sold);if(e.tab!==t)return false;e.grp=dialGroup(e,cust);return true;});}
   if(src==="confwest")return (DB.confLeads||[]).filter(l=>!l.removed&&WEST_ST.has(String(l.state||"").trim().toUpperCase().slice(0,2))).map(l=>dialEntry("cl",l));
   if(src==="wa"||src.indexOf("wa:")===0){const g=src.slice(3),cust=dialCustomerCids();
     return dialEveryone().filter(dialIsWa).filter(e=>{e.grp=dialGroup(e,cust);return !g||e.grp===g;});}
@@ -6304,7 +6408,13 @@ function dialIsWa(e){if(!e.d)return false;
   else if(e.state)return e.state==="WA";
   return WA_AC.has(e.d.slice(0,3));}
 /* accounts that bought from us, took a loaner or hold a demo unit ($0 web orders and the old order book's counts included) */
-function dialCustomerCids(){const s=new Set();
+/* short-lived memo for lookups that walk every order (each ~70 ms on the full book); the key moves when records are added */
+function dialMemo(name,key,fn,ttl){const M=DIAL.memo||(DIAL.memo={}),c=M[name],now=Date.now();
+  if(c&&c.k===key&&now-c.t<ttl)return c.v;const v=fn();M[name]={k:key,v:v,t:now};return v;}
+function dialBookKey(){return [(DB.orders||[]).length,(DB.opps||[]).length,DB.companies.length,(DB.demos||[]).length].join("|");}
+function dialSold(){return dialMemo("sold",dialBookKey(),scSoldThrough,15000);}
+function dialCustomerCids(){return dialMemo("cust",dialBookKey(),dialCustomerCids0,15000);}
+function dialCustomerCids0(){const s=new Set();
   (DB.orders||[]).forEach(o=>{if(!o||o.dupOf)return;if(["invoiced","paid","loaner"].includes(o.status)||isLoanerOrder(o)){const c=orderCompany(o);if(c)s.add(c.id);}});
   (DB.demos||[]).forEach(d=>{if(d&&d.cid)s.add(d.cid);});
   DB.companies.forEach(c=>{if((+c.orders||0)>0||(+c.units||0)>0||(+c.demoCount||0)>0||c.lastOrder)s.add(c.id);});
@@ -6322,6 +6432,13 @@ function dialGroup(e,cust){const r=e.rec;
 /* dialable people per group (one per number, Do not call and wrong numbers left out) — the counts in the picker */
 function dialWaCounts(){const seen=new Set(),n={all:0};
   dialPool("wa").forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);n.all++;n[e.grp]=(n[e.grp]||0)+1;});
+  return n;}
+function dialTabE(e,sold){if(e.k==="cl"&&String(e.rec.segment||"")==="Set Aside")return "";
+  return DIAL_KIND_TAB[scCallKind(e.key,e.co,sold||dialSold())]||"enduser";}
+/* people per tab (one per number, Do not call and wrong numbers left out) — the counts on the tabs */
+function dialTabCounts(){const n={dist:0,enduser:0,cold:0},seen=new Set();
+  const sold=dialSold();
+  dialEveryone().filter(dialIsWa).forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
   return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
 /* ---- the Dialer's own call log (Max, 2026-11-19: "Activity doesn't auto log into CRM until I push it"): every Save lands in the
@@ -6355,7 +6472,13 @@ function dialTaskKey(t){return t.pid?"p:"+t.pid:(t.leadId?"lead:"+t.leadId:(t.re
 function dialDueTasks(){const T=todayStr();
   return (DB.tasks||[]).filter(t=>t&&t.dialer&&!t.done&&!t.removed&&t.owner===USER&&t.due&&t.due<=T&&dialTaskKey(t));}
 /* order: call-backs due · retries due · never called · the rest, oldest last call first. Anyone whose next try is later stays out. */
-function dialQueue(){
+/* one queue per moment: Call, Save, the card and its boxes all ask for it in the same tick; anything that changes who's in it
+   (a saved call, a skip, a new record, another tab, a new day) changes the key */
+function dialQueue(){const S=dialS(),k=[S.src,dialCalls().length,(S.skipped||[]).join(","),(DB.activities||[]).length,(DB.tasks||[]).length,
+    DB.people.length,(DB.leads||[]).length,(DB.confLeads||[]).length,todayStr()].join("|"),m=DIAL.qMemo;
+  if(m&&m.k===k)return m.q.slice();
+  const q=dialQueue0();DIAL.qMemo={k:k,q:q};queueMicrotask(()=>{if(DIAL.qMemo&&DIAL.qMemo.q===q)DIAL.qMemo=null;});return q.slice();}
+function dialQueue0(){
   const S=dialS(),T=todayStr(),pool=dialPool(),td=dialToday(),last=dialLastIdx(),due=new Set(dialDueTasks().map(dialTaskKey));
   pool.forEach(e=>{if(e.d&&td.keys.has(e.key))td.nums.add(e.d);});
   const seen=new Set(),q=[];
@@ -6368,7 +6491,10 @@ function dialQueue(){
   const sk=S.skipped||[];
   return q.filter(e=>!sk.includes(e.key)).concat(sk.map(k=>q.find(e=>e.key===k)).filter(Boolean));}
 /* the card stays on the person you're calling or writing up, even if a sync drops them from the queue */
-function dialCur(q){const S=dialS();q=q||dialQueue();
+/* the queue the card works from: the tab's queue, narrowed to the city picked on the map. Call, Save, Skip and the auto-dial all use
+   it, so nothing can act on someone the card isn't showing */
+function dialQueueView(qAll){const S=dialS();qAll=qAll||dialQueue();return S.src.indexOf("t:")===0&&S.city?qAll.filter(x=>dialCityE(x)===S.city):qAll;}
+function dialCur(q){const S=dialS();q=q||dialQueueView();
   const hit=S.cur&&q.find(e=>e.key===S.cur);if(hit)return hit;
   if(S.cur&&(DIAL.callKey===S.cur||S.out||S.note||S.hold===S.cur)){const e=dialRecByKey(S.cur);if(e)return e;}
   return q[0]||null;}
@@ -6386,34 +6512,60 @@ function dialSeattleTime(){const d=new Date(),t=d.toLocaleTimeString("en-US",{ti
 function dialSources(){ensureLeads();
   const imps=[...new Set(DB.leads.filter(l=>!l.removed&&/^Dialer: /.test(l.conf||"")).map(l=>l.conf))];
   const lists=(DB.lists||[]).filter(l=>!l.removed),wc=dialWaCounts();
-  return [["seattle","Seattle area"],["wa","Washington · everyone ("+wc.all+")"],["confwest","Conference leads · West ("+dialConfWestCount()+")"]].concat(DIAL_GROUPS.map(g=>["wa:"+g[0],"Washington · "+g[1]+" ("+(wc[g[0]]||0)+")"]),
+  return [["seattle","Seattle area"],["wa","Washington · everyone ("+wc.all+")"],["confwest","Conference leads · West ("+dialConfWestCount()+")"]].concat(
     imps.map(c=>["imp:"+c,c.slice(8)+" (imported)"]),lists.map(l=>["list:"+l.id,l.name+" (list)"]));}
 /* ---- view ---- */
 const DIAL_GOAL=150;
 function viewDialer(){
   const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
-  let h='<div class="dltop"><div class="seg dltabs">'+[["dial","Dial"],["email","Email"+(drafts?" · "+drafts:"")],["push","Push to CRM"+(st.unpushed?" · "+st.unpushed:"")]]
+  let h='<div class="dltop"><div class="seg dltabs">'+[["dial","Dial"],["texts","Texts"+(dialTextUnread()?" · "+dialTextUnread():"")],["email","Email"+(drafts?" · "+drafts:"")],["push","Push to CRM"+(st.unpushed?" · "+st.unpushed:"")]]
     .map(x=>'<button class="'+(S.tab===x[0]?"on":"")+'" data-act="dialtab" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>'+dialFunnelHTML(st)+'</div>';
   if(S.tab==="push")return h+viewDialPush();
   if(S.tab==="email")return h+viewDialEmail();
+  if(S.tab==="texts")return h+viewDialTexts();
   return h+viewDialDial(st);}
 function dialFunnelHTML(st){const pct=Math.min(100,Math.round(st.n/DIAL_GOAL*100));
   return '<div class="dlfun"><div class="dlfunbar"><span style="width:'+pct+'%"></span></div><p class="t2"><b>'+st.n+'</b> / '+DIAL_GOAL+' dials · <b>'+st.talk+
     '</b> conversation'+(st.talk===1?'':'s')+' · <b>'+st.meet+'</b> meeting'+(st.meet===1?'':'s')+' booked · <b>'+st.hot+'</b> interested</p></div>';}
+/* where a person is on the map: their own city, else their account's */
+function dialCityE(e){if(e.cityKey!=null)return e.cityKey;const c=e.k==="p"&&e.rec.cid?company(e.rec.cid):null;
+  e.cityKey=dialCityKey(e.city)||(c?dialCityKey(c.city):"");return e.cityKey;}
+function dialCityName(k){return String(k||"").replace(/(^|[\s-])\w/g,m=>m.toUpperCase());}
+/* Washington with a dot per city for the tab's queue (Max, 2026-11-19: "a web in the state showing the contacts"); tap a city to call
+   only the people there */
+function dialMapHTML(q,cur){const S=dialS(),geo=window.US_GEO&&US_GEO.states&&US_GEO.states.WA;if(!geo)return "";
+  const by={};let none=0;
+  q.forEach(e=>{const k=dialCityE(e);if(!k){none++;return;}(by[k]=by[k]||{k:k,n:0}).n++;});
+  const pts=Object.values(by).map(c=>{const ll=WA_CITY_LL[c.k],xy=waXY(ll[0],ll[1]);return Object.assign(c,{x:xy[0],y:xy[1],r:Math.round((1.9+1.25*Math.sqrt(c.n))*10)/10});})
+    .sort((a,b)=>b.n-a.n);
+  const ck=cur?dialCityE(cur):"",lab=[];
+  pts.forEach(c=>{if(lab.length<5&&!lab.some(o=>Math.abs(o.y-c.y)<6&&Math.abs(o.x-c.x)<24))lab.push(c);}); /* biggest cities first, no overlaps */
+  let svgh='<svg class="dlmapsvg" viewBox="56 13 127 95" role="img" aria-label="Washington map of the people to call"><path class="dlmapwa" d="'+geo.d+'"/>'+
+    pts.slice().reverse().map(c=>'<g class="dlmdot'+(S.city===c.k?" on":"")+(S.city&&S.city!==c.k?" dim":"")+'" data-act="dialcity" data-v="'+esc(c.k)+'">'+
+      '<circle cx="'+c.x+'" cy="'+c.y+'" r="'+c.r+'"/><title>'+esc(dialCityName(c.k)+" · "+c.n)+'</title></g>').join("")+
+    (ck&&by[ck]?'<circle class="dlmcur" cx="'+by[ck].x+'" cy="'+by[ck].y+'" r="'+(by[ck].r+1.6)+'"/>':'')+
+    lab.map(c=>'<text class="dlmlab" x="'+(c.x+c.r+1.2)+'" y="'+(c.y+1.4)+'">'+esc(dialCityName(c.k))+'</text>').join("")+'</svg>';
+  return '<div class="dlmap">'+svgh+'<p class="dlmapn">'+(S.city?'<button class="qchip on" data-act="dialcity" data-v="">'+esc(dialCityName(S.city))+' · '+((by[S.city]||{}).n||0)+' '+svg("x")+'</button>':
+    (pts.length?'Tap a city to call only the people there':'Nobody left to call here today'))+(none?'<span class="t2"> · '+none+' with no city</span>':'')+'</p></div>';}
 function viewDialDial(st){
-  const S=dialS(),q=dialQueue(),e=dialCur(q);
-  if(e&&!S.cur)S.cur=e.key;
-  const srcs=dialSources();if(!srcs.some(x=>x[0]===S.src))S.src="seattle";
+  const S=dialS(),qAll=dialQueue(),tabQ=S.src.indexOf("t:")===0;
+  const q=dialQueueView(qAll),e=dialCur(q);
+  if(e&&S.cur!==e.key)S.cur=e.key;
+  const srcs=dialSources();let tabOn=S.src.indexOf("t:")===0;
+  if(tabOn?!DIAL_TABS.some(x=>"t:"+x[0]===S.src):!srcs.some(x=>x[0]===S.src)){S.src="t:dist";tabOn=true;}
+  const tc=dialTabCounts(),tabLbl=tabOn?(DIAL_TABS.find(x=>"t:"+x[0]===S.src)||["",""])[1]:"";
   let h='<div class="dlbar">'+(DIALER_HUB?'':'<span id="dlphone">'+dialPhoneHTML()+'</span>')+'<span class="grow"></span>'+
     '<label class="dlauto"><input type="checkbox" id="dialAuto"'+(S.auto?" checked":"")+'> Dial the next one automatically</label></div>';
-  h+='<div class="dlgrid"><aside class="dlq"><div class="dlqh"><select class="f" id="dialSrc" aria-label="Who to call">'+
+  h+='<div class="dlgrid"><aside class="dlq"><div class="seg dlsrctabs">'+DIAL_TABS.map(t=>'<button class="'+(S.src==="t:"+t[0]?"on":"")+'" data-act="dialsrc" data-v="t:'+t[0]+'">'+
+      esc(t[1])+'<span class="dlcnt">'+tc[t[0]]+'</span></button>').join("")+'</div>'+
+    '<div class="dlqh"><select class="f'+(tabOn?' dlother':'')+'" id="dialOther" aria-label="Other lists"><option value="">Other lists…</option>'+
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
-    '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+
-    '<p class="dlqn">'+q.length+' to call'+(S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington':'')+'</p><div class="list dlrows">'+
+    '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+(tabOn?dialMapHTML(qAll,e):'')+
+    '<p class="dlqn">'+q.length+' to call'+(tabOn?' · '+esc(tabLbl)+' in Washington':S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington':'')+'</p><div class="list dlrows">'+
     (q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
-      '<span class="dlrs">'+esc([x.co,S.src==="wa"&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
+      '<span class="dlrs">'+esc([x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
     (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,60).map(c=>
@@ -6431,11 +6583,11 @@ function viewDialPush(){
   let h='<div class="dlpushbar"><button class="btn coral" data-act="dialpushsel"'+(n?"":" disabled")+'>Push '+n+' to the CRM</button>'+
     '<button class="btn sm" data-act="dialpushall">Tick all</button><button class="btn sm" data-act="dialpushnone">Untick all</button></div>';
   Object.keys(byDay).sort().reverse().forEach(d=>{
-    h+='<p class="sech dlday">'+esc(fmtDay(d))+' · '+byDay[d].length+'</p><div class="list">'+byDay[d].map(c=>
+    h+='<p class="sech dlday">'+esc(dialDayTxt(d))+' · '+byDay[d].length+'</p><div class="list">'+byDay[d].map(c=>
       '<div class="dlprow"><input type="checkbox" class="dlpchk" data-cid="'+esc(c.id)+'"'+(dialPushTicked(c)?" checked":"")+' aria-label="Push '+esc(c.name)+'">'+
       '<span class="t2 dlptime">'+esc(fmtTimeShort(c.at))+'</span><span class="grow"><b>'+esc(c.name)+'</b>'+(c.co?' · '+esc(c.co):'')+
       (c.note?'<br><span class="t2">'+esc(c.note.slice(0,160))+'</span>':'')+
-      (c.meet&&(c.meet.distName||c.meet.when)?'<br><span class="t2">Meeting '+esc([c.meet.when?fmtDay(c.meet.when.slice(0,10))+" "+fmtTimeShort(c.meet.when):"",c.meet.distName?"through "+c.meet.distName:""].filter(Boolean).join(" · "))+'</span>':'')+'</span>'+
+      (c.meet&&(c.meet.distName||c.meet.when)?'<br><span class="t2">Meeting '+esc([c.meet.when?dialDayTxt(c.meet.when.slice(0,10))+" "+fmtTimeShort(c.meet.when):"",c.meet.distName?"through "+c.meet.distName:""].filter(Boolean).join(" · "))+'</span>':'')+'</span>'+
       '<span class="pill '+(DIAL_CONNECT.includes(c.out)?"ok":"gray")+'">'+esc(dialOutLabel(c.out))+(c.cb?' · '+esc(mdStamp(c.cb)):'')+'</span>'+
       '<button class="btn sm" data-act="dialpushone" data-id="'+esc(c.id)+'">Push</button></div>').join("")+'</div>';});
   return h;}
@@ -6470,7 +6622,8 @@ function dialCardHTML(e){
   const S=dialS(),tm=dialSeattleTime(),hist=dialHist(e);
   return '<div class="card dlcard"><div class="dlwho"><div class="grow"><button class="dlname" data-act="dialopen" data-id="'+esc(e.key)+'">'+esc(e.name)+'</button>'+
     '<p class="t2">'+esc([e.title,e.co].filter(Boolean).join(" · ")||"—")+'</p>'+
-    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.grp?dialGroupLabel(e.grp):"",e.src].filter(Boolean).join(" · "))+'</p></div>'+
+    dialMailLineHTML(e)+
+    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab&&e.tab!=="enduser"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp?dialGroupLabel(e.grp):""),e.src].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
     (dialPersonal(e)?'<span class="pill gray" title="Found on USPhoneBook — a personal cell. Check it against the Do Not Call list before you dial.">Personal cell · check DNC</span>':'')+
     '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' in Seattle'+(tm.late?' · after hours':'')+'</span></div></div>'+
@@ -6482,8 +6635,176 @@ function dialCardHTML(e){
     '<p class="fl">How did it go?</p><div class="qa-types" id="dlouts">'+dialOutsHTML()+'</div>'+
     '<div id="dlcb">'+dialCbHTML()+'</div>'+
     '<textarea class="f" id="dialNote" placeholder="Notes — Enter saves, Shift+Enter for a new line">'+esc(S.note||"")+'</textarea>'+
+    dialBoxHTML("dlmail",dialCardMailInner(e),dialMailSig(e))+dialBoxHTML("dltext",dialCardTextInner(e),dialTextSig(e))+
     '<div class="dlfoot"><button class="btn sm" data-act="dialskip">Skip for now</button><span class="grow"></span>'+
     '<button class="btn coral" data-act="dialsave">Save &amp; next</button></div></div>';}
+/* ---- email on the card (Max, 2026-11-19: "Email should be accessible on the notes page" → the email box on the card): picking an
+   outcome that gets a follow-up opens To / Subject / message / attachment under the notes, filled from the casual template;
+   "Write from my notes" has Claude write it from the note so far; Save & next sends it when "Send it when I save" is ticked,
+   otherwise it waits on the Email tab. S.mail = {key,to,subject,body,lit,send,edited,writing,ai,ver} for the person on the card. */
+function dialCardMail(e){const S=dialS();
+  if(!S.mail||S.mail.key!==e.key){const to=String(e.rec.email||"").trim();S.mail={key:e.key,to:to,subject:"",body:"",lit:"",send:true,edited:false,writing:false,ai:false,ver:0};}
+  return S.mail;}
+function dialMailLineHTML(e){const to=String(e.rec.email||"").trim();
+  if(dialEmailOk(to))return '<p class="t2 dlmline">'+svg("mail")+' '+esc(to)+'</p>';
+  const m=dialCardMail(e);
+  return '<p class="t2 dlmline">'+svg("mail")+' <input class="f dlmto" data-dm="to" type="email" placeholder="Add their email" value="'+esc(m.to||"")+'" aria-label="Their email"></p>';}
+/* the template for the outcome on the card, unless you've typed in the box (or Claude wrote it) */
+function dialCardMailFill(e){const S=dialS(),m=dialCardMail(e);
+  if(m.edited||!DIAL_MAIL_OUTS.includes(S.out))return;
+  const lits=dialLitFor(e),t=dialTemplate({toName:e.name,co:e.co,out:S.out},{meet:S.meet||null,cb:S.cb||(S.out==="callback"?dAdd(todayStr(),1):S.out==="interested"?dAdd(todayStr(),2):"")},e,lits);
+  if(t.subject!==m.subject||t.body!==m.body||t.lit!==m.lit){m.subject=t.subject;m.body=t.body;m.lit=t.lit;m.ver++;}}
+function dialCardMailInner(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(S.out))return "";
+  dialCardMailFill(e);const m=dialCardMail(e),ok=dialEmailOk(m.to),lits=dialLitFor(e),cur=DIAL_LIT.find(l=>l.id===m.lit);
+  if(cur&&!lits.includes(cur))lits.unshift(cur);
+  return '<div class="dlcmail"><p class="fl">Follow-up email</p>'+
+    '<div class="dlcmrow"><span class="t2">To</span><input class="f" data-dm="to" type="email" placeholder="their@email.com" value="'+esc(m.to||"")+'" aria-label="To"></div>'+
+    '<input class="f" data-dm="subject" value="'+esc(m.subject)+'" placeholder="Subject" aria-label="Subject">'+
+    '<textarea class="f dlcmbody" data-dm="body" aria-label="Email">'+esc(m.body)+'</textarea>'+
+    '<div class="dlmfoot"><select class="f dlmlit" data-dm="lit" aria-label="Attachment"><option value="">No attachment</option>'+
+    lits.map(l=>'<option value="'+l.id+'"'+(m.lit===l.id?" selected":"")+'>'+esc(l.title)+'</option>').join("")+'</select>'+
+    '<button class="btn sm" data-act="dialcwrite"'+(m.writing?" disabled":"")+'>'+svg("spark")+' '+(m.writing?"Writing…":"Write from my notes")+'</button>'+
+    '<span class="grow"></span><label class="dlcmsend'+(ok?"":" off")+'"><input type="checkbox" data-dm="send"'+(m.send&&ok?" checked":"")+(ok?"":" disabled")+'> Send it when I save</label></div>'+
+    (m.err?'<p class="t2 dlmerr">'+esc(m.err)+'</p>':'')+'</div>';}
+/* repaint the box only when its shape or its filled-in text changed, so typing in it is never wiped */
+function dialBoxHTML(id,inner,sig){return '<div id="'+id+'" data-sig="'+esc(sig)+'">'+inner+'</div>';}
+function dialMailSig(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(S.out))return "";const m=S.mail&&S.mail.key===e.key?S.mail:null;
+  return [e.key,S.out,m?m.ver:0,m&&m.writing?1:0,m&&m.err?1:0].join("|");}
+function dialCardMailPaint(){const el=document.getElementById("dlmail");if(!el)return;const S=dialS(),e=dialCur();
+  if(e&&DIAL_MAIL_OUTS.includes(S.out))dialCardMailFill(e);
+  const sig=dialMailSig(e);
+  if(el.dataset.sig===sig)return;el.dataset.sig=sig;el.innerHTML=e?dialCardMailInner(e):"";}
+/* the request the dialer function writes a follow-up from (Email tab drafts and the card) */
+function dialDraftBody(e,o){const lits=dialLitFor(e||{rec:{},co:o.co});
+  const hist=e?dialHist(e).filter(h=>h.at!==o.at).slice(0,3).map(h=>h.t+" "+mdStamp(h.at)+(h.note?" — "+String(h.note).slice(0,80):"")):[];
+  return {name:o.name,title:(e&&e.title)||"",company:o.co,outcome:o.out,note:o.note||"",proof:e?dialProof(e):"",
+    distributor:(o.meet&&o.meet.distName)||"",meetingWhen:o.meet&&o.meet.when?dialDayTxt(o.meet.when.slice(0,10),todayStr())+" "+fmtTimeShort(o.meet.when):"",
+    callbackDay:o.cb?dialDayTxt(o.cb,todayStr()):"",history:hist,literature:lits.map(l=>({id:l.id,title:l.title})),sender:(teamById(USER)||{}).name||"Max Herbst"};}
+async function dialCardWrite(){const S=dialS(),e=dialCur();if(!e||!DIAL_MAIL_OUTS.includes(S.out))return;const m=dialCardMail(e);if(m.writing)return;
+  const meet=S.meet?{when:S.meet.when||"",distName:S.meet.distCid&&S.meet.distCid!=="none"?S.meet.distName||"":""}:null;
+  const body=dialDraftBody(e,{name:e.name,co:e.co,out:S.out,note:String(S.note||"").trim(),meet:meet,cb:S.cb});
+  m.writing=true;delete m.err;m.ver++;dialCardMailPaint();
+  try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(b.error||("HTTP "+r.status));
+    m.subject=String(b.subject||m.subject);m.body=String(b.body||m.body);if(b.literature_id!=null)m.lit=String(b.literature_id||"");m.ai=true;m.edited=true;}
+  catch(err){m.err="Couldn't write it just now ("+String((err&&err.message)||err).slice(0,80)+"). The template is still there to edit.";}
+  m.writing=false;m.ver++;dialCardMailPaint();}
+/* ---- texts (Max, 2026-11-19: "I also get texting through the dialer… where I can text" — only people he talked to). Sent and
+   received through the dialer function from the Dialer number; the function is the only writer of dialTexts. A person can be texted
+   from the card once they said OK on a call (rec.textOk) — the box offers it after a conversation; anyone who texted in can be
+   answered; a STOP stops it until they text START. */
+const DIAL_TEXT_OUTS=["talked","interested","callback","meeting"],DIAL_TEXT_MAX=640;
+function dialTexts(){DB.dialTexts=DB.dialTexts||[];return DB.dialTexts;}
+/* the server's copies plus the ones just sent that the next pull hasn't brought yet */
+function dialTextsAll(){const have=new Set(dialTexts().map(t=>t&&t.id)),local=(DIAL.txLocal||[]).filter(t=>!have.has(t.id));
+  return dialTexts().filter(t=>t&&!t.removed).concat(local);}
+function dialTextsFor(num){return dialTextsAll().filter(t=>t.num===num).sort((a,b)=>String(a.at).localeCompare(String(b.at)));}
+function dialTextStopped(num){const ins=dialTextsFor(num).filter(t=>t.dir==="in");
+  for(let i=ins.length-1;i>=0;i--){if(dialIsStop(ins[i].body))return true;if(dialIsStart(ins[i].body))return false;}return false;}
+/* the text goes to the number you called (that's where they said OK) unless you pick their mobile on the card */
+function dialTextNumFor(e){const S=dialS();if(S.text&&S.text.key===e.key&&S.text.num)return S.text.num;return e.d?"+1"+e.d:"";}
+function dialTextTemplate(e,out){const S=dialS(),first=dialFirstName(e.name)||"there",me=(((teamById(USER)||{}).name)||"Max").split(" ")[0];
+  const hi="Hi "+first+", it's "+me+" from AutoTQ. ";
+  if(out==="interested")return hi+"Good talking today. I'm emailing you the overview now, text me here with any questions.";
+  if(out==="callback"){const d=S.cb||dAdd(todayStr(),1);return hi+"I'll call you back "+dialDayTxt(d,todayStr())+". Text me here if another time's better.";}
+  if(out==="meeting"){const m=S.meet||{};return hi+"Looking forward to "+(m.when?dialDayTxt(m.when.slice(0,10),todayStr())+" at "+fmtTimeShort(m.when):"our call")+". Text me here if anything changes.";}
+  if(out==="talked")return hi+"This is my number, text me anytime.";
+  return hi+"Just tried you, text me here when you have a minute.";}
+function dialCardText(e){const S=dialS();
+  if(!S.text||S.text.key!==e.key)S.text={key:e.key,body:"",edited:false,ok:false,sending:false,err:"",ver:0};
+  return S.text;}
+function dialTextShown(e){const S=dialS();return !!e&&!!dialTextNumFor(e)&&!dialTextBlocked(e)&&(DIAL_TEXT_OUTS.includes(S.out)||!!e.rec.textOk||dialTextsFor(dialTextNumFor(e)).some(t=>t.dir==="in"));}
+function dialTextBubbles(list){return list.map(t=>'<div class="dltb '+(t.dir==="in"?"in":"out")+'"><p>'+esc(t.body)+'</p><span>'+esc(mdStamp(t.at)+" "+fmtTimeShort(t.at))+
+  (t.dir==="out"?' · '+esc(t.err?"Not delivered":t.status==="delivered"?"Delivered":t.status==="sent"?"Sent":t.status==="failed"||t.status==="undelivered"?"Not delivered":"Sending"):'')+'</span>'+
+  (t.err?'<span class="dlmerr">'+esc(t.err)+'</span>':'')+'</div>').join("");}
+function dialCardTextInner(e){if(!dialTextShown(e))return "";
+  const S=dialS(),x=dialCardText(e),num=dialTextNumFor(e),hist=dialTextsFor(num),stopped=dialTextStopped(num),texted=hist.some(t=>t.dir==="in");
+  const ok=!!e.rec.textOk||texted;x.can=ok;
+  if(!x.edited){const t=dialTextTemplate(e,S.out);if(t!==x.body){x.body=t;}}
+  const md=dialDigits(e.rec.mobile),isMob=md&&num==="+1"+md;
+  let h='<div class="dlctext"><p class="fl">Text '+esc(dialFmt(num.slice(2)))+' <span class="t2">('+(isMob?"mobile":num==="+1"+e.d?"the number you called":"")+')</span></p>';
+  if(md&&e.d&&md!==e.d)h+='<div class="qa-types">'+[["+1"+e.d,"Number you called"],["+1"+md,"Mobile"+(dialPersonal(e)?" · personal cell, check DNC":"")]]
+    .map(o=>'<span class="qchip'+(num===o[0]?" on":"")+'" data-act="dialtnum" data-v="'+esc(o[0])+'">'+esc(o[1])+'</span>').join("")+'</div>';
+  if(hist.length)h+='<div class="dltthread">'+dialTextBubbles(hist.slice(-3))+'</div>';
+  if(stopped)return h+'<p class="t2 dlmerr">They replied STOP, so no more texts unless they text START.</p></div>';
+  if(!ok)h+='<label class="dlcmsend"><input type="checkbox" data-dt="ok"'+(x.ok?" checked":"")+'> They said I can text them</label>';
+  h+='<textarea class="f dlctbody" data-dt="body" maxlength="'+DIAL_TEXT_MAX+'" placeholder="Text '+esc(dialFirstName(e.name)||"them")+' again…" aria-label="Text">'+esc(x.body)+'</textarea>'+
+    '<div class="dlmfoot"><span class="t2" id="dltcount">'+x.body.length+' / '+DIAL_TEXT_MAX+'</span><span class="grow"></span>'+
+    (x.err?'<span class="t2 dlmerr">'+esc(x.err)+'</span>':'')+
+    '<button class="btn sm coral" data-act="dialtsend" id="dltsendbtn"'+((ok||x.ok)&&!x.sending&&String(x.body).trim()?"":" disabled")+'>'+svg("arrow")+' '+(x.sending?"Sending…":"Send text")+'</button></div></div>';
+  return h;}
+function dialTextSig(e){const S=dialS(),x=e&&S.text&&S.text.key===e.key?S.text:null,num=e?dialTextNumFor(e):"";
+  return e&&dialTextShown(e)?[e.key,S.out,num,x?x.ver:0,x&&x.sending?1:0,x&&x.err?1:0,num?dialTextsFor(num).map(t=>t.id+t.status).join(","):"",e.rec.textOk?1:0,
+    x&&!x.edited?(S.cb||"")+(S.meet&&S.meet.when||""):""].join("|"):"";}
+function dialCardTextPaint(){const el=document.getElementById("dltext");if(!el)return;const S=dialS(),e=dialCur();
+  const sig=dialTextSig(e);
+  if(el.dataset.sig===sig)return;el.dataset.sig=sig;el.innerHTML=e?dialCardTextInner(e):"";}
+/* send one text: the function sends it and keeps the record; we show it at once and pull to pick up the stored copy */
+async function dialTextSend(num,body,ctx){
+  const r=await supa("/functions/v1/dialer?action=sms",{method:"POST",body:JSON.stringify({to:num,body:body,key:ctx.key||"",name:ctx.name||"",co:ctx.co||""})});
+  const b=await r.json().catch(()=>({}));
+  if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+  if(b.text&&b.text.id){(DIAL.txLocal=DIAL.txLocal||[]).push(b.text);}
+  setTimeout(()=>{try{pullChanges();}catch(e){}},1500);
+  return b.text;}
+async function dialCardTextSend(){const S=dialS(),e=dialCur();if(!e)return;const x=dialCardText(e),num=dialTextNumFor(e);
+  const body=String(x.body||"").trim();if(!num||!body||x.sending)return;
+  if(dialTextBlocked(e)){toast("Marked Do not call or wrong number");return;}
+  if(!e.rec.textOk&&!x.ok&&!dialTextsFor(num).some(t=>t.dir==="in")){toast("Tick that they said you can text them");return;}
+  if(dialTextStopped(num)){toast("They replied STOP");return;}
+  x.sending=true;x.err="";x.ver++;dialCardTextPaint();
+  try{await dialTextSend(num,body,{key:e.key,name:e.name,co:e.co});
+    if(!e.rec.textOk){e.rec.textOk={at:new Date().toISOString(),by:USER};save();}
+    x.body="";x.edited=true;x.ok=false;toast("Text sent · "+e.name);}
+  catch(err){x.err=String((err&&err.message)||err).slice(0,160);}
+  x.sending=false;x.ver++;dialCardTextPaint();}
+/* ---- the Texts tab: a conversation per number */
+function dialTextSeen(){try{return JSON.parse(localStorage.getItem("autotq_dial_tseen")||"{}");}catch(e){return {};}}
+function dialTextSeenSet(num,at){const m=dialTextSeen();m[num]=at;try{localStorage.setItem("autotq_dial_tseen",JSON.stringify(m));}catch(e){}}
+function dialTextThreads(){const by={},seen=dialTextSeen();
+  dialTextsAll().forEach(t=>{if(!t.num)return;const th=by[t.num]||(by[t.num]={num:t.num,list:[],unread:0,last:""});th.list.push(t);
+    if(String(t.at)>th.last)th.last=String(t.at);if(t.dir==="in"&&String(t.at)>String(seen[t.num]||""))th.unread++;});
+  return Object.values(by).map(th=>{th.list.sort((a,b)=>String(a.at).localeCompare(String(b.at)));const w=dialFindByDigits(th.num.slice(2));
+    const o=th.list.find(t=>t.name);th.who=w;th.name=w?w.name:(o?o.name:dialFmt(th.num.slice(2)));th.co=w?w.co:(o?o.co:"");return th;})
+    .sort((a,b)=>b.last.localeCompare(a.last));}
+/* Do not call, or the number marked wrong, stops texting too */
+function dialTextBlocked(e){const r=e.rec;return !!(r.dnc||(r.badPhone&&dialTextNumFor(e)==="+1"+dialDigits(r.badPhone)));}
+function dialTextCan(th){const r=th.who&&th.who.rec;if(r&&(r.dnc||(r.badPhone&&"+1"+dialDigits(r.badPhone)===th.num)))return false;
+  return !!(r&&r.textOk)||th.list.some(t=>t.dir==="in");}
+function dialTextUnread(){return dialTextThreads().reduce((a,t)=>a+t.unread,0);}
+function viewDialTexts(){const S=dialS(),ths=dialTextThreads();
+  if(!ths.length)return '<div class="card empty">No texts yet. After a call where they said you can text them, the Text box is on the card.</div>';
+  if(!S.tnum||!ths.some(t=>t.num===S.tnum))S.tnum=ths[0].num;
+  const th=ths.find(t=>t.num===S.tnum);
+  if(th.list.length)dialTextSeenSet(th.num,th.list[th.list.length-1].at);th.unread=0;
+  const stopped=dialTextStopped(th.num),canText=dialTextCan(th),dnc=th.who&&th.who.rec.dnc;
+  return '<div class="dltgrid"><aside class="list dltlist">'+ths.map(t=>{const lt=t.list[t.list.length-1];
+      return '<button class="dlrow'+(t.num===S.tnum?" on":"")+'" data-act="dialtthread" data-v="'+esc(t.num)+'"><span class="dlrn">'+esc(t.name)+
+        (t.unread?' <span class="pill coral">'+t.unread+'</span>':'')+'</span><span class="dlrs">'+esc((lt.dir==="out"?"You: ":"")+String(lt.body).slice(0,60))+' · '+esc(mdStamp(lt.at))+'</span></button>';}).join("")+'</aside>'+
+    '<section class="card dltmain"><div class="dlthead"><div class="grow"><b>'+esc(th.name)+'</b><br><span class="t2">'+esc([th.co,dialFmt(th.num.slice(2))].filter(Boolean).join(" · "))+'</span></div>'+
+    (th.who?'<button class="btn sm" data-act="dialtcard" data-v="'+esc(th.who.key)+'">Open on the card</button>':'')+'</div>'+
+    '<div class="dltthread big">'+dialTextBubbles(th.list)+'</div>'+
+    (stopped?'<p class="t2 dlmerr">They replied STOP, so no more texts unless they text START.</p>':
+     canText?'<textarea class="f dlctbody" data-dt="reply" maxlength="'+DIAL_TEXT_MAX+'" placeholder="Text '+esc(th.name.split(" ")[0])+'…" aria-label="Reply">'+esc(S.treply||"")+'</textarea>'+
+       '<div class="dlmfoot"><span class="grow"></span><button class="btn sm coral" data-act="dialtreply">'+svg("arrow")+' Send</button></div>':
+     '<p class="t2">'+(dnc?'Marked Do not call.':'You can text them once they say OK on a call.')+'</p>')+'</section></div>';}
+async function dialTextReply(){const S=dialS(),body=String(S.treply||"").trim(),num=S.tnum;if(!body||!num||S.tsending)return;
+  const th=dialTextThreads().find(t=>t.num===num);if(!th)return;
+  if(dialTextStopped(num)){toast("They replied STOP, so they can't be texted");render();return;}
+  if(!dialTextCan(th)){toast("You can't text them from here");return;}
+  S.tsending=true;
+  try{await dialTextSend(num,body,{key:th.who?th.who.key:"",name:th.name,co:th.co});S.treply="";}
+  catch(err){toast("Not sent: "+String((err&&err.message)||err).slice(0,140));}
+  S.tsending=false;render();}
+/* a new text in: a toast on any tab, and the tab counts move */
+function dialTextsTick(){if(!dialAccess()||!SYNC.booted)return;const ins=dialTextsAll().filter(t=>t.dir==="in");
+  const last=ins.reduce((a,t)=>String(t.at)>a?String(t.at):a,"");
+  if(DIAL.lastIn==null){DIAL.lastIn=last;return;}
+  if(last>DIAL.lastIn){const t=ins.find(x=>String(x.at)===last),w=t&&dialFindByDigits(String(t.num).slice(2));DIAL.lastIn=last;
+    toast("New text from "+(w?w.name:dialFmt(String(t.num).slice(2)))+": "+String(t.body).slice(0,60));
+    const b=document.querySelector('[data-act="dialtab"][data-v="texts"]'),n=dialTextUnread();
+    if(b)b.innerHTML="Texts"+(n?'<span class="dhn">'+n+'</span>':'');
+    dialCardTextPaint();}}
 function dialCtlHTML(e){
   if(DIAL.incoming)return '<div class="dlctl"><span class="t2">A call is coming in — answer it in the bar at the bottom</span></div>';
   if(DIAL.call&&DIAL.callKey===e.key){
@@ -6523,7 +6844,7 @@ function dialMeetHTML(e){const S=dialS(),m=S.meet||(S.meet={}),ds=dialDistChoice
 function dialInviteUrl(e){const m=dialS().meet||{},r=e.rec||{},rep=m.repPid&&person(m.repPid),dist=m.distCid&&m.distCid!=="none"?company(m.distCid):null;
   const to=[r.email,rep&&rep.email].filter(Boolean).join(",");
   const start=m.when?new Date(m.when):new Date(Date.now()+86400000),end=new Date(start.getTime()+30*60000);
-  const body="Hi "+String(e.name||"").split(" ")[0]+",\n\nThanks for the time on the phone. Here's a Teams link to walk through AutoTQ"+
+  const body="Hi "+(dialFirstName(e.name)||"there")+",\n\nThanks for the time on the phone. Here's a Teams link to walk through AutoTQ"+
     (rep&&dist?", with "+rep.name+" from "+dist.name+", who can get it to you locally":"")+".\n\nMax Herbst\nGolden Hour Medical · AutoTQ";
   return "https://outlook.office.com/calendar/deeplink/compose?subject="+encodeURIComponent("AutoTQ — "+(e.co||e.name))+"&body="+encodeURIComponent(body)+
     "&startdt="+encodeURIComponent(start.toISOString())+"&enddt="+encodeURIComponent(end.toISOString())+(to?"&to="+encodeURIComponent(to):"");}
@@ -6540,7 +6861,8 @@ function dialPaint(){
     const c=document.getElementById("dlctl");if(c&&e)c.innerHTML=dialCtlHTML(e);
     const o=document.getElementById("dlouts");if(o)o.innerHTML=dialOutsHTML();
     const b=document.getElementById("dlcb");if(b)b.innerHTML=dialCbHTML();
-    const d=document.getElementById("dlcd");if(d)d.innerHTML=dialCdHTML();}
+    const d=document.getElementById("dlcd");if(d)d.innerHTML=dialCdHTML();
+    dialCardMailPaint();dialCardTextPaint();}
   dialBarPaint();}
 /* the call bar: an incoming call anywhere, or your call while you look at another page */
 function dialBarPaint(){
@@ -6639,21 +6961,38 @@ function dialSave(){
   const S=dialS(),e=dialCur();if(!e)return;
   if(DIAL.call&&DIAL.callKey===e.key){toast("Hang up first");return;}
   if(!S.out){toast("Pick how the call went");const o=document.getElementById("dlouts");if(o){o.classList.remove("dlflash");void o.offsetWidth;o.classList.add("dlflash");}return;}
+  const tx=S.text&&S.text.key===e.key?S.text:null;
+  if(tx&&tx.edited&&String(tx.body||"").trim()&&dialTextShown(e)){toast("Send or clear the text first");return;}
+  const box=S.mail&&S.mail.key===e.key?S.mail:null;
+  if(box&&box.writing){toast("Still writing the email…");return;}
+  if(box&&DIAL_MAIL_OUTS.includes(S.out)&&String(box.to||"").trim()&&!dialEmailOk(box.to)){toast("That email address doesn't look right. Fix it or clear it.");return;}
   const note=String(S.note||"").trim(),now=new Date().toISOString(),r=e.rec;
   const c={id:uid(),key:e.key,name:e.name,co:e.co,title:e.title,email:r.email||"",phone:e.d,out:S.out,note:note,secs:S.secs||0,at:now,by:USER,src:S.src};
   if(S.out==="callback"||S.out==="interested")c.cb=S.cb||(S.out==="callback"?dAdd(todayStr(),1):dAdd(todayStr(),2));
   if(S.out==="meeting"){const m=S.meet||{};c.meet={when:m.when||"",distCid:m.distCid&&m.distCid!=="none"?m.distCid:"",distName:m.distCid&&m.distCid!=="none"?m.distName||"":"",repPid:m.repPid||""};}
   dialCalls().unshift(c);
+  /* the card's email: a typed address goes on the record; ticked = send now, unticked = a draft on the Email tab */
+  let mailNote="",sendId="";const mm=S.mail&&S.mail.key===e.key&&DIAL_MAIL_OUTS.includes(S.out)?S.mail:null;
+  const hadEmail=r.email,hadOk=r.textOk;
+  if(box&&dialEmailOk(box.to)&&!dialEmailOk(r.email))r.email=String(box.to).trim(); // an address typed on the card goes on the record, whatever the outcome
+  if(tx&&tx.ok&&!r.textOk&&DIAL_TEXT_OUTS.includes(S.out))r.textOk={at:now,by:USER};
+  if(mm&&dialEmailOk(mm.to)){const to=String(mm.to).trim();c.email=to;
+    const m={id:uid(),callId:c.id,key:c.key,to:to,toName:c.name,co:c.co||"",out:c.out,subject:String(mm.subject||""),body:String(mm.body||""),lit:mm.lit||"",
+      status:"draft",at:now,by:USER,fromCard:true,ai:!!mm.ai};
+    dialMails().unshift(m);c.mailId=m.id;
+    if(mm.send&&String(m.subject).trim()&&String(m.body).trim()){sendId=m.id;mailNote=" · email goes in 5 seconds";}else mailNote=" · email waiting on the Email tab";}
   const was={dnc:r.dnc,bad:r.badPhone};
   if(S.out==="dnc"){r.dnc=true;r.dncAt=now;r.dncBy=USER;}
   if(S.out==="wrong")r.badPhone=e.d;
   save();
   const lbl=dialOutLabel(S.out);
-  Object.assign(S,{out:"",note:"",cb:"",secs:0,cur:"",hold:"",meet:null});S.skipped=(S.skipped||[]).filter(k=>k!==e.key);
+  Object.assign(S,{out:"",note:"",cb:"",secs:0,cur:"",hold:"",meet:null,mail:null,text:null});S.skipped=(S.skipped||[]).filter(k=>k!==e.key);
   render();
-  toast(lbl+" · "+e.name,()=>{const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;
+  toast(lbl+" · "+e.name+mailNote,()=>{const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;r.email=hadEmail;r.textOk=hadOk;
     (DB.dialMail||[]).forEach(m=>{if(m.callId===c.id&&m.status!=="sent")m.removed=true;});save();render();});
-  try{dialDraftAfter(c,e);}catch(x){}
+  if(sendId){const cid=c.id;setTimeout(()=>{const m=dialMails().find(x=>x.id===sendId);
+    if(m&&!m.removed&&m.status==="draft"&&dialCalls().some(x=>x.id===cid))dialMailSend(sendId,true);},5500);}
+  else if(!c.mailId){try{dialDraftAfter(c,e);}catch(x){}}
   dialCountdown();}
 /* Push to CRM: what Save used to write — an activity on the contact / a conference-lead call / a lead touch (dated when you called),
    a to-do for a call-back, and a deal for a booked meeting with its closing distributor */
@@ -6674,6 +7013,10 @@ function dialPushCall(c){
       createdAt:now,pid:e.k==="p"?r.id:null,dialer:true};
     if(e.k==="lead")t.leadId=r.id;if(e.k==="cl")t.refId=r.id;if(rec){t.actId=rec.id;rec.fuTask=t.id;}DB.tasks.unshift(t);c.taskId=t.id;}
   if(c.out==="meeting"){const o=dialMeetingOpp(c,e);if(o)c.oppId=o.id;}
+  if(rec){const pushedT=new Set();(DB.activities||[]).forEach(a=>(a.textIds||[]).forEach(i=>pushedT.add(i)));
+    const nums=[r.phone,r.mobile].map(dialDigits).filter(Boolean).map(d=>"+1"+d);
+    const tx=dialTextsAll().filter(t=>nums.includes(t.num)&&!pushedT.has(t.id)&&String(t.at)<=now).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+    if(tx.length){rec.note=(rec.note||"")+"\n\nTexts:\n"+tx.map(t=>(t.dir==="in"?"← ":"→ ")+mdStamp(t.at)+" "+String(t.body).slice(0,300)).join("\n");rec.textIds=tx.map(t=>t.id);}}
   c.pushed=now;if(rec)c.actId=rec.id;
   dialMails().filter(m=>m&&m.callId===c.id&&m.status==="sent"&&!m.pushedAct).forEach(dialPushMail);
   return true;}
@@ -6697,10 +7040,10 @@ function renderDialerHub(){
   if(!dialAccess()){scr.innerHTML='<div class="dhdeny"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><h1>This page is just for Max.</h1>'+
     '<a class="btn coral" href="../">Open the CRM</a></div>';return;}
   const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
-  const body=S.tab==="push"?viewDialPush():(S.tab==="email"?viewDialEmail():viewDialDial(st));
+  const body=S.tab==="push"?viewDialPush():S.tab==="email"?viewDialEmail():S.tab==="texts"?viewDialTexts():viewDialDial(st);
   const tab=(k,l,n)=>'<button class="'+(S.tab===k?"on":"")+'" data-act="dialtab" data-v="'+k+'">'+esc(l)+(n?'<span class="dhn">'+n+'</span>':'')+'</button>';
   scr.innerHTML='<div class="dhub"><header class="dhbar"><a class="dhbrand" href="../" title="Back to the CRM"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><span>Dialer</span></a>'+
-    '<nav class="dhtabs">'+tab("dial","Dial",0)+tab("email","Email",drafts)+tab("push","Push to CRM",st.unpushed)+'</nav>'+
+    '<nav class="dhtabs">'+tab("dial","Dial",0)+tab("texts","Texts",dialTextUnread())+tab("email","Email",drafts)+tab("push","Push to CRM",st.unpushed)+'</nav>'+
     '<div class="dhright"><span id="dlphone" class="dhphone">'+dialPhoneHTML()+'</span>'+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'">'+(SYNC.online?"":"Offline")+'</span>'+
     '<button class="av" style="background:'+me.c+'" data-act="dhmenu" title="'+esc(me.name)+'">'+initials(me.name)+'</button></div></header>'+
@@ -6754,25 +7097,22 @@ function dialMyMailbox(){return Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]=
 const DIAL_MAIL_OUTS=["vm","talked","interested","callback","meeting"];
 function dialDraftAfter(c,e){
   if(!DIAL_MAIL_OUTS.includes(c.out))return;
-  const to=String((e&&e.rec&&e.rec.email)||c.email||"").trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to))return;
+  const to=String((e&&e.rec&&e.rec.email)||c.email||"").trim();if(!dialEmailOk(to))return;
   const m={id:uid(),callId:c.id,key:c.key,to:to,toName:c.name,co:c.co||"",out:c.out,subject:"",body:"",lit:"",status:"drafting",at:new Date().toISOString(),by:USER};
   dialMails().unshift(m);save();dialWrite(m,e);}
 function dialTemplate(m,c,e,lits){
   /* casual, the way Max texts a work contact (Max, 2026-11-19: "use the language I taught you for follow ups. Make them sound casual") */
-  const first=String(m.toName||"").split(" ")[0]||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig="\n\n"+(((teamById(USER)||{}).name||"Max").split(" ")[0]);
+  const first=dialFirstName(m.toName)||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig="\n\n"+(((teamById(USER)||{}).name||"Max").split(" ")[0]);
   const what="We built AutoTQ, an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.";
   if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail. Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+(proof?" "+proof:"")+"\n\nWorth a quick look?"+sig};
   const lit=(lits[0]||{}).id||"";
-  if(m.out==="meeting"){const w=c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10))+" at "+fmtTimeShort(c.meet.when):"our time";
-    return {subject:"see you "+(c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10)):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today, looking forward to "+w+". I'll show you how it works and where it'd go at "+co+(c.meet&&c.meet.distName?" — "+c.meet.distName+" can get it to you locally":"")+".\n\nSent over a quick overview in case it's handy before then."+sig};}
-  if(m.out==="callback")return {subject:"talk "+(c.cb?fmtDay(c.cb):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?fmtDay(c.cb):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+sig};
+  if(m.out==="meeting"){const w=c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr())+" at "+fmtTimeShort(c.meet.when):"our time";
+    return {subject:"see you "+(c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today, looking forward to "+w+". I'll show you how it works and where it'd go at "+co+(c.meet&&c.meet.distName?" — "+c.meet.distName+" can get it to you locally":"")+".\n\nSent over a quick overview in case it's handy before then."+sig};}
+  if(m.out==="callback")return {subject:"talk "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+sig};
   return {subject:"good talking today",lit:lit,body:"Hi "+first+",\n\nGood talking with you today.\n\n"+what+(proof?" "+proof:"")+"\n\nSent over a quick overview. Want me to sketch out where they'd go at "+co+"?"+sig};}
 async function dialWrite(m,e){
   e=e||dialRecByKey(m.key);const c=dialCalls().find(x=>x.id===m.callId)||{},lits=dialLitFor(e||{rec:{},co:m.co});
-  const hist=e?dialHist(e).filter(h=>h.at!==c.at).slice(0,3).map(h=>h.t+" "+mdStamp(h.at)+(h.note?" — "+String(h.note).slice(0,80):"")):[];
-  const body={name:m.toName,title:(e&&e.title)||"",company:m.co,outcome:m.out,note:c.note||"",proof:e?dialProof(e):"",
-    distributor:(c.meet&&c.meet.distName)||"",meetingWhen:c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10))+" "+fmtTimeShort(c.meet.when):"",
-    callbackDay:c.cb?fmtDay(c.cb):"",history:hist,literature:lits.map(l=>({id:l.id,title:l.title})),sender:(teamById(USER)||{}).name||"Max Herbst"};
+  const body=dialDraftBody(e,{name:m.toName,co:m.co,out:m.out,note:c.note,meet:c.meet,cb:c.cb,at:c.at});
   m.status="drafting";dialMailPaint();
   try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(b.error||("HTTP "+r.status));
@@ -6810,7 +7150,7 @@ function dialMailHtml(body){
     String(body||"").trim().split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+esc(p).replace(/\n/g,"<br>")+'</p>').join("")+
     '<img src="'+MAIL_ASSETS+'lockup_hd.png" alt="AutoTQ" width="120" style="display:block;margin-top:6px;border:0"></div>';}
 function dialB64(buf){const a=new Uint8Array(buf);let s="";for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s);}
-async function dialMailSend(id){
+async function dialMailSend(id,quiet){
   const m=dialMails().find(x=>x.id===id);if(!m||m.status==="sent"||m.sending)return;
   const from=dialMyMailbox();if(!from){toast("No mailbox on file for your seat");return;}
   if(!String(m.subject).trim()||!String(m.body).trim()){toast("Add a subject and a message first");return;}
@@ -6824,8 +7164,8 @@ async function dialMailSend(id){
     if(b.from&&b.from!==from)throw new Error("it went out from "+b.from+" instead of "+from);
     m.status="sent";m.sentAt=new Date().toISOString();m.from=from;delete m.sending;
     const c=dialCalls().find(x=>x.id===m.callId);if(c&&c.pushed)dialPushMail(m); // the call is already in the CRM — the email follows it
-    save();render();toast("Sent to "+m.toName);}
-  catch(err){delete m.sending;m.sendErr=String((err&&err.message)||err).slice(0,160);save();render();toast("Not sent: "+m.sendErr);}}
+    save();if(quiet)dialMailPaint();else{render();toast("Sent to "+m.toName);}}
+  catch(err){delete m.sending;m.sendErr=String((err&&err.message)||err).slice(0,160);save();if(quiet)dialMailPaint();else render();toast("Not sent: "+m.sendErr+(quiet?" (it's on the Email tab)":""));}}
 /* a sent follow-up as a CRM email activity, the way the rest of the CRM logs emails */
 function dialPushMail(m){if(!m||m.status!=="sent"||m.pushedAct)return;const e=dialRecByKey(m.key);if(!e)return;const r=e.rec;
   const a={id:uid(),type:"email",note:"Emailed: "+m.subject+(m.lit?" · attached "+((DIAL_LIT.find(l=>l.id===m.lit)||{}).title||""):""),date:m.sentAt||new Date().toISOString(),by:m.by||USER,norm:2,dialer:true};
@@ -6883,9 +7223,24 @@ function dialImport(f){
     toast(added+" added to Leads"+(dup?" · "+dup+" already in the CRM":"")+(nophone?" · "+nophone+" without a phone":""));
   }).catch(err=>toast((err&&err.message)||"Couldn't read that file"));}
 /* ---- clicks ---- */
+function dialBusy(){const S=dialS();return !!(DIAL.call||S.out||String(S.note||"").trim()||S.hold||S.secs);}
+function dialSetSrc(src){dialStopCd();const S=dialS();
+  if(dialBusy())Object.assign(S,{src:src,city:"",hold:S.cur});
+  else Object.assign(S,{src:src,cur:"",out:"",note:"",cb:"",secs:0,hold:"",city:"",meet:null,mail:null,text:null});
+  if(src.indexOf("t:")===0){try{localStorage.setItem("autotq_dial_tab",src);}catch(e){}}
+  render();}
 function dialAct(a,t){
   const S=dialS();
-  if(a==="dialpick"){dialStopCd();if(S.cur!==t.dataset.id){Object.assign(S,{cur:t.dataset.id,out:"",note:"",cb:"",secs:0,hold:""});}render();return true;}
+  if(a==="dialsrc"){dialSetSrc(t.dataset.v);return true;}
+  if(a==="dialcity"){dialStopCd();const v=t.dataset.v||"";S.city=S.city===v?"":v;
+    if(dialBusy())S.hold=S.cur;else Object.assign(S,{cur:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});render();return true;}
+  if(a==="dialpick"){dialStopCd();if(S.cur!==t.dataset.id){Object.assign(S,{cur:t.dataset.id,out:"",note:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});}render();return true;}
+  if(a==="dialcwrite"){dialCardWrite();return true;}
+  if(a==="dialtsend"){dialCardTextSend();return true;}
+  if(a==="dialtnum"){const e=dialCur();if(e){const x=dialCardText(e);x.num=t.dataset.v;x.ver++;dialCardTextPaint();}return true;}
+  if(a==="dialtreply"){dialTextReply();return true;}
+  if(a==="dialtthread"){S.tnum=t.dataset.v;S.treply="";render();return true;}
+  if(a==="dialtcard"){if(dialBusy()&&t.dataset.v!==S.cur){toast("Finish the card you're on first");return true;}dialStopCd();Object.assign(S,{tab:"dial",cur:t.dataset.v,hold:t.dataset.v,out:"",note:"",cb:"",secs:0,meet:null,mail:null,text:null});render();window.scrollTo(0,0);return true;}
   if(a==="dialcall"){dialCall();return true;}
   if(a==="dialhang"){if(DIAL.call)DIAL.call.disconnect();return true;}
   if(a==="dialmute"){if(DIAL.call){DIAL.muted=!DIAL.muted;DIAL.call.mute(DIAL.muted);dialPaint();}return true;}
@@ -6907,7 +7262,7 @@ function dialAct(a,t){
     const n=document.getElementById("dialNote");if(n)n.focus();return true;}
   if(a==="dialcb"){S.cb=t.dataset.v;dialPaint();return true;}
   if(a==="dialsave"){dialSave();return true;}
-  if(a==="dialskip"){dialStopCd();const e=dialCur();if(e){S.skipped=(S.skipped||[]).filter(k=>k!==e.key).concat([e.key]);Object.assign(S,{cur:"",out:"",note:"",cb:"",secs:0,hold:""});}render();return true;}
+  if(a==="dialskip"){dialStopCd();const e=dialCur();if(e){S.skipped=(S.skipped||[]).filter(k=>k!==e.key).concat([e.key]);Object.assign(S,{cur:"",out:"",note:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});}render();return true;}
   if(a==="dialpause"){dialStopCd();return true;}
   if(a==="dialinit"){DIAL.state="off";dialInit();return true;}
   if(a==="dialimp"){const f=document.getElementById("dialFile");if(f)f.click();return true;}
@@ -6920,14 +7275,22 @@ function dialAct(a,t){
     return true;}
   return false;}
 /* after every render: the call bar follows the page, and a countdown never dials once you've left the dialer */
-function dialAfterRender(){if(!dialAccess())return;if(view!=="dialer"&&DIAL.cd)dialStopCd();dialBarPaint();}
+function dialAfterRender(){if(!dialAccess())return;if(view!=="dialer"&&DIAL.cd)dialStopCd();dialBarPaint();try{dialTextsTick();}catch(e){}}
 document.addEventListener("input",e=>{const el=e.target;if(el&&el.id==="dialNote")dialS().note=el.value;
+  if(el&&el.dataset&&el.dataset.dt==="body"){const x=dialS().text;if(x){x.body=el.value;x.edited=true;const c=document.getElementById("dltcount");if(c)c.textContent=el.value.length+" / "+DIAL_TEXT_MAX;
+    const b=document.getElementById("dltsendbtn");if(b&&!x.sending)b.disabled=!((x.can||x.ok)&&el.value.trim());}}
+  if(el&&el.dataset&&el.dataset.dt==="reply")dialS().treply=el.value;
+  if(el&&el.dataset&&el.dataset.dm&&el.dataset.dm!=="send"&&el.dataset.dm!=="lit"){const m=dialS().mail;if(m){const f=el.dataset.dm;m[f]=el.value;if(f!=="to")m.edited=true;
+    if(f==="to"){document.querySelectorAll('[data-dm="to"]').forEach(x=>{if(x!==el)x.value=el.value;});
+      const ok=dialEmailOk(el.value),cb=document.querySelector('[data-dm="send"]');if(cb){cb.disabled=!ok;cb.checked=ok&&m.send;cb.parentNode.classList.toggle("off",!ok);}}}}
   if(el&&el.dataset&&el.dataset.mf&&el.dataset.mid){const m=dialMails().find(x=>x.id===el.dataset.mid);if(m){m[el.dataset.mf]=el.value;clearTimeout(DIAL.mailSave);DIAL.mailSave=setTimeout(save,700);}}});
-document.addEventListener("change",e=>{const el=e.target;if(!el||(!el.id&&!(el.dataset&&el.dataset.mf)&&!(el.classList&&el.classList.contains("dlpchk"))))return;
+document.addEventListener("change",e=>{const el=e.target;if(!el||(!el.id&&!(el.dataset&&(el.dataset.mf||el.dataset.dm||el.dataset.dt))&&!(el.classList&&el.classList.contains("dlpchk"))))return;
   if(el.classList&&el.classList.contains("dlpchk")){const S=dialS();S.pushSel=S.pushSel||{};S.pushSel[el.dataset.cid]=el.checked;render();return;}
+  if(el.dataset&&el.dataset.dt==="ok"){const x=dialS().text;if(x){x.ok=el.checked;const b=document.getElementById("dltsendbtn");if(b)b.disabled=!((x.can||el.checked)&&String(x.body).trim());}return;}
+  if(el.dataset&&(el.dataset.dm==="lit"||el.dataset.dm==="send")){const m=dialS().mail;if(m){if(el.dataset.dm==="lit"){m.lit=el.value;m.edited=true;}else m.send=el.checked;}return;}
   if(el.dataset&&el.dataset.mf==="lit"&&el.dataset.mid){const m=dialMails().find(x=>x.id===el.dataset.mid);if(m){m.lit=el.value;save();}return;}
-  if(el.id==="dialMeetWhen"){const S=dialS();(S.meet||(S.meet={})).when=el.value;return;}
-  if(el.id==="dialSrc"){dialStopCd();Object.assign(dialS(),{src:el.value,cur:"",out:"",note:"",cb:"",secs:0,hold:""});render();}
+  if(el.id==="dialMeetWhen"){const S=dialS();(S.meet||(S.meet={})).when=el.value;dialCardMailPaint();dialCardTextPaint();return;}
+  if(el.id==="dialOther"){if(el.value)dialSetSrc(el.value);}
   else if(el.id==="dialAuto"){const S=dialS();S.auto=el.checked;try{localStorage.setItem("autotq_dial_auto",el.checked?"1":"0");}catch(x){}if(!el.checked)dialStopCd();}
   else if(el.id==="dialCbDate"&&el.value){dialS().cb=el.value;dialPaint();}
   else if(el.id==="dialFile"&&el.files&&el.files.length){dialImport(el.files[0]);el.value="";}});
