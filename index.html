@@ -1209,6 +1209,50 @@ div.dlrow{cursor:default}
 .dllate{color:var(--warn-t)!important;font-weight:600}
 .dlhist{background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r);padding:8px 12px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--ink-2)}
 .dlhist p{margin:2px 0}
+.dltop{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.dlfun{flex:1;min-width:260px}.dlfun .t2{margin:4px 0 0}
+.dlfunbar{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden}.dlfunbar span{display:block;height:100%;background:var(--coral);border-radius:99px}
+.dlpushbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.dlday{margin:14px 2px 8px;font-size:13px}
+.dlprow{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line-2)}.dlprow:last-child{border-bottom:0}
+.dlprow input{margin-top:3px}.dlptime{min-width:62px}
+.f.dlmeetwhen{width:auto;min-height:30px;padding:0 8px}
+.dlmtabs{margin-bottom:12px}
+.dlmail{display:flex;flex-direction:column;gap:8px}.dlmhead{margin:0}
+.f.dlmbody{min-height:170px;line-height:1.5}
+.dlmfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.f.dlmlit{width:auto;max-width:320px}
+.dlmerr{color:var(--dang-t)}
+.dlinrow summary{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;cursor:pointer;list-style:none;border-bottom:1px solid var(--line-2)}
+.dlinbody{padding:10px 14px 14px 84px;font-size:13.5px;line-height:1.5;color:var(--ink-2);white-space:normal}
+/* AutoTQ Dialer page */
+.dhub{min-height:100vh;display:flex;flex-direction:column;background:var(--bg)}
+.dhbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:22px;padding:10px 28px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--sh-1)}
+.dhbrand{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--ink)}
+.dhbrand img{height:24px;display:block}
+.dhbrand span{font-size:19px;font-weight:800;letter-spacing:-.015em;padding-left:14px;border-left:1px solid var(--line-3);line-height:26px}
+.dhtabs{display:flex;gap:2px;background:var(--sunken);border-radius:11px;padding:3px}
+.dhtabs button{display:flex;align-items:center;gap:7px;border:0;background:none;padding:8px 16px;border-radius:9px;font:600 13.5px/1 var(--font);color:var(--ink-2);cursor:pointer;transition:background .15s,color .15s}
+.dhtabs button:hover{color:var(--ink)}
+.dhtabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(26,25,22,.12)}
+.dhn{min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--coral-btn);color:#fff;font-size:11.5px;line-height:20px;text-align:center}
+.dhright{margin-left:auto;display:flex;align-items:center;gap:16px;font-size:13px;color:var(--ink-2)}
+.dhphone{display:inline-flex;align-items:center;white-space:nowrap}
+.dhfun{width:100%;max-width:1440px;margin:0 auto;padding:16px 28px 0}
+.dhfun .dlfun{min-width:0}
+.dhmain{width:100%;max-width:1440px;margin:0 auto;padding:14px 28px 48px;flex:1}
+.dhub .dlgrid{grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:20px}
+.dhub .dlrows{max-height:calc(100vh - 262px)}
+.dhub .dlcard{padding:26px 30px;border-radius:var(--r-xl)}
+.dhub .dlname{font-size:28px}
+.dhub .dlnum b{font-size:22px}
+.dhub .btn.dlcall{min-height:52px;padding:0 26px;font-size:16px;border-radius:12px}
+.dhub .qchip kbd{font:600 10.5px/1 var(--font);color:var(--muted);background:var(--sunken);border-radius:4px;padding:2px 4px;margin-right:6px}
+.dhub .qchip.on kbd{background:rgba(255,255,255,.6);color:var(--coral-tt)}
+.dhdeny{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+.dhdeny img{height:30px}.dhdeny h1{font-size:22px;margin:0}
+@media (max-width:900px){.dhbar{flex-wrap:wrap;gap:12px;padding:10px 16px}.dhtabs{order:3;width:100%}.dhtabs button{flex:1;justify-content:center;padding:9px 6px}
+  .dhfun{padding:12px 16px 0}.dhmain{padding:12px 16px 40px}.dhub .dlgrid{grid-template-columns:1fr}.dhub .dlrows{max-height:260px}.dhphone{display:none}
+  .dhub .dlcard{padding:18px}.dhub .dlname{font-size:23px}.dhub .dlwho{flex-direction:column;gap:6px}.dhub .dlnum{align-items:flex-start}}
 .dlproof{font-size:13px;line-height:1.5;color:var(--ink-2);background:var(--ok-b);border-radius:var(--r);padding:8px 12px;margin:-4px 0 14px}
 .dlproof b{display:block;font-size:11.5px;letter-spacing:.02em;color:var(--ok-t);margin-bottom:1px}
 .dlctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;min-height:44px}
@@ -1245,7 +1289,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1375,6 +1419,7 @@ async function pullChanges(full){
           if(r.collection==="opps"&&!r.deleted&&r.data&&oppNotesIntoDirty(k,r.data))changed=true;
           return;}
         if(r.collection==="whiteboard"&&!futureAccess())return; // Max's Future CRM notes never land on anyone else's device
+        if((r.collection==="dialCalls"||r.collection==="dialMail")&&!dialAccess())return; // the Dialer's call log + emails: the dialer seat only
         if(SYNC_COLLECTIONS.includes(r.collection)&&applyRemote(r.collection,r.id,r.data,r.deleted))changed=true;
       });
       if(rows.length<1000)break;
@@ -1402,7 +1447,7 @@ async function bootSync(){
   await pullChanges(true);      // full pull — server is the source of truth
   snapshotShadow();             // then baseline the shadow from merged state
   SYNC.booted=true;
-  if(dialAccess())setTimeout(dialInit,1200); /* the dialer's phone: ready to call, and callbacks ring here */
+  if(dialAccess()&&DIALER_HUB)setTimeout(dialInit,1200); /* the dialer's phone: ready to call, and callbacks ring here */
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});
@@ -1588,7 +1633,7 @@ document.addEventListener("keydown",e=>{
 function renderLogin(){
   {const fd=document.getElementById("fbdock");if(fd)fd.remove();}
   const step=logState.setPw?"setpw":(logState.otpEmail?"code":(logState.pwEmail?"pw":"email"));
-  let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">Channel CRM</div>';
+  let h='<div class="login"><div class="logo">'+BRAND_MARK+'<span>AutoTQ</span></div><div class="tag">'+(DIALER_HUB?"Dialer":"Channel CRM")+'</div>';
   if(step==="email"){
     h+='<div class="who">Tap your name to sign in</div><div class="list">'+
      TEAM.map(t=>{const em=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===t.id);if(!em||t.vacant)return"";
@@ -1769,6 +1814,7 @@ function sideHTML(NU,me){
      (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+wsl("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, LinkedIn</small></span></a>'+
      '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+wsl("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
      (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+wsl("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
+    (dialAccess()?'<a class="sitem" href="'+DIAL_URL+'" data-act="extlink">'+wsl("#D12020",SVG.phone)+'<span class="lbl">AutoTQ Dialer<small>Call, follow up, push</small></span></a>':'')+
      (FUT?'<button class="sitem" data-act="hubcrm">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+crmProf+'</small></span></button>'
          :'<button class="sitem on" data-act="sidepopclose">'+crmIco+'<span class="lbl">AutoTQ CRM<small>'+prof+'</small></span>'+svg("check","ck")+'</button>')+
      (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+futIco+'<span class="lbl">Future CRM<small>The new version · only you</small></span>'+svg("check","ck")+'</button>'
@@ -1785,6 +1831,7 @@ function sideHTML(NU,me){
     '<div class="phd">'+esc(me.name)+' · '+esc(roleShort(me))+'</div>'+
     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+svg("mail")+'<span class="lbl">Switch to AutoTQ Marketing</span></a><a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+svg("box")+'<span class="lbl">Switch to AutoTQ Catalog</span></a>':'')+
     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+svg("check")+'<span class="lbl">Switch to AutoTQ Progress</span></a>':'')+
+    (dialAccess()?'<a class="sitem" href="'+DIAL_URL+'" data-act="extlink">'+svg("phone")+'<span class="lbl">Switch to AutoTQ Dialer</span></a>':'')+
     (futureAccess()?(FUT?'<button class="sitem" data-act="hubcrm">'+svg("chart")+'<span class="lbl">Switch to AutoTQ CRM</span></button>':'<button class="sitem" data-act="hubfuture">'+svg("spark")+'<span class="lbl">Switch to Future CRM</span></button>'):'')+
     (can?'<div class="sep"></div>':'')+
     '<button class="sitem" data-act="chpw">'+svg("user")+'<span class="lbl">Change my password</span></button>'+
@@ -1808,6 +1855,7 @@ function hubMenuHTML(){if(!hubSwitchAccess())return "";const ic=(c,p)=>'<span cl
     (mktAccess()?'<a class="sitem" href="'+MKT_URL+'" data-act="extlink">'+ic("var(--coral-btn)",SVG.mail)+'<span class="lbl">AutoTQ Marketing<small>Campaigns, calls, to do</small></span></a>'+
     '<a class="sitem" href="'+CAT_URL+'" data-act="extlink">'+ic("#2D6CC0",SVG.box)+'<span class="lbl">AutoTQ Catalog<small>New products, makers, quotes</small></span></a>':'')+
     (progAccess()?'<a class="sitem" href="'+PROG_URL+'" data-act="extlink">'+ic("#6B4FA3",SVG.check)+'<span class="lbl">AutoTQ Progress<small>Your day to day</small></span></a>':'')+
+    (dialAccess()?'<a class="sitem" href="'+DIAL_URL+'" data-act="extlink">'+ic("#D12020",SVG.phone)+'<span class="lbl">AutoTQ Dialer<small>Call, follow up, push</small></span></a>':'')+
     (futureAccess()?(FUT?'<button class="sitem on" data-act="sidepopclose">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>You are here</small></span></button>'
         :'<button class="sitem" data-act="hubfuture">'+ic(FUTURE_TINT,SVG.spark)+'<span class="lbl">Future CRM<small>The new version · only you</small></span></button>'):'')+
     '</div></div>';}
@@ -1850,6 +1898,7 @@ function palItems(q){
     ["help","How this CRM works","Help",()=>{helpSheet();}],["panel",SIDE.mini?"Expand the sidebar":"Collapse the sidebar","Sidebar",()=>{sideToggle();}]];
   if(mktAccess())acts.push(["mail","Switch to AutoTQ Marketing","Marketing",()=>{location.href=MKT_URL;}],["box","Switch to AutoTQ Catalog","Catalog",()=>{location.href=CAT_URL;}]);
   if(progAccess())acts.push(["check","Switch to AutoTQ Progress","Progress",()=>{location.href=PROG_URL;}]);
+  if(dialAccess())acts.push(["phone","Switch to AutoTQ Dialer","Dialer",()=>{location.href=DIAL_URL;}]);
   if(futureAccess())acts.push(FUT?["chart","Switch to AutoTQ CRM","CRM",()=>{switchHub("crm");}]:["spark","Switch to Future CRM","Future",()=>{switchHub("future");}]);
   const hit=s=>!q||String(s).toLowerCase().includes(q);
   tabs.filter(t=>hit(t[1])||hit(t[2])).forEach(t=>add("Go to",t[0],t[1],t[2]===t[1]?"":t[2],t[3]));
@@ -1914,6 +1963,7 @@ function render(){
   normOppStages(); // legacy stage labels from synced records → canonical, every render path
   ensureActIds(); // older logged activities may predate ids — editing needs one
   normActTypes(); // meetings → visits, voicemails → calls (left voicemail), travel → visits with company
+  if(DIALER_HUB){renderDialerHub();return;}
   const me=teamById(USER);
   if(!logState.landed){logState.landed=true;if(view==="today")applyRoleDefaults();} /* admins land on Team (Max, 2026-10-16) */
   if(view==="invoicing"&&!invAccess())view="today";
@@ -2266,7 +2316,9 @@ function repForDeal(region,day){
   day=String(day||"").slice(0,10)||todayStr();
   if(region==="East")return day>=REP_START.johnm?"johnm":"house";
   if(region==="Central")return day>=REP_START.john?"john":"house";
-  if(region==="West")return day>=REP_START.max?"max":(day>=REP_START.tim?"tim":(day>=REP_START.john?"john":"house"));
+  /* Max took the West seat on 2026-11-19 only to count his Washington Dialer KPIs (Max: "don't add west deals"): West deals and
+     orders stay with the open seat, and Max gets a deal only when he is set on it */
+  if(region==="West")return day>=REP_START.tim?"tim":(day>=REP_START.john?"john":"house");
   return "";
 }
 /* sells a territory: the sales profile, plus Max (West from 2026-11-19, still an admin) */
@@ -2422,6 +2474,8 @@ document.addEventListener("dblclick",e=>{
   const b=e.target.closest&&e.target.closest("#wboard");if(!b||e.target!==b)return;
   const r=b.getBoundingClientRect();wbAdd(e.clientX-r.left-WB_W/2,e.clientY-r.top-14);
 });
+const DIAL_URL="dialer/"; /* AutoTQ Dialer (2026-11-19): this same page served at /dialer/ — full-screen, Max's seat only (DIALER_HUB) */
+const DIALER_HUB=/\/dialer\/(index\.html)?$/.test(location.pathname)||new URLSearchParams(location.search).get("hub")==="dialer";
 const PROG_URL="progress/"; /* AutoTQ Progress (2026-11-06): Max's own day-by-day hub (tasks + ideas: Expansion / Marketing / CRM), the Marketing hub page served at /progress/ */
 function progAccess(){return USER==="max";}
 /* Profiles (Max, 2026-10-16: "each profile tailored to that person"): sales reps sell what outreach hands them,
@@ -2436,7 +2490,7 @@ function railGroups(u){
   const p=profile(u);
   /* "dumb simple: Home — Activity — Pipeline — Leads — Quotes" (Max, 2026-10-16 evening) */
   /* Field Map + Conferences are back on the sales rail (Max, 2026-10-20: "add the Field Map back… conference leads back") */
-  if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat(dialAccess(u)?[["dialer","phone","Dialer"]]:[],[["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt",goalsOn()?"My goals":"My KPIs"]])],
+  if(p==="sales")return [["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat([["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"],["team","bolt",goalsOn()?"My goals":"My KPIs"]])],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"]]],
     ["Field",[["map","pin","Field Map"],["conf","cal","Conferences"]]]];
   if(p==="outreach")return [["Outreach",[["today","home","Home"],["leads","spark","Leads"],["quotes","tag","Quotes"],["export","dl","Lists"],["activity","clock","Activity"],["conf","cal","Conferences"]]],
@@ -2445,7 +2499,7 @@ function railGroups(u){
   /* admins: the Team dashboard comes first — it is their home (Max, 2026-10-16) */
   const g=[];
   const mg=[];if(teamAccessFor(u))mg.push(["team","users","Team"]);if(profile(u)==="admin")mg.push(["teamcal","cal","Team calendar"]);if(mg.length)g.push(["Manage",mg]); /* Campaigns tab removed 2026-10-16 — handled outside the CRM */
-  g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat(dialAccess(u)?[["dialer","phone","Dialer"]]:[],[["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]])],
+  g.push(["Sell",[["today","home","Home"],["activity","clock","Activity"]].concat([["opps","chart","Pipeline"],["leads","spark","Leads"],["quotes","tag","Quotes"]])],
     ["Records",[["accounts","ware","Accounts"],["contacts","users","Contacts"],["export","dl","Lists"]]],
     ["Insight",[["insight","spark","Insight"],["map","pin","Field Map"],["conf","cal","Conferences"]]]);
   return g;
@@ -2909,7 +2963,10 @@ function goalHomeHTML(){
    from the activities; email numbers come from public.rep_mail, which AutoTQ_CRM_scripts/rep_mail/rep_mail_sync.py fills every
    evening on Max's PC (RLS: only rep_mail_readers — Max, Hannah, Jamie — can read it). A day's type is the rep's plan when there is
    one, else a weekday with a distributor meeting is a Travel day and any other weekday an Office day. ---------- */
-const SC_REPS=["johnm","john","tim"];
+const SC_REPS=["johnm","john","tim","max"];
+/* the rows a week shows (Max, 2026-11-19: "show Max as the West contact"): the West seat is Max from REP_START.max on, the empty
+   seat before that */
+function scReps(mon){return ["johnm","john",goalDays(mon)[6]>=REP_START.max?"max":"tim"];}
 function scAccess(){return ["max","hannah","jamie"].includes(USER);}
 /* Hannah, 2026-11-11 ("each of their own metrics in their view, so when they log in they can see this"): a seller sees their OWN
    scorecard row on Home, their own week and their own analysis — never another rep's (RLS rep_mail_own_read: own mailbox only) */
@@ -3012,6 +3069,7 @@ function scState(u,mon){
     {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
   const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
   if(vacant(u))return scInboxState(u,mon,days,mail);
+  if(dialAccess(u))return scDialState(u,mon,days);
   const today=loggedToday(u),live=mon!==goalMonday()||today;
   const status=!parts.length?null:!live?"idle":parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
@@ -3040,6 +3098,65 @@ function scInboxState(u,mon,days,mail){
     {label:"Last email in",v:lastIn?fmt(lastIn.at):(mail?"—":L),sub:lastIn?(lw.p?lw.name:(lastIn.from_name||lw.name))+(lw.co?" · "+lw.co:""):(mail?"None this week":""),title:lastIn?String(lastIn.subject||""):"",bar:false,small:true}];
   return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:mail,tiles:tiles,status:null,today:false,live:false,
     inbox:true,logged:mail?mail.recv+mail.sent:0,loggedT:0,mix:"Open seat"};
+}
+/* the Dialer seat (Max, 2026-11-19: "only emails sent through the Dialer… my KPIs: number of calls, talk time and outbound quotes…
+   then Distributor reps called, Distributor sourcing calls and End-user calls"). Calls = the Dialer's own log (dialCalls) plus every
+   call activity the seat has in the CRM that didn't come from a Dialer push (so a viewer without the Dialer log still sees the pushed
+   ones). Talk time = the seconds the phone counted (Twilio calls only). Emails = Dialer follow-ups sent (dialMail), or their pushed
+   CRM copies — never the inbox. Quotes = quotes the seat made that week. A call's kind comes from who was called: someone at a
+   distributor we're set up with (marked set up / stocking, or it has an order or a won deal as the closing distributor) or a man-rep = distributor rep; a distributor that
+   isn't set up yet (potential, or a distributor lead / Distributor-Rep badge scan) = sourcing; everyone else = end user. */
+/* distributors we already sell through: an order under their name (any status but a duplicate) or a Closed Won deal they close */
+function scSoldThrough(){const s=new Set();
+  (DB.orders||[]).forEach(o=>{if(!o||o.dupOf)return;const c=orderCompany(o);if(c&&c.type==="distributor")s.add(c.id);});
+  (DB.opps||[]).forEach(o=>{if(o&&o.stage==="Closed Won"&&o.distributorId)s.add(o.distributorId);});
+  return s;}
+function scCallKind(key,co,sold){
+  const e=key?dialRecByKey(key):null,r=e?e.rec:null;let c=null;
+  if(e&&e.k==="p")c=r.cid?company(r.cid):null;
+  else if(e&&e.k==="cl"&&r.refPid&&person(r.refPid))c=company(person(r.refPid).cid);
+  else if(e&&e.k==="lead"&&r.cid)c=company(r.cid);
+  if(!c&&co){const n=String(co).trim().toLowerCase();c=(DB.companies||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()===n)||null;}
+  if(c){if(c.type==="manrep"||c.type==="partner")return "rep";if(c.type==="distributor")return distStatus(c)!=="potential"||(sold&&sold.has(c.id))?"rep":"src";return "eu";}
+  if(e&&e.k==="lead"&&(r.kind==="distributor"||/distributor/i.test(r.segment||"")))return /set up|stocking/i.test(r.dstStage||"")?"rep":"src";
+  if(e&&e.k==="cl"&&confLeadSeg(r)==="Distributor/Rep")return "src";
+  return "eu";}
+function scDialCalls(u,from,to){
+  const out=[],pushed=new Set(),inR=at=>{const d=localDay(at);return d>=from&&d<=to;};
+  (DB.dialCalls||[]).forEach(c=>{if(!c||c.removed||c.by!==u)return;if(c.actId)pushed.add(c.actId);
+    if(inR(c.at))out.push({at:c.at,key:c.key,co:c.co,secs:+c.secs||0,talked:DIAL_CONNECT.includes(c.out)});});
+  calActs(u,from,to).forEach(a=>{if(!actIsCall(a)||pushed.has(a.id))return;
+    const key=dialCallKeys(a)[0]||"",talked=a.type==="call"&&!a.vm&&!["noanswer","vm","wrong"].includes(a.out);
+    out.push({at:a.date,key:key,co:a.company||"",secs:+a.secs||0,talked:talked});});
+  const sold=out.length?scSoldThrough():null;out.forEach(c=>{c.kind=scCallKind(c.key,c.co,sold);});
+  return out;}
+function scDialMail(u,from,to){
+  const inR=at=>{const d=localDay(at);return d>=from&&d<=to;},ms=(DB.dialMail||[]).filter(m=>m&&!m.removed&&m.by===u);
+  const pushed=new Set(ms.map(m=>m.pushedAct).filter(Boolean));
+  const sent=ms.filter(m=>m.status==="sent"&&inR(m.sentAt)).length+
+    calActs(u,from,to).filter(a=>a.type==="email"&&a.dialer&&!pushed.has(a.id)).length;
+  return {sent:sent,waiting:ms.filter(m=>m.status==="draft"||m.status==="drafting").length};}
+function scTalk(secs){if(!secs)return "0m";const m=Math.round(secs/60);return m?fmtMins(m):secs+"s";}
+function scDialState(u,mon,days){
+  const T=todayStr(),calls=scDialCalls(u,days[0],days[6]),mail=scDialMail(u,days[0],days[6]);
+  const pl=(n,w)=>n+" "+w+(n===1?"":"s"),talked=calls.filter(c=>c.talked).length,secs=calls.reduce((a,c)=>a+c.secs,0),timed=calls.filter(c=>c.secs>0).length;
+  const qs=quotesAll().filter(q=>{if(q.removed||q.by!==u)return false;const d=String(q.date||localDay(q.createdAt)).slice(0,10);return d>=days[0]&&d<=days[6];});
+  const qAmt=qs.reduce((a,q)=>a+quoteTotal(q),0),qKits=qs.reduce((a,q)=>a+quoteUnits(q),0),qSent=qs.filter(q=>q.status&&q.status!=="draft").length;
+  const kind=k=>{const l=calls.filter(c=>c.kind===k),ppl=new Set(l.map(c=>c.key||c.co).filter(Boolean)).size,t=l.filter(c=>c.talked).length;
+    return {n:l.length,sub:(ppl===1?"1 person":ppl+" people")+" · "+pl(t,"conversation")};};
+  const R=kind("rep"),Sr=kind("src"),E=kind("eu");
+  const tiles=[
+    {label:"Calls",v:calls.length,sub:pl(talked,"conversation"),title:"Calls from the Dialer and calls logged in the CRM",bar:false},
+    {label:"Talk time",v:scTalk(secs),sub:timed?"on "+pl(timed,"timed call"):"No timed calls yet",title:"Time on the phone, counted by the Dialer's phone",bar:false},
+    {label:"Outbound quotes",v:qs.length,sub:qs.length?fmtK(qAmt)+" · "+pl(qKits,"kit")+(qSent?" · "+qSent+" marked sent":""):"None this week",title:"Quotes made this week",bar:false},
+    {label:"Dialer emails sent",v:mail.sent,sub:mail.waiting?mail.waiting+" waiting for you to approve":"follow-ups from the Dialer",title:"Follow-up emails sent from the Dialer (inbox mail isn’t counted)",bar:false},
+    {label:"Distributor reps called",v:R.n,sub:R.sub,title:"Calls to someone at a distributor we’re set up with, or a man-rep",bar:false},
+    {label:"Distributor sourcing calls",v:Sr.n,sub:Sr.sub,title:"Calls to a distributor that isn’t set up with us yet",bar:false},
+    {label:"End-user calls",v:E.n,sub:E.sub,title:"Calls to everyone else: customers, conference leads, end users",bar:false}];
+  const today=calls.filter(c=>localDay(c.at)===T).length;
+  return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:null,tiles:tiles,status:null,today:today>0,live:false,
+    dial:true,logged:calls.length,loggedT:today,mix:"Dialer",
+    line:pl(calls.length,"call")+" "+(mon===goalMonday()?"this week · "+today+" today":"that week")};
 }
 function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
   return '<div class="sct'+(b?" s"+b:"")+(x.small?" scsm":"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+esc(String(x.v))+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
@@ -3124,10 +3241,10 @@ function scHomeHTML(){
   const me=!scAccess();if(me&&!scSelf(USER))return "";
   const mon=logState.scWeek||goalMonday();
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
-   '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
+   '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:scReps(mon)).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow pp"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
-     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
+     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.line?esc(s.line):s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+scBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox||s.dial?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span style="--c:var(--faint)">Grey: nothing logged yet today</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
@@ -3167,7 +3284,7 @@ function viewRepWeek(u){
   if(!(scAccess()||scSelf(u))||!SC_REPS.includes(u))return viewToday();
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
   let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.inbox?userRegion(u):s.mix)+'</p></div>'+
-    scWeekNavHTML(mon)+raBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
+    scWeekNavHTML(mon)+scBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
   h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+'</div>';
   /* the last eight weeks: emails sent and CRM actions — tap one to open it */
   const mons=[];for(let i=7;i>=0;i--){const p=cur.split("-").map(Number);mons.push(ymd(new Date(p[0],p[1]-1,p[2]-7*i)));}
@@ -3226,6 +3343,9 @@ const RA_SEL="mailbox,imid,rep,dir,at,subject,from_addr,from_name,to_addrs,cc_ad
 const RA={c:{},busy:{},body:{},bodyBusy:{},conv:{},convBusy:{},hits:{},hitBusy:{},open:{},byId:{},byK:{},n:0,model:null,err:""};
 function raAccess(u){return (scAccess()||scSelf(u))&&RA_REPS.includes(u);}
 /* the big coral View analysis button (Max, 2026-11-10: "make the analysis button bigger") — scorecard rows, the week page, the teammate page */
+/* a Dialer seat's row opens the Dialer (its numbers live there); every other row opens the email + CRM analysis */
+function scBigBtn(u,cls){if(raAccess(u))return raBigBtn(u,cls);
+  return dialAccess(u)&&dialAccess()?'<a class="btn coral rabig'+(cls?" "+cls:"")+'" href="'+DIAL_URL+'" data-act="extlink">'+svg("phone")+'Open the Dialer</a>':"";}
 function raBigBtn(u,cls){return '<button class="btn coral rabig'+(cls?" "+cls:"")+'" data-act="raopenrep" data-id="'+u+'" title="Every email and everything in the CRM for '+esc(teamById(u).name)+'">'+svg("chart")+'View analysis</button>';}
 function raFirst(u){return teamById(u).name.split(" ")[0];}
 function raRange(){const T=todayStr(),r=logState.raRange||"14",f=r==="all"?RA_START:dAdd(T,-(+r-1));return {from:f<RA_START?RA_START:f,to:T,r:r};}
@@ -6127,7 +6247,7 @@ const SEA_CITIES=new Set(("seattle,bellevue,redmond,kirkland,bothell,woodinville
   "north bend,snoqualmie,duvall,carnation,tacoma,lakewood,puyallup,fife,university place,gig harbor,sumner,bonney lake,edgewood,"+
   "milton,dupont,spanaway,parkland,orting,steilacoom,fircrest,bainbridge island,poulsbo,bremerton,port orchard,silverdale").split(","));
 const SEA_AREA=new Set(["206","253","425"]);
-const DIAL_OUTS=[["noanswer","No answer"],["vm","Left voicemail"],["talked","Talked"],["interested","Interested"],["callback","Call back"],
+const DIAL_OUTS=[["noanswer","No answer"],["vm","Left voicemail"],["talked","Talked"],["interested","Interested"],["meeting","Meeting booked"],["callback","Call back"],
   ["notint","Not interested"],["wrong","Wrong number"],["dnc","Do not call"]];
 const DIAL_NOT_US=new Set("242 246 264 268 284 345 441 473 649 658 664 721 758 767 784 809 829 849 868 869 876 900".split(" "));
 const DIAL={dev:null,state:"off",reg:false,err:"",call:null,callKey:"",accepted:false,acceptedAt:0,startedAt:0,muted:false,kp:false,
@@ -6162,6 +6282,7 @@ function dialPool(src){
   if(src.indexOf("list:")===0){const L=(DB.lists||[]).find(x=>x.id===src.slice(5));
     return L?(L.items||[]).map(it=>it.pid&&person(it.pid)?dialEntry("p",person(it.pid)):null).filter(Boolean):[];}
   if(src.indexOf("imp:")===0){const conf=src.slice(4);return DB.leads.filter(l=>!l.removed&&l.conf===conf).map(l=>dialEntry("lead",l));}
+  if(src==="confwest")return (DB.confLeads||[]).filter(l=>!l.removed&&WEST_ST.has(String(l.state||"").trim().toUpperCase().slice(0,2))).map(l=>dialEntry("cl",l));
   if(src==="wa"||src.indexOf("wa:")===0){const g=src.slice(3),cust=dialCustomerCids();
     return dialEveryone().filter(dialIsWa).filter(e=>{e.grp=dialGroup(e,cust);return !g||e.grp===g;});}
   return dialEveryone().filter(dialSeattle);}
@@ -6173,6 +6294,8 @@ function dialEveryone(){ensureLeads();const out=[]; /* contacts first, so a pers
 /* Washington (Max, 2026-11-19: "ALL leads we've ever come in contact with through Washington… group them"): a WA state, or no state
    and a Washington area code. Grouped so a calling session can take one kind of conversation at a time. */
 const WA_AC=new Set(["206","253","360","425","509","564"]);
+const WEST_ST=new Set("WA OR CA ID MT NV AZ UT CO NM WY AK HI".split(" "));
+function dialConfWestCount(){const seen=new Set();dialPool("confwest").forEach(e=>{if(e.d&&!e.rec.dnc)seen.add(e.d);});return seen.size;}
 const DIAL_GROUPS=[["channel","Channel partners"],["customers","Customers & demos"],["conference","Conference leads"],["inbound","Inbound inquiries"],["endusers","Other end users"]];
 function dialGroupLabel(g){return (DIAL_GROUPS.find(x=>x[0]===g)||["",""])[1];}
 function dialIsWa(e){if(!e.d)return false;
@@ -6201,26 +6324,47 @@ function dialWaCounts(){const seen=new Set(),n={all:0};
   dialPool("wa").forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);n.all++;n[e.grp]=(n[e.grp]||0)+1;});
   return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
-/* who was called today (by anyone), as record keys and as phone numbers */
+/* ---- the Dialer's own call log (Max, 2026-11-19: "Activity doesn't auto log into CRM until I push it"): every Save lands in the
+   synced `dialCalls` collection (only the dialer seat pulls it); Push to CRM turns a call into the usual activity / conference-lead
+   call / lead touch, a to-do for a call-back and a deal for a booked meeting. The queue, retries and history read both. */
+function dialCalls(){DB.dialCalls=DB.dialCalls||[];return DB.dialCalls;}
+function dialCallsFor(key){return dialCalls().filter(c=>c&&!c.removed&&c.key===key).sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
+const DIAL_RETRY=[1,2,4],DIAL_PARK=30; /* days to the next try after 1, 2, 3 misses in a row (no answer / voicemail); 4+ → parked 30 days */
+const DIAL_CONNECT=["talked","interested","meeting","callback","notint"];
+/* when this person is due again from the Dialer's own log: {date, why}; null = never dialed from here */
+function dialNextTry(key){const cs=dialCallsFor(key);if(!cs.length)return null;
+  const last=cs[0],day=localDay(last.at);
+  if(last.out==="dnc"||last.out==="wrong")return {date:"9999-12-31",why:"stopped"};
+  if(last.cb)return {date:last.cb,why:"call back"};
+  if(last.out==="notint")return {date:dAdd(day,90),why:"not interested"};
+  if(last.out==="talked"||last.out==="meeting")return {date:dAdd(day,14),why:"spoke"};
+  let n=0;for(const c of cs){if(c.out==="noanswer"||c.out==="vm")n++;else break;}
+  return {date:dAdd(day,n<=DIAL_RETRY.length?DIAL_RETRY[n-1]:DIAL_PARK),why:n>DIAL_RETRY.length?"was parked":"try "+(n+1)};}
+/* who was called today (by anyone — CRM or Dialer), as record keys and as phone numbers */
 function dialToday(){const T=todayStr(),keys=new Set(),nums=new Set();
   (DB.activities||[]).forEach(a=>{if(!a||a.type!=="call"||localDay(a.date)!==T)return;dialCallKeys(a).forEach(k=>keys.add(k));if(a.phone)nums.add(a.phone);});
   (DB.confLeads||[]).forEach(l=>{if((l.calls||[]).some(c=>c&&histDay(c.at)===T))keys.add("cl:"+l.id);});
+  dialCalls().forEach(c=>{if(c&&!c.removed&&localDay(c.at)===T){keys.add(c.key);if(c.phone)nums.add(c.phone);}});
   return {keys:keys,nums:nums};}
 function dialLastIdx(){const m={};
   (DB.activities||[]).forEach(a=>{if(!a||a.type!=="call"||!a.date)return;dialCallKeys(a).forEach(k=>{if(!m[k]||m[k]<a.date)m[k]=a.date;});});
   (DB.confLeads||[]).forEach(l=>{const k="cl:"+l.id;if(l.lastCall&&(!m[k]||m[k]<l.lastCall))m[k]=l.lastCall;});
+  dialCalls().forEach(c=>{if(c&&!c.removed&&c.at&&(!m[c.key]||m[c.key]<c.at))m[c.key]=c.at;});
   return m;}
 function dialTaskKey(t){return t.pid?"p:"+t.pid:(t.leadId?"lead:"+t.leadId:(t.refId?"cl:"+t.refId:""));}
 function dialDueTasks(){const T=todayStr();
   return (DB.tasks||[]).filter(t=>t&&t.dialer&&!t.done&&!t.removed&&t.owner===USER&&t.due&&t.due<=T&&dialTaskKey(t));}
+/* order: call-backs due · retries due · never called · the rest, oldest last call first. Anyone whose next try is later stays out. */
 function dialQueue(){
-  const S=dialS(),pool=dialPool(),td=dialToday(),last=dialLastIdx(),due=new Set(dialDueTasks().map(dialTaskKey));
+  const S=dialS(),T=todayStr(),pool=dialPool(),td=dialToday(),last=dialLastIdx(),due=new Set(dialDueTasks().map(dialTaskKey));
   pool.forEach(e=>{if(e.d&&td.keys.has(e.key))td.nums.add(e.d);});
   const seen=new Set(),q=[];
   pool.forEach(e=>{if(!e.d||seen.has(e.d))return;seen.add(e.d);
     if(td.nums.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;
-    e.last=last[e.key]||"";e.due=due.has(e.key);q.push(e);});
-  q.sort((a,b)=>(b.due?1:0)-(a.due?1:0)||(a.last?1:0)-(b.last?1:0)||String(a.last).localeCompare(String(b.last))||a.name.localeCompare(b.name));
+    const nx=dialNextTry(e.key);if(nx&&nx.date>T)return;
+    e.last=last[e.key]||"";e.next=nx;e.due=due.has(e.key)||!!(nx&&nx.why==="call back");
+    e.rank=e.due?0:(nx?1:(e.last?3:2));q.push(e);});
+  q.sort((a,b)=>a.rank-b.rank||String(a.last).localeCompare(String(b.last))||a.name.localeCompare(b.name));
   const sk=S.skipped||[];
   return q.filter(e=>!sk.includes(e.key)).concat(sk.map(k=>q.find(e=>e.key===k)).filter(Boolean));}
 /* the card stays on the person you're calling or writing up, even if a sync drops them from the queue */
@@ -6232,23 +6376,35 @@ function dialHist(e){
   const acts=(DB.activities||[]).filter(a=>a&&(a.type==="call"||a.type==="email"||a.type==="visit"||a.type==="note")&&dialCallKeys(a).includes(e.key))
     .map(a=>({at:a.date,by:a.by,t:a.out?(DIAL_OUTS.some(x=>x[0]===a.out)?dialOutLabel(a.out):callOutLabel(a.out)):actLabel(a.type,a),note:a.note||""}));
   if(e.k==="cl")(e.rec.calls||[]).forEach(c=>{if(c&&!acts.some(a=>a.at===c.at))acts.push({at:c.at,by:c.by,t:callOutLabel(c.out),note:c.note||""});});
+  dialCallsFor(e.key).forEach(c=>{if(!c.actId)acts.push({at:c.at,by:c.by,t:dialOutLabel(c.out)+(c.pushed?"":" · in the Dialer"),note:c.note||""});});
   return acts.sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,4);}
-function dialStats(){const T=todayStr(),mine=(DB.activities||[]).filter(a=>a&&a.dialer&&a.by===USER&&localDay(a.date)===T);
-  return {n:mine.length,talk:mine.filter(a=>["talked","interested","callback"].includes(a.out)).length,hot:mine.filter(a=>a.out==="interested").length,list:mine};}
+function dialStats(){const T=todayStr(),mine=dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&localDay(c.at)===T);
+  return {n:mine.length,talk:mine.filter(c=>DIAL_CONNECT.includes(c.out)).length,hot:mine.filter(c=>c.out==="interested"||c.out==="meeting").length,
+    meet:mine.filter(c=>c.out==="meeting").length,list:mine,unpushed:dialCalls().filter(c=>c&&!c.removed&&!c.pushed&&c.by===USER).length};}
 function dialSeattleTime(){const d=new Date(),t=d.toLocaleTimeString("en-US",{timeZone:"America/Los_Angeles",hour:"numeric",minute:"2-digit"});
   const h=+d.toLocaleString("en-US",{timeZone:"America/Los_Angeles",hour:"numeric",hour12:false});return {t:t,late:h<8||h>=18};}
 function dialSources(){ensureLeads();
   const imps=[...new Set(DB.leads.filter(l=>!l.removed&&/^Dialer: /.test(l.conf||"")).map(l=>l.conf))];
   const lists=(DB.lists||[]).filter(l=>!l.removed),wc=dialWaCounts();
-  return [["seattle","Seattle area"],["wa","Washington · everyone ("+wc.all+")"]].concat(DIAL_GROUPS.map(g=>["wa:"+g[0],"Washington · "+g[1]+" ("+(wc[g[0]]||0)+")"]),
+  return [["seattle","Seattle area"],["wa","Washington · everyone ("+wc.all+")"],["confwest","Conference leads · West ("+dialConfWestCount()+")"]].concat(DIAL_GROUPS.map(g=>["wa:"+g[0],"Washington · "+g[1]+" ("+(wc[g[0]]||0)+")"]),
     imps.map(c=>["imp:"+c,c.slice(8)+" (imported)"]),lists.map(l=>["list:"+l.id,l.name+" (list)"]));}
 /* ---- view ---- */
+const DIAL_GOAL=150;
 function viewDialer(){
-  const S=dialS(),q=dialQueue(),e=dialCur(q),st=dialStats();
+  const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
+  let h='<div class="dltop"><div class="seg dltabs">'+[["dial","Dial"],["email","Email"+(drafts?" · "+drafts:"")],["push","Push to CRM"+(st.unpushed?" · "+st.unpushed:"")]]
+    .map(x=>'<button class="'+(S.tab===x[0]?"on":"")+'" data-act="dialtab" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>'+dialFunnelHTML(st)+'</div>';
+  if(S.tab==="push")return h+viewDialPush();
+  if(S.tab==="email")return h+viewDialEmail();
+  return h+viewDialDial(st);}
+function dialFunnelHTML(st){const pct=Math.min(100,Math.round(st.n/DIAL_GOAL*100));
+  return '<div class="dlfun"><div class="dlfunbar"><span style="width:'+pct+'%"></span></div><p class="t2"><b>'+st.n+'</b> / '+DIAL_GOAL+' dials · <b>'+st.talk+
+    '</b> conversation'+(st.talk===1?'':'s')+' · <b>'+st.meet+'</b> meeting'+(st.meet===1?'':'s')+' booked · <b>'+st.hot+'</b> interested</p></div>';}
+function viewDialDial(st){
+  const S=dialS(),q=dialQueue(),e=dialCur(q);
   if(e&&!S.cur)S.cur=e.key;
   const srcs=dialSources();if(!srcs.some(x=>x[0]===S.src))S.src="seattle";
-  let h='<div class="dlbar"><span id="dlphone">'+dialPhoneHTML()+'</span><span class="grow"></span>'+
-    '<span class="t2">Today: <b>'+st.n+'</b> dial'+(st.n===1?"":"s")+' · <b>'+st.talk+'</b> talked · <b>'+st.hot+'</b> interested</span>'+
+  let h='<div class="dlbar">'+(DIALER_HUB?'':'<span id="dlphone">'+dialPhoneHTML()+'</span>')+'<span class="grow"></span>'+
     '<label class="dlauto"><input type="checkbox" id="dialAuto"'+(S.auto?" checked":"")+'> Dial the next one automatically</label></div>';
   h+='<div class="dlgrid"><aside class="dlq"><div class="dlqh"><select class="f" id="dialSrc" aria-label="Who to call">'+
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
@@ -6256,13 +6412,32 @@ function viewDialer(){
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+
     '<p class="dlqn">'+q.length+' to call'+(S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington':'')+'</p><div class="list dlrows">'+
     (q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
-      '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':'')+'</span>'+
-      '<span class="dlrs">'+esc([x.co,S.src==="wa"&&x.grp?dialGroupLabel(x.grp):"",x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
+      '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
+      '<span class="dlrs">'+esc([x.co,S.src==="wa"&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
-    (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,40).map(a=>
-      '<div class="dlrow"><span class="dlrn">'+esc(a.name||(a.pid&&person(a.pid)?person(a.pid).name:"")||"—")+'</span><span class="dlrs">'+esc(dialOutLabel(a.out)+" · "+fmtTimeShort(a.date))+'</span></div>').join("")+'</div></details>':'')+
+    (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,60).map(c=>
+      '<div class="dlrow"><span class="dlrn">'+esc(c.name||"—")+'</span><span class="dlrs">'+esc(dialOutLabel(c.out)+" · "+fmtTimeShort(c.at)+(c.pushed?" · in the CRM":""))+'</span></div>').join("")+'</div></details>':'')+
     '</aside><section class="dlmain">'+(e?dialCardHTML(e):'<div class="card empty">Nobody to call right now.</div>')+'</section></div>';
+  return h;}
+/* Push to CRM: conversations come ticked; no-answers and voicemails stay in the Dialer unless ticked */
+function dialPushTicked(c){const sel=dialS().pushSel||{};return sel[c.id]!=null?sel[c.id]:(DIAL_CONNECT.includes(c.out)||c.out==="dnc"||c.out==="wrong");}
+function dialUnpushed(){return dialCalls().filter(c=>c&&!c.removed&&!c.pushed&&c.by===USER);}
+function viewDialPush(){
+  const list=dialUnpushed();
+  if(!list.length)return '<div class="card empty">Everything you dialed is in the CRM.</div>';
+  const n=list.filter(dialPushTicked).length,byDay={};
+  list.forEach(c=>{const d=localDay(c.at);(byDay[d]=byDay[d]||[]).push(c);});
+  let h='<div class="dlpushbar"><button class="btn coral" data-act="dialpushsel"'+(n?"":" disabled")+'>Push '+n+' to the CRM</button>'+
+    '<button class="btn sm" data-act="dialpushall">Tick all</button><button class="btn sm" data-act="dialpushnone">Untick all</button></div>';
+  Object.keys(byDay).sort().reverse().forEach(d=>{
+    h+='<p class="sech dlday">'+esc(fmtDay(d))+' · '+byDay[d].length+'</p><div class="list">'+byDay[d].map(c=>
+      '<div class="dlprow"><input type="checkbox" class="dlpchk" data-cid="'+esc(c.id)+'"'+(dialPushTicked(c)?" checked":"")+' aria-label="Push '+esc(c.name)+'">'+
+      '<span class="t2 dlptime">'+esc(fmtTimeShort(c.at))+'</span><span class="grow"><b>'+esc(c.name)+'</b>'+(c.co?' · '+esc(c.co):'')+
+      (c.note?'<br><span class="t2">'+esc(c.note.slice(0,160))+'</span>':'')+
+      (c.meet&&(c.meet.distName||c.meet.when)?'<br><span class="t2">Meeting '+esc([c.meet.when?fmtDay(c.meet.when.slice(0,10))+" "+fmtTimeShort(c.meet.when):"",c.meet.distName?"through "+c.meet.distName:""].filter(Boolean).join(" · "))+'</span>':'')+'</span>'+
+      '<span class="pill '+(DIAL_CONNECT.includes(c.out)?"ok":"gray")+'">'+esc(dialOutLabel(c.out))+(c.cb?' · '+esc(mdStamp(c.cb)):'')+'</span>'+
+      '<button class="btn sm" data-act="dialpushone" data-id="'+esc(c.id)+'">Push</button></div>').join("")+'</div>';});
   return h;}
 function fmtTimeShort(iso){const d=new Date(iso);return isNaN(d)?"":d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});}
 function dialPhoneHTML(){
@@ -6328,8 +6503,32 @@ function dialClock(secs){if(secs==null)secs=DIAL.accepted?Math.round((Date.now()
 function dialCdHTML(){if(!DIAL.cd)return "";const e=DIAL.cdKey&&dialRecByKey(DIAL.cdKey);
   return '<div class="dlcdbox">Calling '+esc(e?e.name:"the next one")+' in <b>'+DIAL.cdLeft+'</b>… <button class="btn sm" data-act="dialpause">Pause</button></div>';}
 function dialOutsHTML(){const S=dialS();
-  return DIAL_OUTS.map(x=>'<span class="qchip'+(S.out===x[0]?" on":"")+(x[0]==="dnc"||x[0]==="wrong"?" dlwarn":"")+'" data-act="dialout" data-v="'+x[0]+'">'+x[1]+'</span>').join("");}
-function dialCbHTML(){const S=dialS();if(S.out!=="callback"&&S.out!=="interested")return "";
+  return DIAL_OUTS.map((x,i)=>'<span class="qchip'+(S.out===x[0]?" on":"")+(x[0]==="dnc"||x[0]==="wrong"?" dlwarn":"")+'" data-act="dialout" data-v="'+x[0]+'">'+(DIALER_HUB?'<kbd>'+(i+1)+'</kbd>':'')+x[1]+'</span>').join("");}
+/* who could take the order: the account's "Who they buy from" first, then the Washington distributors that have bought */
+function dialDistChoices(e){const r=(e&&e.rec)||{},out=[],add=c=>{if(c&&c.type==="distributor"&&!out.some(x=>x.id===c.id))out.push(c);};
+  const co=r.cid?company(r.cid):null;((co&&co.buysFrom)||[]).forEach(b=>add(b.cid&&company(b.cid)));
+  ["Ballard Industries","National Safety","Grainger","Central Welding","Fastenal","Unifirst","Oxarc","Mallory"].forEach(n=>add(DB.companies.find(c=>c.type==="distributor"&&String(c.name).toLowerCase().indexOf(n.toLowerCase())===0)));
+  return out;}
+function dialDistReps(cid){const isWa=p=>personStates(p).concat(p.state?[p.state]:[]).map(x=>String(x).toUpperCase()).includes("WA");
+  const c=company(cid),same=c?DB.companies.filter(x=>x.type==="distributor"&&String(x.name).split(" ")[0].toLowerCase()===String(c.name).split(" ")[0].toLowerCase()).map(x=>x.id):[cid];
+  return DB.people.filter(p=>same.includes(p.cid)&&isWa(p)&&(p.email||p.phone)).slice(0,8);}
+function dialMeetHTML(e){const S=dialS(),m=S.meet||(S.meet={}),ds=dialDistChoices(e);
+  if(!m.distCid&&ds.length&&m.distCid!=="none"){m.distCid=ds[0].id;m.distName=ds[0].name;}
+  const reps=m.distCid&&m.distCid!=="none"?dialDistReps(m.distCid):[];
+  return '<p class="fl">Meeting</p><div class="qa-types"><input class="f dlmeetwhen" type="datetime-local" id="dialMeetWhen" value="'+esc(m.when||"")+'"></div>'+
+    '<p class="fl">Order through</p><div class="qa-types">'+ds.map(c=>'<span class="qchip'+(m.distCid===c.id?" on":"")+'" data-act="dialmdist" data-v="'+esc(c.id)+'">'+esc(c.name)+'</span>').join("")+
+    '<span class="qchip'+(m.distCid==="none"?" on":"")+'" data-act="dialmdist" data-v="none">Not sure yet</span></div>'+
+    (reps.length?'<p class="fl">Bring their rep</p><div class="qa-types">'+reps.map(p=>'<span class="qchip'+(m.repPid===p.id?" on":"")+'" data-act="dialmrep" data-v="'+esc(p.id)+'">'+esc(p.name)+'</span>').join("")+'</div>':'')+
+    '<div class="qa-types" style="margin-top:8px"><button class="btn sm" data-act="dialinvite">'+svg("cal")+' Open the Outlook invite</button></div>';}
+function dialInviteUrl(e){const m=dialS().meet||{},r=e.rec||{},rep=m.repPid&&person(m.repPid),dist=m.distCid&&m.distCid!=="none"?company(m.distCid):null;
+  const to=[r.email,rep&&rep.email].filter(Boolean).join(",");
+  const start=m.when?new Date(m.when):new Date(Date.now()+86400000),end=new Date(start.getTime()+30*60000);
+  const body="Hi "+String(e.name||"").split(" ")[0]+",\n\nThanks for the time on the phone. Here's a Teams link to walk through AutoTQ"+
+    (rep&&dist?", with "+rep.name+" from "+dist.name+", who can get it to you locally":"")+".\n\nMax Herbst\nGolden Hour Medical · AutoTQ";
+  return "https://outlook.office.com/calendar/deeplink/compose?subject="+encodeURIComponent("AutoTQ — "+(e.co||e.name))+"&body="+encodeURIComponent(body)+
+    "&startdt="+encodeURIComponent(start.toISOString())+"&enddt="+encodeURIComponent(end.toISOString())+(to?"&to="+encodeURIComponent(to):"");}
+function dialCbHTML(){const S=dialS();if(S.out==="meeting"){const e=dialCur();return e?dialMeetHTML(e):"";}
+  if(S.out!=="callback"&&S.out!=="interested")return "";
   const T=todayStr(),opts=[["Tomorrow",dAdd(T,1)],["In 2 days",dAdd(T,2)],["Next week",dAdd(T,7)]];
   const cur=S.cb||(S.out==="callback"?dAdd(T,1):dAdd(T,2));
   return '<p class="fl">Follow up</p><div class="qa-types">'+opts.map(o=>'<span class="qchip'+(cur===o[1]?" on":"")+'" data-act="dialcb" data-v="'+o[1]+'">'+o[0]+'</span>').join("")+
@@ -6440,31 +6639,214 @@ function dialSave(){
   const S=dialS(),e=dialCur();if(!e)return;
   if(DIAL.call&&DIAL.callKey===e.key){toast("Hang up first");return;}
   if(!S.out){toast("Pick how the call went");const o=document.getElementById("dlouts");if(o){o.classList.remove("dlflash");void o.offsetWidth;o.classList.add("dlflash");}return;}
-  const note=String(S.note||"").trim(),lbl=dialOutLabel(S.out),now=new Date().toISOString(),out=S.out==="dnc"?"notint":S.out,r=e.rec;
-  let rec=null;
-  if(e.k==="p"){
-    rec={id:uid(),type:"call",pid:r.id,cid:r.cid||null,note:lbl+(note?" · "+note:""),out:out,date:now,by:USER,norm:2};
-    DB.activities.unshift(rec);r.last=now;}
-  else if(e.k==="cl")rec=confLeadCall(r,out,note);
-  else{const t={date:todayStr(),method:S.out==="vm"?"voicemail":"call",note:lbl+(note?" · "+note:""),by:USER};
-    r.touches=r.touches||[];touchAct(r,t);r.touches.push(t);rec=(DB.activities||[]).find(a=>a.id===t.actId)||null;
-    if(rec)rec.date=now;
-    if((S.out==="talked"||S.out==="interested"||S.out==="callback")&&(!r.cat||r.cat==="new")){r.cat="qualified";r.catBy=USER;r.catAt=now;}}
-  if(rec){rec.out=out;if(S.out==="vm")rec.vm=true;rec.dialer=true;rec.phone=e.d;if(S.secs)rec.secs=S.secs;if(e.k==="lead")rec.leadId=r.id;}
+  const note=String(S.note||"").trim(),now=new Date().toISOString(),r=e.rec;
+  const c={id:uid(),key:e.key,name:e.name,co:e.co,title:e.title,email:r.email||"",phone:e.d,out:S.out,note:note,secs:S.secs||0,at:now,by:USER,src:S.src};
+  if(S.out==="callback"||S.out==="interested")c.cb=S.cb||(S.out==="callback"?dAdd(todayStr(),1):dAdd(todayStr(),2));
+  if(S.out==="meeting"){const m=S.meet||{};c.meet={when:m.when||"",distCid:m.distCid&&m.distCid!=="none"?m.distCid:"",distName:m.distCid&&m.distCid!=="none"?m.distName||"":"",repPid:m.repPid||""};}
+  dialCalls().unshift(c);
+  const was={dnc:r.dnc,bad:r.badPhone};
   if(S.out==="dnc"){r.dnc=true;r.dncAt=now;r.dncBy=USER;}
   if(S.out==="wrong")r.badPhone=e.d;
-  /* a callback that was due is done; a new one goes on your day */
-  (DB.tasks||[]).forEach(t=>{if(t&&t.dialer&&!t.done&&t.owner===USER&&dialTaskKey(t)===e.key&&t.due&&t.due<=todayStr()){t.done=true;t.completedAt=now;t.completedDay=todayStr();}});
-  if(S.out==="callback"||S.out==="interested"){
-    const due=S.cb||(S.out==="callback"?dAdd(todayStr(),1):dAdd(todayStr(),2));
-    const t={id:uid(),owner:USER,title:"Call back "+e.name+(e.co?" ("+e.co+")":"")+(note?" — "+note.slice(0,60):""),type:"call",due:due,done:false,
-      createdAt:now,pid:e.k==="p"?r.id:null,dialer:true};
-    if(e.k==="lead")t.leadId=r.id;if(e.k==="cl")t.refId=r.id;if(rec)t.actId=rec.id;
-    DB.tasks.unshift(t);if(rec)rec.fuTask=t.id;}
   save();
-  Object.assign(S,{out:"",note:"",cb:"",secs:0,cur:"",hold:""});S.skipped=(S.skipped||[]).filter(k=>k!==e.key);
-  render();toast(lbl+" · "+e.name);
+  const lbl=dialOutLabel(S.out);
+  Object.assign(S,{out:"",note:"",cb:"",secs:0,cur:"",hold:"",meet:null});S.skipped=(S.skipped||[]).filter(k=>k!==e.key);
+  render();
+  toast(lbl+" · "+e.name,()=>{const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;
+    (DB.dialMail||[]).forEach(m=>{if(m.callId===c.id&&m.status!=="sent")m.removed=true;});save();render();});
+  try{dialDraftAfter(c,e);}catch(x){}
   dialCountdown();}
+/* Push to CRM: what Save used to write — an activity on the contact / a conference-lead call / a lead touch (dated when you called),
+   a to-do for a call-back, and a deal for a booked meeting with its closing distributor */
+function dialPushCall(c){
+  if(!c||c.pushed)return false;
+  const now=new Date().toISOString(),e=dialRecByKey(c.key);
+  if(!e){c.pushed=now;c.pushNote="record gone";return false;}
+  const r=e.rec,lbl=dialOutLabel(c.out),out=c.out==="dnc"?"notint":(c.out==="meeting"?"talked":c.out),note=lbl+(c.note?" · "+c.note:"");
+  let rec=null;
+  if(e.k==="p"){rec={id:uid(),type:"call",pid:r.id,cid:r.cid||null,note:note,out:out,date:c.at,by:c.by||USER,norm:2};DB.activities.unshift(rec);if(!r.last||r.last<c.at)r.last=c.at;}
+  else if(e.k==="cl"){const keep=r.lastCall;rec=confLeadCall(r,out,c.note||"");rec.date=c.at;const lc=(r.calls||[])[(r.calls||[]).length-1];if(lc)lc.at=c.at;
+    r.lastCall=keep&&keep>c.at?keep:c.at;}
+  else{const t={date:localDay(c.at),method:c.out==="vm"?"voicemail":"call",note:note,by:c.by||USER};r.touches=r.touches||[];touchAct(r,t);r.touches.push(t);
+    rec=(DB.activities||[]).find(a=>a.id===t.actId)||null;if(rec)rec.date=c.at;
+    if(DIAL_CONNECT.includes(c.out)&&c.out!=="notint"&&(!r.cat||r.cat==="new")){r.cat="qualified";r.catBy=USER;r.catAt=now;}}
+  if(rec){rec.out=out;if(c.out==="vm")rec.vm=true;rec.dialer=true;rec.phone=c.phone;if(c.secs)rec.secs=c.secs;if(e.k==="lead")rec.leadId=r.id;}
+  if(c.cb){const t={id:uid(),owner:USER,title:"Call back "+c.name+(c.co?" ("+c.co+")":"")+(c.note?" — "+c.note.slice(0,60):""),type:"call",due:c.cb,done:false,
+      createdAt:now,pid:e.k==="p"?r.id:null,dialer:true};
+    if(e.k==="lead")t.leadId=r.id;if(e.k==="cl")t.refId=r.id;if(rec){t.actId=rec.id;rec.fuTask=t.id;}DB.tasks.unshift(t);c.taskId=t.id;}
+  if(c.out==="meeting"){const o=dialMeetingOpp(c,e);if(o)c.oppId=o.id;}
+  c.pushed=now;if(rec)c.actId=rec.id;
+  dialMails().filter(m=>m&&m.callId===c.id&&m.status==="sent"&&!m.pushedAct).forEach(dialPushMail);
+  return true;}
+function dialMeetingOpp(c,e){ensureOpps();const r=e.rec,m=c.meet||{},now=new Date().toISOString();
+  const co=e.k==="p"&&r.cid?company(r.cid):null,dist=m.distCid?company(m.distCid):null;
+  const st=String((co&&co.state)||e.state||"WA").toUpperCase().slice(0,2);
+  const o={id:uid(),owner:USER,source:"dialer",fromCall:c.id,createdAt:now,name:(c.co||c.name)+" — meeting",
+    accountId:co?co.id:null,accountName:co?co.name:(c.co||c.name||""),stage:"Qualification",probability:OPP_PROB["Qualification"],amount:0,units:0,
+    dealType:"End User Order",state:st,distributorId:dist?dist.id:null,distributorName:dist?dist.name:"",distRepPid:m.repPid||null,
+    contacts:[].concat(e.k==="p"?[{pid:r.id,role:"Buyer"}]:[],m.repPid&&person(m.repPid)?[{pid:m.repPid,role:"Distributor rep"}]:[]),
+    nextAction:"Teams meeting with "+c.name,nextActionDate:(m.when||"").slice(0,10)||dAdd(todayStr(),3),closeDate:"",note:"",rep:"",touchesExtra:0,
+    lastContact:localDay(c.at),direct:false,ghRep:USER};
+  oppAddNote(o,"Meeting booked from the Dialer"+(c.note?": "+c.note:"."));
+  DB.opps.unshift(o);return o;}
+/* ================= AutoTQ Dialer page (Max, 2026-11-19: "Build this thing out beautifully, make it on a new domain like the CRM is…
+   a separate URL only I have access to"). The CRM page served at /dialer/ (or ?hub=dialer): same sign-in and data, its own full-screen
+   shell — brand bar with Dial · Email · Push to CRM, the phone, the day's funnel — and only the dialer seat (DIAL_USERS) gets in. */
+function renderDialerHub(){
+  view="dialer";document.title="AutoTQ Dialer";
+  const me=teamById(USER),scr=document.getElementById("screen");
+  if(!dialAccess()){scr.innerHTML='<div class="dhdeny"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><h1>This page is just for Max.</h1>'+
+    '<a class="btn coral" href="../">Open the CRM</a></div>';return;}
+  const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
+  const body=S.tab==="push"?viewDialPush():(S.tab==="email"?viewDialEmail():viewDialDial(st));
+  const tab=(k,l,n)=>'<button class="'+(S.tab===k?"on":"")+'" data-act="dialtab" data-v="'+k+'">'+esc(l)+(n?'<span class="dhn">'+n+'</span>':'')+'</button>';
+  scr.innerHTML='<div class="dhub"><header class="dhbar"><a class="dhbrand" href="../" title="Back to the CRM"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><span>Dialer</span></a>'+
+    '<nav class="dhtabs">'+tab("dial","Dial",0)+tab("email","Email",drafts)+tab("push","Push to CRM",st.unpushed)+'</nav>'+
+    '<div class="dhright"><span id="dlphone" class="dhphone">'+dialPhoneHTML()+'</span>'+
+    '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'">'+(SYNC.online?"":"Offline")+'</span>'+
+    '<button class="av" style="background:'+me.c+'" data-act="dhmenu" title="'+esc(me.name)+'">'+initials(me.name)+'</button></div></header>'+
+    '<div class="dhfun">'+dialFunnelHTML(st)+'</div><main class="dhmain">'+body+'</main></div>';
+  try{dialAfterRender();}catch(e){}
+  try{trackUsage();}catch(e){}}
+function dialHubMenu(){openSheet('<h2>AutoTQ Dialer</h2><div class="list">'+
+  '<a class="hub" href="../" style="text-decoration:none">'+svg("home")+'<b class="grow">Open the CRM</b>'+chev()+'</a>'+
+  '<button class="hub" data-act="switch">'+svg("users")+'<b class="grow">Sign out</b></button></div>');}
+/* keys on the Dial tab (not while typing): 1–9 = the outcomes in order, C = call, H = hang up, S = skip */
+document.addEventListener("keydown",e=>{
+  if(!DIALER_HUB||!USER||!dialAccess()||dialS().tab!=="dial"||e.ctrlKey||e.metaKey||e.altKey)return;
+  const ae=document.activeElement;if(ae&&(/INPUT|TEXTAREA|SELECT/.test(ae.tagName)||ae.isContentEditable))return;
+  if(document.getElementById("scrim").classList.contains("open"))return;
+  const k=String(e.key).toLowerCase();
+  if(/^[1-9]$/.test(k)){const o=DIAL_OUTS[+k-1];if(o){e.preventDefault();const S=dialS();S.out=S.out===o[0]?"":o[0];if(S.out!=="callback"&&S.out!=="interested")S.cb="";if(S.out!=="meeting")S.meet=null;dialPaint();}}
+  else if(k==="c"){e.preventDefault();dialCall();}
+  else if(k==="h"){if(DIAL.call){e.preventDefault();DIAL.call.disconnect();}}
+  else if(k==="s"){e.preventDefault();const b=document.querySelector('[data-act="dialskip"]');if(b)b.click();}
+});
+/* ================= Dialer email (Max, 2026-11-19: "an email tab on the dialer that will automatically send follow up based on call,
+   I approve and it sends… it tailors literature to them"; "use max@goldenhourmedical.com… have like an email inbox and outbound in the
+   dialer"). A call with an email address gets a draft in the synced `dialMail` collection (dialer seat only); Claude writes it (dialer
+   function, action "draft") in the house voice from the call note and the market's buyer line, and picks the literature; a template
+   stands in if the function can't be reached. Nothing sends until Approve: send-invoice "notify" from the seat's own mailbox, with the
+   chosen Marketing-library PDF attached (private bucket `marketing`). Pushed calls take their sent emails into the CRM. */
+const DIAL_LIT=[
+ {id:"mfg",title:"Manufacturing deployment brief",path:"hub/pdf/lit-mfg-db.pdf",m:/manufactur|plant|steel|metal|aero|fabricat|industrial|seafood|food|processing|marine|construct|contract|warehouse/i},
+ {id:"schools",title:"One-pager · Schools & campuses",path:"hub/pdf/lit-onepager-schools.pdf",m:/school|district|academy|education|\besd\b|student|nurse/i},
+ {id:"campus",title:"Campus public safety one-pager",path:"hub/pdf/lit-campus-mci.pdf",m:/universit|college|campus|iaclea/i},
+ {id:"fau",title:"FAU deployment brief",path:"hub/pdf/lit-fau-db.pdf",m:/universit|college|campus|school|iaclea/i},
+ {id:"police",title:"One-pager · Police & public safety",path:"hub/pdf/lit-onepager-police.pdf",m:/police|sheriff|law enforcement|public safety|tribal|marshal|security/i},
+ {id:"le",title:"Law enforcement deployment brief",path:"hub/pdf/lit-le-db.pdf",m:/police|sheriff|law enforcement/i},
+ {id:"arena",title:"Arena flyer",path:"hub/pdf/lit-arena-flyer.pdf",m:/arena|stadium|sport|hockey|kraken|venue|rink|athletic/i},
+ {id:"panthers",title:"Florida Panthers deployment brief",path:"hub/pdf/lit-panthers-db.pdf",m:/arena|stadium|sport|hockey|kraken|venue|rink/i},
+ {id:"ehs",title:"One-pager · Workplace EHS",path:"hub/pdf/lit-onepager-ehs.pdf",any:true},
+ {id:"overview",title:"AutoTQ product overview",path:"hub/pdf/lit-product-overview.pdf",any:true},
+ {id:"ftu",title:"First-Time Users study",path:"hub/pdf/lit-ftu-study.pdf",any:true},
+ {id:"sell",title:"Distributor sell sheet",path:"hub/pdf/lit-new-sell-sheet.pdf",dist:true,any:true},
+ {id:"ballard",title:"Distributor one-pager · Ballard Industrial",path:"hub/pdf/lit-onepager-ballard.pdf",dist:true,m:/ballard/i}
+];
+/* the pieces that fit this person: their market's first, then the general ones (distributor contacts get distributor pieces) */
+function dialLitFor(e){e=e||{rec:{}};const r=e.rec||{},c=r.cid?company(r.cid):null;
+  const isDist=(c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor";
+  const hay=[e.co,e.title,c&&c.industry,c&&c.name,r.conf,r.source].filter(Boolean).join(" ");
+  const pool=DIAL_LIT.filter(l=>!!l.dist===!!isDist);
+  return pool.filter(l=>l.m&&l.m.test(hay)).concat(pool.filter(l=>l.any)).slice(0,6);}
+function dialMails(){DB.dialMail=DB.dialMail||[];return DB.dialMail;}
+function dialDraftsPending(){return dialMails().filter(m=>m&&!m.removed&&m.by===USER&&(m.status==="draft"||m.status==="drafting"));}
+function dialMyMailbox(){return Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===USER)||"";}
+const DIAL_MAIL_OUTS=["vm","talked","interested","callback","meeting"];
+function dialDraftAfter(c,e){
+  if(!DIAL_MAIL_OUTS.includes(c.out))return;
+  const to=String((e&&e.rec&&e.rec.email)||c.email||"").trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to))return;
+  const m={id:uid(),callId:c.id,key:c.key,to:to,toName:c.name,co:c.co||"",out:c.out,subject:"",body:"",lit:"",status:"drafting",at:new Date().toISOString(),by:USER};
+  dialMails().unshift(m);save();dialWrite(m,e);}
+function dialTemplate(m,c,e,lits){
+  /* casual, the way Max texts a work contact (Max, 2026-11-19: "use the language I taught you for follow ups. Make them sound casual") */
+  const first=String(m.toName||"").split(" ")[0]||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig="\n\n"+(((teamById(USER)||{}).name||"Max").split(" ")[0]);
+  const what="We built AutoTQ, an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.";
+  if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail. Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+(proof?" "+proof:"")+"\n\nWorth a quick look?"+sig};
+  const lit=(lits[0]||{}).id||"";
+  if(m.out==="meeting"){const w=c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10))+" at "+fmtTimeShort(c.meet.when):"our time";
+    return {subject:"see you "+(c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10)):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today, looking forward to "+w+". I'll show you how it works and where it'd go at "+co+(c.meet&&c.meet.distName?" — "+c.meet.distName+" can get it to you locally":"")+".\n\nSent over a quick overview in case it's handy before then."+sig};}
+  if(m.out==="callback")return {subject:"talk "+(c.cb?fmtDay(c.cb):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?fmtDay(c.cb):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+sig};
+  return {subject:"good talking today",lit:lit,body:"Hi "+first+",\n\nGood talking with you today.\n\n"+what+(proof?" "+proof:"")+"\n\nSent over a quick overview. Want me to sketch out where they'd go at "+co+"?"+sig};}
+async function dialWrite(m,e){
+  e=e||dialRecByKey(m.key);const c=dialCalls().find(x=>x.id===m.callId)||{},lits=dialLitFor(e||{rec:{},co:m.co});
+  const hist=e?dialHist(e).filter(h=>h.at!==c.at).slice(0,3).map(h=>h.t+" "+mdStamp(h.at)+(h.note?" — "+String(h.note).slice(0,80):"")):[];
+  const body={name:m.toName,title:(e&&e.title)||"",company:m.co,outcome:m.out,note:c.note||"",proof:e?dialProof(e):"",
+    distributor:(c.meet&&c.meet.distName)||"",meetingWhen:c.meet&&c.meet.when?fmtDay(c.meet.when.slice(0,10))+" "+fmtTimeShort(c.meet.when):"",
+    callbackDay:c.cb?fmtDay(c.cb):"",history:hist,literature:lits.map(l=>({id:l.id,title:l.title})),sender:(teamById(USER)||{}).name||"Max Herbst"};
+  m.status="drafting";dialMailPaint();
+  try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(b.error||("HTTP "+r.status));
+    m.subject=String(b.subject||"");m.body=String(b.body||"");m.lit=String(b.literature_id||"");m.ai=true;delete m.err;}
+  catch(err){const t=dialTemplate(m,c,e,lits);m.subject=t.subject;m.body=t.body;m.lit=t.lit;m.ai=false;m.err=String((err&&err.message)||err).slice(0,140);}
+  m.status="draft";save();dialMailPaint();}
+/* keep a half-typed call note: only redraw the email list when it is on screen, otherwise just the tab's count */
+function dialMailPaint(){if(view!=="dialer")return;const S=dialS();if(S.tab==="email"){const ae=document.activeElement;if(!ae||!ae.dataset||!ae.dataset.mf)render();return;}
+  const b=document.querySelector('[data-act="dialtab"][data-v="email"]'),n=dialDraftsPending().length;if(b)b.textContent="Email"+(n?" · "+n:"");}
+function viewDialEmail(){
+  const S=dialS();S.mtab=S.mtab||"drafts";
+  const all=dialMails().filter(m=>m&&!m.removed&&m.by===USER),drafts=all.filter(m=>m.status==="draft"||m.status==="drafting"),sent=all.filter(m=>m.status==="sent");
+  let h='<div class="seg dlmtabs">'+[["drafts","To approve · "+drafts.length],["sent","Sent · "+sent.length],["inbox","Inbox"]]
+    .map(x=>'<button class="'+(S.mtab===x[0]?"on":"")+'" data-act="dialmtab" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>';
+  if(S.mtab==="sent")return h+(sent.length?'<div class="list">'+sent.map(m=>'<div class="dlprow"><span class="t2 dlptime">'+esc(mdStamp(m.sentAt)+" "+fmtTimeShort(m.sentAt))+'</span>'+
+    '<span class="grow"><b>'+esc(m.subject)+'</b><br><span class="t2">'+esc(m.toName+" · "+m.to+(m.lit?" · "+((DIAL_LIT.find(l=>l.id===m.lit)||{}).title||""):""))+'</span></span>'+
+    '<span class="pill '+(m.pushedAct?"ok":"gray")+'">'+(m.pushedAct?"In the CRM":"Dialer only")+'</span></div>').join("")+'</div>':'<div class="card empty">Nothing sent yet.</div>');
+  if(S.mtab==="inbox")return h+dialInboxHTML();
+  if(!drafts.length)return h+'<div class="card empty">No follow-ups waiting.</div>';
+  return h+drafts.map(dialDraftCardHTML).join("");}
+function dialDraftCardHTML(m){
+  if(m.status==="drafting")return '<div class="card dlmail"><p class="t2">Writing the follow-up to '+esc(m.toName)+'…</p></div>';
+  const lits=dialLitFor(dialRecByKey(m.key)||{rec:{},co:m.co}),cur=DIAL_LIT.find(l=>l.id===m.lit);
+  if(cur&&!lits.includes(cur))lits.unshift(cur);
+  return '<div class="card dlmail"><p class="dlmhead"><b>'+esc(m.toName)+'</b> <span class="t2">'+esc(m.to+(m.co?" · "+m.co:"")+" · "+dialOutLabel(m.out)+" "+fmtTimeShort(m.at))+'</span></p>'+
+    '<input class="f" data-mf="subject" data-mid="'+esc(m.id)+'" value="'+esc(m.subject)+'" aria-label="Subject">'+
+    '<textarea class="f dlmbody" data-mf="body" data-mid="'+esc(m.id)+'" aria-label="Email">'+esc(m.body)+'</textarea>'+
+    '<div class="dlmfoot"><select class="f dlmlit" data-mf="lit" data-mid="'+esc(m.id)+'" aria-label="Attachment"><option value="">No attachment</option>'+
+    lits.map(l=>'<option value="'+l.id+'"'+(m.lit===l.id?" selected":"")+'>'+esc(l.title)+'</option>').join("")+'</select><span class="grow"></span>'+
+    (m.sendErr?'<span class="t2 dlmerr">'+esc(m.sendErr)+'</span>':'')+
+    '<button class="btn sm" data-act="dialmskip" data-id="'+esc(m.id)+'">Skip</button><button class="btn sm" data-act="dialmredo" data-id="'+esc(m.id)+'">Rewrite</button>'+
+    '<button class="btn coral" data-act="dialmsend" data-id="'+esc(m.id)+'"'+(m.sending?" disabled":"")+'>'+(m.sending?"Sending…":"Approve &amp; send")+'</button></div></div>';}
+function dialMailHtml(body){
+  return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#16181B">'+
+    String(body||"").trim().split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+esc(p).replace(/\n/g,"<br>")+'</p>').join("")+
+    '<img src="'+MAIL_ASSETS+'lockup_hd.png" alt="AutoTQ" width="120" style="display:block;margin-top:6px;border:0"></div>';}
+function dialB64(buf){const a=new Uint8Array(buf);let s="";for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s);}
+async function dialMailSend(id){
+  const m=dialMails().find(x=>x.id===id);if(!m||m.status==="sent"||m.sending)return;
+  const from=dialMyMailbox();if(!from){toast("No mailbox on file for your seat");return;}
+  if(!String(m.subject).trim()||!String(m.body).trim()){toast("Add a subject and a message first");return;}
+  m.sending=true;delete m.sendErr;dialMailPaint();
+  try{const att=[],lit=DIAL_LIT.find(l=>l.id===m.lit);
+    if(lit){const r=await supa("/storage/v1/object/authenticated/marketing/"+lit.path.split("/").map(encodeURIComponent).join("/"));
+      if(!r.ok)throw new Error("couldn't load "+lit.title);
+      att.push({name:"AutoTQ - "+lit.title.replace(/ · /g," - ").replace(/[^\w &().-]+/g,"")+".pdf",contentType:"application/pdf",b64:dialB64(await (await r.blob()).arrayBuffer())});}
+    const r=await supa("/functions/v1/send-invoice",{method:"POST",body:JSON.stringify({action:"notify",from:from,to:m.to,subject:m.subject,html:dialMailHtml(m.body),attachments:att})});
+    const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
+    if(b.from&&b.from!==from)throw new Error("it went out from "+b.from+" instead of "+from);
+    m.status="sent";m.sentAt=new Date().toISOString();m.from=from;delete m.sending;
+    const c=dialCalls().find(x=>x.id===m.callId);if(c&&c.pushed)dialPushMail(m); // the call is already in the CRM — the email follows it
+    save();render();toast("Sent to "+m.toName);}
+  catch(err){delete m.sending;m.sendErr=String((err&&err.message)||err).slice(0,160);save();render();toast("Not sent: "+m.sendErr);}}
+/* a sent follow-up as a CRM email activity, the way the rest of the CRM logs emails */
+function dialPushMail(m){if(!m||m.status!=="sent"||m.pushedAct)return;const e=dialRecByKey(m.key);if(!e)return;const r=e.rec;
+  const a={id:uid(),type:"email",note:"Emailed: "+m.subject+(m.lit?" · attached "+((DIAL_LIT.find(l=>l.id===m.lit)||{}).title||""):""),date:m.sentAt||new Date().toISOString(),by:m.by||USER,norm:2,dialer:true};
+  if(e.k==="p"){a.pid=r.id;a.cid=r.cid||null;if(!r.last||r.last<a.date)r.last=a.date;}
+  else if(e.k==="cl"){a.refId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;}
+  else{a.leadId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;}
+  DB.activities.unshift(a);m.pushedAct=a.id;}
+function dialInboxHTML(){
+  const R=DIAL.inbox;if(!R||Date.now()-R.at>120000){dialInboxLoad();}
+  if(!R)return '<div class="card empty">Loading replies…</div>';
+  if(R.err)return '<div class="card empty">'+esc(R.err)+'</div>';
+  if(!R.rows.length)return '<div class="card empty">No replies yet.</div>';
+  return '<div class="list">'+R.rows.map(x=>'<details class="dlinrow"><summary><span class="t2 dlptime">'+esc(mdStamp(x.at)+" "+fmtTimeShort(x.at))+'</span>'+
+    '<span class="grow"><b>'+esc(x.from_name||x.from_addr)+'</b> · '+esc(x.subject||"")+'<br><span class="t2">'+esc(String(x.preview||"").slice(0,140))+'</span></span>'+
+    '<span class="pill '+(x.dir==="in"?"coral":"gray")+'">'+(x.dir==="in"?"Reply":"Sent")+'</span></summary><div class="dlinbody">'+esc(String(x.body||x.preview||"")).replace(/\n/g,"<br>")+'</div></details>').join("")+'</div>';}
+async function dialInboxLoad(){if(DIAL.inboxBusy)return;DIAL.inboxBusy=true;
+  try{const r=await supa("/rest/v1/dial_mail?select=id,dir,at,from_addr,from_name,to_addrs,subject,preview,body&order=at.desc&limit=150");
+    if(!r.ok){DIAL.inbox={at:Date.now(),rows:[],err:r.status===404?"The inbox sync isn't on yet.":"Couldn't load the inbox ("+r.status+")."};}
+    else DIAL.inbox={at:Date.now(),rows:await r.json()};}
+  catch(e){DIAL.inbox={at:Date.now(),rows:[],err:"Couldn't load the inbox."};}
+  DIAL.inboxBusy=false;if(view==="dialer"&&dialS().tab==="email"&&dialS().mtab==="inbox")render();}
 /* ---- import a list (Apollo export or any CSV / Excel) into Leads ---- */
 function dialStateCode(s){s=String(s||"").trim();if(/^[A-Za-z]{2}$/.test(s))return s.toUpperCase();return STATE_NAMES[s.toLowerCase()]||"";}
 function dialImport(f){
@@ -6509,7 +6891,19 @@ function dialAct(a,t){
   if(a==="dialmute"){if(DIAL.call){DIAL.muted=!DIAL.muted;DIAL.call.mute(DIAL.muted);dialPaint();}return true;}
   if(a==="dialkp"){DIAL.kp=!DIAL.kp;dialPaint();return true;}
   if(a==="dialdig"){if(DIAL.call)DIAL.call.sendDigits(t.dataset.v);return true;}
-  if(a==="dialout"){S.out=S.out===t.dataset.v?"":t.dataset.v;if(S.out!=="callback"&&S.out!=="interested")S.cb="";dialPaint();
+  if(a==="dialmtab"){S.mtab=t.dataset.v;if(S.mtab==="inbox")DIAL.inbox=null;render();return true;}
+  if(a==="dialmsend"){dialMailSend(t.dataset.id);return true;}
+  if(a==="dialmskip"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m){m.status="skipped";save();render();toast("Skipped · "+m.toName,()=>{m.status="draft";save();render();});}return true;}
+  if(a==="dialmredo"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m)dialWrite(m);return true;}
+  if(a==="dhmenu"){dialHubMenu();return true;}
+  if(a==="dialtab"){S.tab=t.dataset.v;dialStopCd();render();window.scrollTo(0,0);return true;}
+  if(a==="dialmdist"){const m=S.meet||(S.meet={});m.distCid=t.dataset.v;m.distName=t.dataset.v==="none"?"":((company(t.dataset.v)||{}).name||"");m.repPid="";dialPaint();return true;}
+  if(a==="dialmrep"){const m=S.meet||(S.meet={});m.repPid=m.repPid===t.dataset.v?"":t.dataset.v;dialPaint();return true;}
+  if(a==="dialinvite"){const e=dialCur();if(e)window.open(dialInviteUrl(e),"_blank","noopener");return true;}
+  if(a==="dialpushone"){const c=dialCalls().find(x=>x.id===t.dataset.id);if(c&&dialPushCall(c)){save();render();toast("In the CRM · "+c.name);}return true;}
+  if(a==="dialpushsel"){let n=0;dialUnpushed().filter(dialPushTicked).forEach(c=>{if(dialPushCall(c))n++;});S.pushSel={};save();render();toast(n+" pushed to the CRM");return true;}
+  if(a==="dialpushall"||a==="dialpushnone"){S.pushSel={};dialUnpushed().forEach(c=>{S.pushSel[c.id]=a==="dialpushall";});render();return true;}
+  if(a==="dialout"){S.out=S.out===t.dataset.v?"":t.dataset.v;if(S.out!=="callback"&&S.out!=="interested")S.cb="";if(S.out!=="meeting")S.meet=null;dialPaint();
     const n=document.getElementById("dialNote");if(n)n.focus();return true;}
   if(a==="dialcb"){S.cb=t.dataset.v;dialPaint();return true;}
   if(a==="dialsave"){dialSave();return true;}
@@ -6521,14 +6915,18 @@ function dialAct(a,t){
   if(a==="dialdec"){if(DIAL.incoming){const c=DIAL.incoming;DIAL.incoming=null;c.reject();dialPaint();}return true;}
   if(a==="dialgo"){goView("dialer");return true;}
   if(a==="dialopen"){const e=dialRecByKey(t.dataset.id);if(!e)return true;
-    if(e.k==="p"){pushNav();curPerson=e.id;view="person";render();window.scrollTo(0,0);}
+    if(e.k==="p"){if(DIALER_HUB)openSheet(personSheetHTML(e.id));else{pushNav();curPerson=e.id;view="person";render();window.scrollTo(0,0);}}
     else if(e.k==="lead")formLeadRec(e.id);else formLead(e.id);
     return true;}
   return false;}
 /* after every render: the call bar follows the page, and a countdown never dials once you've left the dialer */
 function dialAfterRender(){if(!dialAccess())return;if(view!=="dialer"&&DIAL.cd)dialStopCd();dialBarPaint();}
-document.addEventListener("input",e=>{const el=e.target;if(el&&el.id==="dialNote")dialS().note=el.value;});
-document.addEventListener("change",e=>{const el=e.target;if(!el||!el.id)return;
+document.addEventListener("input",e=>{const el=e.target;if(el&&el.id==="dialNote")dialS().note=el.value;
+  if(el&&el.dataset&&el.dataset.mf&&el.dataset.mid){const m=dialMails().find(x=>x.id===el.dataset.mid);if(m){m[el.dataset.mf]=el.value;clearTimeout(DIAL.mailSave);DIAL.mailSave=setTimeout(save,700);}}});
+document.addEventListener("change",e=>{const el=e.target;if(!el||(!el.id&&!(el.dataset&&el.dataset.mf)&&!(el.classList&&el.classList.contains("dlpchk"))))return;
+  if(el.classList&&el.classList.contains("dlpchk")){const S=dialS();S.pushSel=S.pushSel||{};S.pushSel[el.dataset.cid]=el.checked;render();return;}
+  if(el.dataset&&el.dataset.mf==="lit"&&el.dataset.mid){const m=dialMails().find(x=>x.id===el.dataset.mid);if(m){m.lit=el.value;save();}return;}
+  if(el.id==="dialMeetWhen"){const S=dialS();(S.meet||(S.meet={})).when=el.value;return;}
   if(el.id==="dialSrc"){dialStopCd();Object.assign(dialS(),{src:el.value,cur:"",out:"",note:"",cb:"",secs:0,hold:""});render();}
   else if(el.id==="dialAuto"){const S=dialS();S.auto=el.checked;try{localStorage.setItem("autotq_dial_auto",el.checked?"1":"0");}catch(x){}if(!el.checked)dialStopCd();}
   else if(el.id==="dialCbDate"&&el.value){dialS().cb=el.value;dialPaint();}
@@ -8283,6 +8681,7 @@ function menu(){const FUT=inFuture();openSheet('<h2>'+esc(teamById(USER).name)+'
  (mktAccess()?'<a class="hub" href="'+MKT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("mail")+'<b class="grow">Switch to AutoTQ Marketing</b>'+chev()+'</a>'+
    '<a class="hub" href="'+CAT_URL+'" data-act="extlink" style="text-decoration:none">'+svg("box")+'<b class="grow">Switch to AutoTQ Catalog</b>'+chev()+'</a>':'')+
  (progAccess()?'<a class="hub" href="'+PROG_URL+'" data-act="extlink" style="text-decoration:none">'+svg("check")+'<b class="grow">Switch to AutoTQ Progress</b>'+chev()+'</a>':'')+
+ (dialAccess()?'<a class="hub" href="'+DIAL_URL+'" data-act="extlink" style="text-decoration:none">'+svg("phone")+'<b class="grow">Switch to AutoTQ Dialer</b>'+chev()+'</a>':'')+
  (futureAccess()?(FUT?'<button class="hub" data-act="hubcrm">'+svg("chart")+'<b class="grow">Switch to AutoTQ CRM</b>'+chev()+'</button>':'<button class="hub" data-act="hubfuture">'+svg("spark")+'<b class="grow">Switch to Future CRM</b>'+chev()+'</button>'):'')+
  (FUT?'':'<button class="hub" data-act="help">'+svg("note")+'<b>How this CRM works</b></button>')+
  '<button class="hub" data-act="chpw">'+svg("user")+'<b>Change my password</b></button>'+

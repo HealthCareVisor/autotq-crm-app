@@ -2316,7 +2316,9 @@ function repForDeal(region,day){
   day=String(day||"").slice(0,10)||todayStr();
   if(region==="East")return day>=REP_START.johnm?"johnm":"house";
   if(region==="Central")return day>=REP_START.john?"john":"house";
-  if(region==="West")return day>=REP_START.max?"max":(day>=REP_START.tim?"tim":(day>=REP_START.john?"john":"house"));
+  /* Max took the West seat on 2026-11-19 only to count his Washington Dialer KPIs (Max: "don't add west deals"): West deals and
+     orders stay with the open seat, and Max gets a deal only when he is set on it */
+  if(region==="West")return day>=REP_START.tim?"tim":(day>=REP_START.john?"john":"house");
   return "";
 }
 /* sells a territory: the sales profile, plus Max (West from 2026-11-19, still an admin) */
@@ -2961,7 +2963,10 @@ function goalHomeHTML(){
    from the activities; email numbers come from public.rep_mail, which AutoTQ_CRM_scripts/rep_mail/rep_mail_sync.py fills every
    evening on Max's PC (RLS: only rep_mail_readers — Max, Hannah, Jamie — can read it). A day's type is the rep's plan when there is
    one, else a weekday with a distributor meeting is a Travel day and any other weekday an Office day. ---------- */
-const SC_REPS=["johnm","john","tim"];
+const SC_REPS=["johnm","john","tim","max"];
+/* the rows a week shows (Max, 2026-11-19: "show Max as the West contact"): the West seat is Max from REP_START.max on, the empty
+   seat before that */
+function scReps(mon){return ["johnm","john",goalDays(mon)[6]>=REP_START.max?"max":"tim"];}
 function scAccess(){return ["max","hannah","jamie"].includes(USER);}
 /* Hannah, 2026-11-11 ("each of their own metrics in their view, so when they log in they can see this"): a seller sees their OWN
    scorecard row on Home, their own week and their own analysis — never another rep's (RLS rep_mail_own_read: own mailbox only) */
@@ -3064,6 +3069,7 @@ function scState(u,mon){
     {k:"mr",label:"Man-rep contact",v:mr.ok,tgt:"/ "+mr.n,pct:mr.n?pc(mr.ok,mr.n):null,sub:mr.n?"Each one every 2 weeks":"None on file in the territory",title:"Man-reps in the territory called or visited on time"}];
   const parts=tiles.map(x=>x.pct).filter(p=>p!=null);
   if(vacant(u))return scInboxState(u,mon,days,mail);
+  if(dialAccess(u))return scDialState(u,mon,days);
   const today=loggedToday(u),live=mon!==goalMonday()||today;
   const status=!parts.length?null:!live?"idle":parts.some(p=>p<50)?"dang":parts.some(p=>p<85)?"warn":"ok";
   const nT=typ.filter(t=>t==="zone"||t==="both").length,nO=typ.filter(t=>t==="office"||t==="both").length;
@@ -3092,6 +3098,65 @@ function scInboxState(u,mon,days,mail){
     {label:"Last email in",v:lastIn?fmt(lastIn.at):(mail?"—":L),sub:lastIn?(lw.p?lw.name:(lastIn.from_name||lw.name))+(lw.co?" · "+lw.co:""):(mail?"None this week":""),title:lastIn?String(lastIn.subject||""):"",bar:false,small:true}];
   return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:mail,tiles:tiles,status:null,today:false,live:false,
     inbox:true,logged:mail?mail.recv+mail.sent:0,loggedT:0,mix:"Open seat"};
+}
+/* the Dialer seat (Max, 2026-11-19: "only emails sent through the Dialer… my KPIs: number of calls, talk time and outbound quotes…
+   then Distributor reps called, Distributor sourcing calls and End-user calls"). Calls = the Dialer's own log (dialCalls) plus every
+   call activity the seat has in the CRM that didn't come from a Dialer push (so a viewer without the Dialer log still sees the pushed
+   ones). Talk time = the seconds the phone counted (Twilio calls only). Emails = Dialer follow-ups sent (dialMail), or their pushed
+   CRM copies — never the inbox. Quotes = quotes the seat made that week. A call's kind comes from who was called: someone at a
+   distributor we're set up with (marked set up / stocking, or it has an order or a won deal as the closing distributor) or a man-rep = distributor rep; a distributor that
+   isn't set up yet (potential, or a distributor lead / Distributor-Rep badge scan) = sourcing; everyone else = end user. */
+/* distributors we already sell through: an order under their name (any status but a duplicate) or a Closed Won deal they close */
+function scSoldThrough(){const s=new Set();
+  (DB.orders||[]).forEach(o=>{if(!o||o.dupOf)return;const c=orderCompany(o);if(c&&c.type==="distributor")s.add(c.id);});
+  (DB.opps||[]).forEach(o=>{if(o&&o.stage==="Closed Won"&&o.distributorId)s.add(o.distributorId);});
+  return s;}
+function scCallKind(key,co,sold){
+  const e=key?dialRecByKey(key):null,r=e?e.rec:null;let c=null;
+  if(e&&e.k==="p")c=r.cid?company(r.cid):null;
+  else if(e&&e.k==="cl"&&r.refPid&&person(r.refPid))c=company(person(r.refPid).cid);
+  else if(e&&e.k==="lead"&&r.cid)c=company(r.cid);
+  if(!c&&co){const n=String(co).trim().toLowerCase();c=(DB.companies||[]).find(x=>x&&String(x.name||"").trim().toLowerCase()===n)||null;}
+  if(c){if(c.type==="manrep"||c.type==="partner")return "rep";if(c.type==="distributor")return distStatus(c)!=="potential"||(sold&&sold.has(c.id))?"rep":"src";return "eu";}
+  if(e&&e.k==="lead"&&(r.kind==="distributor"||/distributor/i.test(r.segment||"")))return /set up|stocking/i.test(r.dstStage||"")?"rep":"src";
+  if(e&&e.k==="cl"&&confLeadSeg(r)==="Distributor/Rep")return "src";
+  return "eu";}
+function scDialCalls(u,from,to){
+  const out=[],pushed=new Set(),inR=at=>{const d=localDay(at);return d>=from&&d<=to;};
+  (DB.dialCalls||[]).forEach(c=>{if(!c||c.removed||c.by!==u)return;if(c.actId)pushed.add(c.actId);
+    if(inR(c.at))out.push({at:c.at,key:c.key,co:c.co,secs:+c.secs||0,talked:DIAL_CONNECT.includes(c.out)});});
+  calActs(u,from,to).forEach(a=>{if(!actIsCall(a)||pushed.has(a.id))return;
+    const key=dialCallKeys(a)[0]||"",talked=a.type==="call"&&!a.vm&&!["noanswer","vm","wrong"].includes(a.out);
+    out.push({at:a.date,key:key,co:a.company||"",secs:+a.secs||0,talked:talked});});
+  const sold=out.length?scSoldThrough():null;out.forEach(c=>{c.kind=scCallKind(c.key,c.co,sold);});
+  return out;}
+function scDialMail(u,from,to){
+  const inR=at=>{const d=localDay(at);return d>=from&&d<=to;},ms=(DB.dialMail||[]).filter(m=>m&&!m.removed&&m.by===u);
+  const pushed=new Set(ms.map(m=>m.pushedAct).filter(Boolean));
+  const sent=ms.filter(m=>m.status==="sent"&&inR(m.sentAt)).length+
+    calActs(u,from,to).filter(a=>a.type==="email"&&a.dialer&&!pushed.has(a.id)).length;
+  return {sent:sent,waiting:ms.filter(m=>m.status==="draft"||m.status==="drafting").length};}
+function scTalk(secs){if(!secs)return "0m";const m=Math.round(secs/60);return m?fmtMins(m):secs+"s";}
+function scDialState(u,mon,days){
+  const T=todayStr(),calls=scDialCalls(u,days[0],days[6]),mail=scDialMail(u,days[0],days[6]);
+  const pl=(n,w)=>n+" "+w+(n===1?"":"s"),talked=calls.filter(c=>c.talked).length,secs=calls.reduce((a,c)=>a+c.secs,0),timed=calls.filter(c=>c.secs>0).length;
+  const qs=quotesAll().filter(q=>{if(q.removed||q.by!==u)return false;const d=String(q.date||localDay(q.createdAt)).slice(0,10);return d>=days[0]&&d<=days[6];});
+  const qAmt=qs.reduce((a,q)=>a+quoteTotal(q),0),qKits=qs.reduce((a,q)=>a+quoteUnits(q),0),qSent=qs.filter(q=>q.status&&q.status!=="draft").length;
+  const kind=k=>{const l=calls.filter(c=>c.kind===k),ppl=new Set(l.map(c=>c.key||c.co).filter(Boolean)).size,t=l.filter(c=>c.talked).length;
+    return {n:l.length,sub:(ppl===1?"1 person":ppl+" people")+" · "+pl(t,"conversation")};};
+  const R=kind("rep"),Sr=kind("src"),E=kind("eu");
+  const tiles=[
+    {label:"Calls",v:calls.length,sub:pl(talked,"conversation"),title:"Calls from the Dialer and calls logged in the CRM",bar:false},
+    {label:"Talk time",v:scTalk(secs),sub:timed?"on "+pl(timed,"timed call"):"No timed calls yet",title:"Time on the phone, counted by the Dialer's phone",bar:false},
+    {label:"Outbound quotes",v:qs.length,sub:qs.length?fmtK(qAmt)+" · "+pl(qKits,"kit")+(qSent?" · "+qSent+" marked sent":""):"None this week",title:"Quotes made this week",bar:false},
+    {label:"Dialer emails sent",v:mail.sent,sub:mail.waiting?mail.waiting+" waiting for you to approve":"follow-ups from the Dialer",title:"Follow-up emails sent from the Dialer (inbox mail isn’t counted)",bar:false},
+    {label:"Distributor reps called",v:R.n,sub:R.sub,title:"Calls to someone at a distributor we’re set up with, or a man-rep",bar:false},
+    {label:"Distributor sourcing calls",v:Sr.n,sub:Sr.sub,title:"Calls to a distributor that isn’t set up with us yet",bar:false},
+    {label:"End-user calls",v:E.n,sub:E.sub,title:"Calls to everyone else: customers, conference leads, end users",bar:false}];
+  const today=calls.filter(c=>localDay(c.at)===T).length;
+  return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:null,tiles:tiles,status:null,today:today>0,live:false,
+    dial:true,logged:calls.length,loggedT:today,mix:"Dialer",
+    line:pl(calls.length,"call")+" "+(mon===goalMonday()?"this week · "+today+" today":"that week")};
 }
 function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
   return '<div class="sct'+(b?" s"+b:"")+(x.small?" scsm":"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+esc(String(x.v))+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
@@ -3176,10 +3241,10 @@ function scHomeHTML(){
   const me=!scAccess();if(me&&!scSelf(USER))return "";
   const mon=logState.scWeek||goalMonday();
   return '<section class="schome"><div class="lvhead" style="margin:0 0 10px;flex-wrap:wrap;gap:8px"><div class="sectlabel" style="margin:0">'+(me?"My scorecard":"Rep scorecard")+'</div>'+scWeekNavHTML(mon)+
-   '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:SC_REPS).map(u=>{const s=scState(u,mon),t=teamById(u);
+   '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:scReps(mon)).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow pp"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
-     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+raBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
+     '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(userRegion(u)||"")+' · '+esc(s.mix)+'</small><small class="sclogd">'+(s.line?esc(s.line):s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+scBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox||s.dial?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span style="--c:var(--faint)">Grey: nothing logged yet today</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
@@ -3219,7 +3284,7 @@ function viewRepWeek(u){
   if(!(scAccess()||scSelf(u))||!SC_REPS.includes(u))return viewToday();
   const mon=logState.scWeek||goalMonday(),cur=goalMonday(),T=todayStr(),t=teamById(u),s=scState(u,mon);
   let h='<div class="schead">'+faceHTML(u,"xl")+'<div class="grow" style="min-width:180px"><h2>'+esc(t.name)+'</h2><p class="t2">'+esc(t.role)+' · '+esc(s.inbox?userRegion(u):s.mix)+'</p></div>'+
-    scWeekNavHTML(mon)+raBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
+    scWeekNavHTML(mon)+scBigBtn(u,"scnoprint")+'<button class="btn sm scnoprint" data-act="scprint">'+svg("file")+' Print / PDF</button></div>';
   h+='<p class="scupd" style="margin:0 2px 10px">'+esc(rmUpdLine())+'</p><div class="sctiles wide">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+'</div>';
   /* the last eight weeks: emails sent and CRM actions — tap one to open it */
   const mons=[];for(let i=7;i>=0;i--){const p=cur.split("-").map(Number);mons.push(ymd(new Date(p[0],p[1]-1,p[2]-7*i)));}
@@ -3278,6 +3343,9 @@ const RA_SEL="mailbox,imid,rep,dir,at,subject,from_addr,from_name,to_addrs,cc_ad
 const RA={c:{},busy:{},body:{},bodyBusy:{},conv:{},convBusy:{},hits:{},hitBusy:{},open:{},byId:{},byK:{},n:0,model:null,err:""};
 function raAccess(u){return (scAccess()||scSelf(u))&&RA_REPS.includes(u);}
 /* the big coral View analysis button (Max, 2026-11-10: "make the analysis button bigger") — scorecard rows, the week page, the teammate page */
+/* a Dialer seat's row opens the Dialer (its numbers live there); every other row opens the email + CRM analysis */
+function scBigBtn(u,cls){if(raAccess(u))return raBigBtn(u,cls);
+  return dialAccess(u)&&dialAccess()?'<a class="btn coral rabig'+(cls?" "+cls:"")+'" href="'+DIAL_URL+'" data-act="extlink">'+svg("phone")+'Open the Dialer</a>':"";}
 function raBigBtn(u,cls){return '<button class="btn coral rabig'+(cls?" "+cls:"")+'" data-act="raopenrep" data-id="'+u+'" title="Every email and everything in the CRM for '+esc(teamById(u).name)+'">'+svg("chart")+'View analysis</button>';}
 function raFirst(u){return teamById(u).name.split(" ")[0];}
 function raRange(){const T=todayStr(),r=logState.raRange||"14",f=r==="all"?RA_START:dAdd(T,-(+r-1));return {from:f<RA_START?RA_START:f,to:T,r:r};}
