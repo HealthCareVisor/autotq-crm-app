@@ -1286,214 +1286,124 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .mk2-tile .tneed{font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--rule-2);padding-top:9px;margin-top:auto}
 .mk2-tile .tneed.on{color:var(--coral-ink);font-weight:600}
 /* engine-css:start */
-/* engine: Board + campaign boards (2026-11-20) — every class starts eng- */
-.eng-sh{padding:14px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--ink-3);white-space:nowrap;overflow:hidden}
-.eng-sh:first-child{padding-top:2px}
-.app.mini .eng-sh{height:10px;padding:0;overflow:hidden}.app.mini .eng-sh .lbl{display:none}
-.eng-ph{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:4px 0 14px}
-.eng-ph>div:first-child{flex:1;min-width:240px}
-.eng-ph h1{font-size:28px;font-weight:750;letter-spacing:-.022em;line-height:1.15;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;text-wrap:balance}
-.eng-ph h1 .mk2-pill{font-size:11.5px;letter-spacing:0}
-.eng-ph .acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.eng-ph .avs{display:flex}.eng-ph .avs .mk2-av+.mk2-av{margin-left:-6px}
-.eng-cdot{width:12px;height:12px;border-radius:4px;background:var(--gc);flex:none;display:inline-block}
-.eng-goal{margin:6px 0 0;font-size:15px;color:var(--ink-2);line-height:1.45;max-width:72ch}
-.eng-sum{display:flex;flex-wrap:wrap;gap:6px 16px;margin:6px 0 0;font-size:14.5px;color:var(--ink-2)}
-.eng-sum b{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
-.eng-sum .rv b{color:#8E4FCF}.eng-sum .sk b,.eng-sum .lt b{color:#D83A52}
-:root:not([data-theme="light"]) .eng-sum .rv b{color:#B98AF0}
-.eng-wait{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
-.eng-wchip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px 0 6px;border-radius:99px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
-.eng-wchip:hover{border-color:var(--rule-3)}
-.eng-wchip b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--coral);color:#fff;font-size:11.5px;font-weight:700}
-.eng-wchip svg{width:14px;height:14px}
-.eng-sug .eng-wchip{padding-left:10px}.eng-sug .eng-wchip b{background:var(--rule-2);color:var(--ink)}
-.eng-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px}
-.eng-by{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:12.5px;color:var(--ink-3)}
-.eng-avs{display:flex;align-items:center;gap:2px}
-.eng-avs button{border:0;background:none;padding:2px;border-radius:50%;cursor:pointer}
-.eng-avs button.on .mk2-av{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--coral)}
-.eng-avs .eng-x{border-radius:99px;font-size:12px;color:var(--ink-3);padding:4px 8px}
-.eng-nobody{background:none!important;border:1.5px dashed var(--rule-3)!important}
-/* groups + monday-style tables */
-.eng-g{margin:0 0 22px}
-.eng-gh{display:flex;align-items:center;gap:8px;border:0;background:none;padding:4px 2px;margin:0 0 6px;font:inherit;color:var(--gc);cursor:pointer;max-width:100%}
-.eng-gh.static{cursor:default}
-.eng-gh svg{width:16px;height:16px;flex:none;transition:transform .15s}
-.eng-g.closed .eng-gh svg{transform:rotate(-90deg)}
-.eng-gh b{font-size:16.5px;font-weight:700;letter-spacing:-.01em}
-.eng-gh .n{font-size:13px;color:var(--ink-3);font-weight:500}
-.eng-gh .lk{display:inline-flex;align-items:center;gap:4px;margin-left:8px;font-size:12px;color:var(--ink-3)}.eng-gh .lk svg{width:13px;height:13px}
-.eng-t{border:1px solid var(--rule);border-radius:8px;overflow:hidden;background:var(--rule)}
-.eng-r{display:grid;grid-template-columns:minmax(0,1fr) 64px 140px 92px 84px;gap:1px;align-items:stretch}
-.eng-r>*{background:var(--paper);min-height:40px;display:flex;align-items:center;padding:0 10px;min-width:0}
-.eng-r.hd>*{background:var(--panel);min-height:32px;font-size:12px;font-weight:500;color:var(--ink-3)}
-.eng-r .c{justify-content:center;text-align:center}
-.eng-r:not(.hd):not(.add):hover>*{background:var(--panel)}
-.eng-nm{border:0;font:inherit;color:var(--ink);text-align:left;cursor:pointer;flex-direction:column;align-items:flex-start!important;justify-content:center;gap:3px;padding:7px 10px 7px 12px!important;box-shadow:inset 4px 0 0 var(--gc)}
-.eng-nm.st{cursor:default}
-.eng-nm .tt{font-size:14px;line-height:1.35;font-weight:500;overflow-wrap:anywhere}
-.eng-r.dn .eng-nm .tt{color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--rule-3)}
-.eng-nm .mt{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--ink-3);align-items:center}
-.eng-nm .mt:empty{display:none}
-.eng-nm .mt>span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
-.eng-nm .mt svg{width:12px;height:12px}
-.eng-nm .cp i,.eng-kd .cp i{width:8px;height:8px;border-radius:2px;display:inline-block}
-.eng-nm .wt{color:#D83A52}.eng-nm .ck.all{color:var(--ok)}.eng-nm .ap{color:#8E4FCF}
-:root:not([data-theme="light"]) .eng-nm .ap{color:#B98AF0}
-.eng-st{border:0;width:100%;font:inherit;font-size:13px;font-weight:600;cursor:pointer;justify-content:center;padding:0 6px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.eng-st.none{background:var(--rule-2);color:var(--ink-2)}
-.eng-r:not(.hd):hover .eng-st{filter:brightness(1.04)}
-.eng-st:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
-.eng-r .du{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}.eng-r .du.late{color:#D83A52;font-weight:600}
-.dash{color:var(--ink-4)}
-.eng-pri{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--rule-2);color:var(--ink-2)}
-.eng-pri.hi{background:rgba(216,58,82,.12);color:#C2362F}
-:root:not([data-theme="light"]) .eng-pri.hi{color:#F2655F}
-.eng-r.add{grid-template-columns:1fr}
-.eng-r.add>*{min-height:38px}
-.eng-addin{border:0;outline:0;background:var(--paper);font:inherit;font-size:13.5px;color:var(--ink);width:100%;height:38px;padding:0 10px 0 12px!important}
-.eng-addin::placeholder{color:var(--ink-3)}
-.eng-addin:focus{box-shadow:inset 0 0 0 2px var(--coral)}
-.eng-attach{border:0;background:var(--paper);font:inherit;font-size:13.5px;color:var(--ink-2);height:38px;width:100%;padding:0 10px;cursor:pointer}
-.eng-dist{display:flex;height:6px;border-radius:99px;overflow:hidden;margin:8px 2px 0;gap:2px;background:transparent}
-.eng-dist i{height:100%;border-radius:99px}
-.eng-r.dl{grid-template-columns:minmax(0,1fr) 64px 140px 64px 96px}
-.eng-r .mo{justify-content:flex-end;font-weight:650;font-variant-numeric:tabular-nums}
-.eng-un{border:0;background:none;font:inherit;font-size:12px;color:var(--ink-3);cursor:pointer;padding:0 2px;text-decoration:underline;text-decoration-color:var(--rule-3);text-underline-offset:2px}
-.eng-un:hover{color:var(--ink)}
-.eng-sug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px!important;background:var(--panel)!important;font-size:12.5px;color:var(--ink-3)}
-.eng-g.deals .eng-gh{color:#1F9D55}
-.eng-todos{padding:4px 0}
-/* campaign page */
-.eng-fun{display:flex;align-items:stretch;flex-wrap:wrap;gap:4px;margin:0 0 16px;padding:12px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--paper)}
-.eng-fun .fs{display:flex;flex-direction:column;gap:1px;min-width:64px}
-.eng-fun .fs b{font-size:22px;font-weight:750;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.15}
-.eng-fun .fs span{font-size:12px;color:var(--ink-3)}
-.eng-fun .fs.mo b{color:#1F9D55}
-.eng-fun .ar{display:flex;align-items:center;padding:0 8px;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;position:relative}
-.eng-fun .ar::after{content:"";width:7px;height:7px;border-top:1.5px solid var(--rule-3);border-right:1.5px solid var(--rule-3);transform:rotate(45deg);margin-left:4px}
-.eng-tabs{display:flex;gap:2px;border-bottom:1px solid var(--rule);margin:0 0 16px}
-.eng-tabs button{height:38px;padding:0 14px;border:0;background:none;font:inherit;font-size:14px;font-weight:550;color:var(--ink-3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
-.eng-tabs button.on{color:var(--ink);border-bottom-color:var(--coral)}
-.eng-boardtools{display:flex;align-items:center;gap:10px;margin:0 0 14px}
-.eng-boardtools .eng-sum{margin:0;font-size:13.5px}
-.eng-camp .eng-dist{margin:2px 0}
-.eng-camp .hd h3{display:flex;align-items:center;gap:8px}
-.eng-camp .ct .rv b{color:#8E4FCF}.eng-camp .ct .sk b{color:#D83A52}
-/* deals kanban */
-.eng-kb{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.eng-kc{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:8px;min-width:0}
-.eng-kc h4{display:flex;justify-content:space-between;gap:8px;margin:0 0 8px;padding:8px 10px;border-radius:7px;color:#fff;font-size:13.5px;font-weight:650}
-.eng-kd{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;margin:0 0 8px;cursor:pointer}
-.eng-kd:hover{border-color:var(--rule-3)}
-.eng-kd>b{font-size:14px;font-weight:600}
-.eng-kd .cp{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-3)}
-.eng-kd .m{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2)}.eng-kd .m b{margin-left:auto;font-variant-numeric:tabular-nums}
-.eng-kd .m .mk2-av{width:20px;height:20px;font-size:8.5px}
-.eng-nodeals{padding:18px 18px 8px}.eng-nodeals h2{font-size:17px;margin:0 0 8px}.eng-nodeals p{margin:0 0 10px;color:var(--ink-2);font-size:13.5px}
-/* status picker + drawer */
-.eng-pick{position:fixed;z-index:95;width:180px;background:var(--paper);border:1px solid var(--rule-3);border-radius:10px;padding:8px;display:grid;gap:6px;box-shadow:0 18px 50px -12px rgba(0,0,0,.35)}
-.eng-pick button{height:34px;border:0;border-radius:6px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;background:var(--rule-2);color:var(--ink-2)}
-.eng-pick button[aria-current]{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--ink-3)}
-.eng-pick button:hover{filter:brightness(1.06)}
-.mk2-scrim.eng-scrim{align-items:stretch;justify-content:flex-end;padding:0}
-.mk2-sheet.eng-sheet{max-width:560px;max-height:none;height:100%;border-radius:0;display:flex;flex-direction:column}
-.eng-sheet .sbd{flex:1;overflow:auto;display:flex;flex-direction:column;gap:16px}
-.eng-sheet #engT{font:inherit;font-size:18px;font-weight:650;line-height:1.35;border:1px solid var(--rule);border-radius:8px;padding:10px 12px;resize:vertical;background:var(--paper);color:var(--ink);width:100%}
-.eng-f .lbl{font-size:12.5px;font-weight:600;color:var(--ink-3);margin:0 0 6px}
-.eng-f select,.eng-f input,.eng-f textarea{font:inherit;font-size:14px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--paper);color:var(--ink);width:100%;max-width:100%}
-.eng-f textarea{resize:vertical}
-.eng-f.two{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px}
-.eng-f .mk2-chip .mk2-av{width:20px;height:20px;font-size:8.5px}
-.eng-f .mk2-chip .dot{width:8px;height:8px;border-radius:2px;display:inline-block}
-.eng-sub{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--ink-3);flex-wrap:wrap}
-.eng-chk{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--rule-2);font-size:14px}
-.eng-chk span{flex:1}
-.eng-chk .bx{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--rule-3);background:none;display:grid;place-items:center;cursor:pointer;flex:none;padding:0}
-.eng-chk .bx.on{background:var(--ok);border-color:var(--ok);color:#fff}.eng-chk .bx svg{width:13px;height:13px}
-.eng-f #engCk{margin-top:8px}
-.eng-ckq{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.eng-ckq svg{width:12px;height:12px}
-.eng-out{display:flex;gap:8px}.eng-out input{flex:1}
-.eng-f select#engW{margin-top:8px}
-body.eng-lock{overflow:hidden}
-@media (max-width:900px){.eng-kb{grid-template-columns:repeat(2,minmax(0,1fr))}.eng-by{margin-left:0}}
-@media (max-width:640px){
-  .eng-ph h1{font-size:23px}
-  .eng-r{grid-template-columns:minmax(0,1fr) 118px}
-  .eng-r .ow,.eng-r .du,.eng-r .pr,.eng-r.hd>*:nth-child(2),.eng-r.hd>*:nth-child(4),.eng-r.hd>*:nth-child(5){display:none}
-  .eng-r.dl{grid-template-columns:minmax(0,1fr) 92px 72px}
-  .eng-r.dl>*:nth-child(2),.eng-r.dl>*:nth-child(4){display:none}
-  .eng-r.dl .eng-st{font-size:12px}
-  .eng-st{font-size:12px}
-  .eng-kb{grid-template-columns:1fr}
-  .eng-fun .ar{padding:0 4px}.eng-fun .fs{min-width:52px}.eng-fun .fs b{font-size:18px}
-  .eng-f.two{grid-template-columns:1fr}
-  .mk2-sheet.eng-sheet{max-width:none}
-}
-@media (prefers-reduced-motion:reduce){.eng-gh svg{transition:none}}
-.eng-r.tp{grid-template-columns:minmax(0,1fr) 56px}
+/* the simple hub (2026-11-20) — every class starts sh- */
+:root{--sh-bar:#3A3B40;--sh-bar2:#8E8D88}
+:root[data-theme="light"]{--sh-bar:#D9D5CC;--sh-bar2:#5B6169}
 .mk2-ph h1{font-size:26px;font-weight:750;letter-spacing:-.02em}
-/* My list */
-.eng-lh{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:8px 0 22px;max-width:880px}
-.eng-lh>div:first-child{flex:1;min-width:220px}
-.eng-lh h1{font-size:30px;font-weight:750;letter-spacing:-.022em;line-height:1.15;margin:0}
-.eng-lh .dt{margin:4px 0 0;font-size:15px;color:var(--ink-2)}
-.eng-list{list-style:none;margin:0 0 12px;padding:0;border:1px solid var(--rule);border-radius:12px;background:var(--paper);overflow:hidden;max-width:880px}
-.eng-li{display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--rule-2)}
-.eng-li:first-child{border-top:0}
-.eng-li:hover{background:var(--panel)}
-.eng-li .n{width:18px;flex:none;text-align:right;font-size:13px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.eng-tick{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid var(--rule-3);background:none;cursor:pointer;display:grid;place-items:center;padding:0;color:transparent}
-.eng-tick svg{width:14px;height:14px}
-.eng-tick:hover,.eng-tick:focus-visible{border-color:var(--ok);color:var(--ok)}
-.eng-dot{width:24px;height:24px;flex:none;border-radius:50%;background:var(--coral-wash);color:var(--coral-ink);display:grid;place-items:center}
-.eng-dot svg{width:13px;height:13px}
-.eng-dot.pl{background:rgba(142,79,207,.12);color:#8E4FCF}
-.eng-li .tx{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left;font:inherit;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:2px}
-.eng-li .tx b{font-size:15.5px;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
-.eng-li .tx small{font-size:12.5px;color:var(--ink-3);line-height:1.35}
-.eng-li.late .tx small{color:#D83A52;font-weight:500}
-.eng-li .go{flex:none;white-space:nowrap}
-.eng-clear{padding:22px 18px;font-size:15px}
-.eng-list.old .tx b{font-weight:500;color:var(--ink-2)}
-.eng-later{display:inline-flex;align-items:center;gap:6px;border:0;background:none;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;padding:6px 2px;margin:2px 0 8px}
-.eng-later svg{width:15px;height:15px}
-.eng-addtodo{max-width:880px;margin:4px 0 18px}
-.eng-todoin{width:100%;font:inherit;font-size:14px;border:1px dashed var(--rule-3);border-radius:10px;background:transparent;color:var(--ink);padding:10px 14px}
-.eng-todoin:focus{outline:0;border-style:solid;border-color:var(--coral);background:var(--paper)}
-.eng-cbox{max-width:880px;border:1px solid var(--rule);border-radius:12px;background:var(--panel)}
-.eng-claude{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;font:inherit;font-size:14px;color:var(--ink-2);cursor:pointer;padding:11px 14px;text-align:left}
-.eng-claude .lb{flex:1}.eng-claude b{color:var(--ink)}
-.eng-claude svg.i{width:16px;height:16px}
-.eng-cbox ul{list-style:none;margin:0;padding:0 14px 8px}
-.eng-cbox li button{display:flex;flex-direction:column;gap:1px;width:100%;border:0;border-top:1px solid var(--rule-2);background:none;font:inherit;text-align:left;color:var(--ink);padding:9px 0;cursor:pointer}
-.eng-cbox li b{font-size:13.5px;font-weight:500}.eng-cbox li small{font-size:12px;color:var(--ink-3)}
-.eng-cbox li.none{font-size:13px;color:var(--ink-3);padding:8px 0}
-/* Everyone's list */
-.eng-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px;margin:0 0 16px}
-.eng-col{border:1px solid var(--rule);border-radius:12px;background:var(--paper);padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
-.eng-col header{display:flex;align-items:center;gap:8px}
-.eng-col header b{font-size:15px;font-weight:650;flex:1}
-.eng-col header span{font-size:12.5px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.eng-col ol{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:2px}
-.eng-col li{font-size:13px;color:var(--ink-3)}
-.eng-col li button{border:0;background:none;padding:4px 0;font:inherit;text-align:left;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;gap:1px;width:100%}
-.eng-col li button b{font-size:13.5px;font-weight:500;line-height:1.35}
-.eng-col li button small{font-size:11.5px;color:var(--ink-3)}
-.eng-col li.late button small{color:#D83A52}
-.eng-col .none{margin:0;font-size:13px;color:var(--ink-3)}
-.eng-col .more{font-size:12px;color:var(--ink-3);padding-left:18px}
-.eng-col .eng-todoin{font-size:13px;padding:8px 10px;margin-top:auto}
-/* plan sheet */
-.eng-pnote{margin:0;font-size:14px;color:var(--ink-2);line-height:1.5}
-.eng-pg .ph{display:flex;align-items:center;gap:8px;margin:0 0 6px}
-.eng-pg .ph b{font-size:14.5px}
-.eng-pi{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--rule-2)}
-.eng-pi span{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
-.eng-pi b{font-size:14px;font-weight:500}.eng-pi small{font-size:12px;color:var(--ink-3)}
-.eng-pi.off b{text-decoration:line-through;color:var(--ink-3)}
-@media (max-width:640px){.eng-lh h1{font-size:24px}.eng-li{padding:12px;gap:9px}.eng-li .n{display:none}.eng-li .tx b{font-size:14.5px}.eng-li .go{padding:0 10px}}
+.sh-moreb{margin-top:10px;color:var(--ink-3)!important}
+.sh-moreb svg.i{width:15px;height:15px}
+.sh-morel{display:flex;flex-direction:column}
+.sh-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 22px;max-width:1080px}
+.sh-head h1{font-size:30px;font-weight:800;letter-spacing:-.025em;line-height:1.15;margin:0;text-wrap:balance}
+.sh-sum{font-size:15.5px;color:var(--ink-2);margin:6px 0 0}
+.sh-sum b{color:var(--ink);font-variant-numeric:tabular-nums}.sh-sum .hot{color:var(--coral-ink)}
+.sh-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sh-seg{display:inline-flex;background:var(--rule-2);border-radius:10px;padding:3px;gap:2px}
+.sh-seg button{border:0;background:none;height:34px;padding:0 14px;border-radius:8px;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink-3);cursor:pointer}
+.sh-seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.sh-wk{display:inline-flex;align-items:center;gap:6px}
+.sh-wk button{width:34px;height:34px;border:1px solid var(--rule);border-radius:9px;background:var(--paper);cursor:pointer;display:grid;place-items:center;color:var(--ink-2);padding:0}
+.sh-wk button svg{width:16px;height:16px}
+.sh-wk span{font-weight:600;min-width:118px;text-align:center;font-size:14px}
+.sh-day{margin-bottom:18px;max-width:1080px}
+.sh-dayh{font-size:12.5px;font-weight:700;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase;margin:0 0 6px 4px}
+.sh-dayh.hot{color:var(--coral-ink)}
+.sh-list{border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--paper)}
+.sh-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--rule-2)}
+.sh-row:first-child{border-top:0}
+.sh-tick{width:24px;height:24px;border-radius:50%;border:1.6px solid var(--rule-3);background:none;flex:none;cursor:pointer;display:grid;place-items:center;padding:0;color:transparent}
+.sh-tick svg{width:14px;height:14px}
+.sh-tick:hover,.sh-tick:focus-visible{border-color:var(--ok);color:var(--ok)}
+.sh-row.done .sh-tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.sh-row.done .sh-t{color:var(--ink-3);text-decoration:line-through}
+.sh-dot{width:24px;height:24px;flex:none;border-radius:50%;background:var(--coral-wash);color:var(--coral-ink);display:grid;place-items:center}
+.sh-dot svg{width:13px;height:13px}
+.sh-t{flex:1;min-width:0;border:0;background:none;padding:0;font:inherit;font-size:15px;font-weight:600;line-height:1.35;color:var(--ink);text-align:left;cursor:pointer;overflow-wrap:anywhere}
+.sh-when{flex:none;width:96px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.sh-cat{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--ink-3);white-space:nowrap;flex:none}
+.sh-cat i{width:8px;height:8px;border-radius:3px;display:inline-block}
+.sh-kpi{font-size:12.5px;color:var(--ink-3);white-space:nowrap;flex:none;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.sh-okb{height:32px;padding:0 14px;border-radius:8px;border:0;background:var(--coral-btn,var(--coral));color:#fff;font:inherit;font-weight:700;font-size:13px;cursor:pointer;flex:none;white-space:nowrap}
+.sh-okb.ghost{background:none;border:1px solid var(--rule-3);color:var(--ink)}
+.sh-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.sh-col{border:1px solid var(--rule);border-radius:12px;padding:14px;background:var(--paper);display:flex;flex-direction:column;gap:2px;min-width:0}
+.sh-colh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sh-colh b{font-size:14.5px;flex:1}.sh-colh span{font-size:12.5px;font-weight:700;color:var(--ink-3)}
+.sh-av{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+.sh-ci{display:flex;flex-direction:column;gap:2px;padding:9px 0 3px;border:0;border-top:1px solid var(--rule-2);background:none;font:inherit;text-align:left;color:var(--ink);cursor:pointer}
+.sh-ci b{font-size:13.5px;font-weight:600;line-height:1.35}.sh-ci small{font-size:12px;color:var(--ink-3)}
+.sh-ci.done b{text-decoration:line-through;color:var(--ink-3)}
+.sh-none{font-size:13px;color:var(--ink-3);margin:0}
+.sh-send{border:1px solid var(--rule);border-radius:14px;padding:20px;margin-bottom:22px;background:var(--paper);max-width:1080px}
+.sh-big{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap;margin-bottom:14px}
+.sh-big>div b{display:block;font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.sh-big>div span{font-size:13px;color:var(--ink-3)}
+.sh-pill{display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:99px;font-size:12.5px;font-weight:700;background:var(--rule-2);color:var(--ink-2);white-space:nowrap}
+.sh-pill.max{background:var(--coral-wash);color:var(--coral-ink)}
+.sh-pill.warm{background:var(--warn-wash);color:var(--warn)}
+.sh-pill.ok{background:var(--ok-wash);color:var(--ok)}
+.sh-chart{width:100%;max-width:780px;height:auto;display:block}
+.sh-chart text{fill:var(--ink-3);font-size:11px;font-family:inherit}
+.sh-chart text.val,.sh-chart text.now{fill:var(--ink);font-weight:700}
+.sh-chart .cap{stroke:var(--coral);stroke-dasharray:4 4;stroke-width:1.5}
+.sh-chart .capl{fill:var(--coral-ink);font-weight:700}
+.sh-legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-3);margin-top:8px;flex-wrap:wrap}
+.sh-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.sh-legend .cap{color:var(--coral-ink);font-weight:600}.sh-legend .cap i{width:16px;height:0;border-radius:0;border-top:2px dashed var(--coral);vertical-align:3px}
+.sh-cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:18px;align-items:start;max-width:1180px}
+.sh-grp{margin-bottom:16px}
+.sh-grph{display:flex;align-items:baseline;justify-content:space-between;margin:0 4px 8px}
+.sh-grph h2{font-size:17px;font-weight:700;margin:0}.sh-grph span{font-size:13px;color:var(--ink-3);font-weight:600}
+.sh-crow{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-top:1px solid var(--rule-2);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.sh-list .sh-crow:first-child{border-top:0}
+.sh-crow:hover{background:var(--panel)}
+.sh-crow.on{background:var(--coral-wash)}
+.sh-crow .nm{flex:1;min-width:0}.sh-crow .nm b{display:block;font-size:14.5px;font-weight:600}.sh-crow .nm small{font-size:12.5px;color:var(--ink-3)}
+.sh-crow .num{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sh-crow .num small{display:block;font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.sh-mini{font-size:11.5px;font-weight:700;color:var(--warn);background:var(--warn-wash);border-radius:99px;padding:3px 8px;white-space:nowrap}
+.sh-mini.ok{color:var(--ok);background:var(--ok-wash)}
+.sh-mails{position:sticky;top:74px;display:flex;flex-direction:column;gap:12px}
+.sh-mailh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sh-mailh h2{font-size:17px;font-weight:700;margin:0}
+.sh-mail{border:1px solid var(--rule);border-radius:12px;background:var(--paper);overflow:hidden}
+.sh-mail .mh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--rule-2);background:var(--panel);flex-wrap:wrap}
+.sh-mail .mh .k{font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.sh-mail .mh .s{font-weight:600;font-size:14px;flex:1;min-width:0}
+.sh-mail .mb{padding:14px 16px;font-size:14.5px;line-height:1.6;white-space:pre-wrap;color:var(--ink);overflow-wrap:anywhere}
+.sh-mail .mf{display:flex;align-items:center;gap:8px;padding:0 16px 14px;flex-wrap:wrap}
+.sh-note{font-size:12.5px;color:var(--warn)}
+.sh-tok{background:var(--warn-wash);color:var(--warn);border-radius:4px;padding:0 3px;font-weight:600}
+.sh-months{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.sh-months button{height:34px;padding:0 13px;border-radius:99px;border:1px solid var(--rule);background:var(--paper);font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;color:var(--ink-2)}
+.sh-months button small{font-weight:600;color:var(--ok);margin-left:4px}
+.sh-months button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sh-wkrow{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--rule);max-width:1180px}
+.sh-wkrow:first-of-type{border-top:0}
+.sh-wkrow.now .wl b{color:var(--coral-ink)}
+.sh-wkrow .wl b{display:block;font-size:14px}.sh-wkrow .wl small{font-size:12.5px;color:var(--ink-3)}
+.sh-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sh-chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid var(--rule);border-radius:9px;background:var(--paper);font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;text-align:left}
+.sh-chip:hover{border-color:var(--rule-3)}
+.sh-chip i{width:8px;height:8px;border-radius:3px;flex:none}
+.sh-chip span{min-width:0}
+.sh-chip .o{display:flex;flex:none}.sh-chip .o .sh-av{width:20px;height:20px;font-size:8px;border:2px solid var(--paper)}.sh-chip .o .sh-av+.sh-av{margin-left:-6px}
+.sh-chip.done span:not(.o){text-decoration:line-through;color:var(--ink-3)}
+.sh-tiles{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;max-width:1080px}
+.sh-tiles>div{flex:1;min-width:160px;border:1px solid var(--rule);border-radius:12px;padding:14px 16px;background:var(--paper)}
+.sh-tiles b{display:block;font-size:26px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}.sh-tiles span{font-size:13px;color:var(--ink-3)}
+.sh-tbl{border:1px solid var(--rule);border-radius:12px;overflow:hidden;max-width:1080px}
+.sh-tbl .tr{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,2fr) minmax(110px,.9fr) 130px;gap:12px;align-items:center;padding:13px 16px;border-top:1px solid var(--rule-2);background:var(--paper)}
+.sh-tbl .tr:first-child{border-top:0}
+.sh-tbl .tr.hd{background:var(--panel);font-size:12.5px;font-weight:600;color:var(--ink-3);padding-block:9px}
+.sh-tbl .d,.sh-tbl .w{font-size:13.5px;color:var(--ink-2)}
+.sh-sheet .sbd{display:flex;flex-direction:column;gap:14px}
+.sh-facts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-2)}
+.sh-facts .o{display:flex;align-items:center;gap:6px}.sh-facts .o b{font-weight:600;margin-right:6px}
+.sh-fact .lbl{font-size:12.5px;font-weight:600;color:var(--ink-3);margin-bottom:4px}
+.sh-pre{white-space:pre-wrap;font-size:14px;line-height:1.55}
+@media (max-width:860px){.sh-cgrid{grid-template-columns:1fr}.sh-mails{position:static}.sh-tbl .tr{grid-template-columns:1fr;gap:4px}.sh-tbl .tr.hd{display:none}.sh-wkrow{grid-template-columns:1fr;gap:8px}}
+@media (max-width:640px){.sh-head h1{font-size:24px}.sh-kpi,.sh-row .sh-cat{display:none}.sh-row{padding:12px}.sh-t{font-size:14.5px}}
 /* engine-css:end */
 .mk2-grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:start}
 .mk2-empty{padding:22px 14px;color:var(--ink-3);text-align:center;font-size:13px}
@@ -7009,7 +6919,7 @@ document.addEventListener("focusin",e=>{const el=e.target;if(el&&el.dataset&&el.
 document.addEventListener("focusout",e=>{const el=e.target;if(el&&el.dataset&&el.dataset.nf&&!(e.relatedTarget&&e.relatedTarget.dataset&&e.relatedTarget.dataset.nf))setTimeout(()=>{const a=document.activeElement;if(!(a&&a.dataset&&a.dataset.nf))NEWS.focus=null;},0);},true);
 /* newsletter:end */
 
-/* engine:start — the marketing engine (2026-11-20, Max: the shannholmberg "marketing engineer" post, "refocus broadly on the
+/* engine:start — the simple hub's ticket model (campaign next steps as tickets) + the four screens; the marketing engine (2026-11-20, Max: the shannholmberg "marketing engineer" post, "refocus broadly on the
    marketing hub"). Every campaign is a board of tickets: its next steps (mktLib camp .next[]) now carry an owner (a person or
    Claude), a step (Context → Plan → Tickets + people → Build + check → Review → Launch → Results), a status, a due date, what it
    waits on, its checks and a link to its output. Board = everyone's home: their tickets across campaigns, what needs approval,
@@ -7067,334 +6977,185 @@ function engSet(t,patch){const x=t.x,now=new Date().toISOString();Object.assign(
   if("st" in patch){x.done=patch.st==="done";if(x.done){x.doneAt=now;x.doneBy=USER;}else{delete x.doneAt;delete x.doneBy;}}
   x.editedAt=now;x.editedBy=USER;engSaveCamp(t.c);}
 function engAddTicket(c,title,step,more){const x=Object.assign({id:engNewId(),t:String(title).slice(0,240),done:false,by:USER,at:new Date().toISOString(),step,st:"none",owner:""},more||{});(c.next=c.next||[]).push(x);engSaveCamp(c);return x;}
-
-/* ---------- who a campaign reached, and the deals it made ---------- */
-function engNorm(s){return String(s||"").toLowerCase().replace(/&/g," and ").replace(/\b(inc|llc|ltd|corp|corporation|co|company|the|incorporated)\b/g,"").replace(/[^a-z0-9]+/g,"");}
-const ENG_GOOD=["talked","interested","callback","demo","quote","potential"];
-function engPeopleOf(c){const re=c.em?new RegExp(c.em,"i"):null;
-  const conf=re?(DB.confLeads||[]).filter(l=>l&&!l.removed&&re.test(l.conf||"")):[];
-  const leads=mk2CampEmails(c).flatMap(x=>x.leads||[]);
-  const em=new Set(),cos=new Set(),pids=new Set();let reached=0,replied=0,meet=0;
-  conf.forEach(l=>{const k=String(l.email||l.id).toLowerCase();if(em.has(k))return;em.add(k);const n=engNorm(l.company);if(n.length>3)cos.add(n);if(l.refPid)pids.add(String(l.refPid));
-    const calls=l.calls||[];if(calls.length||l.lastEmail||l.contacted===true||l.contactedAt)reached++;if(calls.some(k=>ENG_GOOD.includes(k.out))||l.replyAt)replied++;if(calls.some(k=>k.out==="demo"))meet++;});
-  leads.forEach(l=>{const k=String(l.email||"").toLowerCase();if(!k||em.has(k))return;em.add(k);const n=engNorm(l.company);if(n.length>3)cos.add(n);if(l.pid)pids.add(String(l.pid));
-    if(Object.keys(l.sent||{}).length)reached++;if(["replied","meeting","quote"].includes(l.outcome))replied++;if(l.outcome==="meeting")meet++;});
-  return {n:em.size,reached,replied,meet,cos,pids};}
-function engOpps(){return (DB.opps||[]).filter(o=>o&&o.id&&!o.removed&&(o.name||o.accountName));}
-function engDst(o){return ENG_DST.find(d=>d[3].test(o.stage||""))||ENG_DST[0];}
-function engDealsOf(c){if(!pjInner())return [];const ids=(c.deals||[]).map(String),O=new Map(engOpps().map(o=>[String(o.id),o]));return ids.map(i=>O.get(i)).filter(Boolean);}
-/* Suggested deals: the deal's end user is a company this campaign reached. Never a distributor's own deal (stocking orders, run
-   rates, an account that is a distributor or man-rep, or the same name as its distributor); attaching is always a person's tap. */
-function engDealSuggest(c,P){if(!pjInner())return [];P=P||engPeopleOf(c);const comp=new Map((DB.companies||[]).map(x=>[String(x.id),x])),taken=new Set((c.deals||[]).concat(c.noDeals||[]).map(String));
-  const chan=new Set((DB.companies||[]).filter(x=>x&&(x.type==="distributor"||x.type==="manrep")).map(x=>engNorm(x.name)).filter(n=>n.length>2));
-  return engOpps().filter(o=>!taken.has(String(o.id))&&engDst(o)[0]!=="lost").filter(o=>{const co=comp.get(String(o.accountId)),n=engNorm(o.accountName);
-    if(co&&(co.type==="distributor"||co.type==="manrep"))return false;if(/stocking|run rate/i.test((o.dealType||"")+" "+(o.name||"")))return false;
-    if(chan.has(n)||(o.distributorName&&engNorm(o.distributorName)===n))return false;
-    return (n.length>3&&P.cos.has(n))||(o.contacts||[]).some(k=>P.pids.has(String(k.pid)));}).sort((a,b)=>(+b.amount||0)-(+a.amount||0));}
-function engMoney(n){n=Math.round(+n||0);return n>=10000?"$"+(Math.round(n/100)/10).toLocaleString()+"K":"$"+n.toLocaleString();}
-function engDealRep(o){const r=o.ghRep||"";return r&&TEAM.find(t=>t.id===r)?r:"";}
-
-/* ---------- small pieces ---------- */
-function engAv(id){return id?mk2Av(id):'<span class="mk2-av eng-nobody" title="Nobody yet"></span>';}
-function engStCell(t){const m=engStMeta(t.st);return '<button class="eng-st'+(t.st==="none"?" none":"")+'" data-act="engpick" data-v="'+esc(t.key)+'" style="'+(m[2]?'background:'+m[2]+';color:'+m[3]:'')+'" aria-label="Status: '+esc(m[1])+'">'+esc(m[1])+'</button>';}
-function engRow(t,o){o=o||{};const c=t.c,bl=engBlockers(t),late=engLate(t),ck=t.checks.length,okN=t.checks.filter(x=>x.ok).length;
-  return '<div class="eng-r'+(t.st==="done"?" dn":"")+'" style="--gc:'+(o.gc||engColor(c))+'">'+
-    '<button class="eng-nm" data-act="engopen" data-v="'+esc(t.key)+'"><span class="tt">'+esc(t.title)+'</span>'+
-     '<span class="mt">'+(o.camp!==false?'<span class="cp"><i style="background:'+engColor(c)+'"></i>'+esc(c.name)+'</span>':'')+
-     (o.step?'<span class="sp">'+esc(ENG_STEPS[t.step][0])+'</span>':'')+
-     (bl.length?'<span class="wt">'+svg("lock")+'Waits on '+esc(bl[0].title.slice(0,38))+(bl[0].title.length>38?"…":"")+(bl.length>1?" +"+(bl.length-1):"")+'</span>':'')+
-     (ck?'<span class="ck'+(okN===ck?" all":"")+'">'+svg("check")+okN+'/'+ck+'</span>':'')+(t.out?'<span class="ol">'+svg("link")+'Output</span>':'')+
-     (t.st==="review"&&t.appr&&t.appr!==t.owner?'<span class="ap">'+esc(mk2Name(t.appr))+' approves</span>':'')+'</span></button>'+
-    '<div class="c ow">'+engAv(t.owner)+'</div>'+engStCell(t)+
-    '<div class="c du'+(late?" late":"")+'">'+(t.st==="done"&&t.doneAt?esc(engDue(mk2Day(t.doneAt))):esc(engDue(t.due))||'<span class="dash">–</span>')+'</div>'+
-    '<div class="c pr hm">'+(t.pri?'<span class="eng-pri '+t.pri+'">'+esc((ENG_PRI.find(p=>p[0]===t.pri)||[])[1]||"")+'</span>':'')+'</div></div>';}
-function engHead(first){return '<div class="eng-r hd"><div>'+esc(first||"Ticket")+'</div><div class="c">Owner</div><div class="c">Status</div><div class="c">Due</div><div class="c hm">Priority</div></div>';}
-function engDist(T){if(!T.length)return '';const by=k=>T.filter(t=>t.st===k).length;
-  return '<div class="eng-dist" title="'+esc(ENG_ST.map(s=>by(s[0])+" "+s[1].toLowerCase()).filter(x=>!/^0 /.test(x)).join(" · "))+'">'+["done","work","review","stuck","none"].map(k=>{const n=by(k),m=engStMeta(k);return n?'<i style="flex:'+n+';background:'+(m[2]||"var(--rule-3)")+'"></i>':'';}).join("")+'</div>';}
-function engGroup(key,label,color,T,o){o=o||{};const closed=ENG.fold[key]!=null?ENG.fold[key]:!!o.closed;
-  return '<section class="eng-g'+(closed?" closed":"")+'" style="--gc:'+color+'"><button class="eng-gh" data-act="engfold" data-v="'+esc(key)+'" aria-expanded="'+(!closed)+'">'+svg("fold")+'<b>'+esc(label)+'</b><span class="n">'+T.length+(o.sub?" "+esc(o.sub):"")+'</span></button>'+
-    (closed?'':'<div class="eng-t">'+(T.length?engHead(o.first):'')+T.map(t=>engRow(t,o)).join("")+(o.add||'')+'</div>'+(o.dist!==false?engDist(T):''))+'</section>';}
-
-/* ---------- shared by the campaign boards ---------- */
-function engSortDone(a,b){return (a.st==="done")-(b.st==="done")||engSort(a,b);}
-function engSort(a,b){const p={hi:0,med:1,lo:2,"":3};return (a.due||"9999").localeCompare(b.due||"9999")||(p[a.pri]-p[b.pri])||a.c.ord-b.c.ord;}
-function engDealsBoard(){const C=mk2Camps(),rows=C.flatMap(c=>engDealsOf(c).map(o=>({o,c})));
-  const cols=ENG_DST.filter(d=>d[0]!=="lost");
-  if(!rows.length){const sug=C.map(c=>[c,engDealSuggest(c).length]).filter(x=>x[1]);
-    return '<div class="mk2-card eng-nodeals"><h2>No deals attached to a campaign yet</h2>'+(sug.length?'<p>Possible deals from each campaign\'s people:</p><div class="eng-wait">'+sug.map(([c,n])=>'<button class="eng-wchip" data-act="engcamp" data-v="'+esc(c.id)+'"><b>'+n+'</b>'+esc(c.name)+'</button>').join("")+'</div>':'')+'</div>';}
-  return '<div class="eng-kb">'+cols.map(d=>{const X=rows.filter(r=>engDst(r.o)[0]===d[0]),sum=X.reduce((a,r)=>a+(+r.o.amount||0),0);
-    return '<div class="eng-kc"><h4 style="background:'+d[2]+'"><span>'+d[1]+' · '+X.length+'</span><span>'+engMoney(sum)+'</span></h4>'+X.map(r=>'<button class="eng-kd" data-act="engcamp" data-v="'+esc(r.c.id)+'"><b>'+esc(r.o.name||r.o.accountName)+'</b><span class="cp"><i style="background:'+engColor(r.c)+'"></i>'+esc(r.c.name)+'</span><span class="m">'+(engDealRep(r.o)?mk2Av(engDealRep(r.o)):'')+(r.o.units?'<span>'+esc(r.o.units)+' kits</span>':'')+'<b>'+engMoney(r.o.amount)+'</b></span></button>').join("")+'</div>';}).join("")+'</div>';}
-
-/* ---------- a campaign as a board ---------- */
-function engFunnel(c,P,D){const inner=pjInner(),open=D.filter(o=>!["won","lost"].includes(engDst(o)[0])),won=D.filter(o=>engDst(o)[0]==="won");
-  const st=[[P.n,"People"],[P.reached,"Reached"],[P.replied,"Replied"],[P.meet,"Demos"]];if(inner)st.push([D.length,"Deals"],[engMoney(open.reduce((a,o)=>a+(+o.amount||0),0)),"Pipeline","mo"],[engMoney(won.reduce((a,o)=>a+(+o.amount||0),0)),"Won","mo"]);
-  return '<div class="eng-fun">'+st.map((s,k)=>{const prev=k&&k<4?st[k-1][0]:0,r=k&&k<4&&prev?Math.round(s[0]/prev*100):null;return (k?'<span class="ar">'+(r!=null?r+'%':'')+'</span>':'')+'<div class="fs '+(s[2]||"")+'"><b>'+(typeof s[0]==="number"?s[0].toLocaleString():s[0])+'</b><span>'+s[1]+'</span></div>';}).join("")+'</div>';}
-function engCampBoard(c){const T=engTixOf(c),P=engPeopleOf(c),D=engDealsOf(c),inner=pjInner(),tab=ENG.ctab[c.id]||"board",col=engColor(c);
-  let h='<button class="mk2-back" data-act="mk2camp" data-v="">'+svg("back")+'Campaigns</button>'+
-   '<div class="eng-ph camp" style="--gc:'+col+'"><div><h1><i class="eng-cdot"></i>'+esc(c.name)+' <span class="mk2-pill '+(c.stc||"")+'">'+esc(c.st||"")+'</span></h1><p class="eng-goal">'+esc(c.goal||"")+'</p></div><div class="acts"><span class="avs">'+(c.people||[]).map(mk2Av).join("")+'</span></div></div>'+
-   engFunnel(c,P,D)+
-   '<div class="eng-tabs" role="tablist">'+[["board","Board"],["lit","Literature & work log"]].map(x=>'<button role="tab" aria-selected="'+(tab===x[0])+'" class="'+(tab===x[0]?"on":"")+'" data-act="engctab" data-v="'+esc(c.id)+'|'+x[0]+'">'+x[1]+'</button>').join("")+'</div>';
-  if(tab==="lit")return h+engCampLit(c);
-  const openN=T.filter(t=>t.st!=="done").length;
-  h+='<div class="eng-boardtools"><span class="eng-sum"><span><b>'+openN+'</b> open</span>'+(T.filter(t=>t.st==="review").length?'<span class="rv"><b>'+T.filter(t=>t.st==="review").length+'</b> need approval</span>':'')+(T.filter(t=>t.st==="stuck").length?'<span class="sk"><b>'+T.filter(t=>t.st==="stuck").length+'</b> stuck</span>':'')+'<span><b>'+T.filter(t=>t.st==="done").length+'</b> done</span></span></div>';
-  h+=ENG_STEPS.map((s,k)=>{const X=T.filter(t=>t.step===k).sort((a,b)=>(a.st==="done")-(b.st==="done")||engSort(a,b));const ak="a:"+c.id+":"+k;
-    return engGroup("g:"+c.id+":"+k,s[0],s[1],X,{camp:false,first:s[0],add:'<div class="eng-r add"><input class="eng-addin" id="engAdd_'+esc(c.id)+'_'+k+'" data-cid="'+esc(c.id)+'" data-step="'+k+'" placeholder="+ Add a ticket" autocomplete="off" value="'+esc(ENG.add[ak]||"")+'"></div>'});}).join("");
-  if(inner)h+=engDealsGroup(c,P,D);
-  return h;}
-function engDealsGroup(c,P,D){const sug=engDealSuggest(c,P),key="d:"+c.id,closed=!!ENG.fold[key],sum=D.reduce((a,o)=>a+(+o.amount||0),0);
-  const other=engOpps().filter(o=>!(c.deals||[]).map(String).includes(String(o.id))&&engDst(o)[0]!=="lost").sort((a,b)=>String(a.name||a.accountName).localeCompare(String(b.name||b.accountName)));
-  return '<section class="eng-g deals'+(closed?" closed":"")+'" style="--gc:#1F9D55"><button class="eng-gh" data-act="engfold" data-v="'+key+'" aria-expanded="'+(!closed)+'">'+svg("fold")+'<b>Deals</b><span class="n">'+D.length+' · '+engMoney(sum)+'</span><span class="lk">'+svg("lock")+'Max and Hannah only</span></button>'+(closed?'':
-    '<div class="eng-t"><div class="eng-r dl hd"><div>Deal</div><div class="c">Rep</div><div class="c">Stage</div><div class="c hm">Kits</div><div class="c">Value</div></div>'+
-    D.map(o=>{const d=engDst(o);return '<div class="eng-r dl"><div class="eng-nm st"><span class="tt">'+esc(o.name||o.accountName)+'</span><span class="mt"><span class="sp">'+esc(o.accountName||"")+'</span><button class="eng-un" data-act="engdealx" data-v="'+esc(c.id)+'|'+esc(o.id)+'">Take off</button></span></div><div class="c ow">'+engAv(engDealRep(o))+'</div><div class="eng-st" style="background:'+d[2]+';color:#fff;cursor:default">'+d[1]+'</div><div class="c hm">'+esc(o.units||"")+'</div><div class="c mo">'+engMoney(o.amount)+'</div></div>';}).join("")+
-    (sug.length?'<div class="eng-sug"><span>From this campaign\'s people:</span>'+sug.slice(0,8).map(o=>'<button class="eng-wchip" data-act="engdeal" data-v="'+esc(c.id)+'|'+esc(o.id)+'">'+svg("plus")+esc(o.name||o.accountName)+' <b>'+engMoney(o.amount)+'</b></button>').join("")+'</div>':'')+
-    '<div class="eng-r add"><select class="eng-attach" data-cid="'+esc(c.id)+'" aria-label="Attach a deal"><option value="">+ Attach a deal from the CRM</option>'+ENG_DST.filter(d=>d[0]!=="lost").map(d=>{const X=other.filter(o=>engDst(o)[0]===d[0]);return X.length?'<optgroup label="'+d[1]+'">'+X.map(o=>'<option value="'+esc(o.id)+'">'+esc((o.name||o.accountName).slice(0,70))+' · '+engMoney(o.amount)+'</option>').join("")+'</optgroup>':'';}).join("")+'</select></div></div>')+'</section>';}
-function engCampLit(c){let h=_engCampPage(c);const i=h.indexOf('<div class="mk2-grid2">');h=i>-1?h.slice(i):h;
-  return h.replace(/<div class="mk2-card"><div class="ch"><h2>Next steps<\/h2><\/div>[\s\S]*?id="mk2Next"[^>]*><\/div><\/div>/,"");}
-function engCampCard(c){const L=mk2LitOf(c.id).filter(l=>["customer","distributor","push"].includes(l.aud)),T=engTixOf(c),open=T.filter(t=>t.st!=="done"),P=engPeopleOf(c),D=engDealsOf(c),col=engColor(c);
-  const rv=open.filter(t=>t.st==="review").length,sk=open.filter(t=>t.st==="stuck").length,nx=open.slice().sort(engSort)[0];
-  return '<button class="mk2-camp eng-camp" style="--gc:'+col+'" data-act="engcamp" data-v="'+esc(c.id)+'"><div class="hd"><h3><i class="eng-cdot"></i>'+esc(c.name)+'</h3><span class="mk2-pill '+(c.stc||"")+'">'+esc(c.st||"")+'</span></div><div class="gl">'+esc(c.goal||"")+'</div>'+
-   (L.length?'<div class="thumbs">'+L.slice(0,5).map(l=>'<img data-mkt="'+esc(l.thumb)+'" alt="">').join("")+'</div>':'')+
-   engDist(T)+
-   '<div class="ct"><span><b>'+open.length+'</b> open</span>'+(rv?'<span class="rv"><b>'+rv+'</b> to approve</span>':'')+(sk?'<span class="sk"><b>'+sk+'</b> stuck</span>':'')+'<span><b>'+P.n.toLocaleString()+'</b> people</span>'+(pjInner()?'<span><b>'+D.length+'</b> deals · '+engMoney(D.filter(o=>!["won","lost"].includes(engDst(o)[0])).reduce((a,o)=>a+(+o.amount||0),0))+'</span>':'')+'<span class="avs">'+(c.people||[]).map(mk2Av).join("")+'</span></div>'+
-   (nx?'<div class="nx"><b>Next:</b> '+esc(nx.title)+(nx.owner?' · '+esc(mk2Name(nx.owner)):'')+'</div>':'')+'</button>';}
-
-/* ---------- the ticket drawer + status picker ---------- */
-function engOpen(t){ENG.edit={key:t?t.key:"",cid:t?t.c.id:(MK2.camp||(mk2Camps()[0]||{}).id||""),title:t?t.title:"",step:t?t.step:3,owner:t?t.owner:"",st:t?t.st:"none",appr:t?t.appr:"max",due:t?t.due:"",pri:t?t.pri:"",waits:t?t.waits.slice():[],checks:t?t.checks.map(x=>Object.assign({},x)):[],out:t?t.out:"",ctx:t?t.ctx:"",n:Date.now()};ENG.pick=null;engDraw();}
-function engDrawer(){const E=ENG.edit,C=mk2Camps(),c=C.find(x=>x.id===E.cid),others=c?engTixOf(c).filter(t=>t.key!==E.key&&t.st!=="done"):[];
-  const chips=(act,list,cur,fmt)=>'<div class="mk2-chips">'+list.map(v=>'<button class="mk2-chip'+(cur===v[0]?" on":"")+'" data-act="'+act+'" data-v="'+esc(v[0])+'">'+fmt(v)+'</button>').join("")+'</div>';
-  return '<div class="mk2-scrim eng-scrim" data-act="engclose"><div class="mk2-sheet eng-sheet" data-stop="1" role="dialog" aria-modal="true" aria-label="Ticket"><div class="sh"><h2>'+(E.key?"Ticket":"New ticket")+'</h2><button class="x" data-act="engclose" aria-label="Close">'+svg("xx")+'</button></div><div class="sbd">'+
-   '<textarea id="engT" rows="2" placeholder="What has to get done, e.g. “Write follow-up email 2 for the IACLEA list”">'+esc(E.title)+'</textarea>'+
-   '<div class="eng-f"><div class="lbl">Campaign</div><select id="engC">'+C.map(x=>'<option value="'+esc(x.id)+'"'+(x.id===E.cid?" selected":"")+'>'+esc(x.name)+'</option>').join("")+'</select></div>'+
-   '<div class="eng-f"><div class="lbl">Step</div>'+chips("engfs",ENG_STEPS.map((s,k)=>[String(k),s[0],s[1]]),String(E.step),v=>'<i class="dot" style="background:'+v[2]+'"></i>'+esc(v[1]))+'</div>'+
-   '<div class="eng-f"><div class="lbl">Owner</div>'+chips("engfo",ENG_WHO.map(id=>[id]).concat([[""]]),E.owner,v=>v[0]?engAv(v[0])+esc(mk2Name(v[0])):'Nobody yet')+'</div>'+
-   '<div class="eng-f"><div class="lbl">Status</div><div class="mk2-chips">'+ENG_ST.map(s=>'<button class="mk2-chip eng-stc'+(E.st===s[0]?" on":"")+'" data-act="engfst" data-v="'+s[0]+'" style="'+(E.st===s[0]&&s[2]?'background:'+s[2]+';color:'+s[3]+';border-color:'+s[2]:'')+'">'+esc(s[1])+'</button>').join("")+'</div>'+
-    (E.st==="review"?'<div class="eng-sub"><span>Who approves</span>'+chips("engfa",ENG_APPR.map(id=>[id]),E.appr,v=>engAv(v[0])+esc(mk2Name(v[0])))+'</div>':'')+'</div>'+
-   '<div class="eng-f two"><div><div class="lbl">Due</div><input type="date" id="engD" value="'+esc(E.due)+'"></div><div><div class="lbl">Priority</div>'+chips("engfp",ENG_PRI.concat([["","None"]]),E.pri,v=>esc(v[1]))+'</div></div>'+
-   '<div class="eng-f"><div class="lbl">Checks it has to pass</div>'+E.checks.map((x,k)=>'<div class="eng-chk"><button class="bx'+(x.ok?" on":"")+'" data-act="engck" data-v="'+k+'" aria-label="'+(x.ok?"Passed":"Not passed")+'">'+(x.ok?svg("check"):"")+'</button><span>'+esc(x.t)+'</span><button class="eng-un" data-act="engckx" data-v="'+k+'">Remove</button></div>').join("")+
-    '<input id="engCk" placeholder="Add a check and press Enter, e.g. “Every claim is in copy.js”" autocomplete="off">'+(E.checks.length?'':'<div class="eng-ckq">'+["Brand voice","Only verified claims","No distributors on the public site","Links work"].map(q=>'<button class="mk2-chip" data-act="engckq" data-v="'+esc(q)+'">'+svg("plus")+esc(q)+'</button>').join("")+'</div>')+'</div>'+
-   '<div class="eng-f"><div class="lbl">Waits on</div>'+(E.waits.length?'<div class="mk2-chips">'+E.waits.map(id=>{const w=engById(id);return w?'<span class="mk2-chip on">'+esc(w.title.slice(0,50))+' <button class="eng-un" data-act="engwx" data-v="'+esc(id)+'" aria-label="Remove">×</button></span>':'';}).join("")+'</div>':'')+
-    (others.length?'<select id="engW"><option value="">+ Another ticket in this campaign</option>'+others.filter(t=>!E.waits.includes(t.id)).map(t=>'<option value="'+esc(t.id)+'">'+esc(t.title.slice(0,80))+'</option>').join("")+'</select>':'')+'</div>'+
-   '<div class="eng-f"><div class="lbl">Context it needs</div><textarea id="engX" rows="3" placeholder="Where things live, who it\'s for, what to use">'+esc(E.ctx)+'</textarea></div>'+
-   '<div class="eng-f"><div class="lbl">Output</div><div class="eng-out"><input id="engO" placeholder="Link to the finished piece (file, page, draft)" value="'+esc(E.out)+'">'+(/^https?:\/\//.test(E.out)?'<a class="btn sm ghost" href="'+esc(E.out)+'" target="_blank" rel="noopener">Open '+svg("ext")+'</a>':'')+'</div></div>'+
-   '</div><div class="sf">'+(E.key?'<button class="btn ghost" data-act="engdel">Remove</button>':'')+'<button class="btn coral" style="margin-left:auto" data-act="engsave">'+(E.key?"Save":"Add ticket")+'</button></div></div></div>';}
-function engPicker(){const P=ENG.pick,t=engFind(P.key);if(!t)return "";return '<div class="eng-pick" style="left:'+P.x+'px;top:'+P.y+'px" role="menu">'+ENG_ST.map(s=>'<button role="menuitem" data-act="engst" data-v="'+esc(P.key)+'|'+s[0]+'" style="'+(s[2]?'background:'+s[2]+';color:'+s[3]:'')+'"'+(t.st===s[0]?' aria-current="true"':'')+'>'+esc(s[1])+'</button>').join("")+'</div>';}
-/* a new campaign starts as the post's loop: one ticket per step */
-const ENG_TEMPLATE=[[0,"Pull together what we know: who buys, past orders, call notes, proof","claude"],[1,"Write the brief: who it's for, the offer, the proof, the goal in deals",""],[2,"Split the brief into tickets and build the people list","claude"],[3,"Draft the pieces and check them against the brand voice and approved claims","claude"],[4,"Approve the pieces before anything goes out","max","review"],[5,"Launch: send, post or call",""],[6,"Friday: numbers, replies and what to change next time","claude"]];
-function engNewCampSheet(){return '<div class="mk2-scrim eng-scrim" data-act="engclose"><div class="mk2-sheet eng-sheet" data-stop="1" role="dialog" aria-modal="true" aria-label="New campaign"><div class="sh"><h2>New campaign</h2><button class="x" data-act="engclose" aria-label="Close">'+svg("xx")+'</button></div><div class="sbd">'+
-  '<div class="eng-f"><div class="lbl">Name</div><input id="engNcN" placeholder="e.g. Hospitals" autocomplete="off"></div>'+
-  '<div class="eng-f"><div class="lbl">Goal, in deals</div><textarea id="engNcG" rows="2" placeholder="e.g. 10 demos and $60K of pipeline from Florida hospitals by March 31"></textarea></div>'+
-  '<div class="eng-f"><div class="lbl">Its first tickets</div><div class="eng-t">'+ENG_TEMPLATE.map(r=>'<div class="eng-r tp" style="--gc:'+ENG_STEPS[r[0]][1]+'"><div class="eng-nm st"><span class="tt">'+esc(r[1])+'</span><span class="mt"><span class="sp" style="color:'+ENG_STEPS[r[0]][1]+'">'+esc(ENG_STEPS[r[0]][0])+'</span></span></div><div class="c ow">'+engAv(r[2])+'</div></div>').join("")+'</div></div>'+
-  '</div><div class="sf"><button class="btn coral" style="margin-left:auto" data-act="engmkcamp">Create campaign</button></div></div></div>';}
-function engMakeCamp(){const g=id=>(document.getElementById(id)||{}).value||"",name=g("engNcN").trim(),goal=g("engNcG").trim();if(!name){toast("Give it a name");return;}
-  const C=mk2Camps(),slug=name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,30)||"new";let id="camp-"+slug,k=2;while((DB.mktLib||[]).some(x=>x.id===id))id="camp-"+slug+"-"+(k++);
-  const now=new Date().toISOString(),c={id,kind:"camp",name:name.slice(0,60),goal:goal.slice(0,240),st:"Planning",stc:"",people:[USER],em:"",ord:C.reduce((a,x)=>Math.max(a,+x.ord||0),0)+1,by:USER,at:now,
-    next:ENG_TEMPLATE.map(r=>({id:engNewId(),t:r[1],done:false,by:USER,at:now,step:r[0],owner:r[2],st:r[3]||"none"}))};
-  put("mktLib",c);ENG.newCamp=null;engDraw();view="push";MK2.camp=id;render();window.scrollTo(0,0);toast("Campaign made");}
-function engDraw(force){let L=document.getElementById("engLayer");if(!L){L=document.createElement("div");L.id="engLayer";document.body.appendChild(L);}
-  const dk=ENG.edit?"e"+ENG.edit.n:ENG.newCamp?"n"+ENG.newCamp.n:ENG.planOpen?"pl"+ENG.planN:"",pk=ENG.pick?"p"+ENG.pick.key+"@"+ENG.pick.x+","+ENG.pick.y:"";
-  if(!force&&dk===ENG.drawKey&&pk===ENG.pickKey)return;
-  const s0=L.querySelector(".mk2-sheet"),sy=s0?s0.scrollTop:0,same=dk&&dk===ENG.drawKey;
-  L.innerHTML=(ENG.edit?engDrawer():ENG.newCamp?engNewCampSheet():ENG.planOpen?engPlanSheet():"")+(ENG.pick?engPicker():"");
-  if(same){const s=L.querySelector(".mk2-sheet");if(s)s.scrollTop=sy;}
-  else if(dk){const ta=L.querySelector(".sbd textarea,.sbd input");if(ta){ta.focus();try{ta.setSelectionRange(ta.value.length,ta.value.length);}catch(e){}}}
-  ENG.drawKey=dk;ENG.pickKey=pk;document.body.classList.toggle("eng-lock",!!(ENG.edit||ENG.newCamp||ENG.planOpen));}
-function engRedrawDrawer(){if(ENG.edit)engDraw(true);}
-function engReadDrawer(){const E=ENG.edit;if(!E)return;const g=id=>document.getElementById(id);if(g("engT"))E.title=g("engT").value;if(g("engD"))E.due=g("engD").value;if(g("engX"))E.ctx=g("engX").value;if(g("engO"))E.out=g("engO").value.trim();}
-function engSaveDrawer(){engReadDrawer();const E=ENG.edit,title=String(E.title||"").trim();if(!title){toast("Write what has to get done first");return;}
-  const patch={t:title.slice(0,240),step:+E.step,owner:E.owner,st:E.st,appr:E.st==="review"?E.appr:undefined,due:E.due||"",pri:E.pri||"",waits:E.waits,checks:E.checks,out:E.out,ctx:String(E.ctx||"").trim()};
-  if(patch.appr===undefined)delete patch.appr;
-  let t=E.key?engFind(E.key):null;const c=mk2Camps().find(x=>x.id===E.cid);if(!c){toast("Pick a campaign");return;}
-  if(t&&t.c.id!==c.id){const x=t.c.next.splice(t.i,1)[0];engSaveCamp(t.c);(c.next=c.next||[]).push(x);t=engT(c,x,c.next.length-1);}
-  if(t)engSet(t,patch);else{const x=engAddTicket(c,patch.t,patch.step,{});t=engT(c,x,c.next.length-1);engSet(t,patch);}
-  ENG.edit=null;engDraw();render();toast(E.key?"Saved":"Ticket added");}
-
-/* ---------- events ---------- */
-function engHandle(a,t,ev){const v=t.dataset.v||"";
-  if(a!=="engclose"&&engListHandle(a,t,ev))return;
-  if(a==="engfold"){const g=t.closest(".eng-g"),cur=g&&g.classList.contains("closed");ENG.fold[v]=!cur;engKeep();render();return;}
-  if(a==="engcamp"){view="push";MK2.camp=v;render();window.scrollTo(0,0);return;}
-  if(a==="engctab"){const [cid,tab]=v.split("|");ENG.ctab[cid]=tab;render();return;}
-  if(a==="engopen"){const x=engFind(v);if(x)engOpen(x);return;}
-  if(a==="engnew"){engOpen(null);return;}
-  if(a==="engpick"){if(ENG.pick&&ENG.pick.key===v){ENG.pick=null;engDraw();return;}const r=t.getBoundingClientRect(),w=180,hgt=ENG_ST.length*40+16;ENG.pick={key:v,x:Math.max(8,Math.min(window.innerWidth-w-8,r.left+r.width/2-w/2)),y:r.bottom+hgt+8>window.innerHeight?Math.max(8,r.top-hgt-6):r.bottom+6};engDraw();return;}
-  if(a==="engst"){const i=v.lastIndexOf("|"),x=engFind(v.slice(0,i)),st=v.slice(i+1);ENG.pick=null;if(x&&x.st!==st){engSet(x,{st});toast(engStMeta(st)[1]);}engDraw();render();return;}
-  if(a==="engclose"){if(ev&&ev.target.closest("[data-stop]")&&!t.classList.contains("x"))return "skip";ENG.edit=null;ENG.newCamp=null;ENG.planOpen=null;engDraw();return;}
-  if(a==="engnewcamp"){if(!pjInner())return;ENG.edit=null;ENG.newCamp={n:Date.now()};engDraw();return;}
-  if(a==="engmkcamp"){engMakeCamp();return;}
-  const E=ENG.edit;
-  if(E&&a.startsWith("engf")){engReadDrawer();if(a==="engfs")E.step=+v;if(a==="engfo")E.owner=v;if(a==="engfst"){E.st=v;if(v==="review"&&!E.appr)E.appr="max";}if(a==="engfa")E.appr=v;if(a==="engfp")E.pri=v;engRedrawDrawer();return;}
-  if(E&&a==="engck"){engReadDrawer();E.checks[+v].ok=!E.checks[+v].ok;engRedrawDrawer();return;}
-  if(E&&a==="engckx"){engReadDrawer();E.checks.splice(+v,1);engRedrawDrawer();return;}
-  if(E&&a==="engckq"){engReadDrawer();E.checks.push({t:v,ok:false});engRedrawDrawer();return;}
-  if(E&&a==="engwx"){engReadDrawer();E.waits=E.waits.filter(x=>x!==v);engRedrawDrawer();return;}
-  if(E&&a==="engsave"){engSaveDrawer();return;}
-  if(E&&a==="engdel"){const x=engFind(E.key);if(x&&confirm("Remove this ticket?\n\n"+x.title)){const id=x.id;x.c.next.splice(x.i,1);x.c.next.forEach(y=>{if(y&&y.waits)y.waits=y.waits.filter(w=>w!==id);});engSaveCamp(x.c);ENG.edit=null;engDraw();render();toast("Removed");}return;}
-  if(a==="engdeal"||a==="engdealx"){const [cid,oid]=v.split("|"),c=mk2Camps().find(x=>x.id===cid);if(!c||!pjInner())return;
-    if(a==="engdeal"){c.deals=(c.deals||[]).filter(x=>String(x)!==oid).concat([oid]);c.noDeals=(c.noDeals||[]).filter(x=>String(x)!==oid);toast("Deal attached");}
-    else{c.deals=(c.deals||[]).filter(x=>String(x)!==oid);c.noDeals=(c.noDeals||[]).filter(x=>String(x)!==oid).concat([oid]);toast("Taken off");}
-    engSaveCamp(c);render();return;}
-  return "skip";}
-document.addEventListener("click",e=>{if(APP!=="marketing")return;const t=e.target.closest&&e.target.closest("[data-act^='eng']");
-  if(!t){if(ENG.pick&&!(e.target.closest&&e.target.closest(".eng-pick"))){ENG.pick=null;engDraw();}return;}
-  const r=engHandle(t.dataset.act,t,e);if(r==="skip")return;e.preventDefault();e.stopPropagation();},true);
-document.addEventListener("keydown",e=>{if(APP!=="marketing")return;const el=e.target;
-  if(e.key==="Escape"&&(ENG.pick||ENG.edit||ENG.newCamp||ENG.planOpen)){if(ENG.pick)ENG.pick=null;else{ENG.edit=null;ENG.newCamp=null;ENG.planOpen=null;}engDraw();e.stopPropagation();return;}
-  if(e.key==="Enter"&&el&&el.classList&&el.classList.contains("eng-addin")){e.preventDefault();const v=el.value.trim(),c=mk2Camps().find(x=>x.id===el.dataset.cid);if(!v||!c)return;
-    const step=+el.dataset.step,ak="a:"+c.id+":"+step;engAddTicket(c,v,step,{owner:engGuessOwner(v),st:engGuessSt(v)});delete ENG.add[ak];ENG.addFocus=el.id;render();toast("Ticket added");return;}
-  if(e.key==="Enter"&&el&&el.id==="engCk"&&ENG.edit){e.preventDefault();const v=el.value.trim();if(!v)return;engReadDrawer();ENG.edit.checks.push({t:v.slice(0,120),ok:false});engRedrawDrawer();const n=document.getElementById("engCk");if(n)n.focus();return;}},true);
-document.addEventListener("input",e=>{const el=e.target;if(!el||APP!=="marketing")return;if(el.classList&&el.classList.contains("eng-addin")){ENG.add["a:"+el.dataset.cid+":"+el.dataset.step]=el.value;ENG.addFocus=el.id;}});
-document.addEventListener("change",e=>{const el=e.target;if(!el||APP!=="marketing")return;
-  if(el.classList&&el.classList.contains("eng-attach")&&el.value){const c=mk2Camps().find(x=>x.id===el.dataset.cid);if(c&&pjInner()){c.deals=(c.deals||[]).filter(x=>String(x)!==el.value).concat([el.value]);c.noDeals=(c.noDeals||[]).filter(x=>String(x)!==el.value);engSaveCamp(c);toast("Deal attached");render();}return;}
-  if(ENG.edit&&el.id==="engC"){engReadDrawer();ENG.edit.cid=el.value;ENG.edit.waits=[];engRedrawDrawer();return;}
-  if(ENG.edit&&el.id==="engW"&&el.value){engReadDrawer();ENG.edit.waits.push(el.value);engRedrawDrawer();return;}});
-document.addEventListener("focusin",e=>{const el=e.target;if(el&&el.classList&&el.classList.contains("eng-addin"))ENG.addFocus=el.id;});
-document.addEventListener("focusout",e=>{const el=e.target;if(el&&el.classList&&el.classList.contains("eng-addin")&&ENG.addFocus===el.id)setTimeout(()=>{if(document.activeElement!==document.getElementById(el.id))ENG.addFocus="";},0);});
-/* Once per page load, after the first full pull, Max or Hannah's hub writes the values the Board read from each old next step's
-   wording (owner, step, status, due) onto the step itself, so campaign.py and every seat see the same ticket. Never overwrites a
-   value someone set. */
-let ENG_FILLED=false;
-function engBackfill(){if(ENG_FILLED||!pjInner()||!(typeof SYNC!=="undefined"&&SYNC.booted))return;ENG_FILLED=true;
-  mk2Camps().forEach(c=>{let ch=false;(c.next||[]).forEach(x=>{if(!x||x.removed)return;
-    if(!x.id){x.id=engNewId();ch=true;}if(x.step==null){x.step=engGuessStep(x.t);ch=true;}if(x.owner==null){x.owner=engGuessOwner(x.t);ch=true;}
-    if(!x.st){x.st=x.done?"done":engGuessSt(x.t);ch=true;}if(x.due==null){const d=engGuessDue(x.t);if(d){x.due=d;ch=true;}}});
-    if(ch){c.updatedAt=new Date().toISOString();put("mktLib",c);}});}
-function engAfter(){engDraw();try{engBackfill();}catch(e){}if(ENG.addFocus){const el=document.getElementById(ENG.addFocus);if(el&&document.activeElement!==el){el.focus();const n=el.value.length;try{el.setSelectionRange(n,n);}catch(e){}}}}
-
-/* ---------- My list (Hannah's way, 2026-11-20): everyone sees only what they have to get done; Claude runs the rest ---------- */
-const ENG_CALLERS=["kellan"];
-const ENG_POSTER="carisse";
-const ENG_LIST_TOP=7;
+/* ---------- The simple hub (2026-11-20, Max + Hannah: "something very clear, not overwhelming"): four screens.
+   This week = Hannah's GHM Marketing Plan 2027 (mktLib kind ptask, loaded by tools/plan_import.py) per person, plus what waits on
+   their OK. Campaigns = how many emails go out a day against the most we can send, and the emails themselves. Plan = her plan
+   by week. Automatic = what runs by itself. Everything else sits under More. ---------- */
+const SH_PEOPLE={hannah:["Hannah","#993556"],max:["Max","#D85A30"],carisse:["Carisse","#B4436C"],elvi:["Elvi","#2F7D6D"],kellan:["Kellan","#6B4FA3"],sales:["Sales team","#185FA5"]};
+const SH_CAT={GV:["Giveaway","#D9485F"],SO:["Social","#3E7BD6"],VI:["Video","#8E4FCF"],EM:["Email","#E08A00"],ML:["Mail","#2F8A3A"],PH:["Calls","#0E8F8F"],CF:["Conference","#8A8F98"],CH:["Distributors","#B4436C"],CU:["Customers","#2D6CC0"],CD:["Donations","#9A6700"],WS:["Website","#C2321F"],WB:["Webinar","#6B4FA3"]};
+const SH_MAIN=[["week","list","This week"],["mail","mail","Campaigns"],["yearplan","cal","Plan"],["auto","bolt","Automatic"]];
+const SH_AUTO=[
+ ["Cold emails","Smartlead sends the school and range emails from 24 mailboxes, rotating","Weekdays","cold"],
+ ["Reply sorting","Smartlead's AI reads each reply; interested people go to their territory rep","As replies come in","cold"],
+ ["LinkedIn prospects","100 companies a day from one industry, with a 3-message LinkedIn campaign","Weekdays, 7 AM","run"],
+ ["LinkedIn invites","Gets the day's company-page follow invites ready for Max to send","Weekdays, 9 AM","run"],
+ ["Google search check","Pulls the Search Console numbers into the search tracker","Tuesdays, 8:30 AM","run"],
+ ["Giveaway entries","Each entry lands in the CRM, tagged with its month and where it came from","As people enter","plan"],
+ ["Webinar sign-ups","Every Tourniquet Tuesday sign-up goes on the sales team's call list","After each webinar","plan"]];
+let SH={mode:"me",wk:"",camp:"",mon:"",more:false,open:null,openN:0};
+try{const s=JSON.parse(localStorage.getItem("autotq_simple_v1")||"{}");if(s.more!=null)SH.more=s.more;if(s.mode)SH.mode=s.mode;}catch(e){}
+function shKeep(){try{localStorage.setItem("autotq_simple_v1",JSON.stringify({more:SH.more,mode:SH.mode}));}catch(e){}}
+const shD=s=>new Date(s+"T12:00:00");
+const shAdd=(s,n)=>{const d=shD(s);d.setDate(d.getDate()+n);return d.toLocaleDateString("en-CA");};
+const shFmt=(s,o)=>shD(s).toLocaleDateString("en-US",o||{month:"short",day:"numeric"});
+function shMonday(s){const d=shD(s),dow=(d.getDay()+6)%7;d.setDate(d.getDate()-dow);return d.toLocaleDateString("en-CA");}
+function shWeek(){return SH.wk||(SH.wk=shMonday(todayStr()));}
+function shAv(id){const p=SH_PEOPLE[id];return p?'<span class="sh-av" style="background:'+p[1]+'" title="'+esc(p[0])+'">'+esc(p[0].slice(0,2).toUpperCase())+'</span>':"";}
+function shCat(c){const x=SH_CAT[c]||SH_CAT.CF;return '<span class="sh-cat"><i style="background:'+x[1]+'"></i>'+x[0]+'</span>';}
+/* plan tasks */
+function shTasks(){return mk2Lib("ptask");}
+function shWhoOf(uid){return uid==="kellan"?["kellan","sales"]:[uid];}
+function shMine(list,uid){const w=shWhoOf(uid);return list.filter(t=>(t.who||[]).some(x=>w.includes(x)));}
+function shInWeek(wk){const end=shAdd(wk,4);return shTasks().filter(t=>t.d0<=end&&t.d1>=wk);}
+/* campaign tickets (next steps) with a due date, for the same person */
+function shTicketsDue(uid,wk){try{const end=shAdd(wk,4);return engTix().filter(t=>t.st!=="done"&&t.owner===uid&&t.due&&t.due>=wk&&t.due<=end);}catch(e){return [];}}
+/* what waits on this person's OK, from the rest of the hub */
+function shWaiting(uid){const out=[],safe=f=>{try{return f();}catch(e){return 0;}},td=todayStr();
+  if(uid==="max"){const ev=safe(()=>mk2Events())||[],n=(safe(()=>actItems())||[]).length+((safe(()=>mk2YesCalls(ev))||[]).length||0);
+    if(n)out.push({k:"w:answer",t:"Answer "+n+(n===1?" person who":" people who")+" reached out",btn:"Call",go:"calls"});
+    const cl=safe(()=>Math.max(0,(COLD_CAMPS.length+COLD_RANGES.length)*3-coldApprAll()));if(cl)out.push({k:"w:cold",t:"Approve "+cl+" cold email"+(cl===1?"":"s"),btn:"Review",go:"mail"});
+    const d=safe(()=>liPosts().filter(p=>p.status==="draft"&&String(p.slotAt||"")>=td).length);if(d)out.push({k:"w:li",t:"Review "+d+" LinkedIn draft"+(d===1?"":"s"),btn:"Review",go:"li"});}
+  if(CAMP_REVIEWERS.includes(uid)){const r=safe(()=>campaigns().filter(c=>c.status==="review"&&!(c.approvals||{})[uid]).length);if(r)out.push({k:"w:camp",t:"OK "+r+" email campaign"+(r===1?"":"s"),btn:"Review",go:"camp"});}
+  (safe(()=>engTix().filter(t=>t.st==="review"&&t.appr===uid))||[]).forEach(t=>out.push({k:"tk:"+t.key,tk:t.key,t:engImperS(t.title,uid),sub:t.c.name,btn:"Open"}));
+  return out;}
 /* "Max approves the 9 range emails" on Max's own list reads "Approve the 9 range emails" */
-function engImper(t,uid){const m=String(t||"").match(/^(Max|Hannah|Kellan|Carisse|Elvi)\s+(\S+)([\s\S]*)$/);if(!m||m[1].toLowerCase()!==uid)return String(t||"");let v=m[2];
+function engImperS(t,uid){const m=String(t||"").match(/^(Max|Hannah|Kellan|Carisse|Elvi)\s+(\S+)([\s\S]*)$/);if(!m||m[1].toLowerCase()!==uid)return String(t||"");let v=m[2];
   if(/^OKs$/.test(v))v="OK";else if(/ies$/.test(v))v=v.slice(0,-3)+"y";else if(/(sses|shes|ches|xes)$/.test(v))v=v.slice(0,-2);else if(/[^s]s$/.test(v))v=v.slice(0,-1);
   return v.charAt(0).toUpperCase()+v.slice(1)+m[3];}
-/* where a ticket's work happens: the tab its button opens ("" = its campaign page) */
-function engGo(t){const s=String(t||"");if(/cold email|Smartlead|sequence|mailbox|sender name|range emails|Cold email/i.test(s))return "cold";
-  if(/LinkedIn|\bposts?\b|\bposting\b/i.test(s))return "li";if(/\bcall(s|ing)?\b|\bfollow up the\b/i.test(s))return "calls";return "";}
-function engLitish(t){return /handout|brochure|literature|pieces|flyer|one-pager|wording pack|catalog/i.test(t||"");}
-function engCaller(uid){if(ENG_CALLERS.includes(uid))return true;const since=Date.now()-14*86400000;let n=0;
-  (DB.confLeads||[]).forEach(l=>(l.calls||[]).forEach(k=>{if(k.by===uid&&new Date(k.at||0)>since)n++;}));return n>=5;}
-function engTodosOf(uid){return (DB.tasks||[]).filter(t=>t&&t.type==="todo"&&!t.removed&&(t.owner===uid||(t.assignees||[]).includes(uid))&&todoStatus(t)!=="done");}
-function engPlanPending(){return mk2Lib("plan").filter(p=>p.st==="pending"&&(p.items||[]).length).sort((a,b)=>String(b.week).localeCompare(String(a.week)))[0]||null;}
-function engItemsFor(uid){const out=[],td=todayStr(),we=engWeekEnd(),lead=["max","hannah"].includes(uid),safe=f=>{try{return f();}catch(e){return 0;}};
-  const pl=lead?engPlanPending():null;
-  if(pl)out.push({k:"plan:"+pl.id,kind:"plan",o:0,plan:pl.id,text:"Approve next week's plan",sub:pl.items.length+" to-dos for the week of "+mk2Short(pl.week).replace(/^\w+, /,""),btn:"Review"});
-  if(uid==="max"){const ev=safe(()=>mk2Events())||[],n=(safe(()=>actItems())||[]).length+((safe(()=>mk2YesCalls(ev))||[]).length||0);
-    if(n)out.push({k:"sig:answer",kind:"sig",o:1,go:"calls",text:"Answer "+n+(n===1?" person who":" people who")+" reached out",sub:"Website forms, clicks and replies",btn:"Call"});
-    const cl=safe(()=>Math.max(0,(COLD_CAMPS.length+COLD_RANGES.length)*3-coldApprAll()));
-    if(cl)out.push({k:"sig:cold",kind:"sig",o:4,go:"cold",text:"Approve "+cl+" cold email"+(cl===1?"":"s"),sub:"Schools and shooting ranges",btn:"Approve"});
-    const d=safe(()=>liPosts().filter(p=>p.status==="draft"&&String(p.slotAt||"")>=td).length);
-    if(d)out.push({k:"sig:li",kind:"sig",o:4,go:"li",text:"Review "+d+" LinkedIn draft"+(d===1?"":"s"),btn:"Review"});}
-  if(CAMP_REVIEWERS.includes(uid)){const r=safe(()=>campaigns().filter(c=>c.status==="review"&&!(c.approvals||{})[uid]).length);
-    if(r)out.push({k:"sig:camp",kind:"sig",o:4,go:"camp",text:"OK "+r+" email campaign"+(r===1?"":"s"),btn:"Review"});}
-  if(uid===ENG_POSTER){const back=new Date(Date.now()-2*86400000).toLocaleDateString("en-CA");
-    (safe(()=>liPosts().filter(p=>p.status==="approved"&&mk2Day(p.slotAt)<=td&&mk2Day(p.slotAt)>=back))||[]).forEach(p=>{const day=mk2Day(p.slotAt);
-      out.push({k:"sig:post:"+p.id,kind:"sig",o:day<td?1:2,go:"li",late:day<td,text:(day===td?"Post today's LinkedIn post":"Post "+engDue(day)+"'s LinkedIn post"),sub:String(p.topic||p.hook||"").slice(0,90),btn:"Open"});});}
-  if(engCaller(uid)){const q=uid===USER?safe(()=>callQueueAll().length):0;out.push({k:"sig:calls",kind:"sig",o:2,go:"calls",text:"Work the call list"+(q?" · "+q+" waiting":""),sub:"Conference and website leads, best first",btn:"Start calling"});}
-  engTix().filter(t=>t.st!=="done"&&(t.owner===uid||(t.st==="review"&&t.appr===uid&&t.owner!==uid))).forEach(t=>{const late=engLate(t),now=t.due&&t.due<=td;
-    out.push({k:"tk:"+t.key,kind:"tk",tk:t.key,o:late||now?3:t.st==="review"?4:t.due&&t.due<=we?5:7,due:t.due,late,go:engGo(t.title),
-      text:engImper(t.title,uid),sub:t.c.name+(t.due?" · "+(late?"was due ":"")+engDue(t.due):""),btn:t.st==="review"?"Review":"Open"});});
-  const old=new Date(Date.now()-14*86400000).toLocaleDateString("en-CA"),stale=new Date(Date.now()-21*86400000).toISOString();
-  engTodosOf(uid).forEach(x=>{const isOld=x.due?x.due<old:String(x.createdAt||"")<stale,late=!isOld&&x.due&&x.due<td;
-    out.push({k:"td:"+x.id,kind:"todo",todo:x.id,old:isOld,o:isOld?9:late||x.due===td?3:6,due:x.due||"",late,text:x.title||"",sub:x.due?(late||isOld?"was due ":"")+engDue(x.due):"To-do"});});
-  return out.sort((a,b)=>a.o-b.o||String(a.due||"9").localeCompare(String(b.due||"9")));}
-function engClaudeTix(){return engTix().filter(t=>t.owner==="claude"&&t.st!=="done").sort(engSort);}
-function engLi(it,n){const box=it.kind==="tk"||it.kind==="todo"?'<button class="eng-tick" data-act="engtick" data-v="'+esc(it.k)+'" aria-label="Mark done: '+esc(it.text)+'">'+svg("check")+'</button>':'<span class="eng-dot'+(it.kind==="plan"?" pl":"")+'">'+svg(it.kind==="plan"?"spark":"arrow")+'</span>';
-  return '<li class="eng-li'+(it.late?" late":"")+'"><span class="n">'+n+'</span>'+box+'<button class="tx" data-act="engitem" data-v="'+esc(it.k)+'"><b>'+esc(it.text)+'</b>'+(it.sub?'<small>'+esc(it.sub)+'</small>':'')+'</button>'+
-    (it.btn?'<button class="btn sm'+(it.kind==="plan"||it.o<=1?" coral":"")+' go" data-act="enggo" data-v="'+esc(it.k)+'">'+esc(it.btn)+'</button>':'')+'</li>';}
-function engClaudeBox(){const C=engClaudeTix(),open=!!ENG.fold.claude;
-  return '<div class="eng-cbox'+(open?" open":"")+'"><button class="eng-claude" data-act="engcl" aria-expanded="'+open+'">'+mk2Av("claude")+'<span class="lb">Claude is handling <b>'+C.length+'</b> thing'+(C.length===1?"":"s")+'</span>'+svg(open?"chevU":"chevD")+'</button>'+
-    (open?'<ul>'+C.map(t=>'<li><button data-act="engopen" data-v="'+esc(t.key)+'"><b>'+esc(t.title)+'</b><small>'+esc(t.c.name)+(t.due?' · '+esc(engDue(t.due)):'')+'</small></button></li>').join("")+(C.length?'':'<li class="none">Nothing right now.</li>')+'</ul>':'')+'</div>';}
-function engListHead(me,lead){const hr=new Date().getHours();
-  return '<div class="eng-lh"><div><h1>'+(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+', '+esc(String(me.name||"").split(" ")[0])+'</h1><p class="dt">'+esc(new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"}))+'</p></div>'+
-    (lead?'<div class="mk2-seg">'+[["mine","My list"],["all","Everyone's list"]].map(x=>'<button class="'+((ENG.who||"mine")===x[0]?"on":"")+'" data-act="engwho" data-v="'+x[0]+'">'+x[1]+'</button>').join("")+'</div>':'')+'</div>';}
-function engViewList(){const me=teamById(USER),lead=pjInner();if(!lead||ENG.who!=="all")ENG.who="mine";
-  if(ENG.who==="all")return engListHead(me,lead)+engViewEveryone();
-  const items=engItemsFor(USER);ENG.items={};items.forEach(i=>{ENG.items[i.k]=i;});
-  const cur=items.filter(i=>!i.old),olds=items.filter(i=>i.old),top=cur.slice(0,ENG_LIST_TOP),rest=cur.slice(ENG_LIST_TOP),open=!!ENG.fold.later,oOpen=!!ENG.fold.old;
-  let h=engListHead(me,lead);
-  h+=cur.length?'<ol class="eng-list">'+top.map((it,n)=>engLi(it,n+1)).join("")+'</ol>':'<div class="eng-list eng-clear"><b>Nothing on your list.</b></div>';
-  if(rest.length)h+='<button class="eng-later" data-act="engfoldl" aria-expanded="'+open+'">'+svg(open?"chevU":"chevD")+'More · '+rest.length+'</button>'+(open?'<ol class="eng-list">'+rest.map((it,n)=>engLi(it,ENG_LIST_TOP+n+1)).join("")+'</ol>':'');
-  if(olds.length)h+='<button class="eng-later" data-act="engfoldo" aria-expanded="'+oOpen+'">'+svg(oOpen?"chevU":"chevD")+'Older to-dos · '+olds.length+'</button>'+(oOpen?'<ol class="eng-list old">'+olds.map((it,n)=>engLi(it,n+1)).join("")+'</ol>':'');
-  h+='<div class="eng-addtodo"><input class="eng-todoin" id="engTodo_'+esc(USER)+'" data-uid="'+esc(USER)+'" placeholder="+ Add a to-do and press Enter" autocomplete="off"></div>';
-  return h+engClaudeBox();}
-function engViewEveryone(){ENG.items={};
-  const cols=MKT_USERS.map(id=>{const it=engItemsFor(id).filter(i=>!i.old);it.forEach(i=>{ENG.items[id+"/"+i.k]=Object.assign({},i,{who:id});});const sh=it.slice(0,8);
-    return '<section class="eng-col"><header>'+mk2Av(id)+'<b>'+esc(mk2Name(id))+'</b><span>'+it.length+'</span></header>'+
-      (sh.length?'<ol>'+sh.map(i=>'<li class="'+(i.late?"late":"")+'"><button data-act="engitem" data-v="'+esc(id+"/"+i.k)+'"><b>'+esc(i.text)+'</b>'+(i.sub?'<small>'+esc(i.sub)+'</small>':'')+'</button></li>').join("")+'</ol>':'<p class="none">Nothing assigned yet.</p>')+
-      (it.length>8?'<div class="more">+'+(it.length-8)+' more</div>':'')+
-      '<input class="eng-todoin" id="engTodo_'+esc(id)+'" data-uid="'+esc(id)+'" placeholder="+ Add a to-do for '+esc(mk2Name(id))+'" autocomplete="off"></section>';}).join("");
-  return '<div class="eng-cols">'+cols+'</div>'+engClaudeBox();}
-function engAddTodo(uid,title){const x={id:"todo-"+uid_(),owner:uid,assignees:[uid],title:String(title).slice(0,300),type:"todo",status:"todo",priority:"",due:todayStr(),done:false,createdAt:new Date().toISOString(),by:USER};
-  (DB.tasks=DB.tasks||[]).unshift(x);put("tasks",x);return x;}
-function uid_(){return typeof uid==="function"?uid():Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
-/* the week's plan: Claude writes it (campaign.py plan), Max or Hannah approve it, each to-do lands on its owner's list */
-function engPlanApprove(p,drop){if(!p||p.st!=="pending")return 0;let n=0;const C=mk2Camps();
-  (p.items||[]).forEach((it,i)=>{if(drop&&drop[i])return;
-    if(it.ref){const x=engById(it.ref);if(x){const patch={};if(it.due)patch.due=it.due;if(it.owner)patch.owner=it.owner;if(x.st==="none"&&it.owner&&it.owner!=="claude"&&engIsReview(x.title))patch.st="review";engSet(x,patch);n++;return;}if(!it.t)return;}
-    const c=C.find(x=>x.id===it.camp);
-    if(c)engAddTicket(c,it.t,it.step!=null?+it.step:engGuessStep(it.t),{owner:it.owner||"",due:it.due||"",st:"none",plan:p.week,by:"claude"});
-    else{const x=engAddTodo(it.owner||USER,it.t);x.due=it.due||"";x.by="claude";x.plan=p.week;put("tasks",x);}n++;});
-  p.st="approved";p.approvedBy=USER;p.approvedAt=new Date().toISOString();p.kept=n;put("mktLib",p);return n;}
-function engPlanSheet(){const p=mk2Lib("plan").find(x=>x.id===ENG.planOpen);if(!p)return "";const drop=ENG.planDrop||{},by={},C=mk2Camps();
-  (p.items||[]).forEach((it,i)=>{(by[it.owner||""]=by[it.owner||""]||[]).push([it,i]);});const kept=(p.items||[]).filter((_,i)=>!drop[i]).length;
-  const order=ENG_WHO.concat([""]).filter(id=>by[id]);
-  return '<div class="mk2-scrim eng-scrim" data-act="engclose"><div class="mk2-sheet eng-sheet" data-stop="1" role="dialog" aria-modal="true" aria-label="Next week\'s plan"><div class="sh"><h2>Plan for the week of '+esc(mk2Short(p.week).replace(/^\w+, /,""))+'</h2><button class="x" data-act="engclose" aria-label="Close">'+svg("xx")+'</button></div><div class="sbd">'+
-    (p.note?'<p class="eng-pnote">'+esc(p.note)+'</p>':'')+
-    order.map(id=>'<div class="eng-pg"><div class="ph">'+engAv(id)+'<b>'+esc(id?mk2Name(id):"Nobody yet")+'</b></div>'+by[id].map(([it,i])=>{const r=it.ref?engById(it.ref):null,c=r?r.c:C.find(x=>x.id===it.camp);
-      return '<div class="eng-pi'+(drop[i]?" off":"")+'"><span><b>'+esc(it.t||(r?engImper(r.title,id):""))+'</b><small>'+esc(c?c.name:"To-do")+(r?" · already on the board":"")+(it.due?' · '+esc(engDue(it.due)):'')+(it.why?' · '+esc(it.why):'')+'</small></span><button class="eng-un" data-act="engpldrop" data-v="'+i+'">'+(drop[i]?"Put back":"Drop")+'</button></div>';}).join("")+'</div>').join("")+
-    '</div><div class="sf"><button class="btn ghost" data-act="engplskip">Not this week</button><button class="btn coral" style="margin-left:auto" data-act="engplok"'+(kept?'':' disabled')+'>Approve the week ('+kept+')</button></div></div></div>';}
-function engListHandle(a,t,ev){const v=t.dataset.v||"";
-  if(a==="engwho"){ENG.who=v;engKeep();render();window.scrollTo(0,0);return true;}
-  if(a==="engfoldl"){ENG.fold.later=!ENG.fold.later;engKeep();render();return true;}
-  if(a==="engfoldo"){ENG.fold.old=!ENG.fold.old;engKeep();render();return true;}
-  if(a==="engcl"){ENG.fold.claude=!ENG.fold.claude;engKeep();render();return true;}
-  if(a==="engitem"||a==="enggo"){const it=ENG.items&&ENG.items[v];if(!it)return true;
-    if(it.kind==="plan"){ENG.planOpen=it.plan;ENG.planDrop={};ENG.planN=Date.now();engDraw();return true;}
-    if(it.kind==="tk"){const x=engFind(it.tk);if(!x)return true;
-      if(a==="engitem"){engOpen(x);return true;}
-      if(it.go){goView(it.go);return true;}
-      ENG.ctab[x.c.id]=engLitish(x.title)?"lit":"board";view="push";MK2.camp=x.c.id;render();window.scrollTo(0,0);return true;}
-    if(it.kind==="todo")return true;
-    if(it.go)goView(it.go);return true;}
-  if(a==="engtick"){const it=ENG.items&&ENG.items[v];if(!it)return true;
-    if(it.kind==="tk"){const x=engFind(it.tk);if(x)engSet(x,{st:"done"});}
-    else if(it.kind==="todo"){const x=(DB.tasks||[]).find(y=>y.id===it.todo);if(x){todoSetStatus(x,"done");put("tasks",x);}}
-    toast("Done");render();return true;}
-  if(a==="engpldrop"){ENG.planDrop=ENG.planDrop||{};ENG.planDrop[+v]=!ENG.planDrop[+v];engDraw(true);return true;}
-  if(a==="engplok"||a==="engplskip"){const p=mk2Lib("plan").find(x=>x.id===ENG.planOpen);if(!p||p.st!=="pending"){ENG.planOpen=null;engDraw();render();return true;}
-    if(a==="engplok"){const n=engPlanApprove(p,ENG.planDrop);toast(n+" to-do"+(n===1?"":"s")+" are on everyone's lists");}
-    else{p.st="skipped";p.skippedBy=USER;p.skippedAt=new Date().toISOString();put("mktLib",p);toast("Plan set aside");}
-    ENG.planOpen=null;ENG.planDrop={};engDraw();render();return true;}
-  if(a==="engcseg"){ENG.cseg=!ENG.cseg;render();window.scrollTo(0,0);return true;}
-  return false;}
-document.addEventListener("keydown",e=>{const el=e.target;if(APP!=="marketing"||e.key!=="Enter"||!el||!el.classList||!el.classList.contains("eng-todoin"))return;
-  e.preventDefault();const v=el.value.trim(),who=el.dataset.uid;if(!v||!who)return;engAddTodo(who,v);el.value="";const id=el.id;render();toast(who===USER?"Added to your list":"Added to "+mk2Name(who)+"'s list");const n=document.getElementById(id);if(n)n.focus();},true);
+function shRow(t){const done=!!t.done;
+  return '<div class="sh-row'+(done?" done":"")+'"><button class="sh-tick" data-act="shtick" data-v="'+esc(t.id)+'" aria-label="'+(done?"Done":"Mark done")+': '+esc(t.t)+'">'+svg("check")+'</button>'+
+    '<button class="sh-t" data-act="shopen" data-v="'+esc(t.id)+'">'+esc(t.t)+'</button>'+(t.kpi?'<span class="sh-kpi">'+esc(t.kpi)+'</span>':'')+shCat(t.cat)+
+    (t.ok&&!done?'<button class="sh-okb" data-act="shtick" data-v="'+esc(t.id)+'">Approve</button>':'')+'</div>';}
+function shTkRow(t){return '<div class="sh-row"><button class="sh-tick" data-act="shtktick" data-v="'+esc(t.key)+'" aria-label="Mark done: '+esc(t.title)+'">'+svg("check")+'</button><button class="sh-t" data-act="shtkopen" data-v="'+esc(t.key)+'">'+esc(engImperS(t.title,USER))+'</button><span class="sh-cat"><i style="background:var(--ink-4)"></i>'+esc(t.c.name)+'</span></div>';}
+function shWaitRow(w){return '<div class="sh-row"><span class="sh-dot">'+svg("arrow")+'</span><button class="sh-t" data-act="shgo" data-v="'+esc(w.k)+'">'+esc(w.t)+'</button>'+(w.sub?'<span class="sh-cat">'+esc(w.sub)+'</span>':'')+'<button class="sh-okb ghost" data-act="shgo" data-v="'+esc(w.k)+'">'+esc(w.btn)+'</button></div>';}
+function shViewWeek(){const wk=shWeek(),me=teamById(USER),hr=new Date().getHours(),all=shInWeek(wk),lead=pjInner();
+  const mine=shMine(all,USER),left=mine.filter(t=>!t.done),W=SH.mode==="me"?shWaiting(USER):[];SH.wait={};W.forEach(w=>{SH.wait[w.k]=w;});
+  const okN=left.filter(t=>t.ok).length+W.length;
+  let h='<div class="sh-head"><div><h1>'+(SH.mode==="me"?(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+", "+esc(String(me.name||"").split(" ")[0]):"Everyone's week")+'</h1>'+
+    (SH.mode==="me"?'<p class="sh-sum"><b>'+left.length+'</b> thing'+(left.length===1?"":"s")+' this week'+(okN?' · <b class="hot">'+okN+'</b> need'+(okN===1?"s":"")+' you':'')+'</p>':'<p class="sh-sum">Week of '+esc(shFmt(wk))+'</p>')+'</div>'+
+    '<div class="sh-tools"><div class="sh-wk"><button data-act="shwk" data-v="-7" aria-label="Previous week">'+svg("chevL")+'</button><span>Week of '+esc(shFmt(wk))+'</span><button data-act="shwk" data-v="7" aria-label="Next week">'+svg("chevR")+'</button></div>'+
+    '<div class="sh-seg"><button class="'+(SH.mode==="me"?"on":"")+'" data-act="shmode" data-v="me">My list</button><button class="'+(SH.mode==="all"?"on":"")+'" data-act="shmode" data-v="all">Everyone</button></div></div></div>';
+  if(SH.mode==="all"){const cols=["hannah","max","carisse","elvi","kellan"];
+    return h+'<div class="sh-cols">'+cols.map(id=>{const m=shMine(all,id);return '<section class="sh-col"><div class="sh-colh">'+shAv(id)+'<b>'+esc(id==="kellan"?"Kellan + sales team":SH_PEOPLE[id][0])+'</b><span>'+m.filter(t=>!t.done).length+'</span></div>'+
+      (m.length?m.map(t=>'<button class="sh-ci'+(t.done?" done":"")+'" data-act="shopen" data-v="'+esc(t.id)+'"><b>'+esc(t.t)+'</b><small>'+esc(t.span==="day"?shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"}):t.span==="range"?shFmt(t.d0)+" – "+shFmt(t.d1):"All month")+'</small></button>').join(""):'<p class="sh-none">Nothing this week.</p>')+'</section>';}).join("")+'</div>';}
+  let out="";
+  if(W.length)out+='<div class="sh-day"><div class="sh-dayh hot">Waiting on you</div><div class="sh-list">'+W.map(shWaitRow).join("")+'</div></div>';
+  const tix=shTicketsDue(USER,wk);
+  [0,1,2,3,4].map(n=>shAdd(wk,n)).forEach(d=>{const x=mine.filter(t=>t.span==="day"&&t.d0===d),y=tix.filter(t=>t.due===d);
+    if(x.length||y.length)out+='<div class="sh-day"><div class="sh-dayh">'+esc(shFmt(d,{weekday:"long",month:"short",day:"numeric"}))+(d===todayStr()?' · today':'')+'</div><div class="sh-list">'+x.map(shRow).join("")+y.map(shTkRow).join("")+'</div></div>';});
+  const span=mine.filter(t=>t.span!=="day");
+  if(span.length)out+='<div class="sh-day"><div class="sh-dayh">All week</div><div class="sh-list">'+span.map(shRow).join("")+'</div></div>';
+  if(!mine.length&&!tix.length){const next=shMine(shTasks().filter(t=>t.d0>shAdd(wk,4)&&t.span!=="month"&&!t.done),USER).sort((a,b)=>a.d0.localeCompare(b.d0)).slice(0,5);
+    out+='<div class="sh-day"><div class="sh-dayh">'+(next.length?"Coming up":"This week")+'</div><div class="sh-list">'+(next.length?next.map(t=>'<div class="sh-row"><span class="sh-when">'+esc(shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"}))+'</span><button class="sh-t" data-act="shopen" data-v="'+esc(t.id)+'">'+esc(t.t)+'</button>'+shCat(t.cat)+'</div>').join(""):'<div class="sh-row"><span class="sh-t">Nothing on your list.</span></div>')+'</div></div>';}
+  return h+out;}
+/* ---------- Campaigns: sends a day against the most we can send, and the emails ---------- */
+function shSendPlan(){const V=typeof COLD_VOL!=="undefined"?COLD_VOL:[],R=typeof COLD_RVOL!=="undefined"?COLD_RVOL:[],v=i=>(V[i]||[])[2]||0,r=i=>(R[i]||[])[2]||0;
+  return [["Dec 7–11","2026-12-07","2026-12-11",v(0),0],["Dec 14–18","2026-12-14","2026-12-18",v(1),0],["Dec 21–Jan 1","2026-12-21","2027-01-01",0,r(0)],["Jan","2027-01-04","2027-01-29",v(3),r(1)],["Feb","2027-02-01","2027-02-26",v(4),r(1)],["Mar","2027-03-01","2027-03-31",v(5),r(1)],["Apr","2027-04-01","2027-04-30",v(6),r(1)],["May","2027-05-03","2027-05-28",v(7),0],["Jun","2027-06-01","2027-06-30",v(8),0],["Jul","2027-07-01","2027-07-30",v(9),0]];}
+function shCap(){try{return 2*coldSize()*25;}catch(e){return 600;}}
+function shChart(P,cap){const W=760,H=210,l=40,r=12,tp=22,b=34,bw=(W-l-r)/P.length,sc=v=>(H-b)-(Math.min(v,cap)/cap)*(H-b-tp),td=todayStr();
+  let s='<svg class="sh-chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Emails a day by period, against the '+cap+' a day maximum">';
+  [0,Math.round(cap/3),Math.round(cap*2/3),cap].forEach(v=>{s+='<text x="'+(l-8)+'" y="'+(sc(v)+4)+'" text-anchor="end">'+v+'</text>';});
+  P.forEach((p,i)=>{const x=l+i*bw+bw*.18,w=bw*.64,tot=p[3]+p[4],y1=sc(p[3]),y2=sc(tot),now=td>=p[1]&&td<=p[2];
+    if(p[3])s+='<rect x="'+x+'" y="'+y1+'" width="'+w+'" height="'+((H-b)-y1)+'" rx="3" fill="var(--sh-bar2)"/>';
+    if(p[4])s+='<rect x="'+x+'" y="'+y2+'" width="'+w+'" height="'+(y1-y2)+'" rx="3" fill="var(--sh-bar)"/>';
+    s+='<text x="'+(x+w/2)+'" y="'+(H-b+16)+'" text-anchor="middle"'+(now?' class="now"':'')+'>'+esc(p[0])+'</text>';
+    if(tot)s+='<text x="'+(x+w/2)+'" y="'+(y2-6)+'" text-anchor="middle" class="val">'+tot+'</text>';});
+  return s+'<line class="cap" x1="'+l+'" x2="'+(W-r)+'" y1="'+sc(cap)+'" y2="'+sc(cap)+'"/></svg>';}
+function shColdLists(){const out=[];try{COLD_CAMPS.forEach(c=>out.push(Object.assign({g:"Schools"},c)));COLD_RANGES.forEach(c=>out.push(Object.assign({g:"Shooting ranges"},c)));}catch(e){}return out;}
+function shWarm(){return campaigns().filter(c=>c.name&&!campCold(c)&&!c.removed&&c.status!=="done"&&(c.steps||[]).length);}
+function shFill(s){return esc(s).replace(/\{\{company_name\}\}/g,'<span class="sh-tok">school name</span>').replace(/\{\{company_slug\}\}/g,'<span class="sh-tok">school</span>').replace(/\{\{first_name\}\}/g,'<span class="sh-tok">first name</span>').replace(/\{\{(\w+)\}\}/g,(m,k)=>'<span class="sh-tok">'+esc(k.replace(/_/g," "))+'</span>');}
+function shViewMail(){const L=shColdLists(),Wm=shWarm(),P=shSendPlan(),cap=shCap(),td=todayStr();
+  const cur=P.find(p=>td>=p[1]&&td<=p[2]),first=P[0],maxed=P.find(p=>p[3]+p[4]>=cap),people=L.reduce((a,x)=>a+(x.people||0),0);
+  if(!SH.camp)SH.camp=L.length?"c:"+L[0].k:"";
+  let h='<div class="sh-head"><div><h1>Email campaigns</h1><p class="sh-sum"><b>'+people.toLocaleString()+'</b> people on '+L.length+' cold lists'+(td<first[1]?' · first sends '+esc(shFmt(first[1],{weekday:"short",month:"short",day:"numeric"})):'')+'</p></div></div>';
+  h+='<section class="sh-send"><div class="sh-big"><div><b>'+(cur?cur[3]+cur[4]:0)+'</b><span>'+(td<first[1]?"a day now · warming up":"a day this week")+'</span></div>'+(td<first[1]?'<div><b>'+(first[3]+first[4])+'</b><span>a day from '+esc(shFmt(first[1]))+'</span></div>':'')+'<div><b>'+cap+'</b><span>a day at most</span></div>'+
+    (maxed?'<span class="sh-pill max">'+(td>=maxed[1]?"Maxed out now":"Maxed out from "+esc(shFmt(maxed[1],{month:"long"})))+'</span>':'')+'</div>'+shChart(P,cap)+
+    '<div class="sh-legend"><span><i style="background:var(--sh-bar2)"></i>Schools</span><span><i style="background:var(--sh-bar)"></i>Shooting ranges</span><span class="cap"><i></i>Most we can send: '+cap+' a day</span></div></section>';
+  const row=(key,name,who,n,sub,pill)=>'<button class="sh-crow'+(SH.camp===key?" on":"")+'" data-act="shcamp" data-v="'+esc(key)+'"><span class="nm"><b>'+esc(name)+'</b><small>'+esc(who)+'</small></span><span class="num">'+esc(n)+'<small>'+esc(sub)+'</small></span>'+(pill||'')+'</button>';
+  let left="";
+  ["Schools","Shooting ranges"].forEach(g=>{const X=L.filter(x=>x.g===g);if(!X.length)return;
+    left+='<div class="sh-grp"><div class="sh-grph"><h2>'+g+'</h2><span>'+X.reduce((a,x)=>a+(x.people||0),0).toLocaleString()+' people</span></div><div class="sh-list">'+X.map(x=>{const a=coldApprN(x.k);
+      return row("c:"+x.k,x.t,x.who,(x.people||0).toLocaleString(),/^[A-Z][a-z]{2} \d/.test(x.starts||"")?"starts "+x.starts:(x.starts||""),'<span class="sh-mini'+(a===3?" ok":"")+'">'+a+'/3 OK</span>');}).join("")+'</div></div>';});
+  if(Wm.length)left+='<div class="sh-grp"><div class="sh-grph"><h2>Conference follow-ups</h2><span>'+Wm.length+'</span></div><div class="sh-list">'+Wm.map(c=>{const sent=(c.leads||[]).reduce((a,l)=>a+Object.keys(l.sent||{}).length,0);
+      return row("w:"+c.id,c.name,c.paused?"Paused":/Year-end/i.test(c.name)?"Needs the offer":({draft:"Draft",review:"Waiting for OK",approved:"Approved",active:"Sending"})[c.status||"draft"]||c.status,(c.leads||[]).length.toLocaleString(),sent?sent+" sent":"people");}).join("")+'</div></div>';
+  let right="";const k=SH.camp;
+  if(k.startsWith("c:")){const x=L.find(y=>"c:"+y.k===k)||L[0];if(x){const can=coldCan();
+    right='<div class="sh-mailh"><h2>'+esc(x.t)+'</h2><span class="sh-pill '+(coldApprN(x.k)===3?"ok":"warm")+'">'+(coldApprN(x.k)===3?"All approved":coldApprN(x.k)+" of 3 approved")+'</span></div>'+
+      (x.e||[]).map((e,i)=>{const a=coldAppr(x.k,i);return '<article class="sh-mail"><div class="mh"><span class="k">Email '+(i+1)+' · Day '+[1,4,9][i]+'</span><span class="s">'+shFill(i===0?x.s:"Re: "+x.s)+'</span>'+(a.ok?'<span class="sh-pill ok">Approved</span>':a.chg?'<span class="sh-pill warm">Needs a change</span>':'')+'</div><div class="mb">'+shFill(e)+'</div>'+
+        (can?'<div class="mf"><button class="sh-okb'+(a.ok?" ghost":"")+'" data-act="shappr" data-v="ok|'+esc(x.k)+'|'+i+'">'+(a.ok?"Approved":"Approve")+'</button><button class="sh-okb ghost" data-act="shappr" data-v="chg|'+esc(x.k)+'|'+i+'">'+(a.chg?"Change asked":"Needs a change")+'</button>'+(a.note?'<span class="sh-note">'+esc(a.note)+'</span>':'')+'</div>':'')+'</article>';}).join("");}}
+  else if(k.startsWith("w:")){const c=campaigns().find(y=>"w:"+y.id===k);if(c)right='<div class="sh-mailh"><h2>'+esc(c.name)+'</h2><button class="sh-okb ghost" data-act="shgocamp" data-v="'+esc(c.id)+'">Open</button></div>'+(c.steps||[]).map((s,i)=>'<article class="sh-mail"><div class="mh"><span class="k">Email '+(i+1)+(s.day!=null?' · Day '+esc(s.day):'')+'</span><span class="s">'+shFill(s.subject||"")+'</span></div><div class="mb">'+shFill(s.body||"")+'</div></article>').join("");}
+  return h+'<div class="sh-cgrid"><div>'+left+'</div><div class="sh-mails">'+right+'</div></div>';}
+/* ---------- Plan: Hannah's plan, a row per week ---------- */
+function shViewPlan(){const T=shTasks(),months=[...new Set(T.map(t=>t.month))].sort(),td=todayStr();
+  if(!SH.mon)SH.mon=months.find(m=>m>=td.slice(0,7))||months[0]||td.slice(0,7);
+  const nm=m=>new Date(m+"-15T12:00:00").toLocaleDateString("en-US",{month:"short"})+(m.slice(0,4)!==String(new Date().getFullYear())?" "+m.slice(2,4):"");
+  let h='<div class="sh-head"><div><h1>The plan</h1><p class="sh-sum">One free AutoTQ every month of 2027. Every entrant becomes a lead; every non-winner gets a call.</p></div></div>';
+  h+='<div class="sh-months">'+months.map(m=>{const X=T.filter(t=>t.month===m),d=X.filter(t=>t.done).length;return '<button class="'+(SH.mon===m?"on":"")+'" data-act="shmon" data-v="'+m+'">'+esc(nm(m))+(d?' <small>'+d+'/'+X.length+'</small>':'')+'</button>';}).join("")+'</div>';
+  const inMon=T.filter(t=>t.month===SH.mon),chip=t=>'<button class="sh-chip'+(t.done?" done":"")+'" data-act="shopen" data-v="'+esc(t.id)+'"><i style="background:'+(SH_CAT[t.cat]||SH_CAT.CF)[1]+'"></i><span>'+esc(t.t)+'</span><span class="o">'+(t.who||[]).map(shAv).join("")+'</span></button>';
+  const whole=inMon.filter(t=>t.span==="month");
+  if(whole.length)h+='<div class="sh-wkrow"><div class="wl"><b>All month</b><small>'+whole.length+' things</small></div><div class="sh-chips">'+whole.map(chip).join("")+'</div></div>';
+  let wk=shMonday(SH.mon+"-01");const end=shAdd(SH.mon+"-28",7);
+  while(wk<=end){const x=inMon.filter(t=>t.span!=="month"&&t.d0>=wk&&t.d0<=shAdd(wk,6)).sort((a,b)=>a.d0.localeCompare(b.d0));
+    if(x.length)h+='<div class="sh-wkrow'+(wk===shMonday(td)?" now":"")+'"><div class="wl"><b>Week of '+esc(shFmt(wk))+'</b><small>'+x.length+' thing'+(x.length===1?"":"s")+'</small></div><div class="sh-chips">'+x.map(chip).join("")+'</div></div>';wk=shAdd(wk,7);}
+  return h;}
+/* ---------- Automatic ---------- */
+function shViewAuto(){const td=todayStr(),first=shSendPlan()[0][1],st=a=>a[3]==="run"?["ok","Running"]:a[3]==="cold"?(td>=first?["ok","Running"]:["warm","Starts "+shFmt(first)]):["","To set up"];
+  const n=k=>SH_AUTO.filter(a=>st(a)[1]===k||(k==="soon"&&/^Starts/.test(st(a)[1]))).length;
+  let h='<div class="sh-head"><div><h1>Automatic</h1></div></div><div class="sh-tiles"><div><b>'+n("Running")+'</b><span>running</span></div><div><b>'+n("soon")+'</b><span>start '+esc(shFmt(first))+'</span></div><div><b>'+n("To set up")+'</b><span>to set up</span></div></div>';
+  return h+'<div class="sh-tbl"><div class="tr hd"><span>Job</span><span>What it does</span><span>When</span><span>Status</span></div>'+SH_AUTO.map(a=>{const s=st(a);return '<div class="tr"><b>'+esc(a[0])+'</b><span class="d">'+esc(a[1])+'</span><span class="w">'+esc(a[2])+'</span><span><span class="sh-pill '+s[0]+'">'+esc(s[1])+'</span></span></div>';}).join("")+'</div>';}
+/* ---------- a task's details ---------- */
+function shSheet(){const t=shTasks().find(x=>x.id===SH.open);if(!t)return "";
+  return '<div class="mk2-scrim" data-act="shclose"><div class="mk2-sheet sh-sheet" data-stop="1" role="dialog" aria-modal="true" aria-label="'+esc(t.t)+'"><div class="sh"><h2>'+esc(t.t)+'</h2><button class="x" data-act="shclose" aria-label="Close">'+svg("xx")+'</button></div><div class="sbd">'+
+    '<div class="sh-facts">'+shCat(t.cat)+'<span>'+esc(t.when||"")+'</span><span class="o">'+(t.who||[]).map(id=>shAv(id)+'<b>'+esc((SH_PEOPLE[id]||[id])[0])+'</b>').join("")+'</span></div>'+
+    (t.kpi?'<div class="sh-fact"><div class="lbl">Target</div><div>'+esc(t.kpi)+'</div></div>':'')+
+    (t.details?'<div class="sh-fact"><div class="lbl">What to do</div><div class="sh-pre">'+esc(t.details)+'</div></div>':'')+
+    (t.notes?'<div class="sh-fact"><div class="lbl">Notes</div><div class="sh-pre">'+esc(t.notes)+'</div></div>':'')+
+    (t.done?'<p class="sh-sum">Done'+(t.doneBy?" by "+esc(mk2Name(t.doneBy)):"")+(t.doneAt?" · "+esc(shFmt(String(t.doneAt).slice(0,10))):"")+'</p>':'')+
+    '</div><div class="sf"><button class="sh-okb'+(t.done?" ghost":"")+'" style="margin-left:auto" data-act="shtick" data-v="'+esc(t.id)+'">'+(t.done?"Mark not done":t.ok?"Approve":"Mark done")+'</button></div></div></div>';}
+function shDraw(){let L=document.getElementById("shLayer");if(!L){L=document.createElement("div");L.id="shLayer";document.body.appendChild(L);}
+  const k=SH.open?SH.open+SH.openN:"";if(L.dataset.k===k)return;L.dataset.k=k;L.innerHTML=SH.open?shSheet():"";}
+function shToggle(id){const t=shTasks().find(x=>x.id===id);if(!t)return;t.done=!t.done;if(t.done){t.doneAt=new Date().toISOString();t.doneBy=USER;}else{delete t.doneAt;delete t.doneBy;}
+  t.updatedAt=new Date().toISOString();put("mktLib",t);toast(t.done?(t.ok?"Approved":"Done"):"Back on the list");}
+function shHandle(a,t,e){const v=t.dataset.v||"";
+  if(a==="shmode"){SH.mode=v;shKeep();render();return;}
+  if(a==="shwk"){SH.wk=shAdd(shWeek(),+v);render();return;}
+  if(a==="shtick"){shToggle(v);if(SH.open){SH.openN++;shDraw();}render();return;}
+  if(a==="shopen"){SH.open=v;SH.openN++;shDraw();return;}
+  if(a==="shclose"){if(e&&e.target.closest("[data-stop]")&&!t.classList.contains("x"))return "skip";SH.open=null;shDraw();return;}
+  if(a==="shgo"){const w=(SH.wait||{})[v];if(!w)return;if(w.tk){const x=engFind(w.tk);if(x){view="push";MK2.camp=x.c.id;render();window.scrollTo(0,0);}return;}goView(w.go);return;}
+  if(a==="shtktick"){const x=engFind(v);if(x){engSet(x,{st:"done"});toast("Done");}render();return;}
+  if(a==="shtkopen"){const x=engFind(v);if(x){view="push";MK2.camp=x.c.id;render();window.scrollTo(0,0);}return;}
+  if(a==="shcamp"){SH.camp=v;render();return;}
+  if(a==="shgocamp"){if(typeof closeInsp==="function")closeInsp();curCampaign=v;campStep=1;view="camp";render();window.scrollTo(0,0);return;}
+  if(a==="shappr"){if(!coldCan())return;const [m,k,i]=v.split("|");coldCopySave(r=>{const key=k+"|"+i,x=r.appr[key]=r.appr[key]||{};if(m==="ok"){x.ok=!x.ok;x.chg=false;x.by=USER;x.at=new Date().toISOString();}else{x.chg=!x.chg;if(x.chg)x.ok=false;}});render();return;}
+  if(a==="shmon"){SH.mon=v;render();return;}
+  if(a==="shmore"){SH.more=!SH.more;shKeep();render();return;}
+  return "skip";}
+document.addEventListener("click",e=>{if(APP!=="marketing")return;const t=e.target.closest&&e.target.closest("[data-act^='sh']");if(!t)return;const r=shHandle(t.dataset.act,t,e);if(r==="skip")return;e.preventDefault();e.stopPropagation();},true);
+document.addEventListener("keydown",e=>{if(APP==="marketing"&&e.key==="Escape"&&SH.open){SH.open=null;shDraw();e.stopPropagation();}},true);
 /* ---------- wiring into the hub ---------- */
-MK2_VIEWS.push("board");
-if(APP==="marketing"&&!PULL_COLLECTIONS.includes("opps"))PULL_COLLECTIONS.push("opps"); // CRM deals: a campaign's Deals group (Max + Hannah)
-const _engCampPage=mk2CampPage;
-mk2CampPage=function(c){return engCampBoard(c);};
-mk2CampCard=engCampCard;
-{const _vc=mk2ViewCampaigns;mk2ViewCampaigns=function(){if(!MK2.camp&&ENG.cseg&&pjInner())return '<button class="mk2-back" data-act="engcseg">'+svg("back")+'Campaigns</button><div class="mk2-ph"><div><h1>Deals from campaigns</h1></div></div>'+engDealsBoard();
-  const h=_vc();if(MK2.camp)return h;
-  return h.replace(/<p>One page per push:[^<]*<\/p>/,"").replace('<div class="acts"><div class="mk2-seg">','<div class="acts">'+(pjInner()?'<button class="btn" data-act="engcseg">'+svg("dollar")+' All deals</button><button class="btn coral" data-act="engnewcamp">'+svg("plus")+' New campaign</button>':'')+'<div class="mk2-seg">');};}
-{const _b=mk2Body;mk2Body=function(){return view==="board"?engViewList():_b();};}
+if(!SVG.chevL)SVG.chevL='<polyline points="15 6 9 12 15 18"/>';
+MK2_VIEWS.push("week","mail","yearplan","auto");
+MK2_GONE.board="week";
+function shMore(){const full=pjInner(),t=[["calls","phone","Calls"],["cold","mail","Cold email"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"]];
+  if(full)t.push(["news","file","Newsletter"]);t.push(["ideahub","bulb","Ideas"],["push","flag2","Campaign pages"],["activity","pulse","Activity"]);if(full)t.push(["numbers","chart","Numbers"]);t.push(["start","home","Overview"]);return t;}
+{const _b=mk2Body;mk2Body=function(){return view==="week"?shViewWeek():view==="mail"?shViewMail():view==="yearplan"?shViewPlan():view==="auto"?shViewAuto():_b();};}
+mk2Tabs=function(){return SH_MAIN.concat(shMore());};
+mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(v));
+  const item=([v,ic,lb])=>{const b=mk2Badge(v);return '<button class="sitem'+(mk2On(v)?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b:""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge">'+b+'</span><span class="mdot"></span>':'')+'</button>';};
+  return '<div class="sgrp sgrp-top"><div class="sgrp-b"><div>'+SH_MAIN.map(item).join("")+'<button class="sitem sh-moreb" data-act="shmore" aria-expanded="'+open+'" data-tip="More">'+svg(open?"chevU":"chevD")+'<span class="lbl">More</span></button>'+(open?'<div class="sh-morel">'+more.map(item).join("")+'</div>':'')+'</div></div></div>';};
+{const _o=mk2On;mk2On=function(v){return ["week","mail","yearplan","auto"].includes(v)?view===v:_o(v);};}
+{const _bg=mk2Badge;mk2Badge=function(v){if(v==="week"){try{return shWaiting(USER).length+shMine(shInWeek(shMonday(todayStr())),USER).filter(t=>t.ok&&!t.done).length;}catch(e){return 0;}}if(v==="start")return 0;return _bg(v);};}
+{const _c=mk2Crumb;mk2Crumb=function(){return ({week:"This week",mail:"Campaigns",yearplan:"Plan",auto:"Automatic",start:"Overview",push:"Campaign pages"})[view]||_c();};}
+{const _vc=mk2ViewCampaigns;mk2ViewCampaigns=function(){const h=_vc();return MK2.camp?h:h.replace("<h1>Campaigns</h1>","<h1>Campaign pages</h1>");};}
 {const _t=mk2ViewToday;mk2ViewToday=function(){return _t().replace(/<h1>[^<]*<\/h1>/,"<h1>Overview</h1>");};}
-mk2Tabs=function(){const full=pjInner(),t=[["board","list","My list"],["push","flag2","Campaigns"],["ideahub","bulb","Ideas"],["cold","mail","Cold email"],["calls","phone","Calls"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"]];
-  if(full)t.push(["news","file","Newsletter"]);t.push(["activity","pulse","Activity"]);if(full)t.push(["numbers","chart","Numbers"]);t.push(["start","home","Overview"]);return t;};
-const ENG_GRP={cold:"Where the work happens",activity:"Results"};
-mk2SideHTML=function(){return '<div class="sgrp sgrp-top"><div class="sgrp-b"><div>'+mk2Tabs().map(([v,ic,lb])=>{const b=mk2Badge(v);return (ENG_GRP[v]?'<div class="eng-sh"><span class="lbl">'+ENG_GRP[v]+'</span></div>':'')+'<button class="sitem'+(mk2On(v)?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b:""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge">'+b+'</span><span class="mdot"></span>':'')+'</button>';}).join("")+'</div></div></div>';};
-{const _o=mk2On;mk2On=function(v){return v==="board"?view==="board":_o(v);};}
-{const _bg=mk2Badge;mk2Badge=function(v){if(v==="board"){try{return engItemsFor(USER).filter(i=>i.late||i.kind==="plan").length;}catch(e){return 0;}}return _bg(v);};}
-{const _c=mk2Crumb;mk2Crumb=function(){return view==="board"?"My list":view==="start"?"Overview":_c();};}
-{const _a=mk2After;mk2After=function(){_a();engAfter();};}
+{const _a=mk2After;mk2After=function(){_a();shDraw();};}
 /* engine:end */
 /* boot */
 try{document.title="AutoTQ "+APP_NAME;}catch(e){}
 loadLocal();
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
-view=APP==="development"?"doc":APP==="catalog"?"cat":APP==="marketing"?"board":"start";render();
+view=APP==="development"?"doc":APP==="catalog"?"cat":APP==="marketing"?"week":"start";render();
 if(USER&&authed()&&hubUser()&&(APP!=="development"||devUser()))bootSync();
 
 </script>
