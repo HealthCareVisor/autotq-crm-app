@@ -1196,7 +1196,7 @@ body.invpagedrag .content{outline:3px dashed var(--coral,#e8543f);outline-offset
 .dlauto{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);cursor:pointer}
 .dlgrid{display:grid;grid-template-columns:minmax(240px,320px) minmax(0,1fr);gap:16px;align-items:start}
 .dlqh{display:flex;gap:8px;margin-bottom:6px}.dlqh select{flex:1;min-width:0}
-.dlsrctabs{margin-bottom:8px}.dlsrctabs button{padding:0 6px;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:normal;line-height:1.15;min-height:38px}
+.dlsrctabs{margin-bottom:8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.dlsrctabs button:first-child{grid-column:1/-1}.dlsrctabs button{padding:0 6px;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:normal;line-height:1.15;min-height:38px}
 .dlcnt{font-size:11px;font-weight:650;color:var(--muted);background:var(--surface);border-radius:99px;padding:1px 6px}.dlsrctabs button.on .dlcnt{background:var(--coral-btn);color:#fff}
 .f.dlother{color:var(--muted)}
 .dlmline{display:flex;align-items:center;gap:6px}.dlmline svg{width:13px;height:13px;flex:none}.f.dlmto{max-width:280px;min-height:30px;padding:4px 8px;font-size:13px}
@@ -6510,8 +6510,9 @@ function dialExt(raw){const m=String(raw||"").match(/(?:ext\.?|x|#)\s*(\d+)\s*$/
 function dialFmt(d){return d&&d.length===10?"("+d.slice(0,3)+") "+d.slice(3,6)+"-"+d.slice(6):"";}
 function dialOutLabel(o){return (DIAL_OUTS.find(x=>x[0]===o)||["","Call"])[1];}
 function dialS(){
-  if(!logState.dial){let auto=true,src="t:dist";try{auto=localStorage.getItem("autotq_dial_auto")!=="0";
-      const t=localStorage.getItem("autotq_dial_tab");if(t&&DIAL_TABS.some(x=>"t:"+x[0]===t))src=t;}catch(e){}
+  /* the demo tab leads; the tab you last used is remembered (a new key, so everyone lands on the demo tab once) */
+  if(!logState.dial){let auto=true,src="demo";try{auto=localStorage.getItem("autotq_dial_auto")!=="0";
+      const t=localStorage.getItem("autotq_dial_tab2");if(t&&(t==="demo"||DIAL_TABS.some(x=>"t:"+x[0]===t)))src=t;}catch(e){}
     logState.dial={src:src,cur:"",out:"",note:"",cb:"",secs:0,auto:auto,skipped:[],city:""};}
   return logState.dial;}
 function dialEntry(k,r){
@@ -6530,8 +6531,9 @@ function dialPool(src){
   if(src.indexOf("list:")===0){const L=(DB.lists||[]).find(x=>x.id===src.slice(5));
     return L?(L.items||[]).map(it=>it.pid&&person(it.pid)?dialEntry("p",person(it.pid)):null).filter(Boolean):[];}
   if(src.indexOf("imp:")===0){const conf=src.slice(4);return DB.leads.filter(l=>!l.removed&&l.conf===conf).map(l=>dialEntry("lead",l));}
+  if(src==="demo")return dialDemoEntries();
   if(src.indexOf("t:")===0){const t=src.slice(2),cust=dialCustomerCids(),sold=dialSold();
-    return dialEveryone().filter(dialInArea).filter(e=>{e.tab=dialTabE(e,sold);if(e.tab!==t)return false;e.grp=dialGroup(e,cust);return true;});}
+    return dialEveryone().filter(dialInArea).filter(e=>{if(dialIsDemo(e))return false;e.tab=dialTabE(e,sold);if(e.tab!==t)return false;e.grp=dialGroup(e,cust);return true;});}
   if(src==="confwest")return (DB.confLeads||[]).filter(l=>!l.removed&&WEST_ST.has(String(l.state||"").trim().toUpperCase().slice(0,2))).map(l=>dialEntry("cl",l));
   if(src==="wa"||src.indexOf("wa:")===0){const g=src.slice(3),cust=dialCustomerCids();
     return dialEveryone().filter(dialInArea).filter(e=>{e.grp=dialGroup(e,cust);return !g||e.grp===g;});}
@@ -6564,6 +6566,29 @@ function dialCustomerCids0(){const s=new Set();
   (DB.demos||[]).forEach(d=>{if(d&&d.cid)s.add(d.cid);});
   DB.companies.forEach(c=>{if((+c.orders||0)>0||(+c.units||0)>0||(+c.demoCount||0)>0||c.lastOrder)s.add(c.id);});
   return s;}
+/* demo-unit holders anywhere in the US (Max, 2026-11-20: "all of the users that have a demo unit everywhere in the united states at
+   the top of the dialer"): everyone on the Demo Map (every loaner order lands there by itself, ensureLoanerBook) resolved to their
+   contact the way the Demo Map does (demoPerson), plus the 2026-11-13 census's Sent holders who have a contact
+   (CRM_Cleanup/AutoTQ_Demo_Units_Since_Inception_2026-11-13.xlsx; contact ids only). They get the Dialer's first tab, and the
+   Washington / Oregon tabs leave them out (by contact and by number) so nobody is in two places. */
+const DIAL_DEMO_CENSUS=("1qsr9uv 2makbas 6cosyub 6urfpw0 7yfd86t blz1eam brx8eos dopat8f fxgbh1m g2gnclp imp8fryh2p impjqukrk3 impqwuws4f "+
+  "imptoso2bg jga6t41 k7amdld mr0jx8l2g mr210r3dz mr4trf065 mr7aiciw8 mr85bikph mr8befhgx mr8wl7g7g mra7noi4b mrbn0s3mf mrgnlajg3 "+
+  "mrihqzk5x mrkt7vy2k mrlrgzbb3 mrnowebcj mrpqjp27n mrt42txw7 mrtaiwdnz mruf0ip5o mrufyiz7u mrvqrtlfv mrw5zjvp4 mrwqrgbxt mrzev843n "+
+  "msgaikb nai03u3 p132 p14 p20 p21 p256 p26 p27 p305 p365 p407 p409 p410 p411 p412 p413 p414 p415 p416 p417 p419 p420 p421 p422 p423 "+
+  "p424 p486 p487 p51 p519 p52 p520 p523 p530 p535 p54 p55 p56 p566 p57 p58 p580 p59 p5pr4bt8 p61 p66 p664 p67 p678 p679 p6t2ss12 p873 "+
+  "p880 p883 p884 p885 p886 p887 p888 pajq49lb pjpfbe3 pmvwwrub pnttxj5 pohefb3k pqdqi26g qylwuia sajlai0 tguf0al uc9k0im waly7vhe yq58dwp").split(" ");
+function dialDemoKey(){return dialBookKey()+"|"+DB.people.length;}
+/* contact id → the date their unit went out ("" when only the census knows) */
+function dialDemoMap(){return dialMemo("demo",dialDemoKey(),dialDemoMap0,15000);}
+function dialDemoMap0(){const m=new Map(),byId=new Map(DB.people.map(p=>[p.id,p]));
+  demoEngageList().forEach(d=>{if(d.status==="returned")return;const p=demoPerson(d);if(!p||p.removed)return;
+    const was=m.get(p.id);if(was==null||String(d.date||"")>was)m.set(p.id,String(d.date||""));});
+  DIAL_DEMO_CENSUS.forEach(id=>{const p=byId.get(id);if(p&&!p.removed&&!m.has(id))m.set(id,"");});
+  return m;}
+function dialDemoEntries(){const m=dialDemoMap(),sold=dialSold(),cust=dialCustomerCids(),byId=new Map(DB.people.map(p=>[p.id,p]));
+  return [...m.keys()].map(id=>{const e=dialEntry("p",byId.get(id));e.tab=dialTabE(e,sold);e.grp=dialGroup(e,cust);e.demo=m.get(id)||"";return e;});}
+function dialDemoNums(){return dialMemo("demonums",dialDemoKey(),()=>new Set(dialDemoEntries().map(e=>e.d).filter(Boolean)),15000);}
+function dialIsDemo(e){return (e.k==="p"&&dialDemoMap().has(e.id))||(!!e.d&&dialDemoNums().has(e.d));}
 function dialGroup(e,cust){const r=e.rec;
   if(e.k==="cl")return "conference";
   if(e.k==="lead"){if(r.waGroup)return r.waGroup;if(r.kind==="distributor")return "channel";
@@ -6581,9 +6606,10 @@ function dialWaCounts(){const seen=new Set(),n={all:0};
 function dialTabE(e,sold){if(e.k==="cl"&&String(e.rec.segment||"")==="Set Aside")return "";
   return DIAL_KIND_TAB[scCallKind(e.key,e.co,sold||dialSold())]||"enduser";}
 /* people per tab (one per number, Do not call and wrong numbers left out) — the counts on the tabs */
-function dialTabCounts(){const n={dist:0,enduser:0,cold:0},seen=new Set();
-  const sold=dialSold();
-  dialEveryone().filter(dialInArea).forEach(e=>{if(seen.has(e.d)||e.rec.dnc||e.rec.badPhone===e.d)return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
+function dialTabCounts(){const n={demo:0,dist:0,enduser:0,cold:0},seen=new Set();
+  const sold=dialSold(),ok=e=>e.d&&!seen.has(e.d)&&!e.rec.dnc&&e.rec.badPhone!==e.d;
+  dialDemoEntries().forEach(e=>{if(!ok(e))return;seen.add(e.d);n.demo++;});
+  dialEveryone().filter(dialInArea).forEach(e=>{if(!ok(e)||dialIsDemo(e))return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
   return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
 /* ---- the Dialer's own call log (Max, 2026-11-19: "Activity doesn't auto log into CRM until I push it"): every Save lands in the
@@ -6655,8 +6681,18 @@ function dialHist(e){
 function dialStats(){const T=todayStr(),mine=dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&localDay(c.at)===T);
   return {n:mine.length,talk:mine.filter(c=>DIAL_CONNECT.includes(c.out)).length,hot:mine.filter(c=>c.out==="interested"||c.out==="meeting").length,
     meet:mine.filter(c=>c.out==="meeting").length,list:mine,unpushed:dialCalls().filter(c=>c&&!c.removed&&!c.pushed&&c.by===USER).length};}
-function dialSeattleTime(){const d=new Date(),t=d.toLocaleTimeString("en-US",{timeZone:"America/Los_Angeles",hour:"numeric",minute:"2-digit"});
-  const h=+d.toLocaleString("en-US",{timeZone:"America/Los_Angeles",hour:"numeric",hour12:false});return {t:t,late:h<8||h>=18};}
+/* the person's own clock (the demo tab calls the whole country): their state's main time zone (Tennessee's 423 / 865 = Eastern);
+   no state on them or their account → Pacific, as before */
+const DIAL_TZ=[["Eastern","America/New_York","CT DE DC FL GA IN KY ME MD MA MI NH NJ NY NC OH PA RI SC VT VA WV"],
+  ["Central","America/Chicago","AL AR IL IA KS LA MN MS MO NE ND OK SD TN TX WI"],["Mountain","America/Denver","CO ID MT NM UT WY"],
+  ["Arizona","America/Phoenix","AZ"],["Pacific","America/Los_Angeles","CA NV OR WA"],["Alaska","America/Anchorage","AK"],["Hawaii","Pacific/Honolulu","HI"]];
+function dialLocalTime(e){const c=e.k==="p"&&e.rec.cid?company(e.rec.cid):null,st=String(e.state||(c&&c.state)||"").trim().toUpperCase().slice(0,2);
+  let z=DIAL_TZ.find(x=>x[2].split(" ").includes(st))||DIAL_TZ[4];
+  if(st==="TN"&&/^(423|865)/.test(e.d||""))z=DIAL_TZ[0];
+  const d=new Date(),t=d.toLocaleTimeString("en-US",{timeZone:z[1],hour:"numeric",minute:"2-digit"});
+  const h=+d.toLocaleString("en-US",{timeZone:z[1],hour:"numeric",hour12:false})%24;return {t:t,z:z[0],late:h<8||h>=18};}
+function dialDemoSince(ymd){const m=/^(\d{4})-(\d{2})/.exec(String(ymd||""));
+  return m?"Demo unit since "+new Date(+m[1],+m[2]-1,1).toLocaleDateString("en-US",{month:"short",year:"numeric"}):"Has a demo unit";}
 function dialSources(){ensureLeads();
   const imps=[...new Set(DB.leads.filter(l=>!l.removed&&/^Dialer: /.test(l.conf||"")).map(l=>l.conf))];
   const lists=(DB.lists||[]).filter(l=>!l.removed),wc=dialWaCounts();
@@ -6706,20 +6742,21 @@ function dialMapHTML(q,cur){const S=dialS(),G=window.US_GEO&&US_GEO.states;if(!G
     (none?'<span class="t2"> · '+none+' with no city</span>':'')+'</p></div>';}
 /* Distributor reps and Cold distributors go organization by organization (Max, 2026-11-19: "sort by organization"): the queue, the
    rows (a heading per organization) and Call / Save / auto-dial all follow it. Call-backs that are due stay on top. */
-function dialByOrg(src){return src==="t:dist"||src==="t:cold";}
+function dialByOrg(src){return src==="demo"||src==="t:dist"||src==="t:cold";}
 function dialOrgKey(e){return String(e.co||"~").trim().toLowerCase();}
 /* the same tab's people with no phone number on file (Washington / Oregon by home or coverage state), by organization */
-function dialNoNumber(t){const S=dialS(),sold=dialSold(),out=[];
-  DB.people.forEach(p=>{if(!p||p.removed)return;const e=dialEntry("p",p);if(e.d)return;
+function dialNoNumber(t){const S=dialS(),sold=dialSold(),out=[],demo=dialDemoMap(),org=(a,b)=>dialOrgKey(a).localeCompare(dialOrgKey(b))||a.name.localeCompare(b.name);
+  if(t==="demo")return dialDemoEntries().filter(e=>!e.d).sort(org);
+  DB.people.forEach(p=>{if(!p||p.removed||demo.has(p.id))return;const e=dialEntry("p",p);if(e.d)return;
     const area=dialAreaStates(personStates(p).concat(p.state?[p.state]:[]),"");if(!area.length||(S.st&&!area.includes(S.st)))return;
     if(dialTabE(e,sold)===t)out.push(e);});
-  return out.sort((a,b)=>dialOrgKey(a).localeCompare(dialOrgKey(b))||a.name.localeCompare(b.name));}
+  return out.sort(org);}
 function dialOrgRowsHTML(q,e,S){let h="",org=null;const cnt={};q.forEach(x=>{if(!x.due){const k=dialOrgKey(x);cnt[k]=(cnt[k]||0)+1;}});
   q.forEach(x=>{const k=x.due?"\u0000due":dialOrgKey(x);
     if(k!==org){org=k;h+='<p class="dlorg">'+(x.due?'Call-backs due':esc(x.co||"No organization")+'<span>'+cnt[k]+'</span>')+'</p>';}
     h+='<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
-      '<span class="dlrs">'+esc([x.due?x.co:"",x.title,x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>';});
+      '<span class="dlrs">'+esc([x.due?x.co:"",x.title,S.src==="demo"?x.state:"",x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>';});
   return h;}
 function dialNoNumberHTML(t){const l=dialNoNumber(t);if(!l.length)return "";let org=null,h="";
   l.forEach(x=>{const k=dialOrgKey(x);if(k!==org){org=k;h+='<p class="dlorg">'+esc(x.co||"No organization")+'<span>'+l.filter(y=>dialOrgKey(y)===k).length+'</span></p>';}
@@ -6730,24 +6767,24 @@ function viewDialDial(st){
   const S=dialS(),qAll=dialQueue(),tabQ=S.src.indexOf("t:")===0;
   const q=dialQueueView(qAll),e=dialCur(q);
   if(e&&S.cur!==e.key)S.cur=e.key;
-  const srcs=dialSources();let tabOn=S.src.indexOf("t:")===0;
-  if(tabOn?!DIAL_TABS.some(x=>"t:"+x[0]===S.src):!srcs.some(x=>x[0]===S.src)){S.src="t:dist";tabOn=true;}
+  const srcs=dialSources(),demoOn=S.src==="demo";let tabOn=S.src.indexOf("t:")===0;
+  if(tabOn?!DIAL_TABS.some(x=>"t:"+x[0]===S.src):!demoOn&&!srcs.some(x=>x[0]===S.src)){S.src="t:dist";tabOn=true;}
   const tc=dialTabCounts(),tabLbl=tabOn?(DIAL_TABS.find(x=>"t:"+x[0]===S.src)||["",""])[1]:"";
   let h='<div class="dlbar">'+(DIALER_HUB?'':'<span id="dlphone">'+dialPhoneHTML()+'</span>')+'<span class="grow"></span>'+
     '<label class="dlauto"><input type="checkbox" id="dialAuto"'+(S.auto?" checked":"")+'> Dial the next one automatically</label></div>';
-  h+='<div class="dlgrid"><aside class="dlq"><div class="seg dlsrctabs">'+DIAL_TABS.map(t=>'<button class="'+(S.src==="t:"+t[0]?"on":"")+'" data-act="dialsrc" data-v="t:'+t[0]+'">'+
-      esc(t[1])+'<span class="dlcnt">'+tc[t[0]]+'</span></button>').join("")+'</div>'+
-    '<div class="dlqh"><select class="f'+(tabOn?' dlother':'')+'" id="dialOther" aria-label="Other lists"><option value="">Other lists…</option>'+
+  h+='<div class="dlgrid"><aside class="dlq"><div class="seg dlsrctabs">'+[["demo","Demo units",tc.demo]].concat(DIAL_TABS.map(t=>["t:"+t[0],t[1],tc[t[0]]])).map(t=>
+      '<button class="'+(S.src===t[0]?"on":"")+'" data-act="dialsrc" data-v="'+t[0]+'">'+esc(t[1])+'<span class="dlcnt">'+t[2]+'</span></button>').join("")+'</div>'+
+    '<div class="dlqh"><select class="f'+(tabOn||demoOn?' dlother':'')+'" id="dialOther" aria-label="Other lists"><option value="">Other lists…</option>'+
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+(tabOn?dialMapHTML(qAll,e):'')+
-    '<p class="dlqn">'+q.length+' to call'+(tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
+    '<p class="dlqn">'+q.length+' to call'+(demoOn?' · demo units across the US':tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
     (q.length&&dialByOrg(S.src)?dialOrgRowsHTML(q,e,S):q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
       '<span class="dlrs">'+esc([x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
-    (dialByOrg(S.src)?dialNoNumberHTML(S.src.slice(2)):'')+
+    (dialByOrg(S.src)?dialNoNumberHTML(demoOn?"demo":S.src.slice(2)):'')+
     (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,60).map(c=>
       '<div class="dlrow"><span class="dlrn">'+esc(c.name||"—")+'</span><span class="dlrs">'+esc(dialOutLabel(c.out)+" · "+fmtTimeShort(c.at)+(c.pushed?" · in the CRM":""))+'</span></div>').join("")+'</div></details>':'')+
     '</aside><section class="dlmain">'+(e?dialCardHTML(e):'<div class="card empty">Nobody to call right now.</div>')+'</section></div>';
@@ -6796,17 +6833,19 @@ const DIAL_PROOF_CHANNEL="In Washington, National Safety Inc (Kent) closed a 55-
 function dialProof(e){const r=e.rec||{},c=r.cid?company(r.cid):null;
   if((c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor")return DIAL_PROOF_CHANNEL;
   const hay=[e.co,e.title,c&&c.industry,c&&c.name,r.conf,r.source].filter(Boolean).join(" ");
-  const hit=DIAL_PROOF.find(x=>x[0].test(hay));return hit?hit[1]:"King County Road Services bought 55 kits through National Safety Inc, right here in Kent.";}
+  const hit=DIAL_PROOF.find(x=>x[0].test(hay));if(hit)return hit[1];
+  return dialAreaOf(e).includes("WA")?"King County Road Services bought 55 kits through National Safety Inc, right here in Kent.":
+    "King County Road Services in Washington bought 55 kits through National Safety Inc.";} /* "right here" only to Washington (the demo tab calls the whole country) */
 function dialPersonal(e){const r=e.rec||{};return /usphonebook/i.test(String(r.phoneSrc||""))&&(r.mobile||r.phone)&&dialDigits(r.mobile||r.phone)===e.d;}
 function dialCardHTML(e){
-  const S=dialS(),tm=dialSeattleTime(),hist=dialHist(e);
+  const S=dialS(),tm=dialLocalTime(e),hist=dialHist(e),dm=e.k==="p"?dialDemoMap().get(e.id):undefined;
   return '<div class="card dlcard"><div class="dlwho"><div class="grow"><button class="dlname" data-act="dialopen" data-id="'+esc(e.key)+'">'+esc(e.name)+'</button>'+
     '<p class="t2">'+esc([e.title,e.co].filter(Boolean).join(" · ")||"—")+'</p>'+
     dialMailLineHTML(e)+
-    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab&&e.tab!=="enduser"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp?dialGroupLabel(e.grp):""),e.src].filter(Boolean).join(" · "))+'</p></div>'+
+    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab&&e.tab!=="enduser"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp?dialGroupLabel(e.grp):""),dm!=null?dialDemoSince(dm):e.src].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
     (dialPersonal(e)?'<span class="pill gray" title="Found on USPhoneBook — a personal cell. Check it against the Do Not Call list before you dial.">Personal cell · check DNC</span>':'')+
-    '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' Pacific'+(tm.late?' · after hours':'')+'</span></div></div>'+
+    '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' '+tm.z+(tm.late?' · after hours':'')+'</span></div></div>'+
     '<div class="dlproof"><b>Who like them has bought</b> '+esc(dialProof(e))+'</div>'+
     (hist.length?'<div class="dlhist">'+hist.map(x=>'<p><b>'+esc(x.t)+'</b> '+esc(mdStamp(x.at))+(x.by&&x.by!==USER?' · '+esc(shortName(x.by)):'')+(x.note?' — '+esc(x.note.slice(0,160)):'')+'</p>').join("")+'</div>'
       :'<div class="dlhist"><p class="t2">No calls logged yet</p></div>')+
@@ -7408,7 +7447,7 @@ function dialBusy(){const S=dialS();return !!(DIAL.call||S.out||String(S.note||"
 function dialSetSrc(src){dialStopCd();const S=dialS();
   if(dialBusy())Object.assign(S,{src:src,city:"",st:"",hold:S.cur});
   else Object.assign(S,{src:src,cur:"",out:"",note:"",cb:"",secs:0,hold:"",city:"",st:"",meet:null,mail:null,text:null});
-  if(src.indexOf("t:")===0){try{localStorage.setItem("autotq_dial_tab",src);}catch(e){}}
+  if(src==="demo"||src.indexOf("t:")===0){try{localStorage.setItem("autotq_dial_tab2",src);}catch(e){}}
   render();}
 function dialAct(a,t){
   const S=dialS();
