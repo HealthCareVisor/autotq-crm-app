@@ -1571,7 +1571,7 @@ function demoSeed(){
 }
 let DB, USER, view="today", logState={}, curPerson=null, curCompany=null, mapState=null;
 let VIEWAS=null; /* admin rail preview — render-only, never changes who's logged in */
-let curList=null, regionF="", acctFilter="all", contactFilter="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", rosterRegF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"amount",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
+let curList=null, regionF="", acctFilter="all", contactFilter="all", contactStateF="", listQ="", searchQ="", demoView="map", mapMode="demos", mapSellers=true, rosterBranchF="", rosterRegF="", oppView="list", oppFilter="open", curReport=null, curConf=null, leadFilter="tocall", leadsF="", sortState={accounts:{key:"name",dir:1},contacts:{key:"name",dir:1},opps:{key:"units",dir:-1},report:{key:0,dir:1},leads:{key:"name",dir:1},myleads:{key:"last",dir:-1}};
 let fltOpen=null; const FLT_RESET={}; /* the one filter button per list — see filterBar() */
 function seed(){var b=demoSeed();b.resources=[];b.campaigns=[];b.leads=[];b.orders=[];
   if(window.REAL_DATA){b.companies=window.REAL_DATA.companies;b.people=window.REAL_DATA.people;b.manrep=window.REAL_DATA.manrep||[];b.demos=window.REAL_DATA.demos||[];b.opps=(window.REAL_DATA.opps||[]).slice();b.confLeads=(window.REAL_DATA.confLeads||[]).slice();b.skus=(window.REAL_DATA.skus||[]).slice();b.quotes=[];b.activities=[];b.wifiSubs=0;b.tasks=[];}
@@ -5765,7 +5765,7 @@ function oppRow(o){
   '<td>'+ghRepCell(o)+'</td>'+
   '<td>'+regionTag(oppRegion(o))+(o.state?' '+stateChip(o.state):'')+'</td>'+
   '<td>'+oppStageTag(o.stage)+(oppOverdue(o)?' <span class="pill dang">past due</span>':'')+'<div class="lvsub">'+oppProb(o)+'%'+(o.probReason?' <span title="'+esc(o.probReason)+'" style="cursor:help">ⓘ</span>':'')+'</div></td>'+
-  '<td class="num">'+money(o.amount||0)+(o.units?'<div class="lvsub">'+o.units+' kit'+(o.units===1?'':'s')+'</div>':'')+'</td>'+
+  '<td class="num">'+(o.units?'<span style="font-weight:700">'+o.units+'</span> kit'+(o.units===1?'':'s'):'<span class="muted">—</span>')+'<div class="lvsub">'+money(o.amount||0)+'</div></td>'+
   '<td>'+(oppLastTouch(o)?esc(oppLastTouch(o)):'<span class="muted">—</span>')+'<div class="lvsub">'+oppTouches(o)+' touch'+(oppTouches(o)===1?'':'es')+'</div></td>'+
   '<td>'+(o.nextAction?'<div class="lvname" style="font-weight:500">'+esc(o.nextAction)+'</div>'+(o.nextActionDate?'<div class="lvsub"'+((o.nextActionDate<todayStr()&&oppIsOpen(o))?' style="color:var(--dang-t)"':'')+'>'+esc(o.nextActionDate)+'</div>':''):'<span class="muted">—</span>')+'</td>'+
   '<td>'+(o.closeDate?esc(o.closeDate):(o.forecastYear?'FY '+o.forecastYear:'<span class="muted">—</span>'))+'</td></tr>';
@@ -5789,10 +5789,10 @@ function oppFltVal(o,key){
 }
 function oppTableHTML(list,sortable){
   function th(k,l){return sortable?thSort("opps",k,l):'<th>'+l+'</th>';}
-  const head='<tr>'+th("name","Opportunity · lead / end user")+th("dist","Closing distributor")+th("ghrep","Sales person")+th("region","Territory")+th("stage","Stage")+th("amount","Amount")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("close","Close")+'</tr>';
+  const head='<tr>'+th("name","Opportunity · lead / end user")+th("dist","Closing distributor")+th("ghrep","Sales person")+th("region","Territory")+th("stage","Stage")+th("units","Units")+th("lasttouch","Last touch")+th("nextaction","Next action")+th("close","Close")+'</tr>';
   const total=list.reduce((s,o)=>s+(o.amount||0),0),units=list.reduce((s,o)=>s+(o.units||0),0);
   return '<div class="tablewrap"><table class="lv"'+(sortable?' data-tbl="opps"':'')+'><thead>'+head+'</thead><tbody>'+list.map(oppRow).join("")+
-    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td colspan="4"></td><td class="num" style="font-weight:700" data-l="Total">'+money(total)+(units?'<div class="lvsub">'+units+' kits</div>':'')+'</td><td colspan="3"></td></tr></tfoot></table></div>';
+    '</tbody><tfoot><tr><td style="font-weight:600">'+list.length+' opportunities</td><td colspan="4"></td><td class="num" style="font-weight:700" data-l="Total">'+units+' kits<div class="lvsub">'+money(total)+'</div></td><td colspan="3"></td></tr></tfoot></table></div>';
 }
 function ghRepCell(o){
   const id=oppGhRep(o);
@@ -5822,13 +5822,13 @@ function oppCard(o){
    '<div class="pm">'+ghRepCell(o)+(o.state?stateChip(o.state):'')+(o.rep?'<span>'+esc(o.rep)+'</span>':'')+
      (!oppHasDist(o)&&oppIsOpen(o)?'<span class="pill dang" style="font-size:10.5px">'+svg("alert")+' needs distributor</span>':'')+
      (oppNoQuote(o)&&oppIsOpen(o)?'<span class="pill warn" style="font-size:10.5px" title="A direct sale needs our quote">no quote yet</span>':'')+
-     (o.units?'<span>'+o.units+'u</span>':'')+(oppQuotes(o).length?'<span title="Quotes on this deal">'+oppQuotes(o).length+' quote'+(oppQuotes(o).length>1?'s':'')+'</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
+     (oppQuotes(o).length?'<span title="Quotes on this deal">'+oppQuotes(o).length+' quote'+(oppQuotes(o).length>1?'s':'')+'</span>':'')+(age!==null?'<span>'+age+'d</span>':'')+
      (oppLastTouch(o)?'<span title="Last contact">'+esc(oppLastTouch(o).slice(5))+'</span>':'')+
      (oppOverdue(o)?'<span class="pill dang" style="font-size:10.5px">past due</span>':'')+
      (o.stage==="Closed Won"?'<span class="pill ok" style="font-size:10.5px">Won</span>':'')+
      (o.stage==="Closed Lost"?'<span class="pill dang" style="font-size:10.5px">Lost</span>':'')+'</div>'+
    (o.nextAction?'<div class="pnext">'+svg("arrow")+'<span>'+esc(o.nextAction)+(o.nextActionDate?' — '+esc(o.nextActionDate.slice(5)):'')+'</span>'+((o.nextActionDate&&o.nextActionDate<todayStr()&&oppIsOpen(o))?'<span title="Next action is past due" style="color:var(--dang-t);display:inline-flex">'+svg("alert")+'</span>':'')+'</div>':'')+
-   '<div class="pv"><span>'+money(o.amount||0)+' <small style="color:var(--muted);font-weight:500;font-size:12px">'+oppProb(o)+'%</small></span>'+adv+'</div></div>';
+   '<div class="pv"><span>'+(o.units?o.units+' kit'+(o.units===1?'':'s'):'<span style="color:var(--muted)">— kits</span>')+' <small style="color:var(--muted);font-weight:500;font-size:12px">'+money(o.amount||0)+' · '+oppProb(o)+'%</small></span>'+adv+'</div></div>';
 }
 /* Pipeline → Excel (Max, 2026-10-16): a little sheet where you tick the columns, then a CSV of exactly what's showing
    (tab, person chips, search, column filters, sort) — Excel opens it straight away. The picks are remembered. */
@@ -5895,11 +5895,11 @@ function oppKpis(list,tab){
   /* totals for the tab that's showing (after filters) — Open, Won and Lost never mix (Max, 2026-10-16) */
   const amt=list.reduce((s,o)=>s+(o.amount||0),0),units=list.reduce((s,o)=>s+(o.units||0),0),noDist=list.filter(o=>!oppHasDist(o)).length;
   const n=list.length+" deal"+(list.length===1?"":"s");
-  if(tab==="won")return kpiRow([["Closed won",fmtK(amt),n],["Units sold",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""],["Needs distributor",noDist,noDist?"closed without one":"all attributed",noDist?"warn":""]]);
-  if(tab==="lost")return kpiRow([["Closed lost",fmtK(amt),n],["Units",units,""],["Average deal",fmtK(list.length?amt/list.length:0),""]]);
+  if(tab==="won")return kpiRow([["Units sold",units,n],["Closed won",fmtK(amt),""],["Average deal",fmtK(list.length?amt/list.length:0),""],["Needs distributor",noDist,noDist?"closed without one":"all attributed",noDist?"warn":""]]);
+  if(tab==="lost")return kpiRow([["Units",units,n],["Closed lost",fmtK(amt),""],["Average deal",fmtK(list.length?amt/list.length:0),""]]);
   const wAmt=list.reduce((s,o)=>s+oppWeighted(o),0),due=list.filter(oppOverdue).length;
   const noQ=list.filter(oppNoQuote).length;
-  return kpiRow([["Open pipeline",fmtK(amt),n],["Weighted",fmtK(wAmt),"probability-adjusted"],["Units in play",units,""],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""],["No quote yet",noQ,noQ?"direct sales need our quote":"every direct sale quoted",noQ?"warn":""]]);
+  return kpiRow([["Units in play",units,n],["Open pipeline",fmtK(amt),""],["Weighted",fmtK(wAmt),"probability-adjusted"],["Past due",due,due?"next action overdue":"nothing overdue",due?"warn":""],["Needs distributor",noDist,noDist?"can't close without one":"all attributed",noDist?"warn":""],["No quote yet",noQ,noQ?"direct sales need our quote":"every direct sale quoted",noQ?"warn":""]]);
 }
 /* Pipeline filters (Max, 2026-10-16): Open | Won | Lost are separate views with separate totals; everyone sees the whole
    book and narrows by region, Golden Hour sales person (tap a name anywhere) or closing distributor. */
@@ -5953,9 +5953,9 @@ function viewOpps(){
   }
   const cols=OPP_STAGES.slice(0,4);
   h+='<div class="pipe">'+cols.map(st=>{
-    const os=show.filter(o=>o.stage===st).sort((a,b)=>(b.amount||0)-(a.amount||0));
-    const amt=os.reduce((s,o)=>s+(o.amount||0),0);
-    return '<div class="pcol"><h4>'+esc(OPP_SHORT[st])+' · '+os.length+'<em>'+fmtK(amt)+'</em></h4>'+os.map(oppCard).join("")+'</div>';
+    const os=show.filter(o=>o.stage===st).sort((a,b)=>((b.units||0)-(a.units||0))||((b.amount||0)-(a.amount||0)));
+    const amt=os.reduce((s,o)=>s+(o.amount||0),0),ku=os.reduce((s,o)=>s+(o.units||0),0);
+    return '<div class="pcol"><h4>'+esc(OPP_SHORT[st])+' · '+os.length+'<em title="'+fmtK(amt)+'">'+ku+' kits</em></h4>'+os.map(oppCard).join("")+'</div>';
   }).join("")+'</div>';
   return h;
 }
