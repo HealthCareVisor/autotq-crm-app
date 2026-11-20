@@ -7218,7 +7218,7 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    Agent edits to cold copy and the send schedule are OVERRIDES in settings/coldCopy (edits, plan, vol) on top of COLD_CAMPS /
    COLD_RANGES / COLD_VOL: the live hub's Cold tab does not read them yet. Nothing here sends anything. */
 if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120052952";
+const HX_BUILD="20261120100344";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7293,6 +7293,7 @@ window.HX={v:1,build:HX_BUILD,snap:hxSnap,
   seoMove(id,status,note){if(!pjInner()||!["proposed","approved","changes","dropped"].includes(status))return false;const m=(DB.seoMoves||[]).find(x=>x&&x.id===String(id));if(!m)return false;
     const n=JSON.parse(JSON.stringify(m)),now=new Date().toISOString();n.status=status;if(note!=null)n.note=String(note).slice(0,600);n.updatedBy=USER;n.updatedAt=now;if(status==="approved"){n.approvedBy=USER;n.approvedAt=now;}put("seoMoves",n);render();return true;},
   call(fn,body){return supa("/functions/v1/"+fn,{method:"POST",body:typeof body==="string"?body:JSON.stringify(body)});},
+  map(){const r=(DB.settings||[]).find(x=>x&&x.id==="marketingMap"&&!x.removed);return JSON.stringify(r||null);},
   go(v){hxClassic(true);goView(String(v));},
   on(f){HXS.subs.push(f);return ()=>{HXS.subs=HXS.subs.filter(x=>x!==f);};}};
 {const _r=render;render=function(){const x=_r.apply(this,arguments);try{hxMount();hxEmit();}catch(e){}return x;};}
