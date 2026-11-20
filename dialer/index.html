@@ -2333,6 +2333,8 @@ function ensureOpps(){
   }
 }
 function oppIsOpen(o){return o.stage!=="Closed Won"&&o.stage!=="Closed Lost";}
+function oppStagePct(s,o){return o&&o.stage===s&&typeof o.probability==="number"?o.probability:(OPP_PROB[s]||0);}
+function oppStageChipTxt(s,o){return esc(OPP_SHORT[s])+' <small style="opacity:.75;font-weight:500">'+oppStagePct(s,o)+'%</small>';}
 function oppProb(o){return typeof o.probability==="number"?o.probability:(OPP_PROB[o.stage]||0);}
 function oppWeighted(o){return (o.amount||0)*oppProb(o)/100;}
 function oppRegion(o){if(o.state)return regionFromState(o.state);const c=o.accountId?company(o.accountId):null;return c?companyRegion(c):"";}
@@ -8185,7 +8187,7 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
    '<details class="fold" id="oMore" style="margin-top:14px"'+(o?' open':'')+'><summary><span class="sectlabel" style="margin:0;font-size:13px">More</span>'+
     (o?'':'<span class="t2" style="display:inline">stage, next step, people, quote, notes</span>')+'<span class="fchev">'+chev()+'</span></summary>'+
    (o?'':nameHTML)+
-   lbl("Stage")+'<div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+esc(OPP_SHORT[s])+'</span>').join("")+'</div>'+
+   lbl("Stage","% = chance it closes")+'<div class="chips" id="oStage">'+OPP_STAGES.map(s=>'<span class="chip'+(logState.oppStage===s?" on":"")+'" data-act="setOppStage" data-v="'+esc(s)+'">'+oppStageChipTxt(s,o)+'</span>').join("")+'</div>'+
    lbl("Golden Hour sales person")+'<div class="chips" id="oGhRep">'+repChips+'</div>'+
    '<label class="chkrow"><input type="checkbox" id="oDirect"'+(o&&o.direct?" checked":"")+'> Direct sale — no distributor</label>'+
    '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:2 1 180px;min-width:0">'+lbl("Next step")+'<input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing" autocomplete="off"></div>'+
@@ -8198,7 +8200,7 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
    lbl("Deal type")+'<select class="f" id="oType">'+dtypes.map(t=>'<option'+((o?o.dealType===t:(preCo&&preCo.type==="distributor"?t==="Stocking Order":false))?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
    '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1 1 120px;min-width:0">'+lbl("State","blank = the account's")+'<input class="f" id="oLoc" value="'+(o?esc(o.state||""):esc(pre.state||""))+'" placeholder="TN" maxlength="2"></div>'+
    '<div style="flex:1 1 150px;min-width:0">'+lbl("Last contact",o&&oppLastTouch(o)?"auto: "+esc(oppLastTouch(o)):"")+'<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'"></div></div>'+
-   lbl("Why that %",'('+(o?oppProb(o):OPP_PROB["Prospecting"])+'%)')+
+   lbl("Why that %",'(<span id="oProbPct">'+(logState.oppStage?oppStagePct(logState.oppStage,o):(o?oppProb(o):OPP_PROB["Prospecting"]))+'</span>%)')+
    '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, reviewing a 50-unit rollout" autocomplete="off">'+
    '</details>'+
    (o?'<button class="btn coral block" data-act="saveOpp" style="margin-top:18px">Save changes</button>':'')+
@@ -8245,7 +8247,7 @@ function formOppSteps(pre,selCid,distLabel,amt0,units0,repChips,dtypes,lbl){
      '<div class="row" style="gap:10px;align-items:flex-start;max-width:340px"><div style="flex:1;min-width:0">'+lbl("Price each")+'<input class="f" id="oUnitP" inputmode="decimal" placeholder="544" autocomplete="off"></div>'+
      '<div style="flex:1;min-width:0">'+lbl("Total")+'<input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="$" autocomplete="off"></div></div><div id="oAmtHint" hidden></div>')+
    q("close",pick("oCloseChips",oppCloseChipsHTML(""))+'<input class="f" id="oClose" type="date">')+
-   q("stage",pick("oStage",OPP_STAGES.map(st=>chip("setOppStage",st,esc(OPP_SHORT[st]),logState.oppStage===st)).join("")))+
+   q("stage",pick("oStage",OPP_STAGES.map(st=>chip("setOppStage",st,oppStageChipTxt(st,null),logState.oppStage===st)).join("")))+
    q("why",pick("oWhyChips","")+'<input class="f" id="oProbWhy" placeholder="Or type it" autocomplete="off">')+
    q("last",pick("oLastChips",[["Today",todayStr()],["Yesterday",oppAddDays(-1)],["Last week",oppAddDays(-7)]].map(x=>chip("oppLastPick",x[1],x[0],false)).join(""))+'<input class="f" id="oLastC" type="date" value="'+esc(pre.last||"")+'">')+
    q("next",pick("oNextChips",OPP_NEXT.map(x=>chip("oppNextPick",x,esc(x),false)).join(""))+'<input class="f" id="oNextA" placeholder="Or type it" autocomplete="off">')+
@@ -13214,7 +13216,7 @@ document.addEventListener("click",e=>{
   if(a==="furep"){fuRepSheet(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
   if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}(DB.quotes||[]).forEach(q=>{if(q&&q.oppId===id)q.oppId=null;});DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
-  if(a==="setOppStage"){logState.oppStage=t.dataset.v;document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));oppAutoNext("stage");return;}
+  if(a==="setOppStage"){logState.oppStage=t.dataset.v;{const pe=document.getElementById("oProbPct"),eo=logState.oppId?DB.opps.find(x=>x.id===logState.oppId):null;if(pe)pe.textContent=oppStagePct(t.dataset.v,eo);}document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));oppAutoNext("stage");return;}
   if(a==="oppStep"){e.preventDefault();const fromRev=OPP_Q[logState.oppStep||0][0]==="review";logState.oppToReview=fromRev;oppStepGo(parseInt(t.dataset.v,10),t.dataset.f||"");return;}
   if(a==="oppStepNext"){oppStepNext();return;}
   if(a==="oppStepBack"){oppStepGo(oppStepMove(logState.oppStep||0,-1));return;}
