@@ -1334,23 +1334,10 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .sh-ci b{font-size:13.5px;font-weight:600;line-height:1.35}.sh-ci small{font-size:12px;color:var(--ink-3)}
 .sh-ci.done b{text-decoration:line-through;color:var(--ink-3)}
 .sh-none{font-size:13px;color:var(--ink-3);margin:0}
-.sh-send{border:1px solid var(--rule);border-radius:14px;padding:20px;margin-bottom:22px;background:var(--paper);max-width:1080px}
-.sh-big{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap;margin-bottom:14px}
-.sh-big>div b{display:block;font-size:32px;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
-.sh-big>div span{font-size:13px;color:var(--ink-3)}
 .sh-pill{display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:99px;font-size:12.5px;font-weight:700;background:var(--rule-2);color:var(--ink-2);white-space:nowrap}
 .sh-pill.max{background:var(--coral-wash);color:var(--coral-ink)}
 .sh-pill.warm{background:var(--warn-wash);color:var(--warn)}
 .sh-pill.ok{background:var(--ok-wash);color:var(--ok)}
-.sh-chart{width:100%;max-width:780px;height:auto;display:block}
-.sh-chart text{fill:var(--ink-3);font-size:11px;font-family:inherit}
-.sh-chart text.val,.sh-chart text.now{fill:var(--ink);font-weight:700}
-.sh-chart .cap{stroke:var(--coral);stroke-dasharray:4 4;stroke-width:1.5}
-.sh-chart .capl{fill:var(--coral-ink);font-weight:700}
-.sh-legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-3);margin-top:8px;flex-wrap:wrap}
-.sh-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.sh-legend .cap{color:var(--coral-ink);font-weight:600}.sh-legend .cap i{width:16px;height:0;border-radius:0;border-top:2px dashed var(--coral);vertical-align:3px}
-.sh-cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:18px;align-items:start;max-width:1180px}
 .sh-grp{margin-bottom:16px}
 .sh-grph{display:flex;align-items:baseline;justify-content:space-between;margin:0 4px 8px}
 .sh-grph h2{font-size:17px;font-weight:700;margin:0}.sh-grph span{font-size:13px;color:var(--ink-3);font-weight:600}
@@ -1404,6 +1391,44 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .sh-pre{white-space:pre-wrap;font-size:14px;line-height:1.55}
 @media (max-width:860px){.sh-cgrid{grid-template-columns:1fr}.sh-mails{position:static}.sh-tbl .tr{grid-template-columns:1fr;gap:4px}.sh-tbl .tr.hd{display:none}.sh-wkrow{grid-template-columns:1fr;gap:8px}}
 @media (max-width:640px){.sh-head h1{font-size:24px}.sh-kpi,.sh-row .sh-cat{display:none}.sh-row{padding:12px}.sh-t{font-size:14.5px}}
+/* Campaigns numbers: dark cards, after Max's two reference images (a tick meter, a hatched pie) */
+.sh-dkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0 0 28px;max-width:1180px}
+.sh-dk{background:#0E0E10;color:#EDEDEF;border:1px solid #26262B;border-radius:3px;padding:22px 24px 20px;display:flex;flex-direction:column;gap:18px;position:relative;min-width:0}
+.sh-dk::before,.sh-dk::after{content:"";position:absolute;width:9px;height:9px;border:0 solid #5A5A61}
+.sh-dk::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.sh-dk::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.sh-dk .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.sh-dk .hd b{display:block;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:#F4F4F6}
+.sh-dk .hd span{display:block;font-size:12.5px;color:#8E8E95;margin-top:4px}
+.sh-dk .hd .rt{text-align:right}.sh-dk .hd .rt b{font-size:17px;font-weight:600;color:#3DD68C}
+.sh-dk .hd .sh-lbar{border-left:1.5px solid #77777E;padding-left:14px}
+.sh-dk .hd .sh-lbar span{margin:0 0 6px;font-size:13px;color:#A0A0A6}
+.sh-hist{display:flex;align-items:flex-end;gap:2px;height:72px}
+.sh-hist i{flex:1;min-width:1px;background:#2A2A2F;border-radius:1px}
+.sh-hist i.on{background:#CFCFD4}
+.sh-axis{display:flex;justify-content:space-between;font-size:11.5px;color:#6E6E75;margin-top:-10px}
+.sh-meter{position:relative;display:flex;gap:3px;height:62px;padding-top:24px}
+.sh-meter.src{height:40px;padding-top:0}
+.sh-meter i{flex:1;min-width:2px;background:#2C2C31;border-radius:1px}
+.sh-meter i.on,.sh-meter i.a{background:#C8C8CE}
+.sh-meter i.on2,.sh-meter i.b{background:#7E7E85}
+.sh-meter i.c{background:#4E4E55}
+.sh-meter em{position:absolute;top:0;font-style:normal;font-size:12.5px;color:#EDEDEF;transform:translateX(-50%);font-variant-numeric:tabular-nums}
+.sh-meter em::after{content:"";position:absolute;left:50%;top:18px;width:1px;height:6px;background:#8E8E95}
+.sh-key{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:13px;color:#B5B5BB}
+.sh-key i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:#C8C8CE}
+.sh-key i.b{background:#7E7E85}
+.sh-key u{text-decoration:underline dotted #6E6E75;text-underline-offset:4px}
+.sh-key .r{margin-left:auto;font-size:12px;color:#8E8E95}
+.sh-piew{display:grid;grid-template-columns:150px minmax(0,1fr);gap:24px;align-items:center}
+.sh-pie{width:150px;height:150px;display:block}
+.sh-tbl2>div,.sh-srcl>div{display:grid;grid-template-columns:10px minmax(0,1fr) auto 56px;gap:10px;align-items:center;padding:6px 0;font-size:13.5px;color:#D6D6DA}
+.sh-tbl2 i,.sh-srcl i{width:9px;height:9px;border-radius:1px;background:#C8C8CE}
+.sh-srcl i.b{background:#7E7E85}.sh-srcl i.c{background:#4E4E55}
+.sh-tbl2 em,.sh-srcl em{font-style:normal;color:#8E8E95;font-variant-numeric:tabular-nums}
+.sh-tbl2 b,.sh-srcl b{font-weight:500;text-align:right;font-variant-numeric:tabular-nums;color:#EDEDEF}
+@media (max-width:900px){.sh-dkgrid{grid-template-columns:1fr}}
+@media (max-width:480px){.sh-piew{grid-template-columns:1fr;justify-items:center}.sh-dk{padding:18px 16px}.sh-key .r{margin-left:0}}
 /* engine-css:end */
 .mk2-grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:start}
 .mk2-empty{padding:22px 14px;color:var(--ink-3);text-align:center;font-size:13px}
@@ -7052,25 +7077,60 @@ function shViewWeek(){const wk=shWeek(),me=teamById(USER),hr=new Date().getHours
 function shSendPlan(){const V=typeof COLD_VOL!=="undefined"?COLD_VOL:[],R=typeof COLD_RVOL!=="undefined"?COLD_RVOL:[],v=i=>(V[i]||[])[2]||0,r=i=>(R[i]||[])[2]||0;
   return [["Dec 7–11","2026-12-07","2026-12-11",v(0),0],["Dec 14–18","2026-12-14","2026-12-18",v(1),0],["Dec 21–Jan 1","2026-12-21","2027-01-01",0,r(0)],["Jan","2027-01-04","2027-01-29",v(3),r(1)],["Feb","2027-02-01","2027-02-26",v(4),r(1)],["Mar","2027-03-01","2027-03-31",v(5),r(1)],["Apr","2027-04-01","2027-04-30",v(6),r(1)],["May","2027-05-03","2027-05-28",v(7),0],["Jun","2027-06-01","2027-06-30",v(8),0],["Jul","2027-07-01","2027-07-30",v(9),0]];}
 function shCap(){try{return 2*coldSize()*25;}catch(e){return 600;}}
-function shChart(P,cap){const W=760,H=210,l=40,r=12,tp=22,b=34,bw=(W-l-r)/P.length,sc=v=>(H-b)-(Math.min(v,cap)/cap)*(H-b-tp),td=todayStr();
-  let s='<svg class="sh-chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Emails a day by period, against the '+cap+' a day maximum">';
-  [0,Math.round(cap/3),Math.round(cap*2/3),cap].forEach(v=>{s+='<text x="'+(l-8)+'" y="'+(sc(v)+4)+'" text-anchor="end">'+v+'</text>';});
-  P.forEach((p,i)=>{const x=l+i*bw+bw*.18,w=bw*.64,tot=p[3]+p[4],y1=sc(p[3]),y2=sc(tot),now=td>=p[1]&&td<=p[2];
-    if(p[3])s+='<rect x="'+x+'" y="'+y1+'" width="'+w+'" height="'+((H-b)-y1)+'" rx="3" fill="var(--sh-bar2)"/>';
-    if(p[4])s+='<rect x="'+x+'" y="'+y2+'" width="'+w+'" height="'+(y1-y2)+'" rx="3" fill="var(--sh-bar)"/>';
-    s+='<text x="'+(x+w/2)+'" y="'+(H-b+16)+'" text-anchor="middle"'+(now?' class="now"':'')+'>'+esc(p[0])+'</text>';
-    if(tot)s+='<text x="'+(x+w/2)+'" y="'+(y2-6)+'" text-anchor="middle" class="val">'+tot+'</text>';});
-  return s+'<line class="cap" x1="'+l+'" x2="'+(W-r)+'" y1="'+sc(cap)+'" y2="'+sc(cap)+'"/></svg>';}
 function shColdLists(){const out=[];try{COLD_CAMPS.forEach(c=>out.push(Object.assign({g:"Schools"},c)));COLD_RANGES.forEach(c=>out.push(Object.assign({g:"Shooting ranges"},c)));}catch(e){}return out;}
 function shWarm(){return campaigns().filter(c=>c.name&&!campCold(c)&&!c.removed&&c.status!=="done"&&(c.steps||[]).length);}
 function shFill(s){return esc(s).replace(/\{\{company_name\}\}/g,'<span class="sh-tok">school name</span>').replace(/\{\{company_slug\}\}/g,'<span class="sh-tok">school</span>').replace(/\{\{first_name\}\}/g,'<span class="sh-tok">first name</span>').replace(/\{\{(\w+)\}\}/g,(m,k)=>'<span class="sh-tok">'+esc(k.replace(/_/g," "))+'</span>');}
+/* Campaigns, four numbers that matter (Max, 2026-11-20, with two dark reference cards: a tick meter and a hatched pie):
+   emails sent, emails to send a day and a week, who they go to, where the people came from. */
+const SH_AUD=[["K-12 districts",["K12_Safety","K12_Health","K12_Superintendents","K12_Principals"]],["Charter & private schools",["Charter","Private"]],["Shooting ranges",["Ranges_Commercial","Ranges_Clubs","Ranges_Agency"]],["Colleges & universities",["HigherEd_Police","HigherEd_EHS_Emergency"]]];
+function shSent(){const days={},now=Date.now();let all=0,d30=0;
+  campaigns().forEach(c=>(c.leads||[]).forEach(l=>Object.values(l.sent||{}).forEach(ts=>{const t=new Date(ts);if(isNaN(t))return;all++;if(now-t<=30*864e5)d30++;const k=t.toLocaleDateString("en-CA");days[k]=(days[k]||0)+1;})));
+  return {all,d30,days};}
+function shConfPeople(){const s=new Set();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{if(l&&l.src==="conf"&&l.email)s.add(String(l.email).toLowerCase());}));return s.size;}
+function shRangeApollo(){let a=0;campaigns().filter(c=>/^Ranges cold/i.test(c.name||"")).forEach(c=>(c.leads||[]).forEach(l=>{if(l&&l.src==="apollo")a++;}));return a;}
+function shTicks(n,fill,cls){let s="";for(let i=0;i<n;i++)s+='<i class="'+(i<fill?(cls||"on"):"")+'"></i>';return s;}
+function shHatch(){return '<defs>'+
+  '<pattern id="shp0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#D8D8DC" stroke-width="1.3"/></pattern>'+
+  '<pattern id="shp1" width="5" height="5" patternUnits="userSpaceOnUse"><line x1="0" y1="2.5" x2="5" y2="2.5" stroke="#A9A9AF" stroke-width="1.1"/></pattern>'+
+  '<pattern id="shp2" width="5" height="5" patternUnits="userSpaceOnUse"><line x1="2.5" y1="0" x2="2.5" y2="5" stroke="#86868D" stroke-width="1.1"/></pattern>'+
+  '<pattern id="shp3" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 3H6M3 0V6" stroke="#64646B" stroke-width="1"/></pattern>'+
+  '<pattern id="shp4" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#4E4E55" stroke-width="1.2"/></pattern></defs>';}
+const SH_SW=["#D8D8DC","#A9A9AF","#86868D","#64646B","#4E4E55"];
+function shPie(parts){const tot=parts.reduce((a,p)=>a+p[1],0)||1,cx=90,cy=90,r=84;let a0=-Math.PI/2,s='<svg class="sh-pie" viewBox="0 0 180 180" role="img" aria-label="Who the emails go to">'+shHatch();
+  parts.forEach((p,i)=>{const a1=a0+p[1]/tot*Math.PI*2,big=a1-a0>Math.PI?1:0,x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    s+=p[1]>=tot?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="url(#shp'+i+')"/>':'<path d="M'+cx+' '+cy+'L'+x0.toFixed(2)+' '+y0.toFixed(2)+'A'+r+' '+r+' 0 '+big+' 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+'Z" fill="url(#shp'+i+')" stroke="#0E0E10" stroke-width="2.5"/>';a0=a1;});
+  return s+'</svg>';}
+function shPct(n,t){if(!t)return "0%";const p=n/t*100;return (p<10?p.toFixed(1):Math.round(p))+"%";}
+function shStats(L){const P=shSendPlan(),cap=shCap(),td=todayStr(),S=shSent(),conf=shConfPeople(),first=P[0];
+  const next=P.find(p=>td<=p[2])||P[P.length-1],day=next[3]+next[4],started=td>=next[1],full=P.find(p=>p[3]+p[4]>=cap);
+  const wkDays=Math.min(5,Math.round((shD(next[2])-shD(next[1]))/864e5)+1),week=day*wkDays;
+  /* 1 · emails sent: all time, the last 30 days, a tick per day for 60 days */
+  const days=[];for(let i=59;i>=0;i--){days.push(S.days[shAdd(td,-i)]||0);}const mx=Math.max(1,...days);
+  const sent='<section class="sh-dk"><div class="hd"><div><b>'+S.all.toLocaleString()+'</b><span>Emails sent</span></div><div class="rt"><b>'+S.d30.toLocaleString()+'</b><span>in the last 30 days</span></div></div>'+
+    '<div class="sh-hist" role="img" aria-label="Emails sent a day, last 60 days">'+days.map(v=>'<i style="height:'+(v?Math.max(8,Math.round(v/mx*100)):3)+'%" class="'+(v?"on":"")+'"></i>').join("")+'</div><div class="sh-axis"><span>60 days ago</span><span>Today</span></div></section>';
+  /* 2 · emails to send: a day (tick meter against the most we can send) and a week */
+  const T=60,fill=Math.round(day/cap*T),pc=Math.round(day/cap*100);
+  const send='<section class="sh-dk"><div class="hd"><div class="sh-lbar"><span>'+(started?"Sending a day this week":"A day from "+esc(shFmt(next[1],{weekday:"short",month:"short",day:"numeric"})))+'</span><b>'+day.toLocaleString()+'</b></div><div class="rt"><b>'+week.toLocaleString()+'</b><span>a week</span></div></div>'+
+    '<div class="sh-meter"><em style="left:'+(fill/T*100)+'%">'+pc+'%</em>'+(()=>{const fs=Math.round(next[3]/cap*T),fr=Math.min(T-fs,Math.round(next[4]/cap*T));let o="";for(let i=0;i<T;i++)o+='<i class="'+(i<fs?"on":i<fs+fr?"on2":"")+'"></i>';return o;})()+'</div>'+
+    '<div class="sh-key"><span><i class="a"></i><u>Schools '+next[3].toLocaleString()+'</u></span><span><i class="b"></i><u>Ranges '+next[4].toLocaleString()+'</u></span><span class="r">'+(full?(td>=full[1]?"Full: "+cap+" a day, the most we can send":"Full at "+cap+" a day from "+esc(shFmt(full[1],{month:"short",day:"numeric"}))):"The most we can send is "+cap+" a day")+'</span></div></section>';
+  /* 3 · who they go to */
+  const aud=SH_AUD.map(([nm,keys])=>[nm,L.filter(x=>keys.includes(x.k)).reduce((a,x)=>a+(x.people||0),0)]);
+  const other=L.filter(x=>!SH_AUD.some(g=>g[1].includes(x.k))).reduce((a,x)=>a+(x.people||0),0);if(other)aud.push(["Other lists",other]);
+  aud.push(["People we met at shows",conf]);const parts=aud.filter(a=>a[1]>0),tot=parts.reduce((a,p)=>a+p[1],0);
+  const who='<section class="sh-dk"><div class="hd"><div><b>'+tot.toLocaleString()+'</b><span>People the emails go to</span></div></div><div class="sh-piew">'+shPie(parts)+
+    '<div class="sh-tbl2">'+parts.map((p,i)=>'<div><i style="background:'+SH_SW[i%5]+'"></i><span>'+esc(p[0])+'</span><em>'+shPct(p[1],tot)+'</em><b>'+p[1].toLocaleString()+'</b></div>').join("")+'</div></div></section>';
+  /* 4 · where they came from */
+  const schools=L.filter(x=>x.g==="Schools").reduce((a,x)=>a+(x.people||0),0),ranges=L.filter(x=>x.g!=="Schools").reduce((a,x)=>a+(x.people||0),0),ra=Math.min(ranges,shRangeApollo());
+  const src=[["Apollo",schools+ra,"a"],["NSSF range directory",ranges-ra,"b"],["Conference badge scans",conf,"c"]].filter(s=>s[1]>0),st=src.reduce((a,s)=>a+s[1],0)||1;
+  const ticks=src.map(s=>{const n=Math.max(1,Math.round(s[1]/st*T));return shTicks(n,n,s[2]);}).join("");
+  const from='<section class="sh-dk"><div class="hd"><div class="sh-lbar"><span>Where the people came from</span><b>'+src.length+' sources</b></div></div>'+
+    '<div class="sh-meter src">'+ticks+'</div><div class="sh-srcl">'+src.map(s=>'<div><i class="'+s[2]+'"></i><span>'+esc(s[0])+'</span><em>'+shPct(s[1],st)+'</em><b>'+s[1].toLocaleString()+'</b></div>').join("")+'</div></section>';
+  return '<div class="sh-dkgrid">'+sent+send+who+from+'</div>';}
 function shViewMail(){const L=shColdLists(),Wm=shWarm(),P=shSendPlan(),cap=shCap(),td=todayStr();
   const cur=P.find(p=>td>=p[1]&&td<=p[2]),first=P[0],maxed=P.find(p=>p[3]+p[4]>=cap),people=L.reduce((a,x)=>a+(x.people||0),0);
   if(!SH.camp)SH.camp=L.length?"c:"+L[0].k:"";
-  let h='<div class="sh-head"><div><h1>Email campaigns</h1><p class="sh-sum"><b>'+people.toLocaleString()+'</b> people on '+L.length+' cold lists'+(td<first[1]?' · first sends '+esc(shFmt(first[1],{weekday:"short",month:"short",day:"numeric"})):'')+'</p></div></div>';
-  h+='<section class="sh-send"><div class="sh-big"><div><b>'+(cur?cur[3]+cur[4]:0)+'</b><span>'+(td<first[1]?"a day now · warming up":"a day this week")+'</span></div>'+(td<first[1]?'<div><b>'+(first[3]+first[4])+'</b><span>a day from '+esc(shFmt(first[1]))+'</span></div>':'')+'<div><b>'+cap+'</b><span>a day at most</span></div>'+
-    (maxed?'<span class="sh-pill max">'+(td>=maxed[1]?"Maxed out now":"Maxed out from "+esc(shFmt(maxed[1],{month:"long"})))+'</span>':'')+'</div>'+shChart(P,cap)+
-    '<div class="sh-legend"><span><i style="background:var(--sh-bar2)"></i>Schools</span><span><i style="background:var(--sh-bar)"></i>Shooting ranges</span><span class="cap"><i></i>Most we can send: '+cap+' a day</span></div></section>';
+  let h='<div class="sh-head"><div><h1>Email campaigns</h1><p class="sh-sum">'+(td<first[1]?'First cold sends '+esc(shFmt(first[1],{weekday:"long",month:"long",day:"numeric"})):'Sending')+'</p></div></div>';
+  h+=shStats(L);
   const row=(key,name,who,n,sub,pill)=>'<button class="sh-crow'+(SH.camp===key?" on":"")+'" data-act="shcamp" data-v="'+esc(key)+'"><span class="nm"><b>'+esc(name)+'</b><small>'+esc(who)+'</small></span><span class="num">'+esc(n)+'<small>'+esc(sub)+'</small></span>'+(pill||'')+'</button>';
   let left="";
   ["Schools","Shooting ranges"].forEach(g=>{const X=L.filter(x=>x.g===g);if(!X.length)return;
