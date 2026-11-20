@@ -7214,11 +7214,11 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    The hub page keeps doing what it already does (sign-in, the records sync, every rule about cold lists and approvals); the new
    screens are a React app with its own stylesheet, so nothing here and nothing there can restyle the other. Classic views
    (Calls, Outreach, LinkedIn …) open by hiding the frame. Chat with the desk agents lives in three synced collections:
-   agentChat (messages + their change cards), agentMem (what a desk was told to remember), agentReq (work handed to a Claude job).
+   seo + seoMoves (search numbers and the SEO desk's weekly moves), agentChat (messages + their change cards), agentMem (what a desk was told to remember), agentReq (work handed to a Claude job).
    Agent edits to cold copy and the send schedule are OVERRIDES in settings/coldCopy (edits, plan, vol) on top of COLD_CAMPS /
    COLD_RANGES / COLD_VOL: the live hub's Cold tab does not read them yet. Nothing here sends anything. */
-if(APP==="marketing"){["agentChat","agentMem","agentReq"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120050610";
+if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
+const HX_BUILD="20261120052703";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7235,12 +7235,16 @@ function hxWaits(){const o={},lab={calls:"Calls",mail:"Campaigns",li:"Posting",c
   Object.keys(HX_PEOPLE).forEach(u=>{o[u]=hxSafe(()=>shWaiting(u),[]).map(w=>({id:w.k,t:w.t,s:w.sub||lab[w.go]||"",go:w.go||"",tk:w.tk||"",btn:w.btn||"Open"}));});return o;}
 function hxAuto(){const td=todayStr(),first=hxSafe(()=>shSendPlan()[0][1],"2026-12-07");
   return SH_AUTO.map(a=>({t:a[0],d:a[1],when:a[2],st:a[3]==="run"?"on":a[3]==="cold"?(td>=first?"on":"soon"):"off",from:a[3]==="cold"?first:""}));}
+function hxSeo(){const g=id=>(DB.seo||[]).find(x=>x&&x.id===id)||null,st=(DB.settings||[]).find(x=>x&&x.id==="seoDesk")||{};
+  return {latest:g("latest"),weeks:(g("weeks")||{}).weeks||[],targets:(g("targets")||{}).list||[],
+    moves:(DB.seoMoves||[]).filter(m=>m&&m.id&&!m.removed).map(m=>{const c=Object.assign({},m);delete c.research;return c;}),
+    state:{running:st.running||st.drafting||"",startedAt:st.startedAt||"",lastRunAt:st.lastRunAt||"",lastResult:st.lastResult||"",lastError:st.lastError||""}};}
 function hxSnap(){const live=c=>(DB[c]||[]).filter(m=>m&&m.id&&!m.removed);
   return JSON.stringify({v:1,live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
     tasks:hxSafe(hxTasks,[]),waits:hxSafe(hxWaits,{}),lists:hxSafe(hxLists,[]),per:hxSafe(hxPer,[]),cap:hxSafe(shCap,600),
     sent:hxSafe(shSent,{all:0,d30:0,days:{}}),conf:hxSafe(shConfPeople,0),rangeApollo:hxSafe(shRangeApollo,0),auto:hxSafe(hxAuto,[]),
     more:hxSafe(()=>shMore().map(m=>({v:m[0],ic:m[1],t:m[2],n:hxSafe(()=>mk2Badge(m[0]),0)})),[]),
-    chat:live("agentChat").sort((a,b)=>String(a.at).localeCompare(String(b.at))).slice(-600),mem:live("agentMem"),req:live("agentReq")});}
+    seo:hxSafe(hxSeo,null),chat:live("agentChat").sort((a,b)=>String(a.at).localeCompare(String(b.at))).slice(-600),mem:live("agentMem"),req:live("agentReq")});}
 /* one change from a chat card, written into the hub's own records. Returns what Undo needs. An edited email loses its approval:
    changed wording has to be approved again by a person. */
 function hxSpan(t){t.month=t.d0.slice(0,7);t.d1=t.d1&&t.d1>t.d0?t.d1:t.d0;t.span=t.d1!==t.d0?"range":"day";t.when=shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"})+(t.d1!==t.d0?" – "+shFmt(t.d1):"");}
@@ -7286,6 +7290,8 @@ window.HX={v:1,build:HX_BUILD,snap:hxSnap,
   apply(c){const u=hxApply(hxJ(c));render();return JSON.stringify(u||{});},
   undo(c,u){hxUndo(hxJ(c),hxJ(u||"{}"));render();},
   put(coll,rec){if(!/^agent(Chat|Mem|Req)$/.test(coll))return;rec=hxJ(rec);if(!rec||!rec.id)return;put(coll,rec);hxEmit();},
+  seoMove(id,status,note){if(!pjInner()||!["proposed","approved","changes","dropped"].includes(status))return false;const m=(DB.seoMoves||[]).find(x=>x&&x.id===String(id));if(!m)return false;
+    const n=JSON.parse(JSON.stringify(m)),now=new Date().toISOString();n.status=status;if(note!=null)n.note=String(note).slice(0,600);n.updatedBy=USER;n.updatedAt=now;if(status==="approved"){n.approvedBy=USER;n.approvedAt=now;}put("seoMoves",n);render();return true;},
   call(fn,body){return supa("/functions/v1/"+fn,{method:"POST",body:typeof body==="string"?body:JSON.stringify(body)});},
   go(v){hxClassic(true);goView(String(v));},
   on(f){HXS.subs.push(f);return ()=>{HXS.subs=HXS.subs.filter(x=>x!==f);};}};
