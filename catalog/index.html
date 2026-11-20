@@ -1784,7 +1784,7 @@ const logState={otpEmail:null,pwEmail:null,setPw:null};
 const SYNC={lastPull:"1970-01-01T00:00:00Z",dirty:{},timer:null,pushing:false,state:"off",booted:false};
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
-function admin(){return USER==="max";}
+function admin(){return USER==="max"||USER==="hannah";} /* Max and Hannah run the hub alike (Max, 2026-11-20) */
 function loadLocal(){try{const r=JSON.parse(localStorage.getItem(DKEY)||"null");if(r&&r.db){DB=r.db;SYNC.lastPull=r.lastPull||SYNC.lastPull;SYNC.colls=r.colls||[];}}catch(e){}PULL_COLLECTIONS.concat(["activities"]).forEach(c=>{DB[c]=DB[c]||[];});}
 function saveLocal(){const keep=(db,colls)=>localStorage.setItem(DKEY,JSON.stringify({db,lastPull:SYNC.lastPull,colls}));
   try{keep(DB,SYNC.colls||[]);}catch(e){/* quota — the server copy is the real one. Drop the big research collections from the cache (and from "colls", so the next load pulls them in full) and keep the rest */
@@ -2192,7 +2192,7 @@ async function campSendForReview(){const c=campaignById(curCampaign);if(!c)retur
   if(!(DB.tasks||[]).some(t=>t.campId===c.id&&!t.done&&!t.removed))put("tasks",{id:uid(),owner:USER,title:"Review campaign: "+c.name,type:"review",due:todayStr(),done:false,createdAt:new Date().toISOString(),assignees:CAMP_REVIEWERS.slice(),campId:c.id});
   saveCamp(c);campStep=3;render();toast("Sent to Hannah for review");}
 function campApprove(){const c=campaignById(curCampaign);if(!c||!campIsReviewer())return;if(!campHardOk(c)){toast("Fix the red checks first");return;}c.approvals=c.approvals||{};c.approvals[USER]=new Date().toISOString();if(c.status==="draft"||c.status==="review")c.status="approved";
-  (DB.tasks||[]).forEach(t=>{if(t.campId===c.id&&!t.done){t.done=true;t.doneAt=new Date().toISOString();t.doneBy=USER;put("tasks",t);}});saveCamp(c);render();toast("Approved — "+(admin()?"ready to send":"Max can send it now"));}
+  (DB.tasks||[]).forEach(t=>{if(t.campId===c.id&&!t.done){t.done=true;t.doneAt=new Date().toISOString();t.doneBy=USER;put("tasks",t);}});saveCamp(c);render();toast("Approved — "+(admin()?"ready to send":"Max or Hannah can send it now"));}
 function campUnapprove(){const c=campaignById(curCampaign);if(!c)return;c.approvals={};if(c.status==="approved")c.status="review";saveCamp(c);render();}
 function campComment(){const c=campaignById(curCampaign);const ta=document.getElementById("campNote");if(!c||!ta||!ta.value.trim())return;(c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:ta.value.trim(),step:campStep});ta.value="";saveCamp(c);render();}
 function campTouched(c){if(c.status==="approved"&&Object.keys(c.approvals||{}).length){c.approvals={};c.status="review";(c.review=c.review||[]).push({id:uid(),by:USER,at:new Date().toISOString(),text:"Edited after approval — needs another look.",sys:true});}}
@@ -2303,7 +2303,7 @@ function buildPlan(days){ // simulation from today: each lane's leads walk the s
   return out;}
 /* run today's sends across lanes, rotating inboxes */
 async function runToday(){
-  if(!admin()){toast("Max runs the day's sends");return;}const st=await mailOutStatus();if(!st||!st.ok){openSheet('<h2>Outbound isn\'t connected</h2><p style="color:var(--muted);font-size:14px">'+esc((st&&st.error)||"mail-out not reachable")+'. Finish SETUP_SES.md first.</p>');return;}
+  if(!admin()){toast("Max or Hannah runs the day's sends");return;}const st=await mailOutStatus();if(!st||!st.ok){openSheet('<h2>Outbound isn\'t connected</h2><p style="color:var(--muted);font-size:14px">'+esc((st&&st.error)||"mail-out not reachable")+'. Finish SETUP_SES.md first.</p>');return;}
   const lanes=planLanes().filter(c=>campCanSend(c));const S=senders().filter(s=>!s.paused&&senderLeft(s)>0&&senderDomainOk(s));
   if(!lanes.length){toast("No approved campaign has anyone due");return;}if(!S.length){toast("No verified inbox has room today");return;}
   const plan=buildPlan(1).days[0];const total=plan.total;if(!total){toast("Nothing due today");return;}
