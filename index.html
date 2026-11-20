@@ -1511,7 +1511,7 @@ const TEAM=[
  {id:"johnm",name:"John Morrison",role:"Channel Sales — East",c:"#0E7C7B"},
  /* Max, 2026-11-17: "remove Tim from CRM … change his name there to Empty". The West seat stays (id "tim": its mailbox, past
     attribution and REP_START keep working) but has no person: no name, no photo, nobody signs in as it. */
- {id:"tim",name:"Empty",role:"Open seat",c:"#8F8B82",vacant:true},
+ {id:"tim",name:"Empty West",role:"Open seat",c:"#8F8B82",vacant:true},
  {id:"laresa",name:"Laresa McIntyre",role:"Billing / Back office",c:"#8A5CA5"}
 ];
 const ENRICH={
@@ -3000,7 +3000,8 @@ function goalHomeHTML(){
 const SC_REPS=["johnm","john","tim","max"];
 /* the rows a week shows (Max, 2026-11-19: "show Max as the West contact"): the West seat is Max from REP_START.max on, the empty
    seat before that */
-function scReps(mon){return ["johnm","john",goalDays(mon)[6]>=REP_START.max?"max":"tim"];}
+/* Max, 2026-11-20: "push my name down one more person and add Empty West" — the open West seat always shows, Max under it */
+function scReps(mon){return ["johnm","john","tim"].concat(goalDays(mon)[6]>=REP_START.max?["max"]:[]);}
 function scAccess(){return ["max","hannah","jamie"].includes(USER);}
 /* Hannah, 2026-11-11 ("each of their own metrics in their view, so when they log in they can see this"): a seller sees their OWN
    scorecard row on Home, their own week and their own analysis — never another rep's (RLS rep_mail_own_read: own mailbox only) */
@@ -3123,15 +3124,34 @@ function scInboxState(u,mon,days,mail){
   const fmt=iso=>{const d=new Date(iso);return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});};
   const lw=lastIn?rmWho(lastIn.from_addr):null;
   const L=mail?"":"…";
+  const W=scWest(days[0],days[6]);
   const tiles=[
-    {label:"Emails received",v:mail?mail.recv:L,sub:mail?(senders?"from "+senders+(senders===1?" person":" people"):"Nothing came in"):"mailbox loading…",title:"Emails from someone outside the company that reached the inbox this week",bar:false},
-    {label:"Emails sent",v:mail?mail.sent:L,sub:mail?(mail.sent?pl(mail.dist,"email")+" to distributors":"Nothing sent from it"):"",title:"Emails sent from this mailbox to someone outside the company",bar:false},
-    {label:"Waiting on a reply",v:mail?waiting:L,sub:"they wrote last",title:"Outside people whose latest email this week came in and wasn’t answered from this mailbox",bar:false},
-    {label:"Organizations",v:mail?nOrg:L,sub:mail?pl(dist,"distributor"):"",title:"Companies (or email domains) the inbox heard from or wrote to",bar:false},
-    {label:"Bounced",v:mail?bounced:L,sub:"couldn’t be delivered",title:"Bounce notices: an email from this mailbox that didn’t arrive",bar:false},
+    {label:"Emails inbound",v:mail?mail.recv:L,sub:mail?(senders?"from "+senders+(senders===1?" person":" people"):"Nothing came in"):"mailbox loading…",title:"Emails from someone outside the company that reached the West inbox this week",bar:false},
+    {label:"Waiting on a reply",v:mail?waiting:L,sub:mail?(waiting?"they wrote last":"Nobody waiting"):"",title:"Outside people whose latest email this week came in and wasn’t answered from this mailbox",bar:false},
+    {label:"West activity",v:W.acts.length,sub:W.acts.length?[W.calls&&pl(W.calls,"call"),W.visits&&pl(W.visits,"visit"),W.emails&&pl(W.emails,"email")].filter(Boolean).join(" · ")+" · by "+W.who:"Nothing logged out West",title:"Everything anyone logged in the CRM with a West account or contact this week",bar:false},
+    {label:"West quotes",v:W.quotes.length,sub:W.quotes.length?fmtK(W.qAmt)+" · "+pl(W.qKits,"kit"):"None this week",title:"Quotes made this week for a West customer",bar:false},
+    {label:"West orders",v:W.kits,tgt:"kits",sub:W.orders.length?fmtK(W.oAmt)+" · "+pl(W.orders.length,"order"):"No orders this week",title:"Invoiced or paid orders this week that ship to the West",bar:false},
+    {label:"New West leads",v:W.leads,sub:W.confCalls?pl(W.confCalls,"conference-lead call"):"leads added this week",title:"Leads added this week in a West state, and calls to West conference leads",bar:false},
     {label:"Last email in",v:lastIn?fmt(lastIn.at):(mail?"—":L),sub:lastIn?(lw.p?lw.name:(lastIn.from_name||lw.name))+(lw.co?" · "+lw.co:""):(mail?"None this week":""),title:lastIn?String(lastIn.subject||""):"",bar:false,small:true}];
+  const cur=mon===goalMonday()?"this week":"that week";
   return {u:u,mon:mon,days:days,typ:[null,null,null,null,null],tally:goalTally(u,mon,"sales"),mail:mail,tiles:tiles,status:null,today:false,live:false,
-    inbox:true,logged:mail?mail.recv+mail.sent:0,loggedT:0,mix:"Open seat"};
+    inbox:true,logged:W.acts.length,loggedT:0,mix:"Everything in the West",
+    line:W.acts.length+" logged out West · "+(mail?mail.recv+" emails in":"inbox loading…")+" "+cur};
+}
+/* everything that happened in the West between two days (Max, 2026-11-20: "all the stats of everything going on in the west"):
+   activities with a West contact / account (anyone's), quotes for a West customer, orders that ship West, new West leads */
+function scWestOf(p,c){const r=(p&&personRegion(p))||(c&&companyRegion(c))||"";return r==="West";}
+function scWest(from,to){
+  const inR=d=>{d=String(d||"").slice(0,10);return d>=from&&d<=to;};
+  const acts=calActs(null,from,to).filter(a=>{const p=a.pid?person(a.pid):null,c=a.cid?company(a.cid):(p&&p.cid?company(p.cid):null);return scWestOf(p,c);});
+  const quotes=quotesAll().filter(q=>!q.removed&&inR(q.date||localDay(q.createdAt))&&scWestOf(q.pid?person(q.pid):null,q.cid?company(q.cid):null));
+  const orders=(DB.orders||[]).filter(o=>o&&orderIsSale(o)&&inR(o.poDate)&&orderRegion(o)==="West");
+  const leads=(DB.leads||[]).filter(l=>l&&!l.removed&&inR(localDay(l.createdAt))&&leadRegion(l)==="West").length;
+  let confCalls=0;(DB.confLeads||[]).forEach(l=>{if(!l||leadRegion(l)!=="West")return;(l.calls||[]).forEach(c=>{if(inR(localDay(c.at||c.date)))confCalls++;});});
+  return {acts:acts,calls:acts.filter(actIsCall).length,visits:acts.filter(a=>a.type==="visit"||a.type==="train"||a.type==="demo").length,
+    emails:acts.filter(a=>a.type==="email").length,who:new Set(acts.map(a=>a.by).filter(Boolean)).size+" "+(new Set(acts.map(a=>a.by).filter(Boolean)).size===1?"person":"people"),
+    quotes:quotes,qAmt:quotes.reduce((a,q)=>a+quoteTotal(q),0),qKits:quotes.reduce((a,q)=>a+quoteUnits(q),0),
+    orders:orders,oAmt:orders.reduce((a,o)=>a+(o.amount||0),0),kits:orders.reduce((a,o)=>a+orderUnits(o),0),leads:leads,confCalls:confCalls};
 }
 /* the Dialer seat (Max, 2026-11-19: "only emails sent through the Dialer… my KPIs: number of calls, talk time and outbound quotes…
    then Distributor reps called, Distributor sourcing calls and End-user calls"). Calls = the Dialer's own log (dialCalls) plus every
@@ -3278,7 +3298,7 @@ function scHomeHTML(){
    '<span class="scupd">'+esc(rmUpdLine())+'</span></div>'+(me?'':fuTeamHTML())+'<div class="scrows">'+(me?[USER]:scReps(mon)).map(u=>{const s=scState(u,mon),t=teamById(u);
     return '<div class="scrow pp"><div class="scwhocol"><button class="scwho" data-act="scopen" data-id="'+u+'" title="Open '+esc(t.name)+'’s week">'+faceHTML(u,"lg")+
      '<span class="scnm"><b>'+esc(t.name)+'</b><small>'+(s.dial?'':esc(userRegion(u)||"")+' · ')+esc(s.mix)+'</small><small class="sclogd">'+(s.line?esc(s.line):s.inbox?(s.mail?'Inbox · '+s.mail.recv+' in · '+s.mail.sent+' out '+(mon===goalMonday()?'this week':'that week'):'Inbox loading…'):s.logged+' logged '+(mon===goalMonday()?'this week · '+s.loggedT+' today':'that week'))+'</small>'+(s.status?'<span class="gst '+GB[s.status]+'">'+GOAL_STATUS[s.status]+'</span>':'')+'</span>'+
-     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+scBigBtn(u)+'</div><div class="sctiles'+(s.inbox?'':' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox||s.dial?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
+     '<span class="scgo">'+(me?"My week":"The week")+' '+chev()+'</span></button>'+scBigBtn(u)+'</div><div class="sctiles'+(s.inbox||s.dial?(s.tiles.length===7?' fu7':''):' fu7')+'">'+s.tiles.map(x=>scTileHTML(x,s.live)).join("")+(s.inbox||s.dial?'':fuTileHTML(u,s.today))+'</div>'+scPipeHTML(u,mon)+'</div>';}).join("")+
    (me?[]:RA_REPS.filter(u=>!SC_REPS.includes(u))).map(u=>{const t=teamById(u);
     return '<div class="raentry">'+faceHTML(u,"lg")+'<span class="scnm"><b>'+esc(t.name)+'</b><small>'+esc(t.role)+' · every email and everything in the CRM</small></span>'+raBigBtn(u)+'</div>';}).join("")+'</div>'+
    '<p class="glegend2"><span style="--c:var(--st-ok)">Green: 85%+ of the pace</span><span style="--c:var(--st-warn)">Yellow: 50–84%</span><span style="--c:var(--st-dang)">Red: under 50%</span><span style="--c:var(--faint)">Grey: nothing logged yet today</span><span>Judged on the days that are over · tap a name for the week · View analysis for every email and CRM entry</span></p></section>';
