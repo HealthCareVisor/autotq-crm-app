@@ -2304,7 +2304,8 @@ function roleBucket(r){r=(r||'').toLowerCase();
   return ['Contact','gray'];}
 /* ---------- OPPORTUNITIES (Salesforce-style stages) ---------- */
 const OPP_STAGES=["Prospecting","Qualification","Proposal/Price Quote","Negotiation","Closed Won","Closed Lost"];
-const OPP_SHORT={"Prospecting":"Prospecting","Qualification":"Qualification","Proposal/Price Quote":"Proposal","Negotiation":"Negotiation","Closed Won":"Won","Closed Lost":"Lost"};
+/* the 4th stage reads "Forecast" (Max, 2026-11-20); its stored key stays "Negotiation" so live deals and older pages agree */
+const OPP_SHORT={"Prospecting":"Prospecting","Qualification":"Qualification","Proposal/Price Quote":"Proposal","Negotiation":"Forecast","Closed Won":"Won","Closed Lost":"Lost"};
 const OPP_PROB={"Prospecting":10,"Qualification":25,"Proposal/Price Quote":50,"Negotiation":75,"Closed Won":100,"Closed Lost":0};
 /* Synced records may carry man-rep-report stage labels ("Place Holder", "Demo / Meeting
    with Customer"…) — map anything non-canonical onto OPP_STAGES so the board/forecasts see it. */
@@ -6032,7 +6033,7 @@ function viewForecast(poolIn){
   const lost=base.filter(o=>o.stage==="Closed Lost");
   if(lost.length)h+='<tr class="muted"><td>Omitted (lost)</td><td colspan="'+periods.length+'"></td><td>'+money(sum(lost))+'</td></tr>';
   h+='</tbody></table></div>';
-  h+='<p style="font-size:12.5px;color:var(--hint);margin:10px 2px 0">Closed = won · Commit = in negotiation · Best case = quoted/proposal out · Pipeline = still qualifying. Deals without a close date sit in their forecast-year bucket — set close dates from the deal to tighten this.</p>';
+  h+='<p style="font-size:12.5px;color:var(--hint);margin:10px 2px 0">Closed = won · Commit = at the Forecast stage · Best case = quoted/proposal out · Pipeline = still qualifying. Deals without a close date sit in their forecast-year bucket — set close dates from the deal to tighten this.</p>';
   if(fSel){
     const os=(cell[fSel.cat+"|"+fSel.period]||[]).slice().sort((a,b)=>(b.amount||0)-(a.amount||0));
     const f=FCATS.find(x=>x.key===fSel.cat);
@@ -7891,7 +7892,7 @@ const REPORTS=[
    rows:myOpps().filter(oppIsOpen).map(o=>[o.name,oppAcctLabel(o),OPP_SHORT[o.stage],o.amount||0,o.units||0,oppProb(o),o.closeDate||(o.forecastYear?"FY "+o.forecastYear:""),oppRegion(o),o.rep||"",o.source||"app"])};}},
  {id:"opp-book",name:"Opportunity Book",desc:"All opportunities including closed, with outcomes",
   run(){return {cols:["Opportunity","Account","Stage","Amount","Units","Prob %","Region","Rep","Deal type","Latest note"],
-   rows:myOpps().map(o=>[o.name,oppAcctLabel(o),o.stage,o.amount||0,o.units||0,oppProb(o),oppRegion(o),o.rep||"",o.dealType||"",oppNotesText(o,1)])};}},
+   rows:myOpps().map(o=>[o.name,oppAcctLabel(o),OPP_SHORT[o.stage]||o.stage,o.amount||0,o.units||0,oppProb(o),oppRegion(o),o.rep||"",o.dealType||"",oppNotesText(o,1)])};}},
  {id:"accounts",name:"Accounts by Region",desc:"Full account book with type, stage and order history",
   run(){return {cols:["Account","Type","Region","State","Stage","Contacts","Units","Revenue","Orders","Demos","Website"],
    rows:(function(){const cc=contactCountMap();return DB.companies.filter(c=>admin()||inRegion(companyRegion(c))).map(c=>[c.name,typeLabel(c.type),companyRegion(c),c.state||"",c.type==="distributor"?enableStage(c):(c.stage||""),cc[c.id]||0,c.units||0,c.revenue||0,c.orders||0,c.demoCount||0,c.website||""]);})()};}},
