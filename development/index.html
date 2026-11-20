@@ -1285,6 +1285,151 @@ button.mev{cursor:pointer}button.mev:hover,button.mev:focus-visible{border-color
 .mk2-tile .tnums small{display:block;font-size:11.5px;color:var(--ink-3);line-height:1.3}
 .mk2-tile .tneed{font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--rule-2);padding-top:9px;margin-top:auto}
 .mk2-tile .tneed.on{color:var(--coral-ink);font-weight:600}
+/* engine-css:start */
+/* the simple hub (2026-11-20) — every class starts sh- */
+:root{--sh-bar:#3A3B40;--sh-bar2:#8E8D88}
+:root[data-theme="light"]{--sh-bar:#D9D5CC;--sh-bar2:#5B6169}
+.mk2-ph h1{font-size:26px;font-weight:750;letter-spacing:-.02em}
+.sh-moreb{margin-top:10px;color:var(--ink-3)!important}
+.sh-moreb svg.i{width:15px;height:15px}
+.sh-morel{display:flex;flex-direction:column}
+.sh-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 22px;max-width:1080px}
+.sh-head h1{font-size:30px;font-weight:800;letter-spacing:-.025em;line-height:1.15;margin:0;text-wrap:balance}
+.sh-sum{font-size:15.5px;color:var(--ink-2);margin:6px 0 0}
+.sh-sum b{color:var(--ink);font-variant-numeric:tabular-nums}.sh-sum .hot{color:var(--coral-ink)}
+.sh-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sh-seg{display:inline-flex;background:var(--rule-2);border-radius:10px;padding:3px;gap:2px}
+.sh-seg button{border:0;background:none;height:34px;padding:0 14px;border-radius:8px;font:inherit;font-weight:600;font-size:13.5px;color:var(--ink-3);cursor:pointer}
+.sh-seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.sh-wk{display:inline-flex;align-items:center;gap:6px}
+.sh-wk button{width:34px;height:34px;border:1px solid var(--rule);border-radius:9px;background:var(--paper);cursor:pointer;display:grid;place-items:center;color:var(--ink-2);padding:0}
+.sh-wk button svg{width:16px;height:16px}
+.sh-wk span{font-weight:600;min-width:118px;text-align:center;font-size:14px}
+.sh-day{margin-bottom:18px;max-width:1080px}
+.sh-dayh{font-size:12.5px;font-weight:700;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase;margin:0 0 6px 4px}
+.sh-dayh.hot{color:var(--coral-ink)}
+.sh-list{border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:var(--paper)}
+.sh-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--rule-2)}
+.sh-row:first-child{border-top:0}
+.sh-tick{width:24px;height:24px;border-radius:50%;border:1.6px solid var(--rule-3);background:none;flex:none;cursor:pointer;display:grid;place-items:center;padding:0;color:transparent}
+.sh-tick svg{width:14px;height:14px}
+.sh-tick:hover,.sh-tick:focus-visible{border-color:var(--ok);color:var(--ok)}
+.sh-row.done .sh-tick{background:var(--ok);border-color:var(--ok);color:#fff}
+.sh-row.done .sh-t{color:var(--ink-3);text-decoration:line-through}
+.sh-dot{width:24px;height:24px;flex:none;border-radius:50%;background:var(--coral-wash);color:var(--coral-ink);display:grid;place-items:center}
+.sh-dot svg{width:13px;height:13px}
+.sh-t{flex:1;min-width:0;border:0;background:none;padding:0;font:inherit;font-size:15px;font-weight:600;line-height:1.35;color:var(--ink);text-align:left;cursor:pointer;overflow-wrap:anywhere}
+.sh-when{flex:none;width:96px;font-size:13px;font-weight:600;color:var(--ink-3)}
+.sh-cat{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--ink-3);white-space:nowrap;flex:none}
+.sh-cat i{width:8px;height:8px;border-radius:3px;display:inline-block}
+.sh-kpi{font-size:12.5px;color:var(--ink-3);white-space:nowrap;flex:none;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.sh-okb{height:32px;padding:0 14px;border-radius:8px;border:0;background:var(--coral-btn,var(--coral));color:#fff;font:inherit;font-weight:700;font-size:13px;cursor:pointer;flex:none;white-space:nowrap}
+.sh-okb.ghost{background:none;border:1px solid var(--rule-3);color:var(--ink)}
+.sh-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.sh-col{border:1px solid var(--rule);border-radius:12px;padding:14px;background:var(--paper);display:flex;flex-direction:column;gap:2px;min-width:0}
+.sh-colh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sh-colh b{font-size:14.5px;flex:1}.sh-colh span{font-size:12.5px;font-weight:700;color:var(--ink-3)}
+.sh-av{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+.sh-ci{display:flex;flex-direction:column;gap:2px;padding:9px 0 3px;border:0;border-top:1px solid var(--rule-2);background:none;font:inherit;text-align:left;color:var(--ink);cursor:pointer}
+.sh-ci b{font-size:13.5px;font-weight:600;line-height:1.35}.sh-ci small{font-size:12px;color:var(--ink-3)}
+.sh-ci.done b{text-decoration:line-through;color:var(--ink-3)}
+.sh-none{font-size:13px;color:var(--ink-3);margin:0}
+.sh-pill{display:inline-flex;align-items:center;height:26px;padding:0 11px;border-radius:99px;font-size:12.5px;font-weight:700;background:var(--rule-2);color:var(--ink-2);white-space:nowrap}
+.sh-pill.max{background:var(--coral-wash);color:var(--coral-ink)}
+.sh-pill.warm{background:var(--warn-wash);color:var(--warn)}
+.sh-pill.ok{background:var(--ok-wash);color:var(--ok)}
+.sh-grp{margin-bottom:16px}
+.sh-grph{display:flex;align-items:baseline;justify-content:space-between;margin:0 4px 8px}
+.sh-grph h2{font-size:17px;font-weight:700;margin:0}.sh-grph span{font-size:13px;color:var(--ink-3);font-weight:600}
+.sh-crow{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:0;border-top:1px solid var(--rule-2);background:var(--paper);font:inherit;color:var(--ink);cursor:pointer;text-align:left}
+.sh-list .sh-crow:first-child{border-top:0}
+.sh-crow:hover{background:var(--panel)}
+.sh-crow.on{background:var(--coral-wash)}
+.sh-crow .nm{flex:1;min-width:0}.sh-crow .nm b{display:block;font-size:14.5px;font-weight:600}.sh-crow .nm small{font-size:12.5px;color:var(--ink-3)}
+.sh-crow .num{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.sh-crow .num small{display:block;font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.sh-mini{font-size:11.5px;font-weight:700;color:var(--warn);background:var(--warn-wash);border-radius:99px;padding:3px 8px;white-space:nowrap}
+.sh-mini.ok{color:var(--ok);background:var(--ok-wash)}
+.sh-mails{position:sticky;top:74px;display:flex;flex-direction:column;gap:12px}
+.sh-mailh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sh-mailh h2{font-size:17px;font-weight:700;margin:0}
+.sh-mail{border:1px solid var(--rule);border-radius:12px;background:var(--paper);overflow:hidden}
+.sh-mail .mh{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--rule-2);background:var(--panel);flex-wrap:wrap}
+.sh-mail .mh .k{font-size:11.5px;font-weight:700;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.sh-mail .mh .s{font-weight:600;font-size:14px;flex:1;min-width:0}
+.sh-mail .mb{padding:14px 16px;font-size:14.5px;line-height:1.6;white-space:pre-wrap;color:var(--ink);overflow-wrap:anywhere}
+.sh-mail .mf{display:flex;align-items:center;gap:8px;padding:0 16px 14px;flex-wrap:wrap}
+.sh-note{font-size:12.5px;color:var(--warn)}
+.sh-tok{background:var(--warn-wash);color:var(--warn);border-radius:4px;padding:0 3px;font-weight:600}
+.sh-months{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.sh-months button{height:34px;padding:0 13px;border-radius:99px;border:1px solid var(--rule);background:var(--paper);font:inherit;font-weight:600;font-size:13.5px;cursor:pointer;color:var(--ink-2)}
+.sh-months button small{font-weight:600;color:var(--ok);margin-left:4px}
+.sh-months button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.sh-wkrow{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--rule);max-width:1180px}
+.sh-wkrow:first-of-type{border-top:0}
+.sh-wkrow.now .wl b{color:var(--coral-ink)}
+.sh-wkrow .wl b{display:block;font-size:14px}.sh-wkrow .wl small{font-size:12.5px;color:var(--ink-3)}
+.sh-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sh-chip{display:inline-flex;align-items:center;gap:8px;max-width:100%;padding:7px 10px;border:1px solid var(--rule);border-radius:9px;background:var(--paper);font:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;text-align:left}
+.sh-chip:hover{border-color:var(--rule-3)}
+.sh-chip i{width:8px;height:8px;border-radius:3px;flex:none}
+.sh-chip span{min-width:0}
+.sh-chip .o{display:flex;flex:none}.sh-chip .o .sh-av{width:20px;height:20px;font-size:8px;border:2px solid var(--paper)}.sh-chip .o .sh-av+.sh-av{margin-left:-6px}
+.sh-chip.done span:not(.o){text-decoration:line-through;color:var(--ink-3)}
+.sh-tiles{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;max-width:1080px}
+.sh-tiles>div{flex:1;min-width:160px;border:1px solid var(--rule);border-radius:12px;padding:14px 16px;background:var(--paper)}
+.sh-tiles b{display:block;font-size:26px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}.sh-tiles span{font-size:13px;color:var(--ink-3)}
+.sh-tbl{border:1px solid var(--rule);border-radius:12px;overflow:hidden;max-width:1080px}
+.sh-tbl .tr{display:grid;grid-template-columns:minmax(140px,1fr) minmax(0,2fr) minmax(110px,.9fr) 130px;gap:12px;align-items:center;padding:13px 16px;border-top:1px solid var(--rule-2);background:var(--paper)}
+.sh-tbl .tr:first-child{border-top:0}
+.sh-tbl .tr.hd{background:var(--panel);font-size:12.5px;font-weight:600;color:var(--ink-3);padding-block:9px}
+.sh-tbl .d,.sh-tbl .w{font-size:13.5px;color:var(--ink-2)}
+.sh-sheet .sbd{display:flex;flex-direction:column;gap:14px}
+.sh-facts{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-2)}
+.sh-facts .o{display:flex;align-items:center;gap:6px}.sh-facts .o b{font-weight:600;margin-right:6px}
+.sh-fact .lbl{font-size:12.5px;font-weight:600;color:var(--ink-3);margin-bottom:4px}
+.sh-pre{white-space:pre-wrap;font-size:14px;line-height:1.55}
+@media (max-width:860px){.sh-cgrid{grid-template-columns:1fr}.sh-mails{position:static}.sh-tbl .tr{grid-template-columns:1fr;gap:4px}.sh-tbl .tr.hd{display:none}.sh-wkrow{grid-template-columns:1fr;gap:8px}}
+@media (max-width:640px){.sh-head h1{font-size:24px}.sh-kpi,.sh-row .sh-cat{display:none}.sh-row{padding:12px}.sh-t{font-size:14.5px}}
+/* Campaigns numbers: dark cards, after Max's two reference images (a tick meter, a hatched pie) */
+.sh-dkgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0 0 28px;max-width:1180px}
+.sh-dk{background:#0E0E10;color:#EDEDEF;border:1px solid #26262B;border-radius:3px;padding:22px 24px 20px;display:flex;flex-direction:column;gap:18px;position:relative;min-width:0}
+.sh-dk::before,.sh-dk::after{content:"";position:absolute;width:9px;height:9px;border:0 solid #5A5A61}
+.sh-dk::before{top:-1px;left:-1px;border-width:1px 0 0 1px}
+.sh-dk::after{bottom:-1px;right:-1px;border-width:0 1px 1px 0}
+.sh-dk .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.sh-dk .hd b{display:block;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:#F4F4F6}
+.sh-dk .hd span{display:block;font-size:12.5px;color:#8E8E95;margin-top:4px}
+.sh-dk .hd .rt{text-align:right}.sh-dk .hd .rt b{font-size:17px;font-weight:600;color:#3DD68C}
+.sh-dk .hd .sh-lbar{border-left:1.5px solid #77777E;padding-left:14px}
+.sh-dk .hd .sh-lbar span{margin:0 0 6px;font-size:13px;color:#A0A0A6}
+.sh-hist{display:flex;align-items:flex-end;gap:2px;height:72px}
+.sh-hist i{flex:1;min-width:1px;background:#2A2A2F;border-radius:1px}
+.sh-hist i.on{background:#CFCFD4}
+.sh-axis{display:flex;justify-content:space-between;font-size:11.5px;color:#6E6E75;margin-top:-10px}
+.sh-meter{position:relative;display:flex;gap:3px;height:62px;padding-top:24px}
+.sh-meter.src{height:40px;padding-top:0}
+.sh-meter i{flex:1;min-width:2px;background:#2C2C31;border-radius:1px}
+.sh-meter i.on,.sh-meter i.a{background:#C8C8CE}
+.sh-meter i.on2,.sh-meter i.b{background:#7E7E85}
+.sh-meter i.c{background:#4E4E55}
+.sh-meter em{position:absolute;top:0;font-style:normal;font-size:12.5px;color:#EDEDEF;transform:translateX(-50%);font-variant-numeric:tabular-nums}
+.sh-meter em::after{content:"";position:absolute;left:50%;top:18px;width:1px;height:6px;background:#8E8E95}
+.sh-key{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:13px;color:#B5B5BB}
+.sh-key i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;background:#C8C8CE}
+.sh-key i.b{background:#7E7E85}
+.sh-key u{text-decoration:underline dotted #6E6E75;text-underline-offset:4px}
+.sh-key .r{margin-left:auto;font-size:12px;color:#8E8E95}
+.sh-piew{display:grid;grid-template-columns:150px minmax(0,1fr);gap:24px;align-items:center}
+.sh-pie{width:150px;height:150px;display:block}
+.sh-tbl2>div,.sh-srcl>div{display:grid;grid-template-columns:10px minmax(0,1fr) auto 56px;gap:10px;align-items:center;padding:6px 0;font-size:13.5px;color:#D6D6DA}
+.sh-tbl2 i,.sh-srcl i{width:9px;height:9px;border-radius:1px;background:#C8C8CE}
+.sh-srcl i.b{background:#7E7E85}.sh-srcl i.c{background:#4E4E55}
+.sh-tbl2 em,.sh-srcl em{font-style:normal;color:#8E8E95;font-variant-numeric:tabular-nums}
+.sh-tbl2 b,.sh-srcl b{font-weight:500;text-align:right;font-variant-numeric:tabular-nums;color:#EDEDEF}
+@media (max-width:900px){.sh-dkgrid{grid-template-columns:1fr}}
+@media (max-width:480px){.sh-piew{grid-template-columns:1fr;justify-items:center}.sh-dk{padding:18px 16px}.sh-key .r{margin-left:0}}
+/* engine-css:end */
 .mk2-grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:start}
 .mk2-empty{padding:22px 14px;color:var(--ink-3);text-align:center;font-size:13px}
 .mk2-pill{font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--rule-2);color:var(--ink-2);white-space:nowrap}
@@ -6822,11 +6967,373 @@ async function mapOpen(){
 window.addEventListener("message",e=>{const f=document.getElementById("mapFrame");if(f&&e.source===f.contentWindow&&e.data&&e.data.hxmap==="close")mapClose();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("mapFrame")){e.stopPropagation();mapClose();}},true);
 /* map:end */
+/* engine:start — the simple hub's ticket model (campaign next steps as tickets) + the four screens; the marketing engine (2026-11-20, Max: the shannholmberg "marketing engineer" post, "refocus broadly on the
+   marketing hub"). Every campaign is a board of tickets: its next steps (mktLib camp .next[]) now carry an owner (a person or
+   Claude), a step (Context → Plan → Tickets + people → Build + check → Review → Launch → Results), a status, a due date, what it
+   waits on, its checks and a link to its output. Board = everyone's home: their tickets across campaigns, what needs approval,
+   what's stuck. A campaign ends in the deals it made (CRM opps, attached by Max or Hannah; never shown to the other seats).
+   Old next steps keep working: fields that were never set are read from the wording (engGuess*), and campaign.py still writes
+   {t,done}. Nothing here sends anything. */
+const ENG_STEPS=[["Context","#4A7FD6"],["Plan","#8E4FCF"],["Tickets + people","#0E8F8F"],["Build + check","#D98A12"],["Review","#D83A52"],["Launch","#1F9D55"],["Results","#B9407F"]];
+const ENG_ST=[["review","Needs approval","#8E4FCF","#fff"],["stuck","Stuck","#D83A52","#fff"],["work","Working on it","#F0A830","#1A1916"],["none","Not started","","" ],["done","Done","#1F9D55","#fff"]];
+const ENG_PRI=[["hi","High"],["med","Medium"],["lo","Low"]];
+const ENG_WHO=["max","hannah","kellan","carisse","elvi","claude"];
+const ENG_APPR=["max","hannah"];
+const ENG_COL=["#2D6CC0","#E8402E","#1F9D55","#8E4FCF","#D98A12","#0E7C7B","#B4436C","#45433D"];
+const ENG_DST=[["early","Early","#4A7FD6",/^(Prospecting|Qualification)/i],["prop","Proposal","#D98A12",/^Proposal/i],["neg","Negotiation","#8E4FCF",/^Negotiation/i],["won","Won","#1F9D55",/^Closed Won/i],["lost","Lost","#8E8D88",/^Closed Lost/i]];
+const ENG_KEY="autotq_eng_v1";
+let ENG={who:"",by:"st",seg:"tix",pf:"",fold:{},items:{},planOpen:null,planDrop:{},planN:0,cseg:false,ctab:{},edit:null,pick:null,add:{},addFocus:"",drawKey:"",pickKey:"",newCamp:null};
+try{const s=JSON.parse(localStorage.getItem(ENG_KEY)||"{}");["who","by","pf","fold"].forEach(k=>{if(s[k]!=null)ENG[k]=s[k];});}catch(e){}
+function engKeep(){try{localStorage.setItem(ENG_KEY,JSON.stringify({who:ENG.who,by:ENG.by,pf:ENG.pf,fold:ENG.fold}));}catch(e){}}
+Object.assign(SVG,{list:'<path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M4 6.5h.01M4 12h.01M4 17.5h.01" stroke-width="2.6" stroke-linecap="round"/>',board:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M9.5 9.5v10"/>',fold:'<polyline points="6 9.5 12 15.5 18 9.5"/>',link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',lock:'<rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',dollar:'<path d="M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 1.6 2.6 4.5 3.2 4.5 1.6 4.5 3.3-2 3-4.5 3-4.5-1.3-4.5-3"/>'});
+
+/* ---------- reading a ticket (a campaign next step) ---------- */
+const ENG_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function engStrip(t){return String(t||"").replace(/^(This week|Every article[^·]*|Monthly|Optional later:|Article \d+|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2})\s*[·:]?\s*(\d+\.\s*)?/i,"").trim();}
+const ENG_REV=/^(approves?|oks?|reads?|checks?|picks?|confirms?|signs|reviews?|decides?)$/i;
+function engLead(t){const m=engStrip(t).match(/^(Max|Hannah|Kellan|Carisse|Elvi|Claude)\s+(\S+)/);return m?[m[1].toLowerCase(),m[2]]:null;}
+function engIsReview(t){const L=engLead(t);return !!(L&&L[0]!=="claude"&&ENG_REV.test(L[1]))||/\bfor approval\b/i.test(t||"");}
+function engGuessOwner(t){const L=engLead(t);if(L)return L[0];if(/\bClaude (drafts|checks|sets up|publishes|builds|writes)\b/.test(t||""))return "claude";const m=engStrip(t).match(/\b(Max|Hannah|Kellan|Carisse|Elvi)\b/);return m?m[1].toLowerCase():"";}
+function engGuessSt(t){return engIsReview(t)?"review":"none";}
+function engGuessStep(t){const s=engStrip(t);if(engIsReview(t))return 4;
+  if(/^(Mail|Send|Upload|Unpause|Post|Publish|Book|Follow up|On each reply|Answer|Call)\b|\bkeeps calling\b/i.test(s))return 5;
+  if(/^(Count|Monthly|Measure|Report)\b|Search Console|Analytics/i.test(s)||/^Monthly/i.test(t||""))return 6;
+  if(/^(Pick|List|Reveal|Pull|Find|Research)\b|\bleads?\b|\blist\b/i.test(s))return 2;
+  if(/^(Decide|Plan|Choose)\b|\bsets the\b|\bbudget\b/i.test(s))return 1;
+  return 3;}
+function engGuessDue(t){const m=String(t||"").match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* (\d{1,2})\b/);if(!m)return "";const mo=ENG_MON.indexOf(m[1]),now=new Date();let y=now.getFullYear();if(mo<now.getMonth()-2)y++;return y+"-"+String(mo+1).padStart(2,"0")+"-"+String(+m[2]).padStart(2,"0");}
+function engT(c,x,i){const st=x.done?"done":(x.st&&x.st!=="done"?x.st:engGuessSt(x.t)),owner=x.owner!=null?x.owner:engGuessOwner(x.t);
+  return {c,x,i,id:x.id||(c.id+":"+i),key:c.id+"|"+i,title:x.t||"",st,step:x.step!=null?+x.step:engGuessStep(x.t),owner,due:x.due!=null?x.due:engGuessDue(x.t),pri:x.pri||"",
+    appr:x.appr||(owner&&owner!=="claude"&&ENG_APPR.includes(owner)?owner:"max"),waits:x.waits||[],checks:x.checks||[],out:x.out||"",ctx:x.ctx||"",doneAt:x.doneAt||"",doneBy:x.doneBy||""};}
+function engTixOf(c){return (c.next||[]).map((x,i)=>x&&!x.removed?engT(c,x,i):null).filter(Boolean);}
+function engTix(){return mk2Camps().flatMap(engTixOf);}
+function engFind(key){const [cid,i]=String(key||"").split("|");const c=mk2Camps().find(x=>x.id===cid);return c&&c.next&&c.next[+i]?engT(c,c.next[+i],+i):null;}
+function engById(id){return engTix().find(t=>t.id===id)||null;}
+function engBlockers(t){return (t.waits||[]).map(engById).filter(w=>w&&w.st!=="done");}
+function engMineT(t){return t.owner===USER||(t.st==="review"&&t.appr===USER&&t.owner!==USER);}
+function engMine(){return engTix().filter(t=>t.st!=="done"&&engMineT(t));}
+function engLate(t){return t.st!=="done"&&t.due&&t.due<todayStr();}
+function engColor(c){if(c.color)return c.color;const i=mk2Camps().findIndex(x=>x.id===c.id);return ENG_COL[(i<0?0:i)%ENG_COL.length];}
+function engStMeta(k){return ENG_ST.find(s=>s[0]===k)||ENG_ST[3];}
+function engDue(d){if(!d)return "";const td=todayStr();if(d===td)return "Today";const t=new Date(td+"T12:00:00"),x=new Date(d+"T12:00:00"),n=Math.round((x-t)/86400000);if(n===1)return "Tomorrow";if(n===-1)return "Yesterday";return x.toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function engWeekEnd(){const t=new Date(todayStr()+"T12:00:00");t.setDate(t.getDate()+(7-((t.getDay()+6)%7)-1));return t.toLocaleDateString("en-CA");}
+
+/* ---------- writing ---------- */
+function engNewId(){return "t"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function engSaveCamp(c){(c.next||[]).forEach(x=>{if(x&&!x.id)x.id=engNewId();});c.updatedAt=new Date().toISOString();put("mktLib",c);}
+function engSet(t,patch){const x=t.x,now=new Date().toISOString();Object.assign(x,patch);
+  if("st" in patch){x.done=patch.st==="done";if(x.done){x.doneAt=now;x.doneBy=USER;}else{delete x.doneAt;delete x.doneBy;}}
+  x.editedAt=now;x.editedBy=USER;engSaveCamp(t.c);}
+function engAddTicket(c,title,step,more){const x=Object.assign({id:engNewId(),t:String(title).slice(0,240),done:false,by:USER,at:new Date().toISOString(),step,st:"none",owner:""},more||{});(c.next=c.next||[]).push(x);engSaveCamp(c);return x;}
+/* ---------- The simple hub (2026-11-20, Max + Hannah: "something very clear, not overwhelming"): four screens.
+   This week = Hannah's GHM Marketing Plan 2027 (mktLib kind ptask, loaded by tools/plan_import.py) per person, plus what waits on
+   their OK. Campaigns = how many emails go out a day against the most we can send, and the emails themselves. Plan = her plan
+   by week. Automatic = what runs by itself. Everything else sits under More. ---------- */
+const SH_PEOPLE={hannah:["Hannah","#993556"],max:["Max","#D85A30"],carisse:["Carisse","#B4436C"],elvi:["Elvi","#2F7D6D"],kellan:["Kellan","#6B4FA3"],sales:["Sales team","#185FA5"]};
+const SH_CAT={GV:["Giveaway","#D9485F"],SO:["Social","#3E7BD6"],VI:["Video","#8E4FCF"],EM:["Email","#E08A00"],ML:["Mail","#2F8A3A"],PH:["Calls","#0E8F8F"],CF:["Conference","#8A8F98"],CH:["Distributors","#B4436C"],CU:["Customers","#2D6CC0"],CD:["Donations","#9A6700"],WS:["Website","#C2321F"],WB:["Webinar","#6B4FA3"]};
+const SH_MAIN=[["week","list","This week"],["mail","mail","Campaigns"],["yearplan","cal","Plan"],["auto","bolt","Automatic"]];
+const SH_AUTO=[
+ ["Cold emails","Smartlead sends the school and range emails from 24 mailboxes, rotating","Weekdays","cold"],
+ ["Reply sorting","Smartlead's AI reads each reply; interested people go to their territory rep","As replies come in","cold"],
+ ["LinkedIn prospects","100 companies a day from one industry, with a 3-message LinkedIn campaign","Weekdays, 7 AM","run"],
+ ["LinkedIn invites","Gets the day's company-page follow invites ready for Max to send","Weekdays, 9 AM","run"],
+ ["Google search check","Pulls the Search Console numbers into the search tracker","Tuesdays, 8:30 AM","run"],
+ ["Giveaway entries","Each entry lands in the CRM, tagged with its month and where it came from","As people enter","plan"],
+ ["Webinar sign-ups","Every Tourniquet Tuesday sign-up goes on the sales team's call list","After each webinar","plan"]];
+let SH={mode:"me",wk:"",camp:"",mon:"",more:false,open:null,openN:0};
+try{const s=JSON.parse(localStorage.getItem("autotq_simple_v1")||"{}");if(s.more!=null)SH.more=s.more;if(s.mode)SH.mode=s.mode;}catch(e){}
+function shKeep(){try{localStorage.setItem("autotq_simple_v1",JSON.stringify({more:SH.more,mode:SH.mode}));}catch(e){}}
+const shD=s=>new Date(s+"T12:00:00");
+const shAdd=(s,n)=>{const d=shD(s);d.setDate(d.getDate()+n);return d.toLocaleDateString("en-CA");};
+const shFmt=(s,o)=>shD(s).toLocaleDateString("en-US",o||{month:"short",day:"numeric"});
+function shMonday(s){const d=shD(s),dow=(d.getDay()+6)%7;d.setDate(d.getDate()-dow);return d.toLocaleDateString("en-CA");}
+function shWeek(){return SH.wk||(SH.wk=shMonday(todayStr()));}
+function shAv(id){const p=SH_PEOPLE[id];return p?'<span class="sh-av" style="background:'+p[1]+'" title="'+esc(p[0])+'">'+esc(p[0].slice(0,2).toUpperCase())+'</span>':"";}
+function shCat(c){const x=SH_CAT[c]||SH_CAT.CF;return '<span class="sh-cat"><i style="background:'+x[1]+'"></i>'+x[0]+'</span>';}
+/* plan tasks */
+function shTasks(){return mk2Lib("ptask").filter(t=>t&&!t.removed);}
+function shWhoOf(uid){return uid==="kellan"?["kellan","sales"]:[uid];}
+function shMine(list,uid){const w=shWhoOf(uid);return list.filter(t=>(t.who||[]).some(x=>w.includes(x)));}
+function shInWeek(wk){const end=shAdd(wk,4);return shTasks().filter(t=>t.d0<=end&&t.d1>=wk);}
+/* campaign tickets (next steps) with a due date, for the same person */
+function shTicketsDue(uid,wk){try{const end=shAdd(wk,4);return engTix().filter(t=>t.st!=="done"&&t.owner===uid&&t.due&&t.due>=wk&&t.due<=end);}catch(e){return [];}}
+/* what waits on this person's OK, from the rest of the hub */
+function shWaiting(uid){const out=[],safe=f=>{try{return f();}catch(e){return 0;}},td=todayStr();
+  if(uid==="max"){const ev=safe(()=>mk2Events())||[],n=(safe(()=>actItems())||[]).length+((safe(()=>mk2YesCalls(ev))||[]).length||0);
+    if(n)out.push({k:"w:answer",t:"Answer "+n+(n===1?" person who":" people who")+" reached out",btn:"Call",go:"calls"});
+    const cl=safe(()=>Math.max(0,(COLD_CAMPS.length+COLD_RANGES.length)*3-coldApprAll()));if(cl)out.push({k:"w:cold",t:"Approve "+cl+" cold email"+(cl===1?"":"s"),btn:"Review",go:"mail"});
+    const d=safe(()=>liPosts().filter(p=>p.status==="draft"&&String(p.slotAt||"")>=td).length);if(d)out.push({k:"w:li",t:"Review "+d+" LinkedIn draft"+(d===1?"":"s"),btn:"Review",go:"li"});}
+  if(CAMP_REVIEWERS.includes(uid)){const r=safe(()=>campaigns().filter(c=>c.status==="review"&&!(c.approvals||{})[uid]).length);if(r)out.push({k:"w:camp",t:"OK "+r+" email campaign"+(r===1?"":"s"),btn:"Review",go:"camp"});}
+  (safe(()=>engTix().filter(t=>t.st==="review"&&t.appr===uid))||[]).forEach(t=>out.push({k:"tk:"+t.key,tk:t.key,t:engImperS(t.title,uid),sub:t.c.name,btn:"Open"}));
+  return out;}
+/* "Max approves the 9 range emails" on Max's own list reads "Approve the 9 range emails" */
+function engImperS(t,uid){const m=String(t||"").match(/^(Max|Hannah|Kellan|Carisse|Elvi)\s+(\S+)([\s\S]*)$/);if(!m||m[1].toLowerCase()!==uid)return String(t||"");let v=m[2];
+  if(/^OKs$/.test(v))v="OK";else if(/ies$/.test(v))v=v.slice(0,-3)+"y";else if(/(sses|shes|ches|xes)$/.test(v))v=v.slice(0,-2);else if(/[^s]s$/.test(v))v=v.slice(0,-1);
+  return v.charAt(0).toUpperCase()+v.slice(1)+m[3];}
+function shRow(t){const done=!!t.done;
+  return '<div class="sh-row'+(done?" done":"")+'"><button class="sh-tick" data-act="shtick" data-v="'+esc(t.id)+'" aria-label="'+(done?"Done":"Mark done")+': '+esc(t.t)+'">'+svg("check")+'</button>'+
+    '<button class="sh-t" data-act="shopen" data-v="'+esc(t.id)+'">'+esc(t.t)+'</button>'+(t.kpi?'<span class="sh-kpi">'+esc(t.kpi)+'</span>':'')+shCat(t.cat)+
+    (t.ok&&!done?'<button class="sh-okb" data-act="shtick" data-v="'+esc(t.id)+'">Approve</button>':'')+'</div>';}
+function shTkRow(t){return '<div class="sh-row"><button class="sh-tick" data-act="shtktick" data-v="'+esc(t.key)+'" aria-label="Mark done: '+esc(t.title)+'">'+svg("check")+'</button><button class="sh-t" data-act="shtkopen" data-v="'+esc(t.key)+'">'+esc(engImperS(t.title,USER))+'</button><span class="sh-cat"><i style="background:var(--ink-4)"></i>'+esc(t.c.name)+'</span></div>';}
+function shWaitRow(w){return '<div class="sh-row"><span class="sh-dot">'+svg("arrow")+'</span><button class="sh-t" data-act="shgo" data-v="'+esc(w.k)+'">'+esc(w.t)+'</button>'+(w.sub?'<span class="sh-cat">'+esc(w.sub)+'</span>':'')+'<button class="sh-okb ghost" data-act="shgo" data-v="'+esc(w.k)+'">'+esc(w.btn)+'</button></div>';}
+function shViewWeek(){const wk=shWeek(),me=teamById(USER),hr=new Date().getHours(),all=shInWeek(wk),lead=pjInner();
+  const mine=shMine(all,USER),left=mine.filter(t=>!t.done),W=SH.mode==="me"?shWaiting(USER):[];SH.wait={};W.forEach(w=>{SH.wait[w.k]=w;});
+  const okN=left.filter(t=>t.ok).length+W.length;
+  let h='<div class="sh-head"><div><h1>'+(SH.mode==="me"?(hr<12?"Good morning":hr<17?"Good afternoon":"Good evening")+", "+esc(String(me.name||"").split(" ")[0]):"Everyone's week")+'</h1>'+
+    (SH.mode==="me"?'<p class="sh-sum"><b>'+left.length+'</b> thing'+(left.length===1?"":"s")+' this week'+(okN?' · <b class="hot">'+okN+'</b> need'+(okN===1?"s":"")+' you':'')+'</p>':'<p class="sh-sum">Week of '+esc(shFmt(wk))+'</p>')+'</div>'+
+    '<div class="sh-tools"><div class="sh-wk"><button data-act="shwk" data-v="-7" aria-label="Previous week">'+svg("chevL")+'</button><span>Week of '+esc(shFmt(wk))+'</span><button data-act="shwk" data-v="7" aria-label="Next week">'+svg("chevR")+'</button></div>'+
+    '<div class="sh-seg"><button class="'+(SH.mode==="me"?"on":"")+'" data-act="shmode" data-v="me">My list</button><button class="'+(SH.mode==="all"?"on":"")+'" data-act="shmode" data-v="all">Everyone</button></div></div></div>';
+  if(SH.mode==="all"){const cols=["hannah","max","carisse","elvi","kellan"];
+    return h+'<div class="sh-cols">'+cols.map(id=>{const m=shMine(all,id);return '<section class="sh-col"><div class="sh-colh">'+shAv(id)+'<b>'+esc(id==="kellan"?"Kellan + sales team":SH_PEOPLE[id][0])+'</b><span>'+m.filter(t=>!t.done).length+'</span></div>'+
+      (m.length?m.map(t=>'<button class="sh-ci'+(t.done?" done":"")+'" data-act="shopen" data-v="'+esc(t.id)+'"><b>'+esc(t.t)+'</b><small>'+esc(t.span==="day"?shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"}):t.span==="range"?shFmt(t.d0)+" – "+shFmt(t.d1):"All month")+'</small></button>').join(""):'<p class="sh-none">Nothing this week.</p>')+'</section>';}).join("")+'</div>';}
+  let out="";
+  if(W.length)out+='<div class="sh-day"><div class="sh-dayh hot">Waiting on you</div><div class="sh-list">'+W.map(shWaitRow).join("")+'</div></div>';
+  const tix=shTicketsDue(USER,wk);
+  [0,1,2,3,4].map(n=>shAdd(wk,n)).forEach(d=>{const x=mine.filter(t=>t.span==="day"&&t.d0===d),y=tix.filter(t=>t.due===d);
+    if(x.length||y.length)out+='<div class="sh-day"><div class="sh-dayh">'+esc(shFmt(d,{weekday:"long",month:"short",day:"numeric"}))+(d===todayStr()?' · today':'')+'</div><div class="sh-list">'+x.map(shRow).join("")+y.map(shTkRow).join("")+'</div></div>';});
+  const span=mine.filter(t=>t.span!=="day");
+  if(span.length)out+='<div class="sh-day"><div class="sh-dayh">All week</div><div class="sh-list">'+span.map(shRow).join("")+'</div></div>';
+  if(!mine.length&&!tix.length){const next=shMine(shTasks().filter(t=>t.d0>shAdd(wk,4)&&t.span!=="month"&&!t.done),USER).sort((a,b)=>a.d0.localeCompare(b.d0)).slice(0,5);
+    out+='<div class="sh-day"><div class="sh-dayh">'+(next.length?"Coming up":"This week")+'</div><div class="sh-list">'+(next.length?next.map(t=>'<div class="sh-row"><span class="sh-when">'+esc(shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"}))+'</span><button class="sh-t" data-act="shopen" data-v="'+esc(t.id)+'">'+esc(t.t)+'</button>'+shCat(t.cat)+'</div>').join(""):'<div class="sh-row"><span class="sh-t">Nothing on your list.</span></div>')+'</div></div>';}
+  return h+out;}
+/* ---------- Campaigns: sends a day against the most we can send, and the emails ---------- */
+function shSendPlan(){const V=typeof COLD_VOL!=="undefined"?COLD_VOL:[],R=typeof COLD_RVOL!=="undefined"?COLD_RVOL:[],v=i=>(V[i]||[])[2]||0,r=i=>(R[i]||[])[2]||0;
+  return [["Dec 7–11","2026-12-07","2026-12-11",v(0),0],["Dec 14–18","2026-12-14","2026-12-18",v(1),0],["Dec 21–Jan 1","2026-12-21","2027-01-01",0,r(0)],["Jan","2027-01-04","2027-01-29",v(3),r(1)],["Feb","2027-02-01","2027-02-26",v(4),r(1)],["Mar","2027-03-01","2027-03-31",v(5),r(1)],["Apr","2027-04-01","2027-04-30",v(6),r(1)],["May","2027-05-03","2027-05-28",v(7),0],["Jun","2027-06-01","2027-06-30",v(8),0],["Jul","2027-07-01","2027-07-30",v(9),0]];}
+function shCap(){try{return 2*coldSize()*25;}catch(e){return 600;}}
+function shColdLists(){const out=[];try{COLD_CAMPS.forEach(c=>out.push(Object.assign({g:"Schools"},c)));COLD_RANGES.forEach(c=>out.push(Object.assign({g:"Shooting ranges"},c)));}catch(e){}return out;}
+function shWarm(){return campaigns().filter(c=>c.name&&!campCold(c)&&!c.removed&&c.status!=="done"&&(c.steps||[]).length);}
+function shFill(s){return esc(s).replace(/\{\{company_name\}\}/g,'<span class="sh-tok">school name</span>').replace(/\{\{company_slug\}\}/g,'<span class="sh-tok">school</span>').replace(/\{\{first_name\}\}/g,'<span class="sh-tok">first name</span>').replace(/\{\{(\w+)\}\}/g,(m,k)=>'<span class="sh-tok">'+esc(k.replace(/_/g," "))+'</span>');}
+/* Campaigns, four numbers that matter (Max, 2026-11-20, with two dark reference cards: a tick meter and a hatched pie):
+   emails sent, emails to send a day and a week, who they go to, where the people came from. */
+const SH_AUD=[["K-12 districts",["K12_Safety","K12_Health","K12_Superintendents","K12_Principals"]],["Charter & private schools",["Charter","Private"]],["Shooting ranges",["Ranges_Commercial","Ranges_Clubs","Ranges_Agency"]],["Colleges & universities",["HigherEd_Police","HigherEd_EHS_Emergency"]]];
+function shSent(){const days={},now=Date.now();let all=0,d30=0;
+  campaigns().forEach(c=>(c.leads||[]).forEach(l=>Object.values(l.sent||{}).forEach(ts=>{const t=new Date(ts);if(isNaN(t))return;all++;if(now-t<=30*864e5)d30++;const k=t.toLocaleDateString("en-CA");days[k]=(days[k]||0)+1;})));
+  return {all,d30,days};}
+function shConfPeople(){const s=new Set();campaigns().forEach(c=>(c.leads||[]).forEach(l=>{if(l&&l.src==="conf"&&l.email)s.add(String(l.email).toLowerCase());}));return s.size;}
+function shRangeApollo(){let a=0;campaigns().filter(c=>/^Ranges cold/i.test(c.name||"")).forEach(c=>(c.leads||[]).forEach(l=>{if(l&&l.src==="apollo")a++;}));return a;}
+function shTicks(n,fill,cls){let s="";for(let i=0;i<n;i++)s+='<i class="'+(i<fill?(cls||"on"):"")+'"></i>';return s;}
+function shHatch(){return '<defs>'+
+  '<pattern id="shp0" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#D8D8DC" stroke-width="1.3"/></pattern>'+
+  '<pattern id="shp1" width="5" height="5" patternUnits="userSpaceOnUse"><line x1="0" y1="2.5" x2="5" y2="2.5" stroke="#A9A9AF" stroke-width="1.1"/></pattern>'+
+  '<pattern id="shp2" width="5" height="5" patternUnits="userSpaceOnUse"><line x1="2.5" y1="0" x2="2.5" y2="5" stroke="#86868D" stroke-width="1.1"/></pattern>'+
+  '<pattern id="shp3" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 3H6M3 0V6" stroke="#64646B" stroke-width="1"/></pattern>'+
+  '<pattern id="shp4" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#4E4E55" stroke-width="1.2"/></pattern></defs>';}
+const SH_SW=["#D8D8DC","#A9A9AF","#86868D","#64646B","#4E4E55"];
+function shPie(parts){const tot=parts.reduce((a,p)=>a+p[1],0)||1,cx=90,cy=90,r=84;let a0=-Math.PI/2,s='<svg class="sh-pie" viewBox="0 0 180 180" role="img" aria-label="Who the emails go to">'+shHatch();
+  parts.forEach((p,i)=>{const a1=a0+p[1]/tot*Math.PI*2,big=a1-a0>Math.PI?1:0,x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    s+=p[1]>=tot?'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="url(#shp'+i+')"/>':'<path d="M'+cx+' '+cy+'L'+x0.toFixed(2)+' '+y0.toFixed(2)+'A'+r+' '+r+' 0 '+big+' 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+'Z" fill="url(#shp'+i+')" stroke="#0E0E10" stroke-width="2.5"/>';a0=a1;});
+  return s+'</svg>';}
+function shPct(n,t){if(!t)return "0%";const p=n/t*100;return (p<10?p.toFixed(1):Math.round(p))+"%";}
+function shStats(L){const P=shSendPlan(),cap=shCap(),td=todayStr(),S=shSent(),conf=shConfPeople(),first=P[0];
+  const next=P.find(p=>td<=p[2])||P[P.length-1],day=next[3]+next[4],started=td>=next[1],full=P.find(p=>p[3]+p[4]>=cap);
+  const wkDays=Math.min(5,Math.round((shD(next[2])-shD(next[1]))/864e5)+1),week=day*wkDays;
+  /* 1 · emails sent: all time, the last 30 days, a tick per day for 60 days */
+  const days=[];for(let i=59;i>=0;i--){days.push(S.days[shAdd(td,-i)]||0);}const mx=Math.max(1,...days);
+  const sent='<section class="sh-dk"><div class="hd"><div><b>'+S.all.toLocaleString()+'</b><span>Emails sent</span></div><div class="rt"><b>'+S.d30.toLocaleString()+'</b><span>in the last 30 days</span></div></div>'+
+    '<div class="sh-hist" role="img" aria-label="Emails sent a day, last 60 days">'+days.map(v=>'<i style="height:'+(v?Math.max(8,Math.round(v/mx*100)):3)+'%" class="'+(v?"on":"")+'"></i>').join("")+'</div><div class="sh-axis"><span>60 days ago</span><span>Today</span></div></section>';
+  /* 2 · emails to send: a day (tick meter against the most we can send) and a week */
+  const T=60,fill=Math.round(day/cap*T),pc=Math.round(day/cap*100);
+  const send='<section class="sh-dk"><div class="hd"><div class="sh-lbar"><span>'+(started?"Sending a day this week":"A day from "+esc(shFmt(next[1],{weekday:"short",month:"short",day:"numeric"})))+'</span><b>'+day.toLocaleString()+'</b></div><div class="rt"><b>'+week.toLocaleString()+'</b><span>a week</span></div></div>'+
+    '<div class="sh-meter"><em style="left:'+(fill/T*100)+'%">'+pc+'%</em>'+(()=>{const fs=Math.round(next[3]/cap*T),fr=Math.min(T-fs,Math.round(next[4]/cap*T));let o="";for(let i=0;i<T;i++)o+='<i class="'+(i<fs?"on":i<fs+fr?"on2":"")+'"></i>';return o;})()+'</div>'+
+    '<div class="sh-key"><span><i class="a"></i><u>Schools '+next[3].toLocaleString()+'</u></span><span><i class="b"></i><u>Ranges '+next[4].toLocaleString()+'</u></span><span class="r">'+(full?(td>=full[1]?"Full: "+cap+" a day, the most we can send":"Full at "+cap+" a day from "+esc(shFmt(full[1],{month:"short",day:"numeric"}))):"The most we can send is "+cap+" a day")+'</span></div></section>';
+  /* 3 · who they go to */
+  const aud=SH_AUD.map(([nm,keys])=>[nm,L.filter(x=>keys.includes(x.k)).reduce((a,x)=>a+(x.people||0),0)]);
+  const other=L.filter(x=>!SH_AUD.some(g=>g[1].includes(x.k))).reduce((a,x)=>a+(x.people||0),0);if(other)aud.push(["Other lists",other]);
+  aud.push(["People we met at shows",conf]);const parts=aud.filter(a=>a[1]>0),tot=parts.reduce((a,p)=>a+p[1],0);
+  const who='<section class="sh-dk"><div class="hd"><div><b>'+tot.toLocaleString()+'</b><span>People the emails go to</span></div></div><div class="sh-piew">'+shPie(parts)+
+    '<div class="sh-tbl2">'+parts.map((p,i)=>'<div><i style="background:'+SH_SW[i%5]+'"></i><span>'+esc(p[0])+'</span><em>'+shPct(p[1],tot)+'</em><b>'+p[1].toLocaleString()+'</b></div>').join("")+'</div></div></section>';
+  /* 4 · where they came from */
+  const schools=L.filter(x=>x.g==="Schools").reduce((a,x)=>a+(x.people||0),0),ranges=L.filter(x=>x.g!=="Schools").reduce((a,x)=>a+(x.people||0),0),ra=Math.min(ranges,shRangeApollo());
+  const src=[["Apollo",schools+ra,"a"],["NSSF range directory",ranges-ra,"b"],["Conference badge scans",conf,"c"]].filter(s=>s[1]>0),st=src.reduce((a,s)=>a+s[1],0)||1;
+  const ticks=src.map(s=>{const n=Math.max(1,Math.round(s[1]/st*T));return shTicks(n,n,s[2]);}).join("");
+  const from='<section class="sh-dk"><div class="hd"><div class="sh-lbar"><span>Where the people came from</span><b>'+src.length+' sources</b></div></div>'+
+    '<div class="sh-meter src">'+ticks+'</div><div class="sh-srcl">'+src.map(s=>'<div><i class="'+s[2]+'"></i><span>'+esc(s[0])+'</span><em>'+shPct(s[1],st)+'</em><b>'+s[1].toLocaleString()+'</b></div>').join("")+'</div></section>';
+  return '<div class="sh-dkgrid">'+sent+send+who+from+'</div>';}
+function shViewMail(){const L=shColdLists(),Wm=shWarm(),P=shSendPlan(),cap=shCap(),td=todayStr();
+  const cur=P.find(p=>td>=p[1]&&td<=p[2]),first=P[0],maxed=P.find(p=>p[3]+p[4]>=cap),people=L.reduce((a,x)=>a+(x.people||0),0);
+  if(!SH.camp)SH.camp=L.length?"c:"+L[0].k:"";
+  let h='<div class="sh-head"><div><h1>Email campaigns</h1><p class="sh-sum">'+(td<first[1]?'First cold sends '+esc(shFmt(first[1],{weekday:"long",month:"long",day:"numeric"})):'Sending')+'</p></div></div>';
+  h+=shStats(L);
+  const row=(key,name,who,n,sub,pill)=>'<button class="sh-crow'+(SH.camp===key?" on":"")+'" data-act="shcamp" data-v="'+esc(key)+'"><span class="nm"><b>'+esc(name)+'</b><small>'+esc(who)+'</small></span><span class="num">'+esc(n)+'<small>'+esc(sub)+'</small></span>'+(pill||'')+'</button>';
+  let left="";
+  ["Schools","Shooting ranges"].forEach(g=>{const X=L.filter(x=>x.g===g);if(!X.length)return;
+    left+='<div class="sh-grp"><div class="sh-grph"><h2>'+g+'</h2><span>'+X.reduce((a,x)=>a+(x.people||0),0).toLocaleString()+' people</span></div><div class="sh-list">'+X.map(x=>{const a=coldApprN(x.k);
+      return row("c:"+x.k,x.t,x.who,(x.people||0).toLocaleString(),/^[A-Z][a-z]{2} \d/.test(x.starts||"")?"starts "+x.starts:(x.starts||""),'<span class="sh-mini'+(a===3?" ok":"")+'">'+a+'/3 OK</span>');}).join("")+'</div></div>';});
+  if(Wm.length)left+='<div class="sh-grp"><div class="sh-grph"><h2>Conference follow-ups</h2><span>'+Wm.length+'</span></div><div class="sh-list">'+Wm.map(c=>{const sent=(c.leads||[]).reduce((a,l)=>a+Object.keys(l.sent||{}).length,0);
+      return row("w:"+c.id,c.name,c.paused?"Paused":/Year-end/i.test(c.name)?"Needs the offer":({draft:"Draft",review:"Waiting for OK",approved:"Approved",active:"Sending"})[c.status||"draft"]||c.status,(c.leads||[]).length.toLocaleString(),sent?sent+" sent":"people");}).join("")+'</div></div>';
+  let right="";const k=SH.camp;
+  if(k.startsWith("c:")){const x=L.find(y=>"c:"+y.k===k)||L[0];if(x){const can=coldCan();
+    right='<div class="sh-mailh"><h2>'+esc(x.t)+'</h2><span class="sh-pill '+(coldApprN(x.k)===3?"ok":"warm")+'">'+(coldApprN(x.k)===3?"All approved":coldApprN(x.k)+" of 3 approved")+'</span></div>'+
+      (x.e||[]).map((e,i)=>{const a=coldAppr(x.k,i);return '<article class="sh-mail"><div class="mh"><span class="k">Email '+(i+1)+' · Day '+[1,4,9][i]+'</span><span class="s">'+shFill(i===0?x.s:"Re: "+x.s)+'</span>'+(a.ok?'<span class="sh-pill ok">Approved</span>':a.chg?'<span class="sh-pill warm">Needs a change</span>':'')+'</div><div class="mb">'+shFill(e)+'</div>'+
+        (can?'<div class="mf"><button class="sh-okb'+(a.ok?" ghost":"")+'" data-act="shappr" data-v="ok|'+esc(x.k)+'|'+i+'">'+(a.ok?"Approved":"Approve")+'</button><button class="sh-okb ghost" data-act="shappr" data-v="chg|'+esc(x.k)+'|'+i+'">'+(a.chg?"Change asked":"Needs a change")+'</button>'+(a.note?'<span class="sh-note">'+esc(a.note)+'</span>':'')+'</div>':'')+'</article>';}).join("");}}
+  else if(k.startsWith("w:")){const c=campaigns().find(y=>"w:"+y.id===k);if(c)right='<div class="sh-mailh"><h2>'+esc(c.name)+'</h2><button class="sh-okb ghost" data-act="shgocamp" data-v="'+esc(c.id)+'">Open</button></div>'+(c.steps||[]).map((s,i)=>'<article class="sh-mail"><div class="mh"><span class="k">Email '+(i+1)+(s.day!=null?' · Day '+esc(s.day):'')+'</span><span class="s">'+shFill(s.subject||"")+'</span></div><div class="mb">'+shFill(s.body||"")+'</div></article>').join("");}
+  return h+'<div class="sh-cgrid"><div>'+left+'</div><div class="sh-mails">'+right+'</div></div>';}
+/* ---------- Plan: Hannah's plan, a row per week ---------- */
+function shViewPlan(){const T=shTasks(),months=[...new Set(T.map(t=>t.month))].sort(),td=todayStr();
+  if(!SH.mon)SH.mon=months.find(m=>m>=td.slice(0,7))||months[0]||td.slice(0,7);
+  const nm=m=>new Date(m+"-15T12:00:00").toLocaleDateString("en-US",{month:"short"})+(m.slice(0,4)!==String(new Date().getFullYear())?" "+m.slice(2,4):"");
+  let h='<div class="sh-head"><div><h1>The plan</h1><p class="sh-sum">One free AutoTQ every month of 2027. Every entrant becomes a lead; every non-winner gets a call.</p></div></div>';
+  h+='<div class="sh-months">'+months.map(m=>{const X=T.filter(t=>t.month===m),d=X.filter(t=>t.done).length;return '<button class="'+(SH.mon===m?"on":"")+'" data-act="shmon" data-v="'+m+'">'+esc(nm(m))+(d?' <small>'+d+'/'+X.length+'</small>':'')+'</button>';}).join("")+'</div>';
+  const inMon=T.filter(t=>t.month===SH.mon),chip=t=>'<button class="sh-chip'+(t.done?" done":"")+'" data-act="shopen" data-v="'+esc(t.id)+'"><i style="background:'+(SH_CAT[t.cat]||SH_CAT.CF)[1]+'"></i><span>'+esc(t.t)+'</span><span class="o">'+(t.who||[]).map(shAv).join("")+'</span></button>';
+  const whole=inMon.filter(t=>t.span==="month");
+  if(whole.length)h+='<div class="sh-wkrow"><div class="wl"><b>All month</b><small>'+whole.length+' things</small></div><div class="sh-chips">'+whole.map(chip).join("")+'</div></div>';
+  let wk=shMonday(SH.mon+"-01");const end=shAdd(SH.mon+"-28",7);
+  while(wk<=end){const x=inMon.filter(t=>t.span!=="month"&&t.d0>=wk&&t.d0<=shAdd(wk,6)).sort((a,b)=>a.d0.localeCompare(b.d0));
+    if(x.length)h+='<div class="sh-wkrow'+(wk===shMonday(td)?" now":"")+'"><div class="wl"><b>Week of '+esc(shFmt(wk))+'</b><small>'+x.length+' thing'+(x.length===1?"":"s")+'</small></div><div class="sh-chips">'+x.map(chip).join("")+'</div></div>';wk=shAdd(wk,7);}
+  return h;}
+/* ---------- Automatic ---------- */
+function shViewAuto(){const td=todayStr(),first=shSendPlan()[0][1],st=a=>a[3]==="run"?["ok","Running"]:a[3]==="cold"?(td>=first?["ok","Running"]:["warm","Starts "+shFmt(first)]):["","To set up"];
+  const n=k=>SH_AUTO.filter(a=>st(a)[1]===k||(k==="soon"&&/^Starts/.test(st(a)[1]))).length;
+  let h='<div class="sh-head"><div><h1>Automatic</h1></div></div><div class="sh-tiles"><div><b>'+n("Running")+'</b><span>running</span></div><div><b>'+n("soon")+'</b><span>start '+esc(shFmt(first))+'</span></div><div><b>'+n("To set up")+'</b><span>to set up</span></div></div>';
+  return h+'<div class="sh-tbl"><div class="tr hd"><span>Job</span><span>What it does</span><span>When</span><span>Status</span></div>'+SH_AUTO.map(a=>{const s=st(a);return '<div class="tr"><b>'+esc(a[0])+'</b><span class="d">'+esc(a[1])+'</span><span class="w">'+esc(a[2])+'</span><span><span class="sh-pill '+s[0]+'">'+esc(s[1])+'</span></span></div>';}).join("")+'</div>';}
+/* ---------- a task's details ---------- */
+function shSheet(){const t=shTasks().find(x=>x.id===SH.open);if(!t)return "";
+  return '<div class="mk2-scrim" data-act="shclose"><div class="mk2-sheet sh-sheet" data-stop="1" role="dialog" aria-modal="true" aria-label="'+esc(t.t)+'"><div class="sh"><h2>'+esc(t.t)+'</h2><button class="x" data-act="shclose" aria-label="Close">'+svg("xx")+'</button></div><div class="sbd">'+
+    '<div class="sh-facts">'+shCat(t.cat)+'<span>'+esc(t.when||"")+'</span><span class="o">'+(t.who||[]).map(id=>shAv(id)+'<b>'+esc((SH_PEOPLE[id]||[id])[0])+'</b>').join("")+'</span></div>'+
+    (t.kpi?'<div class="sh-fact"><div class="lbl">Target</div><div>'+esc(t.kpi)+'</div></div>':'')+
+    (t.details?'<div class="sh-fact"><div class="lbl">What to do</div><div class="sh-pre">'+esc(t.details)+'</div></div>':'')+
+    (t.notes?'<div class="sh-fact"><div class="lbl">Notes</div><div class="sh-pre">'+esc(t.notes)+'</div></div>':'')+
+    (t.done?'<p class="sh-sum">Done'+(t.doneBy?" by "+esc(mk2Name(t.doneBy)):"")+(t.doneAt?" · "+esc(shFmt(String(t.doneAt).slice(0,10))):"")+'</p>':'')+
+    '</div><div class="sf"><button class="sh-okb'+(t.done?" ghost":"")+'" style="margin-left:auto" data-act="shtick" data-v="'+esc(t.id)+'">'+(t.done?"Mark not done":t.ok?"Approve":"Mark done")+'</button></div></div></div>';}
+function shDraw(){let L=document.getElementById("shLayer");if(!L){L=document.createElement("div");L.id="shLayer";document.body.appendChild(L);}
+  const k=SH.open?SH.open+SH.openN:"";if(L.dataset.k===k)return;L.dataset.k=k;L.innerHTML=SH.open?shSheet():"";}
+function shToggle(id){const t=shTasks().find(x=>x.id===id);if(!t)return;t.done=!t.done;if(t.done){t.doneAt=new Date().toISOString();t.doneBy=USER;}else{delete t.doneAt;delete t.doneBy;}
+  t.updatedAt=new Date().toISOString();put("mktLib",t);toast(t.done?(t.ok?"Approved":"Done"):"Back on the list");}
+function shHandle(a,t,e){const v=t.dataset.v||"";
+  if(a==="shmode"){SH.mode=v;shKeep();render();return;}
+  if(a==="shwk"){SH.wk=shAdd(shWeek(),+v);render();return;}
+  if(a==="shtick"){shToggle(v);if(SH.open){SH.openN++;shDraw();}render();return;}
+  if(a==="shopen"){SH.open=v;SH.openN++;shDraw();return;}
+  if(a==="shclose"){if(e&&e.target.closest("[data-stop]")&&!t.classList.contains("x"))return "skip";SH.open=null;shDraw();return;}
+  if(a==="shgo"){const w=(SH.wait||{})[v];if(!w)return;if(w.tk){const x=engFind(w.tk);if(x){view="push";MK2.camp=x.c.id;render();window.scrollTo(0,0);}return;}goView(w.go);return;}
+  if(a==="shtktick"){const x=engFind(v);if(x){engSet(x,{st:"done"});toast("Done");}render();return;}
+  if(a==="shtkopen"){const x=engFind(v);if(x){view="push";MK2.camp=x.c.id;render();window.scrollTo(0,0);}return;}
+  if(a==="shcamp"){SH.camp=v;render();return;}
+  if(a==="shgocamp"){if(typeof closeInsp==="function")closeInsp();curCampaign=v;campStep=1;view="camp";render();window.scrollTo(0,0);return;}
+  if(a==="shappr"){if(!coldCan())return;const [m,k,i]=v.split("|");coldCopySave(r=>{const key=k+"|"+i,x=r.appr[key]=r.appr[key]||{};if(m==="ok"){x.ok=!x.ok;x.chg=false;x.by=USER;x.at=new Date().toISOString();}else{x.chg=!x.chg;if(x.chg)x.ok=false;}});render();return;}
+  if(a==="shmon"){SH.mon=v;render();return;}
+  if(a==="shmore"){SH.more=!SH.more;shKeep();render();return;}
+  return "skip";}
+document.addEventListener("click",e=>{if(APP!=="marketing")return;const t=e.target.closest&&e.target.closest("[data-act^='sh']");if(!t)return;const r=shHandle(t.dataset.act,t,e);if(r==="skip")return;e.preventDefault();e.stopPropagation();},true);
+document.addEventListener("keydown",e=>{if(APP==="marketing"&&e.key==="Escape"&&SH.open){SH.open=null;shDraw();e.stopPropagation();}},true);
+/* ---------- wiring into the hub ---------- */
+if(!SVG.chevL)SVG.chevL='<polyline points="15 6 9 12 15 18"/>';
+MK2_VIEWS.push("week","mail","yearplan","auto");
+MK2_GONE.board="week";
+function shMore(){const full=pjInner(),t=[["calls","phone","Calls"],["cold","mail","Cold email"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"]];
+  if(full)t.push(["news","file","Newsletter"]);t.push(["ideahub","bulb","Ideas"],["push","flag2","Campaign pages"],["activity","pulse","Activity"]);if(full)t.push(["numbers","chart","Numbers"]);t.push(["start","home","Overview"]);return t;}
+{const _b=mk2Body;mk2Body=function(){return view==="week"?shViewWeek():view==="mail"?shViewMail():view==="yearplan"?shViewPlan():view==="auto"?shViewAuto():_b();};}
+mk2Tabs=function(){return SH_MAIN.concat(shMore());};
+mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(v));
+  const item=([v,ic,lb])=>{const b=mk2Badge(v);return '<button class="sitem'+(mk2On(v)?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b:""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge">'+b+'</span><span class="mdot"></span>':'')+'</button>';};
+  return '<div class="sgrp sgrp-top"><div class="sgrp-b"><div>'+SH_MAIN.map(item).join("")+'<button class="sitem sh-moreb" data-act="shmore" aria-expanded="'+open+'" data-tip="More">'+svg(open?"chevU":"chevD")+'<span class="lbl">More</span></button>'+(open?'<div class="sh-morel">'+more.map(item).join("")+'</div>':'')+'</div></div></div>';};
+{const _o=mk2On;mk2On=function(v){return ["week","mail","yearplan","auto"].includes(v)?view===v:_o(v);};}
+{const _bg=mk2Badge;mk2Badge=function(v){if(v==="week"){try{return shWaiting(USER).length+shMine(shInWeek(shMonday(todayStr())),USER).filter(t=>t.ok&&!t.done).length;}catch(e){return 0;}}if(v==="start")return 0;return _bg(v);};}
+{const _c=mk2Crumb;mk2Crumb=function(){return ({week:"This week",mail:"Campaigns",yearplan:"Plan",auto:"Automatic",start:"Overview",push:"Campaign pages"})[view]||_c();};}
+{const _vc=mk2ViewCampaigns;mk2ViewCampaigns=function(){const h=_vc();return MK2.camp?h:h.replace("<h1>Campaigns</h1>","<h1>Campaign pages</h1>");};}
+{const _t=mk2ViewToday;mk2ViewToday=function(){return _t().replace(/<h1>[^<]*<\/h1>/,"<h1>Overview</h1>");};}
+{const _a=mk2After;mk2After=function(){_a();shDraw();};}
+/* ---------- bridge: the new shell (app.html, in an iframe over this page) reads and writes the hub through window.HX ----------
+   The hub page keeps doing what it already does (sign-in, the records sync, every rule about cold lists and approvals); the new
+   screens are a React app with its own stylesheet, so nothing here and nothing there can restyle the other. Classic views
+   (Calls, Outreach, LinkedIn …) open by hiding the frame. Chat with the desk agents lives in three synced collections:
+   seo + seoMoves (search numbers and the SEO desk's weekly moves), agentChat (messages + their change cards), agentMem (what a desk was told to remember), agentReq (work handed to a Claude job).
+   Agent edits to cold copy and the send schedule are OVERRIDES in settings/coldCopy (edits, plan, vol) on top of COLD_CAMPS /
+   COLD_RANGES / COLD_VOL: the live hub's Cold tab does not read them yet. Nothing here sends anything. */
+if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
+const HX_BUILD="20261120103034";
+const HXS={classic:false,subs:[],t:null};
+const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
+const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function hxSafe(f,d){try{const v=f();return v==null?d:v;}catch(e){return d;}}
+function hxISO(label){const m=String(label||"").match(/^([A-Z][a-z]{2}) (\d{1,2})$/);if(!m)return "";const mi=HX_MON.indexOf(m[1]);if(mi<0)return "";return (mi>=10?2026:2027)+"-"+pad2(mi+1)+"-"+pad2(+m[2]);}
+/* wording changed from chat is written into the hub's own lists on every draw (the originals stay in c._o), so the classic
+   Cold email view, its copy sheet and anything else that reads COLD_CAMPS shows what the new Campaigns tab shows */
+function hxColdSync(){const ed=coldCopyRec().edits||{};COLD_CAMPS.concat(COLD_RANGES).forEach(c=>{if(!c._o)c._o={s:c.s,e:(c.e||[]).slice()};
+  const s=ed[c.k+"|s"];c.s=s?s.text:c._o.s;c.e=c._o.e.map((b,i)=>ed[c.k+"|"+i]?ed[c.k+"|"+i].text:b);});}
+function hxLists(){const r=coldCopyRec(),ed=r.edits||{},pl=r.plan||{};
+  return shColdLists().map(c=>{const p=pl[c.k]||{},sub=ed[c.k+"|s"];
+    return {g:c.g,k:c.k,t:c.t,who:c.who||"",n:c.people||0,wave:c.wave||"",starts:p.starts?shFmt(p.starts):(c.starts||""),startISO:p.starts||hxISO(c.starts),moved:!!p.starts,hold:!!p.hold,
+      s:sub?sub.text:c.s,s0:(c._o||c).s,sEdited:!!sub,e:(c.e||[]).map((b,i)=>ed[c.k+"|"+i]?ed[c.k+"|"+i].text:b),e0:(c._o||c).e||[],edited:(c.e||[]).map((b,i)=>!!ed[c.k+"|"+i]),
+      appr:[0,1,2].map(i=>{const a=coldAppr(c.k,i);return {ok:!!a.ok,chg:!!a.chg,note:a.note||"",by:a.by||"",at:a.at||""};})};});}
+function hxPer(){const v=coldCopyRec().vol||{};return shSendPlan().map(p=>{const o=v[p[1]]||{};return {label:p[0],from:p[1],to:p[2],schools:o.s!=null?o.s:p[3],ranges:o.r!=null?o.r:p[4],moved:o.s!=null||o.r!=null};});}
+function hxTasks(){return shTasks().map(t=>({id:t.id,d0:t.d0,d1:t.d1||t.d0,span:t.span==="day"?0:t.span==="range"?1:2,cat:t.cat||"CF",t:t.t||"",who:t.who||[],ok:!!t.ok,kpi:t.kpi||"",det:t.details||"",when:t.when||"",done:!!t.done,doneBy:t.doneBy||"",src:t.src==="chat"?"chat":""}));}
+function hxWaits(){const o={},lab={calls:"Calls",mail:"Campaigns",li:"Posting",camp:"Campaigns"};
+  Object.keys(HX_PEOPLE).forEach(u=>{o[u]=hxSafe(()=>shWaiting(u),[]).map(w=>({id:w.k,t:w.t,s:w.sub||lab[w.go]||"",go:w.go||"",tk:w.tk||"",btn:w.btn||"Open"}));});return o;}
+function hxAuto(){const td=todayStr(),first=hxSafe(()=>shSendPlan()[0][1],"2026-12-07");
+  return SH_AUTO.map(a=>({t:a[0],d:a[1],when:a[2],st:a[3]==="run"?"on":a[3]==="cold"?(td>=first?"on":"soon"):"off",from:a[3]==="cold"?first:""}));}
+function hxSeo(){const g=id=>(DB.seo||[]).find(x=>x&&x.id===id)||null,st=(DB.settings||[]).find(x=>x&&x.id==="seoDesk")||{};
+  return {latest:g("latest"),weeks:(g("weeks")||{}).weeks||[],targets:(g("targets")||{}).list||[],
+    moves:(DB.seoMoves||[]).filter(m=>m&&m.id&&!m.removed).map(m=>{const c=Object.assign({},m);delete c.research;return c;}),
+    state:{running:st.running||st.drafting||"",startedAt:st.startedAt||"",lastRunAt:st.lastRunAt||"",lastResult:st.lastResult||"",lastError:st.lastError||""}};}
+function hxSnap(){const live=c=>(DB[c]||[]).filter(m=>m&&m.id&&!m.removed);
+  return JSON.stringify({v:1,live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
+    tasks:hxSafe(hxTasks,[]),waits:hxSafe(hxWaits,{}),lists:hxSafe(hxLists,[]),per:hxSafe(hxPer,[]),cap:hxSafe(shCap,600),
+    sent:hxSafe(shSent,{all:0,d30:0,days:{}}),conf:hxSafe(shConfPeople,0),rangeApollo:hxSafe(shRangeApollo,0),auto:hxSafe(hxAuto,[]),
+    more:hxSafe(()=>shMore().map(m=>({v:m[0],ic:m[1],t:m[2],n:hxSafe(()=>mk2Badge(m[0]),0)})),[]),
+    seo:hxSafe(hxSeo,null),chat:live("agentChat").sort((a,b)=>String(a.at).localeCompare(String(b.at))).slice(-600),mem:live("agentMem"),req:live("agentReq")});}
+/* one change from a chat card, written into the hub's own records. Returns what Undo needs. An edited email loses its approval:
+   changed wording has to be approved again by a person. */
+function hxSpan(t){t.month=t.d0.slice(0,7);t.d1=t.d1&&t.d1>t.d0?t.d1:t.d0;t.span=t.d1!==t.d0?"range":"day";t.when=shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"})+(t.d1!==t.d0?" – "+shFmt(t.d1):"");}
+function hxApply(c){const now=new Date().toISOString();let u={};
+  if(c.kind==="edit_email"){const idx=c.part==="subject"?"s":String(+c.part-1),key=c.list+"|"+idx;
+    coldCopySave(r=>{r.edits=r.edits||{};u={key,prev:r.edits[key]||null,ok:{}};r.edits[key]={text:String(c.text),by:USER,at:now,via:"chat"};
+      (idx==="s"?[0,1,2]:[+idx]).forEach(i=>{const a=r.appr[c.list+"|"+i];if(a&&a.ok){u.ok[i]=1;a.ok=false;a.reset=now;}});});}
+  else if(c.kind==="flag_email"){const key=c.list+"|"+(+c.email-1);coldCopySave(r=>{const x=r.appr[key]=r.appr[key]||{};u={key,prev:{ok:!!x.ok,chg:!!x.chg,note:x.note||""}};x.chg=true;x.ok=false;x.note=String(c.note||"");x.by=USER;x.at=now;});}
+  else if(c.kind==="set_list_schedule"){coldCopySave(r=>{r.plan=r.plan||{};u={prev:r.plan[c.list]||null};const n=Object.assign({},r.plan[c.list]||{},{by:USER,at:now});if(c.starts)n.starts=c.starts;if(c.hold!=null)n.hold=!!c.hold;r.plan[c.list]=n;});}
+  else if(c.kind==="set_daily_volume"){coldCopySave(r=>{r.vol=r.vol||{};u={prev:r.vol[c.from]||null};r.vol[c.from]={s:Math.max(0,+c.schools||0),r:Math.max(0,+c.ranges||0),by:USER,at:now};});}
+  else if(c.kind==="add_task"){const t={id:"pt-chat-"+uid()+uid(),kind:"ptask",d0:c.date,d1:c.end_date||c.date,cat:c.category||"CF",t:String(c.title).slice(0,300),who:c.owners||[],whoRaw:"",ok:!!c.needs_approval,kpi:"",details:String(c.details||"").slice(0,2000),notes:"",src:"chat",by:USER,at:now,updatedAt:now};hxSpan(t);put("mktLib",t);u={id:t.id};}
+  else if(c.kind==="edit_task"){const t=shTasks().find(x=>x.id===c.id);if(!t)throw new Error("That task is no longer on the plan");const n=JSON.parse(JSON.stringify(t));u={prev:JSON.parse(JSON.stringify(t))};
+    if(c.title!=null)n.t=String(c.title).slice(0,300);if(c.details!=null)n.details=String(c.details).slice(0,2000);if(c.owners)n.who=c.owners;if(c.category)n.cat=c.category;
+    if(c.date){n.d0=c.date;if(!c.end_date)n.d1=c.date;}if(c.end_date)n.d1=c.end_date;if(c.date||c.end_date)hxSpan(n);
+    if(c.done!=null){n.done=!!c.done;if(n.done){n.doneAt=now;n.doneBy=USER;}else{delete n.doneAt;delete n.doneBy;}}n.updatedAt=now;put("mktLib",n);}
+  else if(c.kind==="remove_task"){const t=shTasks().find(x=>x.id===c.id);if(!t)throw new Error("That task is no longer on the plan");const n=JSON.parse(JSON.stringify(t));n.removed=true;n.removedBy=USER;n.removedAt=now;n.updatedAt=now;put("mktLib",n);u={id:t.id};}
+  else throw new Error("Unknown change");
+  return u;}
+function hxUndo(c,u){u=u||{};const now=new Date().toISOString();
+  if(c.kind==="edit_email")coldCopySave(r=>{r.edits=r.edits||{};if(u.prev)r.edits[u.key]=u.prev;else delete r.edits[u.key];Object.keys(u.ok||{}).forEach(i=>{const a=r.appr[c.list+"|"+i];if(a&&a.reset){a.ok=true;delete a.reset;}});});
+  else if(c.kind==="flag_email")coldCopySave(r=>{const x=r.appr[u.key]=r.appr[u.key]||{};Object.assign(x,u.prev||{});});
+  else if(c.kind==="set_list_schedule")coldCopySave(r=>{r.plan=r.plan||{};if(u.prev)r.plan[c.list]=u.prev;else delete r.plan[c.list];});
+  else if(c.kind==="set_daily_volume")coldCopySave(r=>{r.vol=r.vol||{};if(u.prev)r.vol[c.from]=u.prev;else delete r.vol[c.from];});
+  else if(c.kind==="add_task"){const t=(DB.mktLib||[]).find(x=>x.id===u.id);if(t){const n=JSON.parse(JSON.stringify(t));n.removed=true;n.updatedAt=now;put("mktLib",n);}}
+  else if(c.kind==="edit_task"){if(u.prev){u.prev.updatedAt=now;put("mktLib",u.prev);}}
+  else if(c.kind==="remove_task"){const t=(DB.mktLib||[]).find(x=>x.id===u.id);if(t){const n=JSON.parse(JSON.stringify(t));delete n.removed;delete n.removedBy;delete n.removedAt;n.updatedAt=now;put("mktLib",n);}}}
+function hxEmit(){clearTimeout(HXS.t);HXS.t=setTimeout(()=>{HXS.subs=HXS.subs.filter(f=>{try{f();return true;}catch(e){return false;}});},30);}
+function hxClassic(on){HXS.classic=!!on;hxMount();if(!on)hxEmit();}
+function hxMount(){if(APP!=="marketing")return;const want=authed()&&!!USER&&!HXS.classic&&!/[?&]classic\b/.test(location.search);let f=document.getElementById("hxFrame");
+  if(f&&!(authed()&&USER)){f.remove();f=null;HXS.classic=false;} /* signed out: the next person gets a fresh app */
+  if(want&&!f){f=document.createElement("iframe");f.id="hxFrame";f.title="AutoTQ Marketing";f.src="app.html?b="+HX_BUILD;f.setAttribute("allow","clipboard-write");
+    f.style.cssText="position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2147483000;background:#111113;color-scheme:dark";document.body.appendChild(f);}
+  if(f)f.style.display=want?"block":"none";document.documentElement.style.overflow=want?"hidden":"";
+  let b=document.getElementById("hxBack");const show=HXS.classic&&authed();
+  if(show&&!b){b=document.createElement("button");b.id="hxBack";b.type="button";b.textContent="Back to the hub";
+    b.style.cssText="position:fixed;right:16px;bottom:16px;z-index:2147483001;height:42px;padding:0 18px;border-radius:999px;border:0;background:#111113;color:#fff;font:600 13.5px Inter,system-ui,sans-serif;box-shadow:0 10px 34px rgba(0,0,0,.35);cursor:pointer";
+    b.addEventListener("click",()=>hxClassic(false));document.body.appendChild(b);}
+  if(b)b.style.display=show?"":"none";}
+const hxJ=x=>typeof x==="string"?JSON.parse(x):JSON.parse(JSON.stringify(x));
+window.HX={v:1,build:HX_BUILD,snap:hxSnap,
+  toggle(id){shToggle(String(id));render();},
+  appr(k,i,m,note){if(!coldCan())return false;coldCopySave(r=>{const key=k+"|"+i,x=r.appr[key]=r.appr[key]||{};if(m==="ok"){x.ok=!x.ok;x.chg=false;delete x.reset;x.by=USER;x.at=new Date().toISOString();}else{x.chg=!x.chg;if(x.chg)x.ok=false;if(note!=null)x.note=String(note);}});render();return true;},
+  tick(key){const x=engFind(String(key));if(x){engSet(x,{st:"done"});render();}},
+  apply(c){const u=hxApply(hxJ(c));render();return JSON.stringify(u||{});},
+  undo(c,u){hxUndo(hxJ(c),hxJ(u||"{}"));render();},
+  put(coll,rec){if(!/^agent(Chat|Mem|Req)$/.test(coll))return;rec=hxJ(rec);if(!rec||!rec.id)return;put(coll,rec);hxEmit();},
+  seoMove(id,status,note){if(!pjInner()||!["proposed","approved","changes","dropped"].includes(status))return false;const m=(DB.seoMoves||[]).find(x=>x&&x.id===String(id));if(!m)return false;
+    const n=JSON.parse(JSON.stringify(m)),now=new Date().toISOString();n.status=status;if(note!=null)n.note=String(note).slice(0,600);n.updatedBy=USER;n.updatedAt=now;if(status==="approved"){n.approvedBy=USER;n.approvedAt=now;}put("seoMoves",n);render();return true;},
+  call(fn,body){return supa("/functions/v1/"+fn,{method:"POST",body:typeof body==="string"?body:JSON.stringify(body)});},
+  map(){const r=pjInner()?(DB.settings||[]).find(x=>x&&x.id==="marketingMap"&&!x.removed):null;return JSON.stringify(r||null);},
+  hubs(){const o=[],full=HUB_USERS.includes(USER);try{if(crmUser())o.push({t:"AutoTQ CRM",url:CRM_URL});if(full)o.push({t:"AutoTQ Catalog",url:HUB_URLS.catalog});
+    if(full&&devUser())o.push({t:"AutoTQ Development",url:HUB_URLS.development});if(full&&progUser())o.push({t:"AutoTQ Progress",url:HUB_URLS.progress});}catch(e){}return JSON.stringify(o.filter(h=>h.url));},
+  signOut(){if(!confirm("Sign out of AutoTQ "+APP_NAME+"?"))return;saveSession(null);USER=null;localStorage.removeItem(UKEY);render();},
+  go(v){hxClassic(true);goView(String(v));},
+  on(f){HXS.subs.push(f);return ()=>{HXS.subs=HXS.subs.filter(x=>x!==f);};}};
+{const _r=render;render=function(){try{hxColdSync();}catch(e){}const x=_r.apply(this,arguments);try{hxMount();hxEmit();}catch(e){}return x;};}
+/* engine:end */
 /* boot */
 try{document.title="AutoTQ "+APP_NAME;}catch(e){}
 loadLocal();
 USER=authed()?(TEAM_EMAILS[((SESSION.user&&SESSION.user.email)||"").toLowerCase()]||localStorage.getItem(UKEY)||""):null;
-view=APP==="development"?"doc":APP==="catalog"?"cat":"start";render();
+view=APP==="development"?"doc":APP==="catalog"?"cat":APP==="marketing"?"week":"start";render();
 if(USER&&authed()&&hubUser()&&(APP!=="development"||devUser()))bootSync();
 
 </script>
