@@ -1245,6 +1245,17 @@ div.dlrow{cursor:default}
 .dllate{color:var(--warn-t)!important;font-weight:600}
 .dlhist{background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r);padding:8px 12px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--ink-2)}
 .dlhist p{margin:2px 0}
+.dlctx{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;margin-bottom:14px;align-items:start}
+.dlctx .dlhist{margin:0}
+.dlhh{font-size:12.5px;color:var(--muted)}.dlhh b{color:var(--ink);margin-right:4px}
+.dlfacts{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:7px 14px;margin:0;padding:10px 14px;border:1px solid var(--line-2);border-radius:var(--r);font-size:13.5px;line-height:1.45}
+.dlfacts dt{font-size:12px;font-weight:600;color:var(--muted);padding-top:1px;white-space:nowrap}
+.dlfacts dd{margin:0;color:var(--ink-2);min-width:0;overflow-wrap:anywhere}
+.dlfacts dd .t2{font-size:12.5px;white-space:normal}
+.dlfacts .pill{vertical-align:1px}
+.dlfpills{margin-top:4px}
+.dlkind{margin-right:4px;vertical-align:1px}
+@media (max-width:1100px){.dlctx{grid-template-columns:1fr}}
 .dltop{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
 .dlfun{flex:1;min-width:260px}.dlfun .t2{margin:4px 0 0}
 .dlfunbar{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden}.dlfunbar span{display:block;height:100%;background:var(--coral);border-radius:99px}
@@ -6622,12 +6633,12 @@ function dialCur(q){const S=dialS();q=q||dialQueueView();
   const hit=S.cur&&q.find(e=>e.key===S.cur);if(hit)return hit;
   if(S.cur&&(DIAL.callKey===S.cur||S.out||S.note||S.hold===S.cur)){const e=dialRecByKey(S.cur);if(e)return e;}
   return q[0]||null;}
-function dialHist(e){
-  const acts=(DB.activities||[]).filter(a=>a&&(a.type==="call"||a.type==="email"||a.type==="visit"||a.type==="note")&&dialCallKeys(a).includes(e.key))
-    .map(a=>({at:a.date,by:a.by,t:a.out?(DIAL_OUTS.some(x=>x[0]===a.out)?dialOutLabel(a.out):callOutLabel(a.out)):actLabel(a.type,a),note:a.note||""}));
+function dialHist(e,n){ /* every kind of logged touch (trainings, demos and quotes too, 2026-11-20), newest first */
+  const acts=(DB.activities||[]).filter(a=>a&&!a.removed&&dialCallKeys(a).includes(e.key))
+    .map(a=>({at:a.date,by:a.by,type:a.type,t:a.out?(DIAL_OUTS.some(x=>x[0]===a.out)?dialOutLabel(a.out):callOutLabel(a.out)):actLabel(a.type,a),note:a.note||""}));
   if(e.k==="cl")(e.rec.calls||[]).forEach(c=>{if(c&&!acts.some(a=>a.at===c.at))acts.push({at:c.at,by:c.by,t:callOutLabel(c.out),note:c.note||""});});
-  dialCallsFor(e.key).forEach(c=>{if(!c.actId)acts.push({at:c.at,by:c.by,t:dialOutLabel(c.out)+(c.pushed?"":" · in the Dialer"),note:c.note||""});});
-  return acts.sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,4);}
+  dialCallsFor(e.key).forEach(c=>{if(!c.actId)acts.push({at:c.at,by:c.by,type:"call",t:dialOutLabel(c.out)+(c.pushed?"":" · in the Dialer"),note:c.note||""});});
+  return acts.sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,n||4);}
 function dialStats(){const T=todayStr(),mine=dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&localDay(c.at)===T);
   return {n:mine.length,talk:mine.filter(c=>DIAL_CONNECT.includes(c.out)).length,hot:mine.filter(c=>c.out==="interested"||c.out==="meeting").length,
     meet:mine.filter(c=>c.out==="meeting").length,list:mine,unpushed:dialCalls().filter(c=>c&&!c.removed&&!c.pushed&&c.by===USER).length};}
@@ -6768,37 +6779,173 @@ function dialPhoneHTML(){
   return '<span class="dldot"></span><button class="lnk" data-act="dialinit">Connect the phone</button>';}
 /* "Who like them has bought" (Max, 2026-11-19: "target those exact markets with use cases from previous sales; utilize organizations
    names that have bought"). Real orders only (order book + won deals, 2026-11-19); the Kentucky trading-company site stays unnamed
-   (Max's rule for Toyota Tsusho). Matched on the person's company, title, account type and list. */
+   (Max's rule for Toyota Tsusho). Matched on the person's company, title, account type and list.
+   2026-11-20 (Max, on the Demo units card: the line showed a Washington sale to someone in Virginia): the line has to fit the person —
+   their market (the patterns below, now on word boundaries so "Systems" isn't EMS and "International" isn't a tribal nation), else
+   a sale in their own state (DIAL_PROOF_ST, the same approved facts), else nothing. */
 const DIAL_PROOF=[
- [/county|city of|public works|road|highway|transport|\bdot\b|utilit|municipal|port of|transit|water district|government/i,"King County Road Services bought 55 kits through National Safety Inc in Kent. The City of Lakeland, FL stocked 15."],
- [/universit|college|campus|school|district|academy|education|\besd\b|student|iaclea|nasn|nurse/i,"Florida Atlantic University put AutoTQ beside every AED on campus and in each of its police vehicles (150 kits). Boca Christian School bought 30."],
- [/police|sheriff|law enforcement|public safety|tribal|nation|marshal|fbi|security/i,"Cape Coral PD's chief: “To have a product like this… was not even a question.” Comanche Nation PD bought 7, and Rescue One bought 6 for FBI training."],
+ [/county|city of|public works|\broads?\b|highway|transport|\bdot\b|utilit|municipal|port of|transit|water district|government/i,"King County Road Services bought 55 kits through National Safety Inc in Kent. The City of Lakeland, FL stocked 15."],
+ [/universit|college|campus|school|\bisd\b|\busd\b|academy|education|\besd\b|student|iaclea|nasn|nurse/i,"Florida Atlantic University put AutoTQ beside every AED on campus and in each of its police vehicles (150 kits). Boca Christian School bought 30."],
+ [/police|sheriff|law enforcement|public safety|tribal|\bnation\b|marshal|\bfbi\b|security/i,"Cape Coral PD's chief: “To have a product like this… was not even a question.” Comanche Nation PD bought 7, and Rescue One bought 6 for FBI training."],
  [/construct|contract|builder|electric|mechanical|concrete|paving|crane|roof|excavat|sellen|walsh|flatiron/i,"Moss Construction bought 44 kits; Terry's Electric bought 11 through Safety Products Inc."],
- [/aero|manufactur|steel|metal|plant|fabricat|industrial|foundry|mill|recycl|chemical|semiconductor|fluke|boeing|paccar|hexcel|plastics|composite|seafood|fish|food|processing|marine|maritime|shipyard/i,"Howmet Aerospace put AutoTQ in its plants; a global trading company's Kentucky metals site started with 9 and planned 30 more. Omco, MacLean-Foss and Seamen Corp. bought too."],
- [/arena|stadium|sport|hockey|kraken|athletic|team|venue|rink|seahawks|mariners|sounders/i,"The Florida Panthers carry AutoTQ at their arena, at their practice rink and on the road."],
- [/hospital|health|medical|clinic|ems|fire|rescue|ambulance|paramedic/i,"Children's Hospital of Michigan ordered through Grainger; FAH Emergency Medical Service took 3 for its crews."],
- [/rental|sunbelt|united rentals|equipment/i,"Sunbelt Rentals ordered through Safety Products Inc."]
+ [/aero|manufactur|steel|metal|\bplants?\b|fabricat|industrial|foundry|\bmills?\b|recycl|chemical|semiconductor|fluke|boeing|paccar|hexcel|plastics|composite|seafood|\bfish|food|processing|marine|maritime|shipyard/i,"Howmet Aerospace put AutoTQ in its plants; a global trading company's Kentucky metals site started with 9 and planned 30 more. Omco, MacLean-Foss and Seamen Corp. bought too."],
+ [/arena|stadium|\bsports?\b|hockey|kraken|athletic|venue|\brinks?\b|seahawks|mariners|sounders/i,"The Florida Panthers carry AutoTQ at their arena, at their practice rink and on the road."],
+ [/hospital|health|medical|clinic|\bems\b|\bfire\b|rescue|ambulance|paramedic/i,"Children's Hospital of Michigan ordered through Grainger; FAH Emergency Medical Service took 3 for its crews."],
+ [/rental|sunbelt|united rentals|\bequipment\b/i,"Sunbelt Rentals ordered through Safety Products Inc."]
 ];
+const DIAL_PROOF_ST={
+ WA:"King County Road Services bought 55 kits through National Safety Inc, right here in Kent.",
+ OR:"Next door in Washington, King County Road Services bought 55 kits through National Safety Inc.",
+ FL:"In Florida, Florida Atlantic University put AutoTQ beside every AED on campus (150 kits), Boca Christian School bought 30 and the Florida Panthers carry it at their arena.",
+ KY:"A global trading company's Kentucky metals site started with 9 kits and planned 30 more.",
+ OK:"In Oklahoma, Comanche Nation PD bought 7.",
+ MD:"Rescue One in Gaithersburg bought 6 for FBI training.",
+ MI:"Children's Hospital of Michigan ordered through Grainger.",
+ PR:"FAH Emergency Medical Service took 3 for its crews."};
 const DIAL_PROOF_CHANNEL="In Washington, National Safety Inc (Kent) closed a 55-kit King County order, and Ballard Industries stocks AutoTQ. UniFirst stocked 150 and Medique 150.";
-function dialProof(e){const r=e.rec||{},c=r.cid?company(r.cid):null;
-  if((c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor")return DIAL_PROOF_CHANNEL;
+const DIAL_PROOF_CHANNEL_US="UniFirst stocked 150 kits and Medique 150. In Washington, National Safety Inc closed a 55-kit King County order.";
+function dialProofHit(e){const r=e.rec||{},c=r.cid?company(r.cid):null,st=String(e.state||(c&&c.state)||"").toUpperCase().slice(0,2);
+  const near=st==="WA"||st==="OR"||(!st&&dialAreaOf(e).some(x=>x==="WA"||x==="OR"));
+  if((c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor")return {label:"Who like them has bought",line:near?DIAL_PROOF_CHANNEL:DIAL_PROOF_CHANNEL_US};
   const hay=[e.co,e.title,c&&c.industry,c&&c.name,r.conf,r.source].filter(Boolean).join(" ");
-  const hit=DIAL_PROOF.find(x=>x[0].test(hay));if(hit)return hit[1];
-  return dialAreaOf(e).includes("WA")?"King County Road Services bought 55 kits through National Safety Inc, right here in Kent.":
-    "King County Road Services in Washington bought 55 kits through National Safety Inc.";} /* "right here" only to Washington (the demo tab calls the whole country) */
+  const hit=DIAL_PROOF.find(x=>x[0].test(hay));if(hit)return {label:"Who like them has bought",line:hit[1]};
+  const s=DIAL_PROOF_ST[st]||(!st&&near?DIAL_PROOF_ST.WA:"");
+  return s?{label:"Who near them has bought",line:s}:null;}
+function dialProof(e){const h=dialProofHit(e);return h?h.line:"";}
 function dialPersonal(e){const r=e.rec||{};return /usphonebook/i.test(String(r.phoneSrc||""))&&(r.mobile||r.phone)&&dialDigits(r.mobile||r.phone)===e.d;}
+/* ---- who they are + their whole history with AutoTQ, on the card (Max, 2026-11-20, calling demo holders: "Need more information than
+   this"). Only what the CRM already holds: the contact and account, the Demo Map and the loaner / $0 order behind each unit (Devin's
+   order number, serials), engagement grade, trainings, sales orders (theirs, then the account's), quotes, deals, who they buy through,
+   the territory's sales person, and every logged touch plus the reps' synced mailboxes (rep_mail, read when the card opens). ---- */
+function dialNn(x){return String(x||"").toLowerCase().replace(/[^a-z]/g,"");}
+function dialYmdDate(s){s=String(s||"");const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);if(m)return new Date(+m[1],+m[2]-1,+m[3]);const d=new Date(s);return isNaN(d)?null:d;}
+function dialDateTxt(s,yr){const d=dialYmdDate(s);if(!d)return "";const o={month:"short",day:"numeric"};
+  if(yr||d.getFullYear()!==new Date().getFullYear())o.year="numeric";return d.toLocaleDateString("en-US",o);}
+function dialMonTxt(s){const d=dialYmdDate(s);return d?d.toLocaleDateString("en-US",{month:"short",year:"numeric"}):"";}
+function dialAgo(s){const d=dialYmdDate(s);if(!d)return "";const t=new Date();t.setHours(0,0,0,0);const x=new Date(d);x.setHours(0,0,0,0);
+  const n=Math.round((t-x)/864e5);if(n<=0)return "today";if(n===1)return "yesterday";if(n<14)return n+" days ago";
+  if(n<60)return Math.round(n/7)+" weeks ago";if(n<730)return Math.round(n/30.4)+" months ago";return Math.round(n/365)+" years ago";}
+function dialMoney(n){return "$"+Math.round(+n||0).toLocaleString("en-US");}
+function dialNear(a,b){const x=dialYmdDate(a),y=dialYmdDate(b);return !x||!y||Math.abs(x-y)<=21*864e5;}
+function dialWho(id){return id===USER?"you":(TEAM.some(t=>t.id===id)?shortName(id):"");}
+/* an order that names the person (confirm-to email, contact, ship-to, or one of the "A | B | C" parts of the account) */
+function dialOrderIsTheirs(o,r){const em=String(r.email||"").trim().toLowerCase(),nm=dialNn(r.name);
+  if(em&&String(o.contactEmail||"").trim().toLowerCase()===em)return true;
+  return nm.length>=5&&[o.contactName,o.shipTo&&o.shipTo.name,o.shipTo&&o.shipTo.attn].concat(String(o.account||"").split(/[|;]/)).some(s=>dialNn(s)===nm);}
+function dialOrderCos(){return dialMemo("ordco",dialBookKey(),()=>{const m=new Map();(DB.orders||[]).forEach(o=>{if(o){const c=orderCompany(o);if(c)m.set(o.id,c.id);}});return m;},15000);}
+function dialOrderNo(o){const n=o.tqId||(/^tq(\d+)$/.exec(String(o.id||""))||[])[1];return n?"order #"+n:"";}
+function dialOrderSerials(o){return (o.serials||[]).map(s=>s&&s.code).concat(Array.isArray(o.tqSerials)?o.tqSerials.map(s=>typeof s==="string"?s:(s&&(s.code||s.serial))):[])
+  .filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i);}
+function dialKind(e){const r=e.rec||{},c=e.k==="p"&&r.cid?company(r.cid):null;
+  if(c&&c.type==="manrep")return "Man-rep";if(c&&c.type==="distributor")return "Distributor rep";
+  if(e.k!=="p"&&r.kind==="distributor")return "Distributor";return "End user";}
+function dialDemoRecs(){return dialMemo("demorecs",dialDemoKey(),()=>{const m=new Map();
+  (DB.demos||[]).forEach(d=>{if(!d||d.status==="returned")return;const p=demoPerson(d);if(p){if(!m.has(p.id))m.set(p.id,[]);m.get(p.id).push(d);}});return m;},60000);}
+function dialCtx(e){return dialMemo("ctx",[e.key,dialDemoKey(),(DB.activities||[]).length,(DB.quotes||[]).length,(DB.opps||[]).length].join("|"),()=>dialCtx0(e),15000);}
+function dialCtx0(e){const r=e.rec||{},c=e.k==="p"&&r.cid?company(r.cid):null,em=String(r.email||"").trim().toLowerCase();
+  const live=(DB.orders||[]).filter(o=>o&&!o.dupOf),mine=o=>dialOrderIsTheirs(o,r);
+  /* demo units: the Demo Map's records for them, each with the loaner / $0 order behind it; loaner orders that name them and never
+     reached the map count too */
+  const ds=(e.k==="p"?(dialDemoRecs().get(r.id)||[]):(DB.demos||[]).filter(d=>d&&d.status!=="returned"&&em&&String(d.email||"").toLowerCase()===em)).slice()
+    .sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  const used=new Set(),demos=[];
+  const bySrc=id=>{const t=/^tq(\d+)$/.exec(String(id||""));return live.find(x=>x.id===id)||(t?live.find(x=>+x.tqId===+t[1]):null);};
+  ds.forEach(d=>{let o=d.srcOrder?bySrc(d.srcOrder):null;
+    if(!o)o=live.find(x=>!used.has(x.id)&&mine(x)&&(isLoanerOrder(x)||!(+x.amount))&&dialNear(x.poDate,d.date));
+    if(o&&used.has(o.id))return; /* two Demo Map records for one unit (the order book's and Devin's copy) */
+    if(o)used.add(o.id);demos.push({d:d,o:o||null});});
+  /* a record with no order a few days from one that has an order is that same unit: keep one, with both notes */
+  for(let i=demos.length-1;i>=0;i--){const y=demos[i];if(y.o||!y.d.date)continue;
+    const twin=demos.find(z=>z!==y&&z.o&&Math.abs((dialYmdDate(z.d.date||z.o.poDate)||0)-(dialYmdDate(y.d.date)||0))<=3*864e5);
+    if(twin){twin.note2=y.d.note||"";demos.splice(i,1);}}
+  live.filter(x=>!used.has(x.id)&&mine(x)&&isLoanerOrder(x)).forEach(o=>{used.add(o.id);demos.push({d:{date:o.poDate,status:"out"},o:o});});
+  const oc=dialOrderCos(),own=live.filter(o=>orderIsSale(o)&&mine(o)),acct=c?live.filter(o=>orderIsSale(o)&&oc.get(o.id)===c.id):[];
+  const pid=e.k==="p"?r.id:"";
+  const quotes=quotesAll().filter(q=>!q.removed&&((pid&&(q.pid===pid||q.distPid===pid))||(em&&[q.contactEmail,q.distRepEmail].some(x=>String(x||"").trim().toLowerCase()===em))||
+    (c&&c.type==="enduser"&&q.cid===c.id)));
+  const opps=(DB.opps||[]).filter(o=>o&&!o.removed&&((pid&&((o.contacts||[]).some(x=>x&&x.pid===pid)||o.distRepPid===pid||o.manrepPid===pid))||(c&&c.type==="enduser"&&o.accountId===c.id)))
+    .sort((a,b)=>(oppIsOpen(b)?1:0)-(oppIsOpen(a)?1:0)||(+b.amount||0)-(+a.amount||0));
+  const trained=pid?actsForPerson(pid).filter(a=>a.type==="training"&&!a.removed).sort((a,b)=>String(b.date).localeCompare(String(a.date))):[];
+  const st=String(e.state||(c&&c.state)||"").toUpperCase().slice(0,2),reg=regionFromState(st);
+  return {c:c,demos:demos,own:own,acct:acct,quotes:quotes,opps:opps,trained:trained,buys:c&&c.type==="enduser"?bfList(c).slice().sort((a,b)=>(b.first?1:0)-(a.first?1:0)):[],
+    st:st,reg:reg,rep:reg?repForRegion(reg):""};}
+const DIAL_DEMO_BOILER=/demo census|rep carries a demo|^loaner order|^demo unit sent/i;
+function dialDemoLine(x,r,c){const d=x.d,o=x.o,bits=[];
+  const day=d.date||(o&&o.poDate)||"";bits.push(day?dialDateTxt(day,true):"date not on file");
+  if(o){const extra=String(o.account||"").split(/\s*[|;]\s*/).filter(s=>s&&dialNn(s)!==dialNn(r.name)&&!(c&&dialNn(s)===dialNn(c.name)));
+    bits.push((isLoanerOrder(o)?"loaner ":(+o.amount?"":/web|checkout/i.test(o.notes||"")?"free kit, web order ":"$0 order "))+(/^po\b/i.test(o.poNo||"")?"":"PO ")+o.poNo+(extra.length?" ("+extra.join(" · ")+")":""));
+    const no=dialOrderNo(o);if(no)bits.push(no);
+    const sr=dialOrderSerials(o);if(sr.length)bits.push("serial "+sr.join(", "));}
+  else bits.push(d.status==="assumed"?"assumed: the rep group's demo, no order on file":"no order on file");
+  const g=d.engage?ENGAGE_GRADES.find(x=>x[0]===d.engage):null;
+  return '<div>'+esc(bits.join(" · "))+(g?' <span class="pill '+g[2]+'" title="'+esc("Graded"+(d.engageBy?" by "+(dialWho(d.engageBy)||d.engageBy):"")+(d.engageAt?" · "+dialDateTxt(d.engageAt):""))+'">'+esc(g[1])+'</span>':'')+
+    [d.note,x.note2].filter(n=>n&&!DIAL_DEMO_BOILER.test(n)).map(n=>'<div class="t2">'+esc(String(n).slice(0,220))+'</div>').join("")+'</div>';}
+function dialOrderLine(o){const u=orderUnits(o);
+  return [o.poNo?(/^po\b/i.test(o.poNo)?"":"PO ")+o.poNo:"",dialMonTxt(o.poDate),u?u+(u===1?" kit":" kits"):"",dialMoney(o.amount)].filter(Boolean).join(" · ");}
+function dialDemoDay(e){const y=dialCtx(e).demos.map(z=>z.d.date||(z.o&&z.o.poDate)||"").filter(Boolean).sort();return y[0]||"";}
+function dialFactsHTML(e){const x=dialCtx(e),r=e.rec||{},c=x.c,rows=[],row=(l,v)=>rows.push('<dt>'+esc(l)+'</dt><dd>'+v+'</dd>');
+  /* demo unit */
+  const isHolder=e.k==="p"&&dialDemoMap().has(e.id);
+  if(x.demos.length||isHolder){
+    const tr=x.trained[0],trTxt=tr?'<span class="pill ok">Trained '+esc(dialDateTxt(tr.date))+(dialWho(tr.by)?" · "+esc(dialWho(tr.by)):"")+'</span>':'<span class="pill gray">Not trained yet</span>';
+    const lines=x.demos.slice(0,2).map(y=>dialDemoLine(y,r,c)).join("")||'<div>On the demo census · no order on file</div>';
+    row(x.demos.length>1?x.demos.length+" demo units":"Demo unit",lines+(x.demos.length>2?'<div class="t2">+'+(x.demos.length-2)+' more</div>':'')+'<div class="dlfpills">'+trTxt+'</div>');}
+  else if(x.trained.length)row("Training",'<span class="pill ok">Trained '+esc(dialDateTxt(x.trained[0].date))+(dialWho(x.trained[0].by)?" · "+esc(dialWho(x.trained[0].by)):"")+'</span>');
+  /* orders: theirs first, then the account's total */
+  const ol=[];x.own.slice(0,2).forEach(o=>ol.push('<div>'+esc(dialOrderLine(o))+'</div>'));
+  if(c&&x.acct.length&&x.acct.length>x.own.length){const u=x.acct.reduce((s,o)=>s+orderUnits(o),0),t=x.acct.reduce((s,o)=>s+(+o.amount||0),0);
+    const last=x.acct.map(o=>o.poDate||"").sort().pop();
+    ol.push('<div>'+esc(c.name+": "+x.acct.length+(x.acct.length===1?" order":" orders")+(u?" · "+u+" kits":"")+" · "+dialMoney(t)+(last?" · last "+dialMonTxt(last):""))+'</div>');}
+  row("Orders",ol.join("")||'<span class="t2">None yet'+(c?" — nothing invoiced to "+esc(c.name):"")+'</span>');
+  if(x.quotes.length)row("Quoted",x.quotes.slice(0,2).map(q=>{const u=quoteUnits(q);
+    return '<div>'+esc([q.no,u?u+(u===1?" kit":" kits"):"",dialMoney(quoteTotal(q)),titlecase(quoteState(q)),dialDateTxt(q.date)].filter(Boolean).join(" · "))+'</div>';}).join("")+
+    (x.quotes.length>2?'<div class="t2">+'+(x.quotes.length-2)+' more</div>':''));
+  if(x.opps.length){const open=x.opps.filter(oppIsOpen),won=x.opps.filter(o=>o.stage==="Closed Won");
+    const ln=o=>'<div>'+esc([o.name,OPP_SHORT[o.stage]||o.stage,o.units&&!/\bkits?\b/i.test(o.name||"")?o.units+" kits":"",+o.amount?dialMoney(o.amount):""].filter(Boolean).join(" · "))+'</div>';
+    row("Deals",open.slice(0,2).map(ln).join("")+(!open.length?won.slice(0,1).map(ln).join(""):"")+
+      (x.opps.length>Math.max(open.length?Math.min(open.length,2):1,1)?'<div class="t2">'+x.opps.length+' in all · '+won.length+' won</div>':''));}
+  if(x.buys.length)row("Buys through",x.buys.slice(0,2).map(b=>{const d=b.cid?company(b.cid):null,rp=d&&x.st?bfRepsInState(d.id,x.st)[0]:null;
+    return '<div>'+(b.first?"★ ":"")+esc((d&&d.name)||b.name||"")+(rp?' <span class="t2">· their rep '+esc(rp.name)+'</span>':'')+'</div>';}).join(""));
+  const tm=x.rep&&x.rep!=="house"?teamById(x.rep):null;
+  row("Golden Hour",esc(tm&&tm.name&&!/empty|open/i.test(tm.name)?tm.name+" · "+x.reg:(x.reg?"Open seat · "+x.reg:"No state on file")));
+  return '<dl class="dlfacts">'+rows.join("")+'</dl>';}
+/* the reps' synced mailboxes (rep_mail) for this address, read once per 10 minutes when the card opens */
+function dialRepMail(e){const em=String((e.rec||{}).email||"").trim().toLowerCase();
+  if(!dialEmailOk(em)||/["(),{}\s\\]/.test(em))return null;
+  const M=DIAL.rm||(DIAL.rm={}),c=M[em];if(c&&(c.busy||Date.now()-c.at<10*60000))return c;
+  M[em]={busy:true,at:Date.now(),rows:(c&&c.rows)||[]};
+  const q='"'+em+'"',or="(from_addr.eq."+q+",to_addrs.cs.{"+q+"},cc_addrs.cs.{"+q+"})";
+  Promise.resolve().then(()=>supa("/rest/v1/rep_mail?select=rep,dir,at,subject,kind,from_addr&or="+encodeURIComponent(or)+"&order=at.desc&limit=12"))
+    .then(res=>res&&res.ok?res.json():[]).catch(()=>[])
+    .then(rows=>{M[em]={busy:false,at:Date.now(),rows:(Array.isArray(rows)?rows:[]).filter(m=>m&&m.kind!=="bounce"&&m.kind!=="auto")};dialHistPaint();});
+  return M[em];}
+function dialHistAll(e){const acts=dialHist(e,60),rm=dialRepMail(e),em=String((e.rec||{}).email||"").trim().toLowerCase();
+  ((rm&&rm.rows)||[]).forEach(m=>{const day=localDay(m.at);
+    if(acts.some(a=>a.type==="email"&&a.by===m.rep&&localDay(a.at)===day))return; /* already logged as an email activity */
+    acts.push({at:m.at,by:m.rep,t:m.kind==="calendar"?"Meeting invite":(String(m.from_addr||"").toLowerCase()===em?"Email from them":(m.dir==="out"?"Email":"On an email thread")),note:m.subject||""});});
+  const inbox=DIAL.inbox&&DIAL.inbox.rows||[]; /* the Dialer's own mailbox, when the Email tab has loaded it */
+  if(em)inbox.forEach(m=>{if(String(m.from_addr||"").toLowerCase()===em||String(m.to_addrs||"").toLowerCase().includes(em))
+    acts.push({at:m.at,by:USER,t:m.dir==="in"?"Email from them":"Email",note:m.subject||""});});
+  return acts.sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
+function dialHistBoxHTML(e){const all=dialHistAll(e),rm=DIAL.rm&&DIAL.rm[String((e.rec||{}).email||"").trim().toLowerCase()];
+  if(!all.length)return '<p class="t2">No calls, emails or meetings logged yet'+(rm&&rm.busy?' · checking the team’s email…':'')+'</p>';
+  const f=all[0],who=dialWho(f.by);
+  return '<p class="dlhh"><b>Last touch</b> '+esc(dialDateTxt(f.at))+' · '+esc(dialAgo(f.at))+(who?' · '+esc(who):'')+'</p>'+
+    all.slice(0,5).map(x=>'<p><b>'+esc(x.t)+'</b> '+esc(dialDateTxt(x.at))+(x.by&&x.by!==USER&&dialWho(x.by)?' · '+esc(dialWho(x.by)):'')+(x.note?' — '+esc(String(x.note).slice(0,140)):'')+'</p>').join("")+
+    (all.length>5?'<button class="lnk" data-act="dialopen" data-id="'+esc(e.key)+'">'+(all.length-5)+' earlier on their page</button>':'');}
+function dialHistPaint(){const el=document.getElementById("dlhistbox"),e=dialCur();if(!el||!e||el.dataset.key!==e.key)return;el.innerHTML=dialHistBoxHTML(e);}
 function dialCardHTML(e){
-  const S=dialS(),tm=dialLocalTime(e),hist=dialHist(e),dm=e.k==="p"?dialDemoMap().get(e.id):undefined;
+  const S=dialS(),tm=dialLocalTime(e),dm=e.k==="p"?dialDemoMap().get(e.id):undefined,pf=dialProofHit(e);
+  const kind=dialKind(e),title=/^(contact|other|n\/?a|-|—)$/i.test(String(e.title||"").trim())||dialNn(e.title)===dialNn(kind)?"":e.title;
   return '<div class="card dlcard"><div class="dlwho"><div class="grow"><button class="dlname" data-act="dialopen" data-id="'+esc(e.key)+'">'+esc(e.name)+'</button>'+
-    '<p class="t2">'+esc([e.title,e.co].filter(Boolean).join(" · ")||"—")+'</p>'+
+    '<p class="t2"><span class="pill gray dlkind">'+esc(kind)+'</span> '+esc([title,e.co].filter(Boolean).join(" · ")||"No company on file")+'</p>'+
     dialMailLineHTML(e)+
-    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab&&e.tab!=="enduser"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp?dialGroupLabel(e.grp):""),dm!=null?dialDemoSince(dm):e.src].filter(Boolean).join(" · "))+'</p></div>'+
+    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab==="cold"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp==="conference"||e.grp==="inbound"||(e.grp==="customers"&&dm==null)?dialGroupLabel(e.grp):""),dm!=null?dialDemoSince(dm||dialDemoDay(e)):e.src].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
     (dialPersonal(e)?'<span class="pill gray" title="Found on USPhoneBook — a personal cell. Check it against the Do Not Call list before you dial.">Personal cell · check DNC</span>':'')+
     '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' '+tm.z+(tm.late?' · after hours':'')+'</span></div></div>'+
-    '<div class="dlproof"><b>Who like them has bought</b> '+esc(dialProof(e))+'</div>'+
-    (hist.length?'<div class="dlhist">'+hist.map(x=>'<p><b>'+esc(x.t)+'</b> '+esc(mdStamp(x.at))+(x.by&&x.by!==USER?' · '+esc(shortName(x.by)):'')+(x.note?' — '+esc(x.note.slice(0,160)):'')+'</p>').join("")+'</div>'
-      :'<div class="dlhist"><p class="t2">No calls logged yet</p></div>')+
+    '<div class="dlctx">'+dialFactsHTML(e)+'<div class="dlhist" id="dlhistbox" data-key="'+esc(e.key)+'">'+dialHistBoxHTML(e)+'</div></div>'+
+    (pf?'<div class="dlproof"><b>'+esc(pf.label)+'</b> '+esc(pf.line)+'</div>':'')+
     '<div id="dlctl">'+dialCtlHTML(e)+'</div>'+
     '<div id="dlcd">'+dialCdHTML()+'</div>'+
     '<p class="fl">How did it go?</p><div class="qa-types" id="dlouts">'+dialOutsHTML()+'</div>'+
@@ -6814,8 +6961,11 @@ function dialCardHTML(e){
 function dialCardMail(e){const S=dialS();
   if(!S.mail||S.mail.key!==e.key){const to=String(e.rec.email||"").trim();S.mail={key:e.key,to:to,subject:"",body:"",lit:"",send:true,edited:false,writing:false,ai:false,ver:0};}
   return S.mail;}
-function dialMailLineHTML(e){const to=String(e.rec.email||"").trim();
-  if(dialEmailOk(to))return '<p class="t2 dlmline">'+svg("mail")+' '+esc(to)+'</p>';
+/* an address the CRM itself says isn't confirmed (team rule: never show an inferred email as verified) */
+function dialMailFlag(r){r=r||{};if(/verify before sending/i.test(String(r.note||"")+" "+String(r.emailNote||"")))return "verify before sending";
+  return /company inbox/i.test(String(r.emailNote||""))?"company inbox":"";}
+function dialMailLineHTML(e){const to=String(e.rec.email||"").trim(),fl=dialMailFlag(e.rec);
+  if(dialEmailOk(to))return '<p class="t2 dlmline">'+svg("mail")+' '+esc(to)+(fl?' <span class="pill warn">'+esc(fl)+'</span>':'')+'</p>';
   const m=dialCardMail(e);
   return '<p class="t2 dlmline">'+svg("mail")+' <input class="f dlmto" data-dm="to" type="email" placeholder="Add their email" value="'+esc(m.to||"")+'" aria-label="Their email"></p>';}
 /* the template for the outcome on the card, unless you've typed in the box (or Claude wrote it) */
