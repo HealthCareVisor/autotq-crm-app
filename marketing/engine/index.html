@@ -2586,7 +2586,7 @@ document.addEventListener("mouseover",e=>{const el=e.target.closest&&e.target.cl
 document.addEventListener("scroll",tipHide,true);
 window.addEventListener("resize",()=>{clearTimeout(window.__sideRz);window.__sideRz=setTimeout(sideApplyMini,80);});
 /* one place that moves to a tab (sidebar, phone chips, palette) */
-function goView(to){sideOpen=false;sidePop=null;view=to;if(to==="projects")curProj=null;if(view==="camp")curCampaign=null;if(view==="ind")indSel="";netFocus=null;closeInsp();render();window.scrollTo(0,0);}
+function goView(to){if(to==="map"){sideOpen=false;sidePop=null;render();mapOpen();return;}sideOpen=false;sidePop=null;view=to;if(to==="projects")curProj=null;if(view==="camp")curCampaign=null;if(view==="ind")indSel="";netFocus=null;closeInsp();render();window.scrollTo(0,0);}
 
 /* ---------- Ctrl/⌘K: jump to any tab, campaign, lead search or action ---------- */
 let PAL={q:"",sel:0,items:[]};
@@ -6715,7 +6715,7 @@ function mk2ViewNumbers(){const t=MK2.numSeg;let h='<div class="mk2-ph"><div><h1
   return h+(t==="ind"?viewIndustries():t==="spend"?viewSpend():perfStripHTML());}
 
 /* ---------- shell pieces ---------- */
-function mk2Tabs(){const t=[["start","home","Today"],["cold","mail","Cold email"],["ideahub","bulb","Ideas"],["push","flag2","Campaigns"],["calls","phone","Calls"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"],["activity","pulse","Activity"]];if(pjInner()){t.splice(t.findIndex(x=>x[0]==="out")+1,0,["news","file","Newsletter"]);t.push(["numbers","chart","Numbers"]);}return t;}
+function mk2Tabs(){const t=[["start","home","Today"],["cold","mail","Cold email"],["ideahub","bulb","Ideas"],["push","flag2","Campaigns"],["calls","phone","Calls"],["out","send","Outreach"],["limsg","user","LinkedIn outbound"],["post","image","Posting"],["activity","pulse","Activity"]];if(pjInner()){t.splice(t.findIndex(x=>x[0]==="out")+1,0,["news","file","Newsletter"]);t.push(["numbers","chart","Numbers"]);t.push(["map","flow","Marketing Map"]);}return t;}
 function mk2On(v){return v==="out"?["out","camp","over","net","sched","playbook","leads"].includes(view):v==="post"?(view==="post"||view==="li"):v==="numbers"?(view==="numbers"||view==="ind"||view==="spend"):view===v;}
 function mk2Badge(v){try{if(v==="start")return actItems().length;if(v==="post")return pjInner()?liPosts().filter(p=>p.status==="draft"&&String(p.slotAt||"")>=todayStr()).length:0;}catch(e){}return 0;}
 function mk2SideHTML(){return '<div class="sgrp sgrp-top"><div class="sgrp-b"><div>'+mk2Tabs().map(([v,ic,lb])=>{const b=mk2Badge(v);return '<button class="sitem'+(mk2On(v)?" on":"")+'" data-act="nav" data-v="'+v+'" data-tip="'+esc(lb+(b?" · "+b:""))+'">'+svg(ic)+'<span class="lbl">'+lb+'</span>'+(b?'<span class="sbadge">'+b+'</span><span class="mdot"></span>':'')+'</button>';}).join("")+'</div></div></div>';}
@@ -6944,6 +6944,29 @@ document.addEventListener("focusin",e=>{const el=e.target;if(el&&el.dataset&&el.
 document.addEventListener("focusout",e=>{const el=e.target;if(el&&el.dataset&&el.dataset.nf&&!(e.relatedTarget&&e.relatedTarget.dataset&&e.relatedTarget.dataset.nf))setTimeout(()=>{const a=document.activeElement;if(!(a&&a.dataset&&a.dataset.nf))NEWS.focus=null;},0);},true);
 /* newsletter:end */
 
+/* map:start */
+/* Marketing Map on the hub page (Max, 2026-11-20: "Add it there too"): a tab for Max and Hannah that opens the whiteboard over the
+   page. The drawing is map.html beside this page (no content of its own); the content is the settings record marketingMap
+   (python tools/map.py push). Nothing here writes. */
+if(!SVG.flow)SVG.flow='<rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/><path d="M7 10.5v3.2a3.3 3.3 0 003.3 3.3h3.2"/>';
+const MAPV={doc:"",build:"20261120101704"};
+function mapRec(){return (DB.settings||[]).find(x=>x&&x.id==="marketingMap"&&!x.removed)||null;}
+function mapClose(){const f=document.getElementById("mapFrame");if(f){f.remove();document.documentElement.style.overflow=MAPV.over||"";}}
+async function mapOpen(){
+  if(APP!=="marketing"||!pjInner())return;
+  const r=mapRec();if(!r||!(r.branches||[]).length){toast("The map isn't loaded yet. Try again in a moment.");return;}
+  try{if(!MAPV.doc){const base=location.pathname.replace(/engine\/(index\.html)?$/,"").replace(/[^\/]*$/,"");
+      const res=await fetch(base+"map.html?b="+MAPV.build);if(!res.ok)throw new Error("map.html "+res.status);
+      const t=await res.text();if(!t.includes("/*MAP_DATA*/null"))throw new Error("map.html has no data slot");MAPV.doc=t;}}
+  catch(e){console.error(e);toast("Couldn't open the map");return;}
+  mapClose();const f=document.createElement("iframe");f.id="mapFrame";f.title="AutoTQ marketing map";
+  f.srcdoc=MAPV.doc.replace("/*MAP_DATA*/null",()=>JSON.stringify(r).replace(/</g,"\\u003c"));
+  f.style.cssText="position:fixed;inset:0;width:100%;height:100%;border:0;z-index:2147482000;background:#111113;color-scheme:dark";
+  f.addEventListener("load",()=>{try{f.focus();}catch(e){}});
+  MAPV.over=document.documentElement.style.overflow;document.documentElement.style.overflow="hidden";document.body.appendChild(f);}
+window.addEventListener("message",e=>{const f=document.getElementById("mapFrame");if(f&&e.source===f.contentWindow&&e.data&&e.data.hxmap==="close")mapClose();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.getElementById("mapFrame")){e.stopPropagation();mapClose();}},true);
+/* map:end */
 /* engine:start — the simple hub's ticket model (campaign next steps as tickets) + the four screens; the marketing engine (2026-11-20, Max: the shannholmberg "marketing engineer" post, "refocus broadly on the
    marketing hub"). Every campaign is a board of tickets: its next steps (mktLib camp .next[]) now carry an owner (a person or
    Claude), a step (Context → Plan → Tickets + people → Build + check → Review → Launch → Results), a status, a due date, what it
@@ -7218,7 +7241,7 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    Agent edits to cold copy and the send schedule are OVERRIDES in settings/coldCopy (edits, plan, vol) on top of COLD_CAMPS /
    COLD_RANGES / COLD_VOL: the live hub's Cold tab does not read them yet. Nothing here sends anything. */
 if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120100344";
+const HX_BUILD="20261120101704";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
