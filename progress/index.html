@@ -7239,9 +7239,11 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    (Calls, Outreach, LinkedIn …) open by hiding the frame. Chat with the desk agents lives in three synced collections:
    seo + seoMoves (search numbers and the SEO desk's weekly moves), agentChat (messages + their change cards), agentMem (what a desk was told to remember), agentReq (work handed to a Claude job).
    Agent edits to cold copy and the send schedule are OVERRIDES in settings/coldCopy (edits, plan, vol) on top of COLD_CAMPS /
-   COLD_RANGES / COLD_VOL: the live hub's Cold tab does not read them yet. Nothing here sends anything. */
-if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120134633";
+   COLD_RANGES / COLD_VOL: the live hub's Cold tab does not read them yet. Nothing here sends anything.
+   TQbot (Max + Hannah): HX.tq relays one call to the tq-run function; the snap carries tqRuns + the person's tqProposals, and
+   HX.proposal records a yes or no on a proposal (status + approvedBy/approvedAt or rejectedBy/rejectedAt). */
+if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves","tqRuns","tqProposals","connections","spendDaily"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
+const HX_BUILD="20261120214348";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7270,12 +7272,25 @@ function hxSeo(){const g=id=>(DB.seo||[]).find(x=>x&&x.id===id)||null,st=(DB.set
   return {latest:g("latest"),weeks:(g("weeks")||{}).weeks||[],targets:(g("targets")||{}).list||[],
     moves:(DB.seoMoves||[]).filter(m=>m&&m.id&&!m.removed).map(m=>{const c=Object.assign({},m);delete c.research;return c;}),
     state:{running:st.running||st.drafting||"",startedAt:st.startedAt||"",lastRunAt:st.lastRunAt||"",lastResult:st.lastResult||"",lastError:st.lastError||""}};}
-function hxSnap(){const live=c=>(DB[c]||[]).filter(m=>m&&m.id&&!m.removed);
-  return JSON.stringify({v:1,live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
+/* Spend: month to date per tool (cents) from spendDaily, and this month's TQbot runs. Admins only; keys never appear here.
+   partOf: a tool whose cents are already inside another's (TQbot inside Anthropic), shown as an "of which" line, not totalled */
+function hxSpend(){if(!hxSafe(pjInner,false))return null;const mo=todayStr().slice(0,7),month={},days=[],partOf={tqbot:"anthropic"};
+  (DB.spendDaily||[]).filter(r=>r&&r.id&&!r.removed&&String(r.day||"").slice(0,7)===mo&&!(r.detail&&r.detail.reason)).forEach(r=>{month[r.tool]=(month[r.tool]||0)+(+r.cents||0);days.push({day:r.day,tool:r.tool,cents:+r.cents||0});if(r.detail&&typeof r.detail.partOf==="string"&&r.detail.partOf!==r.tool)partOf[r.tool]=r.detail.partOf;});
+  const runs=(DB.tqRuns||[]).filter(r=>r&&r.id&&!r.removed&&String(r.at||"").slice(0,7)===mo).sort((a,b)=>String(b.at).localeCompare(String(a.at))).map(r=>({id:r.id,text:String(r.text||"").slice(0,200),by:r.by||"",at:r.at||"",status:r.status||"",cost:+r.cost||0}));
+  return {month,days,runs,partOf};}
+/* TQbot (Max + Hannah): the newest 30 runs (tq-run writes them; the hub only reads) and the signed-in person's newest 30
+   proposals. A proposal's status is the one thing the hub changes (HX.proposal). */
+function hxTq(){if(!hxSafe(pjInner,false)||(USER!=="max"&&USER!=="hannah"))return null;const newest=(a,b)=>String(b.at||"").localeCompare(String(a.at||""));
+  const runs=(DB.tqRuns||[]).filter(r=>r&&r.id&&!r.removed).sort(newest).slice(0,30).map(r=>({id:r.id,text:String(r.text||"").slice(0,2000),status:r.status||"",cost:+r.cost||0,at:r.at||"",by:r.by||""}));
+  const props=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.for===USER).sort(newest).slice(0,30).map(p=>({id:p.id,kind:p.kind||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},status:p.status||"proposed",at:p.at||"",
+    approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||""}));
+  return {runs,props};}
+function hxSnap(){const live=c=>(DB[c]||[]).filter(m=>m&&m.id&&!m.removed),tq=hxSafe(hxTq,null);
+  return JSON.stringify({v:1,tqRuns:tq?tq.runs:[],tqProposals:tq?tq.props:[],live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
     tasks:hxSafe(hxTasks,[]),waits:hxSafe(hxWaits,{}),done:hxSafe(hxDone,{}),lists:hxSafe(hxLists,[]),per:hxSafe(hxPer,[]),cap:hxSafe(shCap,600),
     sent:hxSafe(shSent,{all:0,d30:0,days:{}}),conf:hxSafe(shConfPeople,0),rangeApollo:hxSafe(shRangeApollo,0),auto:hxSafe(hxAuto,[]),
     more:hxSafe(()=>shMore().map(m=>({v:m[0],ic:m[1],t:m[2],n:hxSafe(()=>mk2Badge(m[0]),0)})),[]),
-    seo:hxSafe(hxSeo,null),chat:live("agentChat").sort((a,b)=>String(a.at).localeCompare(String(b.at))).slice(-600),mem:live("agentMem"),req:live("agentReq")});}
+    seo:hxSafe(hxSeo,null),posting:hxSafe(hxPosting,null),spend:hxSafe(hxSpend,null),camps:hxSafe(hxCamps,[]),chat:live("agentChat").sort((a,b)=>String(a.at).localeCompare(String(b.at))).slice(-600),mem:live("agentMem"),req:live("agentReq")});}
 /* one change from a chat card, written into the hub's own records. Returns what Undo needs. An edited email loses its approval:
    changed wording has to be approved again by a person. */
 function hxSpan(t){t.month=t.d0.slice(0,7);t.d1=t.d1&&t.d1>t.d0?t.d1:t.d0;t.span=t.d1!==t.d0?"range":"day";t.when=shFmt(t.d0,{weekday:"short",month:"short",day:"numeric"})+(t.d1!==t.d0?" – "+shFmt(t.d1):"");}
@@ -7314,6 +7329,19 @@ function hxMount(){if(APP!=="marketing")return;const want=authed()&&!!USER&&!HXS
     b.style.cssText="position:fixed;right:16px;bottom:16px;z-index:2147483001;height:42px;padding:0 18px;border-radius:999px;border:0;background:#111113;color:#fff;font:600 13.5px Inter,system-ui,sans-serif;box-shadow:0 10px 34px rgba(0,0,0,.35);cursor:pointer";
     b.addEventListener("click",()=>hxClassic(false));document.body.appendChild(b);}
   if(b)b.style.display=show?"":"none";}
+/* Posting + Campaign pages in the new hub (2026-11-20): the classic LinkedIn studio and campaign pages stay the source of truth;
+   these read them and every write goes through the same records the classic views write */
+function hxPost(p){return {id:p.id,week:p.week||"",slotAt:p.slotAt||"",status:p.status||"draft",title:liTitle(p),theme:p.theme||LI_PILLAR[p.pillar]||p.pillar||"",
+  text:liText(p),tags:p.hashtags||[],pdf:(p.attachments||[]).length,ext:!!p.external,handoff:p.handoff?p.handoff.at||"":"",edited:!!p.edited,why:p.why||"",
+  fails:hxSafe(()=>(p.checks||[]).concat(livChecks(p)).filter(c=>!c.ok).map(c=>c.text),[]),reject:p.rejectReason||"",url:p.postedUrl||"",postedAt:p.postedAt||""};}
+function hxPosting(){const st=liState();return {poster:LI_POSTER.first,running:st.running||"",err:st.lastError||"",
+  days:liSchedule().map(x=>({iso:x.iso,week:x.week,p:x.p?hxPost(x.p):null})),past:hxSafe(()=>liPast().slice(0,8).map(hxPost),[])};}
+function hxCamps(){const per=id=>{const m=TEAM.find(t=>t.id===id),nm=m?m.name:String(id||"");return {id,name:nm,ini:(HX_PEOPLE[id]||[])[2]||initials(nm)};};
+  return mk2Camps().map(c=>({id:c.id,name:c.name||"",st:c.st||"",goal:c.goal||"",people:(c.people||[]).map(per),proof:c.proof||"",
+    next:(c.next||[]).map(x=>({t:x.t||"",done:!!x.done})),
+    lit:mk2LitOf(c.id).filter(l=>["customer","distributor","push"].includes(l.aud)).map(l=>({id:l.id,title:l.title||"",aud:l.aud,st:(MK2_LIT_ST[l.st]||[""])[0],date:l.date||"",n:l.n||1,thumb:l.thumb||"",pdf:l.pdf||"",first:c.first===l.id})),
+    posts:hxSafe(()=>mk2CampPosts(c).map(p=>({id:p.id,slotAt:p.slotAt||"",title:liTitle(p),status:p.status||"draft"})),[]),
+    notes:hxSafe(()=>mk2CampNotes(c).slice(0,60).map(u=>({at:u.at||"",text:u.text||""})),[])}));}
 const hxJ=x=>typeof x==="string"?JSON.parse(x):JSON.parse(JSON.stringify(x));
 window.HX={v:1,build:HX_BUILD,snap:hxSnap,
   toggle(id){shToggle(String(id));render();},
@@ -7325,11 +7353,34 @@ window.HX={v:1,build:HX_BUILD,snap:hxSnap,
   put(coll,rec){if(!/^agent(Chat|Mem|Req)$/.test(coll))return;rec=hxJ(rec);if(!rec||!rec.id)return;put(coll,rec);hxEmit();},
   seoMove(id,status,note){if(!pjInner()||!["proposed","approved","changes","dropped"].includes(status))return false;const m=(DB.seoMoves||[]).find(x=>x&&x.id===String(id));if(!m)return false;
     const n=JSON.parse(JSON.stringify(m)),now=new Date().toISOString();n.status=status;if(note!=null)n.note=String(note).slice(0,600);n.updatedBy=USER;n.updatedAt=now;if(status==="approved"){n.approvedBy=USER;n.approvedAt=now;}put("seoMoves",n);render();return true;},
+  connect(action,tool,key){if(!pjInner())return Promise.reject(new Error("Not allowed"));return supa("/functions/v1/connect",{method:"POST",body:JSON.stringify(action==="list"?{action}:action==="connect"?{action,tool,key}:{action,tool})}).then(async r=>{const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("Couldn't reach Connections ("+r.status+")"));return JSON.stringify(j);});},
   call(fn,body){return supa("/functions/v1/"+fn,{method:"POST",body:typeof body==="string"?body:JSON.stringify(body)});},
+  /* TQbot: one tq-run call (start | events | confirm | stop) with the signed-in person's session; the answer comes back as JSON text */
+  tq(body){if(!pjInner())return Promise.reject(new Error("Not allowed"));return supa("/functions/v1/tq-run",{method:"POST",body:typeof body==="string"?body:JSON.stringify(body)}).then(async r=>{const t=await r.text();
+    if(!r.ok){let m="";try{m=JSON.parse(t).error||"";}catch(e){}throw new Error(m||("Couldn't reach TQbot ("+r.status+")"));}return t;});},
+  proposal(id,status){if(!pjInner()||(USER!=="max"&&USER!=="hannah")||!["approved","rejected"].includes(status))return false;const p=(DB.tqProposals||[]).find(x=>x&&x.id===String(id)&&!x.removed);if(!p)return false;
+    const n=JSON.parse(JSON.stringify(p)),now=new Date().toISOString();n.status=status;n[status+"By"]=USER;n[status+"At"]=now;put("tqProposals",n);render();return true;},
   map(){const r=pjInner()?(DB.settings||[]).find(x=>x&&x.id==="marketingMap"&&!x.removed):null;return JSON.stringify(r||null);},
   hubs(){const o=[],full=HUB_USERS.includes(USER);try{if(crmUser())o.push({t:"AutoTQ CRM",url:CRM_URL});if(full)o.push({t:"AutoTQ Catalog",url:HUB_URLS.catalog});
     if(full&&devUser())o.push({t:"AutoTQ Development",url:HUB_URLS.development});if(full&&progUser())o.push({t:"AutoTQ Progress",url:HUB_URLS.progress});}catch(e){}return JSON.stringify(o.filter(h=>h.url));},
   signOut(){if(!confirm("Sign out of AutoTQ "+APP_NAME+"?"))return;saveSession(null);USER=null;localStorage.removeItem(UKEY);render();},
+  li(act,id,arg){const p=liFind(String(id));if(!p)return false;const now=new Date().toISOString();
+    if(act==="approve"){livStamp(p);p.status="approved";p.approvedBy=USER;p.approvedAt=now;}
+    else if(act==="reject"){p.status="rejected";p.rejectReason=String(arg||"").trim()||"no reason given";p.rejectedBy=USER;p.rejectedAt=now;}
+    else if(act==="save"){const v=String(arg||"").trim();if(!v)return false;p.finalText=v;p.edited=true;p.editedBy=USER;p.editedAt=now;}
+    else if(act==="posted"){if(!p.external)livStamp(p);p.status="posted";p.postedAt=now;p.postedUrl=String(arg||"").trim();p.postedBy=USER;}
+    else return false;put("liPosts",p);render();return true;},
+  liDraft(week){return liCall("generate",{week:String(week)}).then(()=>{setTimeout(render,1500);return true;});},
+  liImgs(id){const p=liFind(String(id));if(!p||p.external)return Promise.resolve("{}");const v=liVisual(p);
+    return Promise.all([livCardURL(livCardOf(p),v.theme).catch(()=>""),v.photo?livPhotoURL(p).catch(()=>""):Promise.resolve("")]).then(([card,photo])=>JSON.stringify({card,photo}));},
+  async liHand(week){const o=openInsp;openInsp=function(){};try{await liHandStart(String(week));}finally{openInsp=o;}
+    const h=liHand;if(!h||!h.local)return "{}";return JSON.stringify({n:h.posts.length,local:h.local,name:h.name||"posts.zip",href:liHandHref(h),url:h.url||""});},
+  liHandSent(){const h=liHand;if(!h||!h.posts)return;const now=new Date().toISOString();h.posts.forEach(p=>{p.handoff={at:now,to:LI_POSTER.email,by:USER,zip:h.path||""};put("liPosts",p);});render();},
+  blob(path){return mktBlob(String(path));},
+  next(cid,i,text){const c=mk2Camps().find(x=>x.id===String(cid));if(!c)return false;const now=new Date().toISOString();c.next=c.next||[];
+    if(text!=null){const t=String(text).trim().slice(0,200);if(!t)return false;c.next.push({t,done:false,by:USER,at:now});}
+    else{const x=c.next[+i];if(!x)return false;x.done=!x.done;x.doneBy=USER;x.doneAt=now;}
+    c.updatedAt=now;put("mktLib",c);render();return true;},
   go(v){hxClassic(true);goView(String(v));},
   on(f){HXS.subs.push(f);return ()=>{HXS.subs=HXS.subs.filter(x=>x!==f);};}};
 {const _r=render;render=function(){try{hxColdSync();}catch(e){}const x=_r.apply(this,arguments);try{hxMount();hxEmit();}catch(e){}return x;};}
