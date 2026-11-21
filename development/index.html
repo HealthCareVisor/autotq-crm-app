@@ -7243,7 +7243,7 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    TQbot (Max + Hannah): HX.tq relays one call to the tq-run function; the snap carries tqRuns + the person's tqProposals, and
    HX.proposal records a yes or no on a proposal (status + approvedBy/approvedAt or rejectedBy/rejectedAt). */
 if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves","tqRuns","tqProposals","connections","spendDaily"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120234333";
+const HX_BUILD="20261120234659";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7282,7 +7282,7 @@ function hxSpend(){if(!hxSafe(pjInner,false))return null;const mo=todayStr().sli
    proposals. A proposal's status is the one thing the hub changes (HX.proposal). */
 function hxTq(){if(!hxSafe(pjInner,false)||(USER!=="max"&&USER!=="hannah"))return null;const newest=(a,b)=>String(b.at||"").localeCompare(String(a.at||""));
   const runs=(DB.tqRuns||[]).filter(r=>r&&r.id&&!r.removed).sort(newest).slice(0,30).map(r=>({id:r.id,text:String(r.text||"").slice(0,2000),status:r.status||"",cost:+r.cost||0,at:r.at||"",by:r.by||""}));
-  const props=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.for===USER&&p.kind!=="followup").sort(newest).slice(0,30).map(p=>({id:p.id,kind:p.kind||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},status:p.status||"proposed",at:p.at||"",
+  const props=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.for===USER&&!["followup","crm","crm-skip","brief"].includes(p.kind)).sort(newest).slice(0,30).map(p=>({id:p.id,kind:p.kind||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},status:p.status||"proposed",at:p.at||"",
     approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||""}));
   /* the waiting-people sweep (tq-sweep): open cards, and ones decided in the last 3 days so a yes stays visible a while */
   const cut=new Date(Date.now()-3*864e5).toISOString();
