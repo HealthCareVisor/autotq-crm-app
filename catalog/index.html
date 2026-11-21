@@ -7243,7 +7243,7 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    TQbot (Max + Hannah): HX.tq relays one call to the tq-run function; the snap carries tqRuns + the person's tqProposals, and
    HX.proposal records a yes or no on a proposal (status + approvedBy/approvedAt or rejectedBy/rejectedAt). */
 if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves","tqRuns","tqProposals","connections","spendDaily"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120221125";
+const HX_BUILD="20261120223758";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7282,11 +7282,15 @@ function hxSpend(){if(!hxSafe(pjInner,false))return null;const mo=todayStr().sli
    proposals. A proposal's status is the one thing the hub changes (HX.proposal). */
 function hxTq(){if(!hxSafe(pjInner,false)||(USER!=="max"&&USER!=="hannah"))return null;const newest=(a,b)=>String(b.at||"").localeCompare(String(a.at||""));
   const runs=(DB.tqRuns||[]).filter(r=>r&&r.id&&!r.removed).sort(newest).slice(0,30).map(r=>({id:r.id,text:String(r.text||"").slice(0,2000),status:r.status||"",cost:+r.cost||0,at:r.at||"",by:r.by||""}));
-  const props=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.for===USER).sort(newest).slice(0,30).map(p=>({id:p.id,kind:p.kind||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},status:p.status||"proposed",at:p.at||"",
+  const props=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.for===USER&&p.kind!=="followup").sort(newest).slice(0,30).map(p=>({id:p.id,kind:p.kind||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},status:p.status||"proposed",at:p.at||"",
     approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||""}));
-  return {runs,props};}
+  /* the waiting-people sweep (tq-sweep): open cards, and ones decided in the last 3 days so a yes stays visible a while */
+  const cut=new Date(Date.now()-3*864e5).toISOString();
+  const waiting=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.kind==="followup"&&(p.status==="proposed"||((p.status==="approved"||p.status==="rejected")&&String(p.approvedAt||p.rejectedAt||"")>=cut)))
+    .slice(0,400).map(p=>({id:p.id,status:p.status||"proposed",at:p.at||"",sweepAt:p.sweepAt||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||""}));
+  return {runs,props,waiting};}
 function hxSnap(){const live=c=>(DB[c]||[]).filter(m=>m&&m.id&&!m.removed),tq=hxSafe(hxTq,null);
-  return JSON.stringify({v:1,tqRuns:tq?tq.runs:[],tqProposals:tq?tq.props:[],live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
+  return JSON.stringify({v:1,tqRuns:tq?tq.runs:[],tqProposals:tq?tq.props:[],tqWaiting:tq?tq.waiting:[],live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
     tasks:hxSafe(hxTasks,[]),waits:hxSafe(hxWaits,{}),done:hxSafe(hxDone,{}),lists:hxSafe(hxLists,[]),per:hxSafe(hxPer,[]),cap:hxSafe(shCap,600),
     sent:hxSafe(shSent,{all:0,d30:0,days:{}}),conf:hxSafe(shConfPeople,0),rangeApollo:hxSafe(shRangeApollo,0),auto:hxSafe(hxAuto,[]),
     more:hxSafe(()=>shMore().map(m=>({v:m[0],ic:m[1],t:m[2],n:hxSafe(()=>mk2Badge(m[0]),0)})),[]),
@@ -7358,6 +7362,9 @@ window.HX={v:1,build:HX_BUILD,snap:hxSnap,
   /* TQbot: one tq-run call (start | events | confirm | stop) with the signed-in person's session; the answer comes back as JSON text */
   tq(body){if(!pjInner())return Promise.reject(new Error("Not allowed"));return supa("/functions/v1/tq-run",{method:"POST",body:typeof body==="string"?body:JSON.stringify(body)}).then(async r=>{const t=await r.text();
     if(!r.ok){let m="";try{m=JSON.parse(t).error||"";}catch(e){}throw new Error(m||("Couldn't reach TQbot ("+r.status+")"));}return t;});},
+  /* TQbot's waiting-people sweep, on demand (Max or Hannah): tq-sweep files the cards, the next sync brings them in */
+  sweep(body){if(!pjInner()||(USER!=="max"&&USER!=="hannah"))return Promise.reject(new Error("Not allowed"));return supa("/functions/v1/tq-sweep",{method:"POST",body:typeof body==="string"?body:JSON.stringify(body||{action:"run"})}).then(async r=>{const t=await r.text();
+    if(!r.ok){let m="";try{m=JSON.parse(t).error||"";}catch(e){}throw new Error(m||("The sweep didn't run ("+r.status+")"));}if(typeof pullChanges==="function")try{pullChanges(false);}catch(e){}return t;});},
   proposal(id,status){if(!pjInner()||(USER!=="max"&&USER!=="hannah")||!["approved","rejected"].includes(status))return false;const p=(DB.tqProposals||[]).find(x=>x&&x.id===String(id)&&!x.removed);if(!p)return false;
     const n=JSON.parse(JSON.stringify(p)),now=new Date().toISOString();n.status=status;n[status+"By"]=USER;n[status+"At"]=now;put("tqProposals",n);render();return true;},
   map(){const r=pjInner()?(DB.settings||[]).find(x=>x&&x.id==="marketingMap"&&!x.removed):null;return JSON.stringify(r||null);},
