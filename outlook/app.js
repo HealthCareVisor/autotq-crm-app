@@ -314,6 +314,22 @@ async function saveMerge() {
   m.sent = m.items.filter((i) => i.status === "sent").length; m.failed = m.items.filter((i) => i.status === "failed").length;
   await putRecords([{ collection: "merges", id: m.id, data: m }]);
 }
+// CRM Home "TQbot this week" card: one botLog record per batch (merge) per local day, written after the sends went out.
+// Resuming the same batch later that day updates the same record (n and names are that day's totals for the batch).
+const localDay = (iso) => { const d = new Date(iso), z = (n) => String(n).padStart(2, "0"); return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()); };
+async function logBot(m, sentNow) {
+  const days = [...new Set(sentNow.map((it) => localDay(it.at)))];
+  if (!days.length) return;
+  m.botLog = m.botLog || {};
+  const rows = days.map((day) => {
+    const sent = m.items.filter((it) => it.status === "sent" && it.at && localDay(it.at) === day).sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    const id = m.botLog[day] || (m.botLog[day] = "bl_" + uid() + uid());
+    return { collection: "botLog", id, data: { id, by: S.uid, at: sent[sent.length - 1].at, day, kind: "email_sent", src: "mailmerge",
+      n: sent.length, names: sent.map((it) => it.name || it.email).slice(0, 200), extra: m.subject } };
+  });
+  rows.push({ collection: "merges", id: m.id, data: m });
+  await putRecords(rows);
+}
 function activityFor(p, subject, at) {
   const a = { id: uid(), type: "email", note: "Emailed: " + subject + " · mail merge", date: at, by: S.uid, norm: 2, merge: S.merge.id };
   if (p.pid) { a.pid = p.pid; a.cid = p.cid || null; }
@@ -347,6 +363,7 @@ async function runBatch() {
   S.run = { total: queue.length, done: 0, failed: 0, nextAt: 0, paused: false, stopped: false, msg: "" };
   await saveMerge().catch(() => {});
   let failsInRow = 0;
+  const sentNow = [];
   for (let i = 0; i < queue.length; i++) {
     if (S.run.stopped || S.run.paused) break;
     const p = queue[i], it = mergeItem(m, p), c = copyFor(p);
@@ -354,7 +371,7 @@ async function runBatch() {
     S.run.current = p.name || p.email; renderBar();
     try {
       await sendOne(p.email, c.subject, c.html);
-      it.status = "sent"; it.at = new Date().toISOString(); it.err = ""; S.run.done++; failsInRow = 0;
+      it.status = "sent"; it.at = new Date().toISOString(); it.err = ""; S.run.done++; failsInRow = 0; sentNow.push(it);
       const a = activityFor(p, c.subject, it.at); if (a) it.act = a.id;
       const rows = [{ collection: "merges", id: m.id, data: m }]; if (a) rows.push({ collection: "activities", id: a.id, data: a });
       m.updatedAt = it.at; m.sent = m.items.filter((x) => x.status === "sent").length;
@@ -369,6 +386,7 @@ async function runBatch() {
     if (i < queue.length - 1 && !S.run.stopped && !S.run.paused) await wait(GAP_MS);
   }
   S.run.finished = !S.run.paused; S.run.current = "";
+  if (sentNow.length) await logBot(m, sentNow).catch((e) => { S.run.msg = (S.run.msg ? S.run.msg + " " : "") + "The CRM Home log didn't save: " + (e.message || e); });
   recompute(); render();
 }
 function wait(ms) {
