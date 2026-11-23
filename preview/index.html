@@ -1362,6 +1362,7 @@ body.tqbon .console{margin-right:400px}
 .tql{display:flex;flex-direction:column;gap:1px;margin:2px -4px}
 .tql button{all:unset;cursor:pointer;display:flex;flex-direction:column;padding:6px 8px;border-radius:8px}.tql button:hover{background:var(--hover)}
 .tql button:focus-visible{outline:2px solid var(--coral)}
+.tql a{all:unset;cursor:pointer;display:flex;flex-direction:column;padding:6px 8px;border-radius:8px}.tql a:hover{background:var(--hover)}.tql a:focus-visible{outline:2px solid var(--coral)}
 .tql b{font-size:13px}.tql span{font-size:12px;color:var(--muted)}.tql .t2{margin:4px 8px 0}
 .tqpre{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0 0;max-height:280px;overflow:auto}
 .tact .tqbtn svg.mark{width:11px;height:16px;color:var(--coral)}.tact .tqbtn.on svg.mark{color:var(--coral-tt)}
@@ -9561,9 +9562,11 @@ function expRows(){
 const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",california:"CA",colorado:"CO",connecticut:"CT",delaware:"DE",florida:"FL",georgia:"GA",hawaii:"HI",idaho:"ID",illinois:"IL",indiana:"IN",iowa:"IA",kansas:"KS",kentucky:"KY",louisiana:"LA",maine:"ME",maryland:"MD",massachusetts:"MA",michigan:"MI",minnesota:"MN",mississippi:"MS",missouri:"MO",montana:"MT",nebraska:"NE",nevada:"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND",ohio:"OH",oklahoma:"OK",oregon:"OR",pennsylvania:"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD",tennessee:"TN",texas:"TX",utah:"UT",vermont:"VT",virginia:"VA",washington:"WA","west virginia":"WV",wisconsin:"WI",wyoming:"WY"};
 function ensureLists(){DB.lists=DB.lists||[];}
 /* Save list (Lists and TQbot): one synced list record */
-function listMake(picked,nm,query,fields){ensureLists();
+function listMake(picked,nm,query,fields,kinds){ensureLists(); /* kinds[i]: "p" contact (default), "lead" (Leads), "cl" (conference lead) */
   const nl={id:uid(),name:nm,by:USER,assignee:null,createdAt:new Date().toISOString(),query:query||"",fields:fields,
-    items:picked.map(p=>({pid:p.id,name:p.name,company:(company(p.cid)||{}).name||p.branch||"",role:p.role||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""}))};
+    items:picked.map((p,i)=>{const k=kinds?kinds[i]:"p";
+      const it={pid:k==="p"?p.id:null,name:p.name,company:(company(p.cid)||{}).name||p.branch||p.company||"",role:p.role||p.title||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""};
+      if(k==="lead")it.leadId=p.id;if(k==="cl")it.refId=p.id;return it;})};
   DB.lists.unshift(nl);return nl;}
 function shortName(id){if(id==="house")return "House";const n=teamById(id).name.split(" ")[0];return n+(id==="johnm"?" M.":id==="john"?" C.":"");}
 function mdStamp(iso){if(!iso)return"";const d=new Date(iso);return (d.getMonth()+1)+"/"+d.getDate();}
@@ -13497,6 +13500,7 @@ function botTool(name,x){
   if(name==="my_numbers")return botNumbers(x.period,x.rep);
   if(name==="who_covers")return botCovers(x.state,x.distributor);
   if(name==="build_list")return botList(x.request,x.name);
+  if(name==="find_people")return botFindPeople(x);
   if(name==="find_literature")return botLits(x.market);
   if(name==="make_literature")return botMakeLit(x);
   return {error:"unknown tool "+name};}
@@ -13536,6 +13540,7 @@ function botRecord(id,kind){
       buys_from:(c.buysFrom||[]).map(b=>(b.first?"★ ":"")+(b.cid&&company(b.cid)?company(b.cid).name:b.name)),
       people:ppl.slice(0,15).map(p=>({id:p.id,name:p.name,title:p.role||"",states:botStates(p),phone:p.phone||"",email:p.email||""})),people_total:ppl.length,
       units_bought:c.units||0,orders:c.orders||0,demo_units:c.demoCount||0,
+      part_numbers:botPartNos(c),recent_orders:botAcctOrders(c),
       your_open_deals:myOpps().filter(o=>oppIsOpen(o)&&botMyOpp(o)&&(o.accountId===id||o.distributorId===id)).slice(0,8).map(botOppBrief),
       your_quotes:quotesAll().filter(q=>botMyQuote(q)&&(q.cid===id||q.distCid===id)).slice(0,6).map(botQuoteBrief)});}
   if(kind==="deal"){const o=(DB.opps||[]).find(x=>x.id===id);if(!o)return {error:"No deal with that id"};if(!botMyOpp(o))return {error:"That deal belongs to another rep"};
@@ -13599,9 +13604,112 @@ function botList(request,name){
 function botLitPool(market){const hay=String(market||"");const isDist=/distribut|reseller|channel|grainger|fastenal|ritz|ballard|dealer/i.test(hay);
   const pool=DIAL_LIT.filter(l=>!!l.dist===isDist),seen=new Set();
   return pool.filter(l=>l.m&&l.m.test(hay)).concat(pool.filter(l=>l.any)).filter(l=>!seen.has(l.id)&&seen.add(l.id)).slice(0,6);}
-function botLits(market){const ls=botLitPool(market);
-  const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"find_literature",state:"open",v:{market:market,ids:ls.map(l=>l.id)}};BOT.ui.push({k:"card",id:id});
-  return {pieces:ls.map(l=>({id:l.id,title:l.title})),shown:"The rep sees these with Open buttons."};}
+/* find_people (Max, 2026-11-23: "leads in Texas that haven't been touched from our 2026 conferences", "a call list for Texas EMS
+   people", "Grainger contacts in southern California"): contacts, Leads and conference leads by state, place (city, county, metro,
+   or a Grainger district / territory name — Grainger sellers carry those, not cities), area code, title / industry words,
+   company, kind, conference and "nobody has touched them" (no call, no logged touch, no email). A conference lead that became a
+   contact is listed once, as the contact; a conference lead pushed to Leads is listed once, as the conference lead. */
+function botRx(words){const w=(words||[]).map(x=>String(x||"").trim().toLowerCase()).filter(Boolean);if(!w.length)return null;
+  return new RegExp("(^|[^a-z0-9])("+w.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")(?=$|[^a-z0-9])","i");}
+function botRowObj(r){const k=r[0],id=r[1];
+  const o=k==="p"?person(id):k==="cl"?(DB.confLeads||[]).find(l=>l.id===id):(DB.leads||[]).find(l=>l.id===id);
+  return o?{k:k,o:o}:null;}
+function botFindPeople(x){
+  x=x||{};const src=new Set(x.sources&&x.sources.length?x.sources:["contacts","leads","conference_leads"]);
+  const sts=(x.states||[]).map(s=>String(s).trim().toUpperCase().slice(0,2)).filter(Boolean);
+  const placeRx=botRx(x.places),kwRx=botRx(x.keywords),acs=(x.area_codes||[]).map(a=>String(a).replace(/\D/g,"")).filter(a=>a.length===3);
+  const coq=String(x.company||"").trim().toLowerCase(),conf=String(x.conference||"").trim().toLowerCase(),kind=x.kind||"any";
+  const where=(stList,placeHay,phones)=>{
+    if(sts.length&&!stList.some(s=>sts.includes(s)))return false;
+    if(!placeRx&&!acs.length)return true;
+    if(placeRx&&placeRx.test(placeHay))return true;
+    return acs.length>0&&phones.some(ph=>{const d=dialDigits(ph);return !!d&&acs.includes(d.slice(0,3));});};
+  ensureLeads();const out=[];
+  const clIds=new Set((DB.confLeads||[]).map(l=>l.id));
+  const leadByRef=new Map(DB.leads.filter(l=>!l.removed&&l.refId).map(l=>[l.refId,l]));
+  const actPids=new Set((DB.activities||[]).map(a=>a&&a.pid).filter(Boolean));
+  const pTouched=p=>!!p.last||actPids.has(p.id);
+  if(src.has("contacts")&&!conf)DB.people.forEach(p=>{
+    const c=company(p.cid),k=contactType(p)||"enduser";
+    if((kind==="end_user"&&k!=="enduser")||(kind==="distributor_rep"&&k!=="distrep")||(kind==="man_rep"&&k!=="manrep"))return;
+    if(coq&&!String((c&&c.name)||p.branch||"").toLowerCase().includes(coq))return;
+    if(!where(botStates(p),[p.city,p.territory,p.district,p.branch,p.address,p.note].join(" "),[p.phone,p.mobile]))return;
+    if(kwRx&&!kwRx.test([p.role,c&&c.name,c&&c.industry,p.branch,p.district].join(" ")))return;
+    if(x.has_phone&&!(p.phone||p.mobile))return;
+    const t=pTouched(p);if(x.untouched&&t)return;
+    out.push({k:"p",o:p,row:{id:p.id,source:"contact",name:p.name,title:p.role||"",company:(c&&c.name)||p.branch||"",city:p.city||"",state:botStates(p).join(" "),
+      area:p.district||p.territory||"",phone:p.phone||p.mobile||"",email:p.email||"",last_touch:p.last?localDay(p.last):"",touched:t?"yes":"no"}});});
+  const clTouched=l=>{if((l.calls||[]).length||l.lastCall||l.contactedAt||l.contacted)return "called";
+    const cp=l.refPid&&person(l.refPid);if(cp&&pTouched(cp))return "worked as a contact";
+    const ld=leadByRef.get(l.id);if(ld&&(ld.touches||[]).length)return "worked in Leads";
+    return l.lastEmail?"emailed":"";};
+  if(src.has("conference_leads"))(DB.confLeads||[]).forEach(l=>{
+    if(!l||l.removed)return;
+    if(conf&&!String(l.conf||"").toLowerCase().includes(conf))return;
+    const seg=String(l.segment||"");
+    if(kind==="end_user"&&/distributor|set aside/i.test(seg))return;
+    if((kind==="distributor_rep"||kind==="man_rep")&&!/distributor|rep/i.test(seg))return;
+    if(coq&&!String(l.company||"").toLowerCase().includes(coq))return;
+    if(!where([String(l.state||"").toUpperCase().slice(0,2)],[l.city,l.notes].join(" "),[l.phone]))return;
+    if(kwRx&&!kwRx.test([l.title,l.company,l.notes,seg].join(" ")))return;
+    if(x.has_phone&&!l.phone)return;
+    const t=clTouched(l);if(x.untouched&&t)return;
+    out.push({k:"cl",o:l,row:{id:l.id,source:"conference lead",conference:l.conf||"",name:l.name,title:l.title||"",company:l.company||"",city:l.city||"",state:l.state||"",
+      phone:l.phone||"",email:l.email||"",status:l.status||"",interest:l.temp||"",touched:t||"no",
+      last_call:(l.calls||[]).length?localDay(l.calls[l.calls.length-1].at)+" by "+(l.calls[l.calls.length-1].by===USER?"you":shortName(l.calls[l.calls.length-1].by||"")||"a teammate"):""}});});
+  if(src.has("leads"))DB.leads.forEach(l=>{
+    if(!l||l.removed||(l.refId&&clIds.has(l.refId)&&src.has("conference_leads")))return;
+    if(conf&&!String(l.conf||"").toLowerCase().includes(conf))return;
+    const dist=l.kind==="distributor"||/distributor/i.test(String(l.segment||""));
+    if((kind==="end_user"&&dist)||((kind==="distributor_rep"||kind==="man_rep")&&!dist))return;
+    if(coq&&!String(l.company||"").toLowerCase().includes(coq))return;
+    if(!where([String(l.state||"").toUpperCase().slice(0,2)],[l.city,l.notes,l.note].join(" "),[l.phone]))return;
+    if(kwRx&&!kwRx.test([l.title,l.company,l.notes,l.note,l.segment,l.conf].join(" ")))return;
+    if(x.has_phone&&!l.phone)return;
+    const t=(l.touches||[]).length?"worked in Leads":"";if(x.untouched&&t)return;
+    out.push({k:"lead",o:l,row:{id:l.id,source:"lead",conference:l.conf||"",name:l.name,title:l.title||"",company:l.company||"",city:l.city||"",state:l.state||"",
+      phone:l.phone||"",email:l.email||"",handed_to:l.assignee?shortName(l.assignee):"",touched:t||"no"}});});
+  const pids=new Set(out.filter(r=>r.k==="p").map(r=>r.o.id));
+  /* one row per person: a conference lead promoted to a contact, or the same email / name+company seen again, is dropped (contacts come first) */
+  const seen=new Set(),nk=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"");
+  const res=out.filter(r=>{if(r.k==="cl"&&r.o.refPid&&pids.has(r.o.refPid))return false;
+    const em=String(r.row.email||"").trim().toLowerCase(),nm=nk(r.row.name)+"|"+nk(r.row.company).slice(0,12);
+    if((em&&seen.has("e:"+em))||seen.has("n:"+nm))return false;if(em)seen.add("e:"+em);seen.add("n:"+nm);return true;});
+  const by={};res.forEach(r=>{by[r.row.source]=(by[r.row.source]||0)+1;});
+  const chips=[sts.join(", "),(x.places||[]).slice(0,3).join(" / "),(x.area_codes||[]).length?"area codes "+x.area_codes.slice(0,4).join(" "):"",(x.keywords||[]).slice(0,3).join(" / "),
+    x.company||"",x.conference?"conference "+x.conference:"",x.untouched?"not touched":"",x.has_phone?"with a phone":""].filter(Boolean);
+  if(res.length){const id="c"+(++BOT.n)+uid();
+    BOT.cards[id]={id:id,tool:"build_list",state:"open",v:{request:chips.join(" · "),name:chips.join(" · ")+" · "+new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"}),chips:chips,rows:res.slice(0,500).map(r=>[r.k,r.o.id])}};
+    BOT.ui.push({k:"card",id:id});}
+  return {count:res.length,by_source:by,with_phone:res.filter(r=>r.row.phone).length,with_email:res.filter(r=>r.row.email).length,
+    rows:res.slice(0,40).map(r=>r.row),not_shown:Math.max(0,res.length-40),
+    shown:res.length?"The rep sees all of them (up to 500) with a Save list button.":"Nothing matched. Try fewer filters or other words."};}
+/* each distributor's own AutoTQ brochure (2 pp) + Fleet Safety Catalog (6 pp), 2026-11-19, with its logo and item numbers — on the
+   GHM Hub (reps open them with their Microsoft sign-in). Folder = distributor name; files AutoTQ_<stem>_Brochure.pdf / _Fleet_Safety_Catalog.pdf */
+const DIST_PIECES_BASE="https://netorg13317017.sharepoint.com/sites/GHMHub/Shared%20Documents/Sales%20Literature/Distributor%20Brochures/";
+const DIST_PIECES=["AED Authority","AED Professionals","Advocates4Health","Ballard Industrial","CPR Savers","Campbell Supply Company","Central Welding Supply",
+  "Copperstate","Coro Medical","Culpeper CPR","D&M Distributors","Dixie EMS","Fastenal","Gallaway Safety","Grainger","Immediate Response Training","Industrial Supply",
+  "K-Safety","LeeSar","MSC Industrial Supply","Mars Supply","Medique","Morton Safety","Packer Fastener","Rescue One","Ritz Safety","Safety Products Inc","Sent911",
+  "UniFirst","William V. MacGill & Co","Zoro"];
+function distPiecesFor(text){const t=" "+String(text||"").toLowerCase().replace(/[^a-z0-9&]+/g," ")+" ";
+  const hit=DIST_PIECES.find(d=>t.includes(" "+d.toLowerCase().replace(/[^a-z0-9&]+/g," ").trim()+" "))||
+    DIST_PIECES.find(d=>{const w=d.toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>=4&&!/^(safety|supply|medical|industrial|company|distributors|products|response|training|welding|central)$/.test(x));return w.some(x=>t.includes(" "+x+" "));});
+  if(!hit)return null;
+  const stem=hit.replace(/&/g,"and").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,""),dir=DIST_PIECES_BASE+encodeURIComponent(hit)+"/";
+  return {name:hit,brochure:dir+"AutoTQ_"+stem+"_Brochure.pdf",catalog:dir+"AutoTQ_"+stem+"_Fleet_Safety_Catalog.pdf"};}
+/* a distributor account's part numbers (theirs beside ours), the price on file and its recent POs */
+function botPartNos(c){const out=[];
+  (DB.skus||[]).forEach(s=>{const v=(c.partNos||{})[s.id];if(v)out.push({our_part:s.mpn||"",name:s.name||"",their_part:v});});
+  (c.pnRows||[]).forEach(r=>{const d=(c.pnData||{})[r.id]||{},row={our_part:r.mpn||"",name:r.name||""};
+    (c.pnCols||[]).forEach(col=>{if(d[col.id])row[col.label]=d[col.id];});if(Object.keys(row).length>2)out.push(row);});
+  return out;}
+function botAcctOrders(c){return (DB.orders||[]).filter(o=>{if(!o||o.dupOf||!(+o.amount>0))return false;const oc=orderCompany(o);return !!oc&&oc.id===c.id;})
+  .sort((a,b)=>String(b.poDate||"").localeCompare(String(a.poDate||""))).slice(0,6)
+  .map(o=>({po:o.poNo||"",date:o.poDate||"",status:o.status||"",amount:+o.amount||0,lines:(o.items||[]).map(i=>({part:i.sku,qty:i.qty,each:i.unit}))}));}
+function botLits(market){const ls=botLitPool(market),dp=distPiecesFor(market);
+  const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"find_literature",state:"open",v:{market:market,ids:ls.map(l=>l.id),dist:dp?dp.name:""}};BOT.ui.push({k:"card",id:id});
+  return {distributor_pieces:dp?[{title:"AutoTQ "+dp.name+" brochure (2 pages, Nov 19 2026: their logo and their item numbers)"},{title:"AutoTQ "+dp.name+" Fleet Safety Catalog (6 pages, Nov 19 2026)"}]:[],
+    pieces:ls.map(l=>({id:l.id,title:l.title})),shown:"The rep sees these with Open buttons"+(dp?" (the "+dp.name+" pieces open on the GHM Hub with their Microsoft sign-in)":"")+"."};}
 function botMakeLit(x){const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"make_literature",state:"open",v:Object.assign({},x)};BOT.ui.push({k:"card",id:id});
   return {shown:"The rep sees it with Open / Print and Copy buttons. Nothing was sent."};}
 /* ---------- write cards ---------- */
@@ -13677,17 +13785,22 @@ function botCardHTML(c){
   else if(c.result&&c.result.ok&&c.result.open)h+='<div class="tqca"><button class="btn sm" data-bact="cardopen" data-id="'+c.id+'">Open '+esc(c.result.open[0]==="opp"?"the deal":c.result.open[0]==="roster"?"the account":"the contact")+'</button></div>';
   else if(c.result&&!c.result.ok&&c.result.error)h+='<p class="tqneed">'+esc(c.result.error)+'</p>';
   return h+'</div>';}
-function botListCardHTML(c){const v=c.v,ps=(v.pids||[]).map(person).filter(Boolean);
+function botListRows(v){return v.rows?v.rows.map(botRowObj).filter(Boolean):(v.pids||[]).map(person).filter(Boolean).map(p=>({k:"p",o:p}));}
+function botListCardHTML(c){const v=c.v,rs=botListRows(v),ps=rs;
   let h='<div class="tqc'+(c.state!=="open"?" done":"")+'"><div class="tqch">'+svg("users")+'<b>Call list · '+ps.length+' '+(ps.length===1?"person":"people")+'</b>'+(c.state==="saved"?'<span class="pill ok">Saved</span>':'')+'</div>'+
     (v.chips&&v.chips.length?'<div class="qa-types" style="margin:4px 0 8px">'+v.chips.map(x=>'<span class="qchip on" style="pointer-events:none">'+esc(x)+'</span>').join("")+'</div>':'');
-  h+='<div class="tql">'+ps.slice(0,8).map(p=>'<button data-act="person" data-id="'+p.id+'"><b>'+esc(p.name)+'</b><span>'+esc((company(p.cid)||{}).name||p.branch||"")+(botStates(p).length?" · "+esc(botStates(p).join(" ")):"")+(p.phone?"":" · no number")+'</span></button>').join("")+
+  h+='<div class="tql">'+rs.slice(0,8).map(r=>{const p=r.o,act=r.k==="p"?"person":r.k==="cl"?"leadopen":"openlead";
+      return '<button data-act="'+act+'" data-id="'+esc(p.id)+'"><b>'+esc(p.name)+'</b><span>'+esc((company(p.cid)||{}).name||p.branch||p.company||"")+(personStates(p).length?" · "+esc(personStates(p).join(" ")):"")+
+        (r.k==="p"?"":" · "+esc(r.k==="cl"?(p.conf||"conference lead"):"lead"))+(p.phone||p.mobile?"":" · no number")+'</span></button>';}).join("")+
     (ps.length>8?'<p class="t2">+ '+(ps.length-8)+' more</p>':'')+(ps.length?'':'<p class="t2">Nobody matches that.</p>')+'</div>';
   if(c.state==="open"&&ps.length)h+='<label class="tqf wide"><span>List name</span><input class="f" data-bf="name" data-bc="'+c.id+'" value="'+esc(v.name||"")+'"></label>'+
     '<div class="tqca"><button class="btn coral" data-bact="listsave" data-id="'+c.id+'">'+svg("check")+' Save list</button></div>';
   if(c.state==="saved"&&c.result&&c.result.id)h+='<div class="tqca"><button class="btn sm" data-act="listgo" data-id="'+esc(c.result.id)+'">Open the list</button></div>';
   return h+'</div>';}
-function botLitsCardHTML(c){const ls=(c.v.ids||[]).map(id=>DIAL_LIT.find(l=>l.id===id)).filter(Boolean);
-  return '<div class="tqc"><div class="tqch">'+svg("file")+'<b>Approved literature</b></div><div class="tql">'+ls.map(l=>'<button data-bact="litopen" data-id="'+l.id+'"><b>'+esc(l.title)+'</b><span>Open the PDF</span></button>').join("")+'</div></div>';}
+function botLitsCardHTML(c){const ls=(c.v.ids||[]).map(id=>DIAL_LIT.find(l=>l.id===id)).filter(Boolean),dp=c.v.dist?distPiecesFor(c.v.dist):null;
+  return '<div class="tqc"><div class="tqch">'+svg("file")+'<b>Approved literature</b></div><div class="tql">'+
+    (dp?'<a href="'+esc(dp.brochure)+'" target="_blank" rel="noopener"><b>AutoTQ × '+esc(dp.name)+' brochure</b><span>2 pages · Nov 19 · their logo + item numbers · GHM Hub</span></a>'+
+      '<a href="'+esc(dp.catalog)+'" target="_blank" rel="noopener"><b>AutoTQ × '+esc(dp.name)+' Fleet Safety Catalog</b><span>6 pages · Nov 19 · GHM Hub</span></a>':'')+ls.map(l=>'<button data-bact="litopen" data-id="'+l.id+'"><b>'+esc(l.title)+'</b><span>Open the PDF</span></button>').join("")+'</div></div>';}
 function botLitCardHTML(c){const v=c.v;
   if(v.kind==="email"){const body=botLitText(v);
     return '<div class="tqc"><div class="tqch">'+svg("mail")+'<b>Email draft</b></div><p class="tqcx"><b>'+esc(v.subject||v.headline||"")+'</b></p><pre class="tqpre">'+esc(body)+'</pre>'+
@@ -13755,9 +13868,9 @@ function botSaveOpp(v){
   const o=(DB.opps||[]).length>n0?DB.opps[0]:null;
   if(!o){closeSheet();return {ok:false,stay:true,error:"The deal form didn't save it — open + New › Opportunity to check"};}
   return {ok:true,id:o.id,summary:o.name+" ("+(OPP_SHORT[o.stage]||o.stage)+", "+(o.units||0)+" kits, "+money(o.amount||0)+") added to the pipeline",open:["opp",o.id],toast:"Opportunity added — "+o.name};}
-function botListSave(c){const v=c.v,ps=(v.pids||[]).map(person).filter(Boolean);if(!ps.length)return;
+function botListSave(c){const v=c.v,rs=botListRows(v);if(!rs.length)return;
   const nm=botVal(v,"name")||"Call list";
-  const nl=listMake(ps,nm,v.request||"",["company","phone","email","state"]);
+  const nl=listMake(rs.map(r=>r.o),nm,v.request||"",["company","phone","email","state"],rs.map(r=>r.k));
   if(ownOnly())nl.assignee=USER; /* a rep's own list shows on their Home (From outreach) and in Leads */
   save();c.state="saved";c.result={ok:true,id:nl.id};botSave();botPaint();toast('"'+nm+'" saved — '+nl.items.length+' people');
   BOT.notes.push('I saved the list "'+nm+'" ('+nl.items.length+' people).');}
