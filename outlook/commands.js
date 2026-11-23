@@ -1,5 +1,6 @@
-// AutoTQ Outlook button: "Send personal copies". No window: it hands the draft to the mail-merge function, which sends one
-// personal copy per person from the rep's own mailbox in the background, then the draft is discarded.
+// AutoTQ Outlook button: "Send personal copies". No window: it hands the draft to the mail-merge function, which mails the rep
+// a preview of the first copy; once the rep confirms in TQbot (the CRM side panel), it sends one personal copy per person from
+// the rep's own mailbox in the background. The draft is discarded after it's queued.
 /* global Office */
 (function () {
   var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
@@ -73,7 +74,8 @@
     var payload;
     note(item, "AutoTQ: getting your email ready…");
     Promise.all([pget(item.subject), pget(item.body, Office.CoercionType.Html), recipients(item)]).then(function (v) {
-      payload = { subject: v[0] || "", html: v[1] || "", recipients: v[2] };
+      var mailbox = ""; try { mailbox = Office.context.mailbox.userProfile.emailAddress || ""; } catch (e) { /* */ }
+      payload = { subject: v[0] || "", html: v[1] || "", recipients: v[2], mailbox: mailbox };
       if (!payload.recipients.length) throw new Error("Add the people to To or Bcc first.");
       var s = getS();
       return s ? s : signIn();
@@ -84,10 +86,10 @@
       });
     }).then(function (r) {
       var j = r.j || {};
+      if (j.wrongUser) setS(null); // signed in to the CRM as someone else: the next click asks again
       if (!j.ok) throw new Error(j.error || "Couldn't queue it (" + r.status + ").");
       var held = (j.held || []).length;
-      var msg = "Sending " + j.ready + " personal " + (j.ready === 1 ? "copy" : "copies") + " from your mailbox" + (held ? " · " + held + " held" : "") +
-        (j.ready > j.todayLeft ? " · " + j.todayLeft + " today, the rest tomorrow" : "") + ". A summary comes to your inbox.";
+      var msg = "Preview sent to your inbox. Confirm in TQbot to send " + j.ready + " personal " + (j.ready === 1 ? "copy" : "copies") + (held ? " (" + held + " held)" : "") + ".";
       note(item, msg);
       // leave the message up a moment, then discard the draft so it can't be sent by hand with {{name}} in it
       setTimeout(function () { closeDraft(item, function (closed) { if (!closed) note(item, msg + " You can delete this draft."); finish(); }); }, 3500);
