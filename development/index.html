@@ -7325,7 +7325,7 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    TQbot (Max + Hannah): HX.tq relays one call to the tq-run function; the snap carries tqRuns + the person's tqProposals, and
    HX.proposal records a yes or no on a proposal (status + approvedBy/approvedAt or rejectedBy/rejectedAt). */
 if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves","tqRuns","tqProposals","connections","spendDaily"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261123172144";
+const HX_BUILD="20261123173809";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7369,15 +7369,19 @@ function hxTq(){if(!hxSafe(pjInner,false)||(USER!=="max"&&USER!=="hannah"))retur
     approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||""}));
   /* the waiting-people sweep (tq-sweep): open cards, and ones decided in the last 3 days so a yes stays visible a while */
   const cut=new Date(Date.now()-3*864e5).toISOString();
+  const rcut=new Date(Date.now()-60*864e5).toISOString();
+  const fol=p=>({id:p.id,status:p.status||"proposed",at:p.at||"",sweepAt:p.sweepAt||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||"",sent:p.sent||null,reply:p.reply||null,editedBy:p.editedBy||"",editedAt:p.editedAt||""});
   const waiting=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.kind==="followup"&&(p.status==="proposed"||((p.status==="approved"||p.status==="rejected")&&String(p.approvedAt||p.rejectedAt||"")>=cut)))
-    .slice(0,400).map(p=>({id:p.id,status:p.status||"proposed",at:p.at||"",sweepAt:p.sweepAt||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},approvedBy:p.approvedBy||"",approvedAt:p.approvedAt||"",rejectedBy:p.rejectedBy||"",rejectedAt:p.rejectedAt||""}));
+    .slice(0,400).map(fol);
+  /* answers to follow-ups sent from TQbot (tq-mail keeps p.reply), newest first */
+  const replies=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.kind==="followup"&&p.reply&&String(p.reply.at||"")>=rcut).sort((a,b)=>String(b.reply.at).localeCompare(String(a.reply.at))).slice(0,60).map(fol);
   /* the inbox desk (tq-inbox): open CRM cards (and ones decided in the last 3 days), and the newest daily read */
   const crm=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.kind==="crm"&&(p.status==="proposed"||((p.status==="approved"||p.status==="rejected")&&String(p.approvedAt||p.rejectedAt||"")>=cut)))
     .slice(0,300).map(p=>({id:p.id,status:p.status||"proposed",at:p.at||"",payload:p.payload&&typeof p.payload==="object"?p.payload:{},approvedAt:p.approvedAt||"",rejectedAt:p.rejectedAt||""}));
   const brief=(DB.tqProposals||[]).filter(p=>p&&p.id&&!p.removed&&p.kind==="brief").sort(newest)[0]||null;
-  return {runs,props,waiting,crm,brief:brief?{id:brief.id,at:brief.at||"",payload:brief.payload||{}}:null};}
+  return {runs,props,waiting,replies,crm,brief:brief?{id:brief.id,at:brief.at||"",payload:brief.payload||{}}:null};}
 function hxSnap(){const live=c=>(DB[c]||[]).filter(m=>m&&m.id&&!m.removed),tq=hxSafe(hxTq,null);
-  return JSON.stringify({v:1,tqRuns:tq?tq.runs:[],tqProposals:tq?tq.props:[],tqWaiting:tq?tq.waiting:[],tqCrm:tq?tq.crm:[],tqBrief:tq?tq.brief:null,tqCrm:tq?tq.crm:[],tqBrief:tq?tq.brief:null,live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
+  return JSON.stringify({v:1,tqRuns:tq?tq.runs:[],tqProposals:tq?tq.props:[],tqWaiting:tq?tq.waiting:[],tqReplies:tq?tq.replies:[],tqCrm:tq?tq.crm:[],tqBrief:tq?tq.brief:null,tqCrm:tq?tq.crm:[],tqBrief:tq?tq.brief:null,live:true,user:USER,inner:hxSafe(pjInner,false),can:hxSafe(coldCan,false),today:todayStr(),people:HX_PEOPLE,sync:SYNC.state,
     tasks:hxSafe(hxTasks,[]),waits:hxSafe(hxWaits,{}),done:hxSafe(hxDone,{}),lists:hxSafe(hxLists,[]),per:hxSafe(hxPer,[]),cap:hxSafe(shCap,600),
     sent:hxSafe(shSent,{all:0,d30:0,days:{}}),conf:hxSafe(shConfPeople,0),rangeApollo:hxSafe(shRangeApollo,0),auto:hxSafe(hxAuto,[]),
     more:hxSafe(()=>shMore().map(m=>({v:m[0],ic:m[1],t:m[2],n:hxSafe(()=>mk2Badge(m[0]),0)})),[]),
@@ -7455,6 +7459,12 @@ window.HX={v:1,build:HX_BUILD,snap:hxSnap,
   /* TQbot's waiting-people sweep, on demand (Max or Hannah): tq-sweep files the cards, the next sync brings them in */
   sweep(body){if(!pjInner()||(USER!=="max"&&USER!=="hannah"))return Promise.reject(new Error("Not allowed"));return supa("/functions/v1/tq-sweep",{method:"POST",body:typeof body==="string"?body:JSON.stringify(body||{action:"run"})}).then(async r=>{const t=await r.text();
     if(!r.ok){let m="";try{m=JSON.parse(t).error||"";}catch(e){}throw new Error(m||("The sweep didn't run ("+r.status+")"));}if(typeof pullChanges==="function")try{pullChanges(false);}catch(e){}return t;});},
+  /* edit a follow-up's draft before it is sent (the first wording is kept in payload.orig) */
+  proposalEdit(id,subject,text){if(!pjInner()||(USER!=="max"&&USER!=="hannah"))return false;const p=(DB.tqProposals||[]).find(x=>x&&x.id===String(id)&&!x.removed);if(!p||p.kind!=="followup"||p.sent)return false;
+    const n=JSON.parse(JSON.stringify(p)),y=n.payload=n.payload&&typeof n.payload==="object"?n.payload:{};if(!y.orig)y.orig={subject:y.subject||"",text:y.text||""};
+    y.subject=String(subject||"").slice(0,300);y.text=String(text||"").slice(0,20000);n.editedBy=USER;n.editedAt=new Date().toISOString();put("tqProposals",n);render();return true;},
+  replySeen(id){if(!pjInner()||(USER!=="max"&&USER!=="hannah"))return false;const p=(DB.tqProposals||[]).find(x=>x&&x.id===String(id)&&!x.removed);if(!p||!p.reply)return false;
+    const n=JSON.parse(JSON.stringify(p));n.reply.seen=true;n.reply.seenBy=USER;put("tqProposals",n);render();return true;},
   proposal(id,status){if(!pjInner()||(USER!=="max"&&USER!=="hannah")||!["approved","rejected"].includes(status))return false;const p=(DB.tqProposals||[]).find(x=>x&&x.id===String(id)&&!x.removed);if(!p)return false;
     const n=JSON.parse(JSON.stringify(p)),now=new Date().toISOString();n.status=status;n[status+"By"]=USER;n[status+"At"]=now;put("tqProposals",n);render();return true;},
   map(){const r=pjInner()?(DB.settings||[]).find(x=>x&&x.id==="marketingMap"&&!x.removed):null;return JSON.stringify(r||null);},
