@@ -8495,10 +8495,14 @@ function distRepOpts(cid,selPid){
   return '<option value="">'+(cid?"— none —":"— pick the distributor first —")+'</option>'+
     ppl.map(p=>'<option value="'+p.id+'"'+(selPid===p.id?' selected':'')+'>'+esc(p.name)+'</option>').join("");
 }
-function formOppReadOnly(o){
+function formOppReadOnly(o){ /* someone else's deal: the same page, view only (Max, 2026-11-23: "even when they click on an opportunity it should go to the new page") */
   const row=(l,v)=>v?'<div class="tk" style="align-items:flex-start"><b style="flex:none;width:110px;font-size:13px">'+l+'</b><span style="font-size:13.5px">'+v+'</span></div>':'';
-  openSheet('<h2>'+esc(o.name)+'</h2>'+
-   '<div class="banner">'+svg("note")+'Owned by <b>'+esc(oppOwnerName(o))+'</b> — view only. Ask them (or an admin) for changes.</div>'+
+  const back=view==="opps"?"Pipeline":view==="roster"?"the account":view==="person"?"the contact":view==="today"?"Home":view==="quotes"?"Quotes":"where you were";
+  openPageSheet('<div class="dpg-top"><button class="btn ghost sm" data-act="dpgback">'+svg("back")+' Back to '+esc(back)+'</button></div>'+
+   '<div class="dpg-head"><h2 class="dpg-h">'+esc(o.name)+'</h2><p class="t2">'+esc(oppAcctLabel(o))+' · '+esc(OPP_SHORT[o.stage]||o.stage)+' · '+(o.units||0)+' kits · '+money(o.amount||0)+
+     (oppGhRep(o)?' · '+esc(shortName(oppGhRep(o))):'')+'</p></div>'+
+   '<div class="banner" style="max-width:1280px">'+svg("note")+'Owned by <b>'+esc(oppOwnerName(o))+'</b> — view only. Ask them (or an admin) for changes.</div>'+
+   '<div class="dpg-grid"><div class="dpg-main"><div class="dpg-card"><p class="dpg-st">The deal</p>'+
    row("Account",esc(oppAcctLabel(o)))+
    row("Stage",esc(OPP_SHORT[o.stage]||o.stage)+" · "+oppProb(o)+"%")+
    row("Why that %",esc(o.probReason||""))+
@@ -8509,7 +8513,8 @@ function formOppReadOnly(o){
    row("Channel rep",esc(o.rep||(o.manrepPid&&person(o.manrepPid)?person(o.manrepPid).name:"")))+
    row("Close date",esc(o.closeDate||""))+
    row("Quotes",oppQuotes(o).map(q=>'<a href="#" data-act="quoteopen" data-id="'+q.id+'" style="color:var(--coral-text)">'+quoteLine(q)+'</a>').join("<br>"))+
-   '<label class="fl">Notes <span style="font-weight:400;color:var(--hint)">— newest first</span></label>'+oppNoteListHTML(o,true));
+   '</div></div><aside class="dpg-side"><div class="dpg-card"><p class="dpg-st">Notes</p>'+oppNoteListHTML(o,true)+'</div></aside></div>'+
+   '<div class="dpg-foot"><button class="btn" data-act="dpgback">'+svg("back")+' Back</button></div>');
 }
 function oppNotesFormHTML(o){ /* the edit form: a box for the next note above every earlier one */
   return '<label class="fl">Notes <span style="font-weight:400;color:var(--hint)">— add an update; earlier notes stay, newest first</span></label>'+
