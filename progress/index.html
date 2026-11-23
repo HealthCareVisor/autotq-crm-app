@@ -736,6 +736,21 @@ table.lv th.r,table.lv td.r{text-align:right}
 .lgqbody{margin:0;white-space:pre-line;font-size:13.5px;line-height:1.55;background:var(--rule-2);border-radius:var(--r);padding:10px 12px}
 .lgqbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .lgqprev{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0 0;font-size:12.5px;color:var(--ink-2)}.lgqprev .i{color:var(--ok, #2E7D4F)}
+.lgwhy{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--ink-2);white-space:normal}
+.lgvar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.lgsrch{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0 8px}
+.lgsrch .chip{text-decoration:none}
+table.lv.lgpress td{white-space:normal;min-width:150px}
+table.lv.lgpress td:last-child{min-width:0}
+.lgpress td small{display:block;color:var(--ink-3);margin-top:2px}
+table.lv.lgpress td.why{min-width:260px;font-size:12.5px;line-height:1.45}
+.lgpress td.why a{display:block;margin-top:4px;font-size:12px}
+.lgpress td.st{min-width:150px}
+.lgpress .lgdt{display:block;margin-top:6px;max-width:150px;min-height:30px;padding:2px 8px;font-size:12.5px}
+.lgpress .lgli{display:block;margin-top:6px;min-height:30px;font-size:12px}
+.lgpress .lgfind,.lgpress .lgmail{display:block;font-size:12px;margin-top:3px;word-break:break-all}
+.lgst-replied{font-weight:600}
+.lgst-interviewed{font-weight:700;color:var(--ok, #2F8A3A)}
 .lgqmode{display:inline-flex;gap:6px}.lgqmode .chip{min-height:26px;padding:0 10px}
 .lgqlink{display:block;margin-top:3px;font-size:12px;color:var(--ink-3);text-decoration:none;word-break:break-all}.lgqlink:hover{color:var(--ink);text-decoration:underline}
 .pstep{display:inline-flex;align-items:center;gap:4px;border:0;background:var(--ok-wash);color:var(--ok);font:inherit;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:6px;cursor:pointer}
@@ -3294,7 +3309,7 @@ function lgSummary(lines){for(const raw of lines||[]){const x=String(raw).replac
     if(m&&!/mutual connection/i.test(x)&&!/^(current|past):/i.test(x))return {role:m[1].replace(/^(currently|now)\s+(an?\s+)?/i,"").trim(),company:m[2].trim()};}
   return null;}
 function lgRow(name,rest,li,coLink){const head=rest[0]||"",loc=rest.slice(1).find(x=>LG_LOC.test(x))||"";
-  const sum=lgSummary(rest.slice(1).filter(x=>x!==loc)),hm=head.match(/^(.+?)\s(?:at|@)\s+(.+)$/i);
+  const sum=lgSummary(rest.slice(1).filter(x=>x!==loc)),hm=head.match(/^(.+?)\s(?:at\s+|@\s*)(.+)$/i);
   const company=(hm?hm[2].replace(/\s*[|·•].*$/,"").trim():"")||coLink||(sum?sum.company:"")||lgCompanyOf("",rest);
   const title=hm?hm[1].trim():sum?sum.role:head;
   return {id:li||name.toLowerCase(),name,title,company,loc,li,head};}
@@ -3358,16 +3373,16 @@ function lgPrevHTML(R){const prev=lgLastGo&&R.find(x=>x.id===lgLastGo&&x.status=
   return '<p class="lgqprev">'+svg("check")+'<span>'+esc(prev.name)+' marked invited</span><button class="btn sm ghost" data-act="proslgundo1" data-id="'+esc(prev.id)+'">Didn\'t send — put back</button><button class="btn sm ghost" data-act="proslgskip" data-id="'+esc(prev.id)+'">Already connected — skip</button></p>';}
 function lgQueueHTML(list,R){if(!list||!R.length||view!=="limsg")return "";const m=lgMsg(list),mode=lgMode(list),left=lgLeft(R),nx=left[0];
   const c=s=>R.filter(r=>r.status===s).length,cn=mode==="connect";
-  let h='<div class="lgq"><div class="lgqhd"><b>'+(cn?'Connect queue':'InMail queue')+'</b><span class="t2">'+c("sent")+' sent · '+lgToday(R)+' today · '+left.length+' to go · '+c("replied")+' replied'+(c("skipped")?' · '+c("skipped")+' skipped':'')+'</span>'+
+  let h='<div class="lgq"><div class="lgqhd"><b>'+(cn?'Connect queue':'InMail queue')+'</b><span class="t2">'+c("sent")+' sent · '+lgToday(R)+' today · '+left.length+' to go · '+c("replied")+' replied'+(c("interviewed")?' · '+c("interviewed")+' interviewed':'')+(c("skipped")?' · '+c("skipped")+' skipped':'')+'</span>'+
     '<span class="lgqmode" role="group" aria-label="Send as">'+[["connect","Connect + note"],["inmail","InMail"]].map(([k,l])=>'<button class="chip'+(mode===k?' on':'')+'" data-act="proslgmode" data-mode="'+k+'" aria-pressed="'+(mode===k)+'">'+l+'</button>').join("")+'</span>'+
-    '<button class="btn sm ghost" data-act="proslgmsgedit">'+(lgMsgOpen?'Done editing':cn?'Edit the note':'Edit the message')+'</button></div>';
-  if(lgMsgOpen)h+='<div class="lgqedit">'+(cn
+    '<button class="btn sm ghost" data-act="proslgmsgedit">'+(lgMsgOpen?'Done editing':lgPress(list)?'Change the wording':cn?'Edit the note':'Edit the message')+'</button></div>';
+  if(lgMsgOpen)h+='<div class="lgqedit">'+lgVarHTML(list)+(cn
     ?'<label class="fl" for="lgNoteBody">Connection note <span class="t2">· {first} and {company} fill in for each person · <span id="lgNoteCount"></span></span></label><textarea class="f" id="lgNoteBody" rows="5">'+esc(list.note||LG_NOTE_DEFAULT)+'</textarea>'
     :'<label class="fl" for="lgMsgSubj">Subject</label><input class="f" id="lgMsgSubj" value="'+esc(m.subject)+'">'+
      '<label class="fl" for="lgMsgBody">Message <span class="t2">· {first} and {company} fill in for each person</span></label><textarea class="f" id="lgMsgBody" rows="9">'+esc(m.body)+'</textarea>')+
     '<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm coral" data-act="proslgmsgsave">'+(cn?'Save the note':'Save the message')+'</button><button class="btn sm ghost" data-act="proslgmsgreset">Back to the default</button></div></div>';
   if(!nx)return h+(cn?lgPrevHTML(R):'')+'<p class="t2" style="margin:10px 0 0">Everyone on this list has been sent or skipped.</p></div>';
-  h+='<div class="lgqcard" data-id="'+esc(nx.id)+'"><div class="lgqwho"><b>'+esc(nx.name)+'</b><small>'+esc([nx.title,nx.company].filter(Boolean).join(" · "))+(nx.loc?' · '+esc(nx.loc):'')+'</small>'+
+  h+='<div class="lgqcard" data-id="'+esc(nx.id)+'"><div class="lgqwho"><b>'+esc(nx.name)+'</b><small>'+esc([nx.title,nx.company].filter(Boolean).join(" · "))+(nx.loc?' · '+esc(nx.loc):'')+'</small>'+lgPressWho(list,nx)+
     (nx.li?'<a class="lgqlink" id="lgqLink" href="'+esc(nx.li)+'" target="_blank" rel="noopener">'+esc(nx.li.replace(/^https?:\/\/(www\.)?/,""))+'</a>':'<span class="pill warn">no profile link</span>')+'</div>';
   if(cn){const note=lgNote(list,nx);
     h+='<p class="lgqsubj"><small>Connection note · '+note.length+'/'+LG_NOTE_MAX+'</small></p><p class="lgqbody" id="lgqNote">'+esc(note)+'</p>'+
@@ -3387,7 +3402,7 @@ function lgNoteCount(){const el=document.getElementById("lgNoteBody"),o=document
   const n=lgFill(el.value,{name:"Christopher",company:"Lockheed Martin"}).length;o.textContent=n+"/"+LG_NOTE_MAX+" with a long first name";o.style.color=n>LG_NOTE_MAX?"var(--bad)":"";}
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="lgNoteBody")lgNoteCount();});
 function lgQueueHandle(a,t){const r=(DB.prospects||[]).find(x=>x.id===t.dataset.id),list=lgList();
-  if(a==="proslgmode"){if(!list)return true;list.mode=t.dataset.mode;put("prospects",list);lgMsgOpen=false;render();return true;}
+  if(a==="proslgvar"){if(!list)return true;const v=(list.variants||[]).find(x=>x.k===t.dataset.k);if(!v)return true;list.pick=v.k;list.note=v.note;list.msg={subject:v.subject,body:v.body};put("prospects",list);render();toast("Wording: "+v.label);return true;}if(a==="proslgmode"){if(!list)return true;list.mode=t.dataset.mode;put("prospects",list);lgMsgOpen=false;render();return true;}
   if(a==="proslgmsgedit"){lgMsgOpen=!lgMsgOpen;render();if(lgMsgOpen)lgNoteCount();return true;}
   if(a==="proslgmsgsave"){if(!list)return true;
     if(lgMode(list)==="connect"){const b=((document.getElementById("lgNoteBody")||{}).value||"").trim();
@@ -3396,8 +3411,8 @@ function lgQueueHandle(a,t){const r=(DB.prospects||[]).find(x=>x.id===t.dataset.
     else{const s=(document.getElementById("lgMsgSubj")||{}).value||"",b=(document.getElementById("lgMsgBody")||{}).value||"";
       list.msg={subject:s.trim()||LG_MSG_DEFAULT.subject,body:b.trim()||LG_MSG_DEFAULT.body};}
     put("prospects",list);lgMsgOpen=false;render();toast("Saved for "+list.name);return true;}
-  if(a==="proslgmsgreset"){if(!list)return true;if(lgMode(list)==="connect")delete list.note;else delete list.msg;put("prospects",list);lgMsgOpen=false;render();toast("Back to the default");return true;}
-  if(!r)return true;const m=lgMsg(list),cn=lgMode(list)==="connect";
+  if(a==="proslgmsgreset"&&lgPress(list)){const V=list.variants||[],v=V.find(x=>x.k===list.pick)||V[0];if(v){list.pick=v.k;list.note=v.note;list.msg={subject:v.subject,body:v.body};put("prospects",list);}lgMsgOpen=false;render();toast(v?"Back to "+v.label:"Back to the default");return true;}if(a==="proslgmsgreset"){if(!list)return true;if(lgMode(list)==="connect")delete list.note;else delete list.msg;put("prospects",list);lgMsgOpen=false;render();toast("Back to the default");return true;}
+  if(!r)return false;const m=lgMsg(list),cn=lgMode(list)==="connect";
   if(a==="proslggo"){prosClip(cn?lgNote(list,r):lgFill(m.body,r),cn?"Note copied · "+r.name+" saved as invited":"Message copied — paste it on their profile");
     if(!cn){if(r.li)window.open(r.li,"_blank","noopener");return true;}
     if(r.li)window.open(r.li,"autotq_li");
@@ -3407,6 +3422,73 @@ function lgQueueHandle(a,t){const r=(DB.prospects||[]).find(x=>x.id===t.dataset.
     if(a==="proslgsent"){r.status="sent";r.sentAt=now;r.sentBy=USER;r.via=cn?"connect":"inmail";}else if(a==="proslgskip"){r.status="skipped";r.skippedAt=now;delete r.sentAt;delete r.via;}else if(a==="proslgreplied"){r.status="replied";r.repliedAt=now;}else{r.status="new";delete r.sentAt;delete r.skippedAt;delete r.repliedAt;delete r.via;}
     put("prospects",r);render();return true;}
   return false;}
+/* Press list (Max, 2026-11-23: "a great use of Hannah's LinkedIn… search WSJ business journalist / Forbes business and DM them…
+   Hannah used to do this and we used to get major traction"). An InMail list with press:true holds journalists and newsletter
+   writers: company = outlet, title = role, plus beat, why, recent {title,url}, author (their author page) and email only when it
+   was seen on a public page (emailSource). Hannah works it by hand from her own LinkedIn: the queue copies the note or the message,
+   the table keeps Not sent / Sent / Replied / Interviewed / Skipped and the date of each (editable). The list record carries the
+   wording options (variants [{k,label,note,subject,body}], pick) and LinkedIn searches for finding more (searches [{label,q}]);
+   a pasted results page adds people to the list like any InMail list. Loaded by tools/press/press_push.py. */
+/* Building by paste (Max, 2026-11-23: "should operate similarly to the other linked in builder where you ctrl + a the list"): a
+   results page from a journalist search (keywords like reporter, journalist, editor, newsletter) goes into a press list — the picked
+   one if it is a press list, else a new one named from the search — and anyone already on a press list is skipped so nobody gets the
+   same DM twice. "New press list" starts an empty one. Wording and searches for a new press list come from tools/press/messages.json. */
+const LG_PRESS={"variants": [{"k": "a", "label": "A · Straight to it", "note": "Hi {first}, I'm Hannah. My team invented AutoTQ, a tourniquet that talks you through it. In October, a Florida K–12 school used it to help control a 12-year-old's severe bleeding. Open to a chat?", "subject": "A tourniquet that talks you through it", "body": "Hi {first},\n\nI'm Hannah Herbst, founder of Golden Hour Medical. My team and I invented AutoTQ: an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.\n\nIn October, a Florida K–12 school used AutoTQ to help control a 12-year-old's severe bleeding.\n\nSevere bleeding can kill in about five minutes. The median ambulance takes seven. So the person standing closest matters most, and that's who we built it for.\n\nWould you be interested in talking? I'm happy to do a quick call or show you the device on video.\n\nHannah"}, {"k": "b", "label": "B · Question first", "note": "Hi {first}, most schools can point to their AED. What's there for a bad bleed? I'm Hannah; my team built AutoTQ, a tourniquet that talks you through it. Can I share a story from a Florida school?", "subject": "What's beside the AED?", "body": "Hi {first},\n\nMost schools can point to their AED. If a student started bleeding badly, would the teacher closest to them know how to stop it?\n\nFive years ago, our team at Golden Hour Medical couldn't answer that confidently. So we built AutoTQ: an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.\n\nIn October, a Florida K–12 school used AutoTQ to help control a 12-year-old's severe bleeding.\n\nI think there's a story in why bleeding control hasn't had its AED moment yet. Would you be open to a short call?\n\nHannah Herbst\nFounder, Golden Hour Medical"}, {"k": "c", "label": "C · Founder story", "note": "Hi {first}, I'm Hannah Herbst. For five years my team has been building a tourniquet that talks you through it. A Florida K–12 school used it in October. Could the founder story fit your beat?", "subject": "A founder story from Florida", "body": "Hi {first},\n\nI'm Hannah Herbst. Five years ago, my team at Golden Hour Medical asked ourselves a simple question: if someone started bleeding badly right in front of us, would we know what to do? We couldn't answer that confidently.\n\nSo we built AutoTQ: an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button. Florida Atlantic University put AutoTQ beside every AED on campus and in each of its police vehicles. In October, a Florida K–12 school used AutoTQ to help control a 12-year-old's severe bleeding.\n\nWould a founder story like this fit what you cover? I'd love to tell you more.\n\nHannah"}], "searches": [{"label": "WSJ business journalist", "q": "Wall Street Journal business journalist"}, {"label": "Forbes business", "q": "Forbes business reporter"}, {"label": "Forbes health", "q": "Forbes health reporter"}, {"label": "Fortune reporter", "q": "Fortune reporter founders"}, {"label": "Business Insider health", "q": "Business Insider health reporter"}, {"label": "Axios health", "q": "Axios health reporter"}, {"label": "School safety reporter", "q": "school safety reporter"}, {"label": "EHS editor", "q": "EHS Today editor"}, {"label": "Florida business journalist", "q": "Florida business journalist"}, {"label": "Health tech newsletter", "q": "health tech newsletter writer"}]};
+const LG_PRESS_Q=/\b(journalists?|reporters?|editors?|correspondents?|columnists?|writers?|newsletters?|producers?|anchors?|press|media|news(room)?|podcast(er|s)?|bylines?)\b/i;
+function lgNewPressList(name){const now=new Date().toISOString(),key="press-"+Date.now().toString(36),V=LG_PRESS.variants||[],v=V[0]||{};
+  const rec={id:"inmaillist-"+key,kind:"inmaillist",key,name:name||("Press · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"})),press:true,
+    variants:V,pick:v.k,note:v.note,msg:{subject:v.subject,body:v.body},searches:LG_PRESS.searches||[],mode:"connect",pages:0,createdAt:now,by:USER};
+  put("prospects",rec);lgCamp=key;lgSave();return rec;}
+/* where a paste goes: the picked press list, else a new press list when the search was for journalists, else the picked list */
+function lgPastePick(list,html){if(lgPress(list))return list;const q=lgQuery(html);
+  if(q&&LG_PRESS_Q.test(q))return lgNewPressList("Press · "+q.replace(/\b\w/g,c=>c.toUpperCase())+" · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));
+  return list;}
+/* already on any press list (same profile, or same name when either has no profile) */
+function lgPressSeen(list,r){if(!lgPress(list))return false;const keys=new Set(lgLists().filter(lgPress).map(l=>l.key)),nm=String(r.name||"").toLowerCase(),li=r.li?lgSlug(r.li):"";
+  return (DB.prospects||[]).some(x=>x&&x.kind==="inmail"&&keys.has(x.camp)&&((li&&x.li&&lgSlug(x.li)===li)||((!li||!x.li)&&String(x.name||"").toLowerCase()===nm)));}
+const LG_PST=[["new","Not sent"],["sent","Sent"],["replied","Replied"],["interviewed","Interviewed"],["skipped","Skipped"]];
+const LG_PAT={sent:"sentAt",replied:"repliedAt",interviewed:"interviewedAt",skipped:"skippedAt"};
+function lgPress(list){return !!(list&&list.press);}
+function lgDay(x){if(!x)return "";const t=new Date(x);return isNaN(t)?"":t.getFullYear()+"-"+pad2(t.getMonth()+1)+"-"+pad2(t.getDate());}
+function lgFind(r){return "https://www.linkedin.com/search/results/people/?keywords="+encodeURIComponent([r.name,r.company].filter(Boolean).join(" "));}
+function lgPressWho(list,r){if(!lgPress(list)||!r)return "";
+  return (r.why?'<p class="lgwhy">'+esc(r.why)+'</p>':'')+
+    (r.recent&&r.recent.url?'<a class="lgqlink" href="'+esc(r.recent.url)+'" target="_blank" rel="noopener">Their story: '+esc(r.recent.title||r.recent.url)+'</a>':'')+
+    (r.li?'':'<a class="lgqlink" href="'+esc(lgFind(r))+'" target="_blank" rel="noopener">Find them on LinkedIn</a>');}
+function lgVarHTML(list){const V=(lgPress(list)&&list.variants)||[];if(!V.length)return "";
+  return '<div class="lgvar" role="group" aria-label="Wording">'+V.map(v=>'<button class="chip'+(list.pick===v.k?' on':'')+'" data-act="proslgvar" data-k="'+esc(v.k)+'" aria-pressed="'+(list.pick===v.k)+'">'+esc(v.label)+'</button>').join("")+'</div>';}
+function lgSearchHTML(list){const S=(lgPress(list)&&list.searches)||[];if(!S.length)return "";
+  return '<div class="lgsrch"><span class="t2">Find more on LinkedIn</span>'+S.map(s=>'<a class="chip" href="https://www.linkedin.com/search/results/people/?keywords='+encodeURIComponent(s.q||s.label)+'" target="_blank" rel="noopener">'+esc(s.label)+'</a>').join("")+'</div>';}
+function lgPressTable(list,R){
+  const row=r=>{const st=r.status||"new",f=LG_PAT[st];
+    return '<tr><td class="nm">'+(r.li?'<a href="'+esc(r.li)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+
+      (r.title?'<small>'+esc(r.title)+'</small>':'')+(r.email?'<a class="lgmail" href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a>':'')+
+      (r.li?'':'<input class="f lgli" data-id="'+esc(r.id)+'" placeholder="Paste their LinkedIn link" aria-label="LinkedIn link for '+esc(r.name)+'"><a class="lgfind" href="'+esc(lgFind(r))+'" target="_blank" rel="noopener">Find them on LinkedIn</a>')+'</td>'+
+      '<td>'+(r.author?'<a href="'+esc(r.author)+'" target="_blank" rel="noopener">'+esc(r.company)+'</a>':esc(r.company))+(r.beat?'<small>'+esc(r.beat)+'</small>':'')+'</td>'+
+      '<td class="why">'+esc(r.why||r.head||"")+(r.recent&&r.recent.url?'<a href="'+esc(r.recent.url)+'" target="_blank" rel="noopener">'+esc(r.recent.title||"Their story")+'</a>':'')+'</td>'+
+      '<td class="st"><select class="sel lgst lgst-'+esc(st)+'" data-id="'+esc(r.id)+'" aria-label="Status for '+esc(r.name)+'">'+LG_PST.map(([k,l])=>'<option value="'+k+'"'+(k===st?' selected':'')+'>'+l+'</option>').join("")+'</select>'+
+        (f?'<input type="date" class="f lgdt" data-id="'+esc(r.id)+'" value="'+esc(lgDay(r[f]))+'" aria-label="Date '+esc(r.name)+' was marked '+esc(st)+'">':'')+'</td>'+
+      '<td><button class="ibtn" data-act="proslgdel" data-id="'+esc(r.id)+'" aria-label="Remove '+esc(r.name)+'">'+svg("x")+'</button></td></tr>';};
+  return '<div class="tablewrap" style="max-height:560px"><table class="lv lgt lgpress"><thead><tr><th>Name</th><th>Outlet</th><th>Why they fit</th><th>Status</th><th></th></tr></thead><tbody>'+
+    R.map(row).join("")+'</tbody></table></div><div class="lgact"><button class="btn sm" data-act="proslgexport">'+svg("dl")+'Export to Excel</button></div>';}
+/* a status keeps the first date it was set; the date box changes the date of the current status */
+function lgPressSet(r,st,day){const now=new Date().toISOString();
+  if(st==="new"){Object.values(LG_PAT).forEach(f=>delete r[f]);delete r.via;}
+  else if(LG_PAT[st]&&!r[LG_PAT[st]])r[LG_PAT[st]]=now;
+  if(st==="sent"&&!r.sentBy)r.sentBy=USER;
+  r.status=st;if(day&&LG_PAT[st])r[LG_PAT[st]]=new Date(day+"T12:00:00").toISOString();r.statusBy=USER;r.statusAt=now;put("prospects",r);}
+function lgPressChange(el){const cl=el.classList;if(!cl||(!cl.contains("lgst")&&!cl.contains("lgdt")&&!cl.contains("lgli")))return false;
+  const r=(DB.prospects||[]).find(x=>x.id===el.dataset.id);if(!r)return true;
+  if(cl.contains("lgst"))lgPressSet(r,el.value);
+  else if(cl.contains("lgdt")){if(!el.value)return true;lgPressSet(r,r.status||"new",el.value);}
+  else{const v=el.value.trim();if(!v)return true;const li=lgLink(v);if(!li){toast("That isn't a LinkedIn profile link");return true;}r.li=li;put("prospects",r);toast("Saved "+r.name+"'s LinkedIn");}
+  render();return true;}
+function lgPressExport(list){const R=lgPeople(list.key),cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const lab=s=>(LG_PST.find(x=>x[0]===(s||"new"))||["",""])[1];
+  const out=[["Name","Role","Outlet","Beat","LinkedIn","Email","Email seen on","Why they fit","Their story","Status","Sent","Replied","Interviewed"]].concat(R.map(r=>
+    [r.name,r.title,r.company,r.beat,r.li,r.email,r.emailSource,r.why,(r.recent&&r.recent.url)||"",lab(r.status),lgDay(r.sentAt),lgDay(r.repliedAt),lgDay(r.interviewedAt)]));
+  const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
+  livSave(u,list.name.replace(/[^\w ·-]+/g,"")+" "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+R.length+" people — opens in Excel");}
 function lgHTML(){const list=lgList(),R=list?lgPeople(list.key):[],L=lgLists();if(lgOpen==null)lgOpen=!!R.length||view==="limsg";const k=prosCur();
   const cos=prospects().filter(r=>(r.list||"other")===k).sort((a,b)=>String(a.company).localeCompare(String(b.company)));
   const opts=t=>{const extra=t&&!cos.some(r=>r.id===t)?[prosById(t)].filter(Boolean):[];
@@ -3415,10 +3497,10 @@ function lgHTML(){const list=lgList(),R=list?lgPeople(list.key):[],L=lgLists();i
   let h='<details class="pcamp lgrab" id="lgFold"'+(lgOpen?' open':'')+'><summary>'+svg("users")+'<b>LinkedIn InMail list</b><span class="t2">'+
     (list?esc(list.name)+' · '+R.length+' '+(R.length===1?'person':'people')+(list.pages?' from '+list.pages+' '+(list.pages===1?'page':'pages'):''):'paste a LinkedIn or Sales Navigator results page to start one')+'</span>'+svg("chevD","fchev")+'</summary><div class="lgb">'+
     '<div class="lgact">'+(L.length?'<select class="sel lglist" id="lgListSel" aria-label="InMail list">'+L.map(x=>'<option value="'+esc(x.key)+'"'+(list&&x.key===list.key?' selected':'')+'>'+esc(x.name)+' · '+lgPeople(x.key).length+'</option>').join("")+'</select>':'')+
-      '<button class="btn sm ghost" data-act="proslgnew">'+svg("plus")+'New list</button>'+
+      '<button class="btn sm ghost" data-act="proslgnew">'+svg("plus")+'New list</button><button class="btn sm ghost" data-act="proslgnewpress">'+svg("plus")+'New press list</button>'+
       (R.length?'<button class="btn sm ghost" data-act="proslgclear">Clear list</button>':'')+(lgUndo?'<button class="btn sm" data-act="proslgundo">Undo clear ('+lgUndo.rows.length+')</button>':'')+'</div>'+
-    lgQueueHTML(list,R)+'<textarea class="f lgpaste" id="lgPaste" rows="2" placeholder="On a LinkedIn results page press Ctrl+A, then Ctrl+C. Click here and press Ctrl+V. Everyone goes straight into this InMail list. Next page, repeat."></textarea>';
-  if(R.length)h+='<div class="tablewrap" style="max-height:420px"><table class="lv lgt"><thead><tr><th>Name</th><th>Add to</th><th>Title</th><th>Company</th><th>Location</th><th></th></tr></thead><tbody>'+
+    lgQueueHTML(list,R)+lgSearchHTML(list)+'<textarea class="f lgpaste" id="lgPaste" rows="2" placeholder="On a LinkedIn results page press Ctrl+A, then Ctrl+C. Click here and press Ctrl+V. Everyone goes straight into this InMail list. Next page, repeat."></textarea>';
+  if(R.length&&lgPress(list))h+=lgPressTable(list,R);else if(R.length)h+='<div class="tablewrap" style="max-height:420px"><table class="lv lgt"><thead><tr><th>Name</th><th>Add to</th><th>Title</th><th>Company</th><th>Location</th><th></th></tr></thead><tbody>'+
     R.map(r=>'<tr><td class="nm">'+(r.li?'<a href="'+esc(r.li)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a>':esc(r.name))+(r.status&&r.status!=="new"?' <span class="pill '+(r.status==="replied"?"ok":r.status==="sent"?"info":"")+'">'+esc(r.status==="sent"&&r.via==="connect"?"invited":r.status)+'</span>'+(r.status==="sent"&&view==="limsg"?' <button class="btn sm ghost" data-act="proslgreplied" data-id="'+esc(r.id)+'">Replied</button>':'')+(view==="limsg"?' <button class="btn sm ghost" data-act="proslgundo1" data-id="'+esc(r.id)+'" title="Back in the queue">↺</button>':''):'')+'</td>'+
       '<td>'+(r.added?'<span class="pill ok">added · '+esc(r.added)+'</span>':'<select class="sel lgsel" data-id="'+esc(r.id)+'" aria-label="Add '+esc(r.name)+' to">'+opts(r.target)+'</select>')+'</td>'+
       '<td>'+esc(r.title)+'</td><td>'+esc(r.company)+'</td><td>'+esc(r.loc)+'</td>'+
@@ -3428,11 +3510,11 @@ function lgHTML(){const list=lgList(),R=list?lgPeople(list.key):[],L=lgLists();i
   return h+'</div></details>';}
 function lgHandle(a,t){const list=lgList();
   if(lgQueueHandle(a,t))return true;
-  if(a==="proslgnew"){const nm=prompt("Name for the new InMail list","InMail · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));if(nm===null)return true;lgNewList(nm.trim()||undefined);lgUndo=null;lgOpen=true;render();return true;}
+  if(a==="proslgnewpress"){const nm=prompt("Name for the new press list","Press · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));if(nm===null)return true;lgNewPressList(nm.trim()||undefined);lgUndo=null;lgOpen=true;render();return true;}if(a==="proslgnew"){const nm=prompt("Name for the new InMail list","InMail · "+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));if(nm===null)return true;lgNewList(nm.trim()||undefined);lgUndo=null;lgOpen=true;render();return true;}
   if(a==="proslgdel"){del("prospects",t.dataset.id);render();return true;}
   if(a==="proslgclear"){if(!list)return true;const rows=lgPeople(list.key);rows.forEach(r=>del("prospects",r.id));lgUndo={key:list.key,rows,pages:list.pages||0};list.pages=0;put("prospects",list);render();toast("Cleared "+rows.length+" from "+list.name+" — Undo is on the list");return true;}
   if(a==="proslgundo"){if(!lgUndo)return true;lgUndo.rows.forEach(r=>put("prospects",r));const l=lgLists().find(x=>x.key===lgUndo.key);if(l){l.pages=lgUndo.pages;put("prospects",l);}toast("Put back "+lgUndo.rows.length);lgUndo=null;render();return true;}
-  if(a==="proslgexport"){const R=list?lgPeople(list.key):[];const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  if(a==="proslgexport"&&lgPress(list)){lgPressExport(list);return true;}if(a==="proslgexport"){const R=list?lgPeople(list.key):[];const cell=v=>{v=v==null?"":String(v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
     const out=[["Name","Title","Company","Location","LinkedIn","InMail list","Status","Added to"]].concat(R.map(r=>[r.name,r.title,r.company,r.loc,r.li,list.name,r.status||"new",r.added||""]));
     const blob=new Blob(["﻿"+out.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});const u=URL.createObjectURL(blob);
     livSave(u,(list?list.name:"InMail list").replace(/[^\w ·-]+/g,"")+" "+todayStr()+".csv");setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Saved "+R.length+" people — opens in Excel");return true;}
@@ -3447,14 +3529,14 @@ function lgHandle(a,t){const list=lgList();
 document.addEventListener("paste",e=>{if(!e.target||e.target.id!=="lgPaste")return;e.preventDefault();const cd=e.clipboardData||window.clipboardData;if(!cd)return;
   const html=cd.getData("text/html"),got=lgParse(html,cd.getData("text/plain"));
   if(!got.length){toast("No people found in that paste — on the results page press Ctrl+A, then Ctrl+C");return;}
-  let list=lgList();if(!list){const q=lgQuery(html);list=lgNewList("InMail · "+(q?q.replace(/\b\w/g,c=>c.toUpperCase())+" · ":"")+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));}
+  let list=lgPastePick(lgList(),html);if(!list){const q=lgQuery(html);list=lgNewList("InMail · "+(q?q.replace(/\b\w/g,c=>c.toUpperCase())+" · ":"")+new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}));}
   const have=new Set(lgPeople(list.key).map(r=>r.id)),now=new Date().toISOString();let n=0;list.pages=(list.pages||0)+1;
-  got.forEach(r=>{const id="inmail-"+list.key+"-"+lgSlug(r.li||r.name);if(have.has(id))return;have.add(id);
+  got.forEach(r=>{const id="inmail-"+list.key+"-"+lgSlug(r.li||r.name);if(have.has(id)||lgPressSeen(list,r))return;have.add(id);
     put("prospects",{id,kind:"inmail",camp:list.key,name:r.name,title:r.title,company:r.company,loc:r.loc,li:r.li,head:r.head||"",page:list.pages,status:"new",target:lgMatch(r.company),pastedAt:now,by:USER});n++;});
-  put("prospects",list);lgUndo=null;lgOpen=true;render();toast(n+" added to "+list.name+(got.length>n?" · "+(got.length-n)+" already on it":""));
+  put("prospects",list);lgUndo=null;lgOpen=true;render();toast(n+" added to "+list.name+(got.length>n?" · "+(got.length-n)+(lgPress(list)?" already on a press list":" already on it"):""));
   setTimeout(()=>{const p=document.getElementById("lgPaste");if(p)p.focus();},30);});
 document.addEventListener("change",e=>{const el=e.target;if(!el||!el.classList)return;
-  if(el.id==="lgListSel"){lgCamp=el.value;lgSave();lgUndo=null;render();return;}
+  if(el.id==="lgListSel"){lgCamp=el.value;lgSave();lgUndo=null;render();return;}if(lgPressChange(el))return;
   if(!el.classList.contains("lgsel"))return;const r=(DB.prospects||[]).find(x=>x.id===el.dataset.id);if(r){r.target=el.value;put("prospects",r);render();}});
 document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="lgFold")lgOpen=e.target.open;},true);
 function prosHandle(a,t){
