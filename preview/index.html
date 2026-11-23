@@ -14158,7 +14158,7 @@ document.addEventListener("keydown",e=>{
    conference-lead call or a lead touch, with secs, out, vm and phone; a call-back to-do). Closing the sheet still logs the
    call ("outcome not picked"). Without a caller ID yet (token 403/503) Call opens the phone (tel:) and the sheet still logs it.
    Max's own Dialer page is untouched; on the CRM page his calls go out the same way but his tab never registers for incoming. */
-const CALL_USERS=["johnm","john","max"],CALL_RING=["johnm","john"];
+const CALL_USERS=["johnm","john","max","hannah"],CALL_RING=["johnm","john"]; /* hannah (2026-11-23, to try it): no caller ID of her own, so her Call opens her phone and the sheet logs it */
 const TQC={dev:null,state:"off",err:"",call:null,accepted:false,acceptedAt:0,startedAt:0,muted:false,ent:null,d:"",tick:null,pend:null,via:""};
 function callAccess(u){u=u||USER;return CALL_USERS.includes(u)&&!DIALER_HUB;}
 async function tqcInit(){
