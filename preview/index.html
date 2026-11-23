@@ -1363,6 +1363,10 @@ body.tqbon .console{margin-right:400px}
 .tql button{all:unset;cursor:pointer;display:flex;flex-direction:column;padding:6px 8px;border-radius:8px}.tql button:hover{background:var(--hover)}
 .tql button:focus-visible{outline:2px solid var(--coral)}
 .tql a{all:unset;cursor:pointer;display:flex;flex-direction:column;padding:6px 8px;border-radius:8px}.tql a:hover{background:var(--hover)}.tql a:focus-visible{outline:2px solid var(--coral)}
+.tqlogs{padding:12px 14px}.tqday+.tqday{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}
+.tqdh{margin:0 0 4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:none}
+.tqlog{font-size:13.5px;line-height:1.5;padding:2px 0}.tqlk{font-weight:600}
+.tqmore{display:inline;font-size:12.5px;color:var(--muted)}.tqmore summary{display:inline;cursor:pointer;color:var(--coral-text);margin-left:4px}
 .tql b{font-size:13px}.tql span{font-size:12px;color:var(--muted)}.tql .t2{margin:4px 8px 0}
 .tqpre{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0 0;max-height:280px;overflow:auto}
 .tact .tqbtn svg.mark{width:11px;height:16px;color:var(--coral)}.tact .tqbtn.on svg.mark{color:var(--coral-tt)}
@@ -1382,7 +1386,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail","dialTexts"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail","dialTexts","botLog"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -4244,7 +4248,7 @@ function viewToday(){
   const sec=(id,x)=>x?'<section class="hsec" id="'+id+'">'+x+'</section>':'';
   h+=sec("hs-day",day);
   h+='<div class="homegrid"><div class="hcol">'+sec("hs-attn",attn)+sec("hs-fu",fu)+sec("hs-leads",lds)+'</div>'+
-     '<div class="hcol">'+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
+     '<div class="hcol">'+sec("hs-tqbot",botAccess()?botWeekHTML(P==="admin"&&scopeRep?scopeRep:USER):"")+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
   return h;
 }
 /* a teammate's page (admins): everything they've logged, their week, and their time in the CRM */
@@ -4264,6 +4268,7 @@ function viewTeammate(id){
    '<div class="facts"><div><b>Last active</b><span>'+esc(lastActive(id))+'</span></div><div><b>Today</b><span>'+fmtMins(uT.mins)+'</span></div><div><b>This week</b><span>'+fmtMins(uW.mins)+' · '+uW.days+' day'+(uW.days===1?"":"s")+'</span></div><div><b>All time</b><span>'+fmtMins(uAll.mins)+' · '+uAll.days+' day'+(uAll.days===1?"":"s")+(uAll.first?' · first seen '+esc(fmtDay(uAll.first)):'')+'</span></div></div></div>';
   h+=kpiRow([["Actions this week",wk.length,""],["This month",mo.length,""],["All time",all.length,Object.keys(kinds).map(k=>kinds[k]+" "+k).join(" · ")],["Follow-ups waiting",q.todo.length+q.old.length,q.old.length+" stale",q.old.length?"warn":""]]);
   h+='<section style="margin:4px 0 18px">'+weekStripHTML(id,logState.tmDay||T,{title:t.name.split(" ")[0]+"\u2019s week",nav:"tmnav",dayNav:"tmnav"})+'</section>';
+  h+='<section style="margin:0 0 18px">'+botWeekHTML(id)+'</section>';
   if(profile(id)==="sales")h+='<section style="margin:0 0 18px">'+fromOutreachHTML(id,{always:true,who:t.name.split(" ")[0],showDone:true,max:12})+'</section>';
   if(uAll.rows.length){h+='<div class="sectlabel">Time in the CRM <span class="cnt">last 14 days</span></div><div class="tablewrap" style="margin-bottom:18px"><table class="lv"><thead><tr><th>Day</th><th>Time</th><th>First</th><th>Last</th><th>Where</th></tr></thead><tbody>'+
     uAll.rows.slice(0,14).map(r=>{const tm=x=>x?new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"—";const vs=Object.keys(r.views||{}).sort((a,b)=>r.views[b]-r.views[a]).slice(0,4).map(v=>({today:"Home",opps:"Pipeline",activity:"Activity",leads:"Leads",quotes:"Quotes",accounts:"Accounts",contacts:"Contacts",export:"Lists",team:"Team",person:"Contact pages",roster:"Account pages",invoicing:"Invoicing"}[v]||v));
@@ -13706,11 +13711,58 @@ function botPartNos(c){const out=[];
 function botAcctOrders(c){return (DB.orders||[]).filter(o=>{if(!o||o.dupOf||!(+o.amount>0))return false;const oc=orderCompany(o);return !!oc&&oc.id===c.id;})
   .sort((a,b)=>String(b.poDate||"").localeCompare(String(a.poDate||""))).slice(0,6)
   .map(o=>({po:o.poNo||"",date:o.poDate||"",status:o.status||"",amount:+o.amount||0,lines:(o.items||[]).map(i=>({part:i.sku,qty:i.qty,each:i.unit}))}));}
+/* TQbot's log (Max, 2026-11-23: "have each of their TQbot entries be saved based on date in their home tabs… their week… TQbot sent
+   out 111 emails to this person, this person and this person"). One synced record per thing TQbot did for someone, in collection
+   `botLog`: {id, by, at, day (local YYYY-MM-DD), kind, sub, n, names[], extra, src}. kind = contact | account | activity (sub = the
+   log type) | deal | list | onepager | email_draft | email_sent; src = "tqbot", or "mailmerge" for emails the Outlook mail-merge add-in
+   sends (it writes the same records). Home shows the signed-in person's week (an admin's Home: the rep picked in "Whose week"), the
+   teammate page shows that person's, Sunday to Saturday like the week strip, newest day first, ‹ › for earlier weeks. */
+function botLogs(){DB.botLog=DB.botLog||[];return DB.botLog;}
+function botLogAdd(kind,o){try{
+  const r=Object.assign({id:"bl_"+uid()+uid(),by:USER,at:new Date().toISOString(),day:todayStr(),kind:kind,src:"tqbot",n:1,names:[]},o||{});
+  r.names=(r.names||[]).map(x=>String(x||"").trim()).filter(Boolean).slice(0,200);botLogs().unshift(r);save();}catch(e){console.warn("TQbot log",e);}}
+/* what a saved card leaves in the log */
+function botLogCard(c,r){const v=c.v||{};
+  if(c.tool==="propose_contact"){const p=person(r.contact_id||r.id);botLogAdd("contact",{names:[p?p.name:v.name],extra:r.account_id&&!v.company_id&&company(r.account_id)?"new account "+company(r.account_id).name:""});}
+  else if(c.tool==="propose_account")botLogAdd("account",{names:[(company(r.id)||{}).name||v.name]});
+  else if(c.tool==="propose_activity"){const p=person(v.person_id);botLogAdd("activity",{sub:v.type,names:[p?p.name:""],extra:botVal(v,"follow_up_date")?"follow-up "+new Date(botVal(v,"follow_up_date")+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):""});}
+  else if(c.tool==="propose_opportunity"){const o=(DB.opps||[]).find(x=>x.id===r.id);botLogAdd("deal",{names:[o?o.name:v.name],extra:o?(o.units||0)+" kits · "+money(o.amount||0):""});}}
+const BOT_LOG_WORDS={contact:["Added","contact","contacts"],account:["Added","account","accounts"],deal:["Started","deal","deals"],list:["Built","call list","call lists"],
+  onepager:["Made","one-pager","one-pagers"],email_draft:["Wrote","email","emails"],email_sent:["Sent","email","emails"]};
+const BOT_LOG_ACTS={call:["call","calls"],email:["email","emails"],visit:["visit","visits"],training:["training","trainings"],demo:["demo","demos"],note:["note","notes"]};
+function botLogLine(g){
+  let verb,one,many;
+  if(g.kind==="activity"){const a=BOT_LOG_ACTS[g.sub]||["activity","activities"];verb="Logged";one=a[0];many=a[1];}
+  else{const w=BOT_LOG_WORDS[g.kind]||["Did","thing","things"];verb=w[0];one=w[1];many=w[2];}
+  const names=g.names,shown=names.slice(0,8),rest=names.length-shown.length;
+  const to=g.kind==="email_sent"?" to ":": ";
+  return '<div class="tqlog"><span class="tqlk">'+esc(verb+" "+g.n+" "+(g.n===1?one:many))+'</span>'+(names.length?esc(to)+esc(shown.join(", ")):"")+
+    (g.extra.length?' <span class="t2" style="display:inline">· '+esc(g.extra.slice(0,3).join(" · "))+'</span>':'')+
+    (rest>0?'<details class="tqmore"><summary>and '+rest+' more</summary>'+esc(names.slice(8).join(", "))+'</details>':'')+'</div>';}
+function botWeekHTML(who){
+  const off=Math.min(0,logState.botWk||0),days=weekOf(dAdd(todayStr(),7*off));
+  const mine=botLogs().filter(r=>r&&r.by===who&&r.day>=days[0]&&r.day<=days[6]);
+  const lbl=d=>new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  const when=off===0?"this week":off===-1?"last week":lbl(days[0])+" – "+lbl(days[6]);
+  const sent=mine.filter(r=>r.kind==="email_sent").reduce((s,r)=>s+(+r.n||1),0);
+  let h='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(who===USER?"TQbot ":"TQbot for "+esc(shortName(who))+" ")+esc(when)+
+    (mine.length?' <span class="cnt">'+mine.length+(sent?' · '+sent+' emails sent':'')+'</span>':'')+'</div>'+
+    '<span style="margin-left:auto;display:flex;gap:4px"><button class="ibtn" data-act="botwk" data-v="-1" title="Earlier week" aria-label="Earlier week">'+svg("chevL")+'</button>'+
+    '<button class="ibtn" data-act="botwk" data-v="1" title="Later week" aria-label="Later week"'+(off>=0?" disabled":"")+'>'+svg("chevR")+'</button></span></div>';
+  if(!mine.length)return h+'<div class="card tqlogs"><p class="t2" style="margin:0">Nothing from TQbot '+(off===0?"yet this week":"that week")+'.</p>'+
+    (who===USER&&botAccess()?'<button class="btn sm" data-act="tqbot" style="margin-top:8px">'+BRAND_MARK+' Ask TQbot</button>':'')+'</div>';
+  const byDay={};mine.forEach(r=>{(byDay[r.day]=byDay[r.day]||[]).push(r);});
+  h+='<div class="card tqlogs">'+days.slice().reverse().filter(d=>byDay[d]).map(d=>{
+    const groups={},order=[];
+    byDay[d].slice().reverse().forEach(r=>{const k=r.kind+(r.sub?":"+r.sub:"");let g=groups[k];if(!g){g=groups[k]={kind:r.kind,sub:r.sub,n:0,names:[],extra:[]};order.push(k);}
+      g.n+=(+r.n||1);(r.names||[]).forEach(x=>{if(!g.names.includes(x))g.names.push(x);});if(r.extra)g.extra.push(r.extra);});
+    return '<div class="tqday"><p class="tqdh">'+esc(d===todayStr()?"Today":lbl(d))+'</p>'+order.map(k=>botLogLine(groups[k])).join("")+'</div>';}).join("")+'</div>';
+  return h;}
 function botLits(market){const ls=botLitPool(market),dp=distPiecesFor(market);
   const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"find_literature",state:"open",v:{market:market,ids:ls.map(l=>l.id),dist:dp?dp.name:""}};BOT.ui.push({k:"card",id:id});
   return {distributor_pieces:dp?[{title:"AutoTQ "+dp.name+" brochure (2 pages, Nov 19 2026: their logo and their item numbers)"},{title:"AutoTQ "+dp.name+" Fleet Safety Catalog (6 pages, Nov 19 2026)"}]:[],
     pieces:ls.map(l=>({id:l.id,title:l.title})),shown:"The rep sees these with Open buttons"+(dp?" (the "+dp.name+" pieces open on the GHM Hub with their Microsoft sign-in)":"")+"."};}
-function botMakeLit(x){const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"make_literature",state:"open",v:Object.assign({},x)};BOT.ui.push({k:"card",id:id});
+function botMakeLit(x){botLogAdd(x.kind==="email"?"email_draft":"onepager",{names:[x.kind==="email"?(x.subject||x.headline||""):(x.headline||x.market||"")],extra:x.customer||x.market||""});const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"make_literature",state:"open",v:Object.assign({},x)};BOT.ui.push({k:"card",id:id});
   return {shown:"The rep sees it with Open / Print and Copy buttons. Nothing was sent."};}
 /* ---------- write cards ---------- */
 const BOT_SPOKE=[["none","Not yet"],["call","Call"],["email","Email"],["visit","Visit"],["training","Train"],["demo","Demo"]];
@@ -13819,6 +13871,7 @@ function botCardSave(c){
   }catch(e){console.error("TQbot save",e);r={ok:false,error:"That didn't save: "+String(e&&e.message||e).slice(0,120)};}
   if(!r)return;
   if(!r.ok&&r.stay){toast(r.error);c.result=r;botPaint();return;} /* fixable on the card: stays open */
+  if(r.ok&&!/already/.test(r.summary||""))botLogCard(c,r);
   botCardDone(c,r);if(r.ok){render();toast(r.toast||"Saved");}}
 function botSaveContact(v){
   const r=contactUpsert({name:v.name.trim(),coTxt:v.company_id?"":v.company.trim(),cid:v.company_id||null,kind:v.company_kind||"enduser",city:botVal(v,"city"),st:botVal(v,"state"),
@@ -13872,7 +13925,7 @@ function botListSave(c){const v=c.v,rs=botListRows(v);if(!rs.length)return;
   const nm=botVal(v,"name")||"Call list";
   const nl=listMake(rs.map(r=>r.o),nm,v.request||"",["company","phone","email","state"],rs.map(r=>r.k));
   if(ownOnly())nl.assignee=USER; /* a rep's own list shows on their Home (From outreach) and in Leads */
-  save();c.state="saved";c.result={ok:true,id:nl.id};botSave();botPaint();toast('"'+nm+'" saved — '+nl.items.length+' people');
+  save();c.state="saved";c.result={ok:true,id:nl.id};botLogAdd("list",{names:[nm],extra:nl.items.length+" people"});botSave();botPaint();toast('"'+nm+'" saved — '+nl.items.length+' people');
   BOT.notes.push('I saved the list "'+nm+'" ('+nl.items.length+' people).');}
 /* ---- literature: an approved PDF, or a piece laid out in the literature house look ---- */
 async function botLitOpen(id){const l=DIAL_LIT.find(x=>x.id===id);if(!l)return;const w=window.open("","_blank");
@@ -14054,6 +14107,7 @@ document.addEventListener("click",e=>{
   const a=t.dataset.act,id=t.dataset.id;
   if(a.indexOf("dial")===0&&dialAct(a,t))return;
   if(a==="tqbot"){botToggle();return;}
+  if(a==="botwk"){logState.botWk=Math.min(0,(logState.botWk||0)+(+t.dataset.v||0));render();return;}
   if(a.indexOf("tqc")===0&&tqcAct(a,t))return;
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
   if(a==="sendotp"){sendOtp(t.dataset.email);return;}
