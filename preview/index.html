@@ -13397,7 +13397,7 @@ document.addEventListener("change",e=>{
    New opportunity form checked by oppMissing() and saved by saveOpp(), and listMake (= Save list). Nothing saves with a blank
    required value; optional blanks show as "none". The conversation is kept per seat on this device (autotq_bot_v1:<seat>). */
 const BOT_FN="/functions/v1/crm-bot",BOT_STORE="autotq_bot_v1";
-const BOT_WRITES=new Set(["propose_contact","propose_account","propose_activity","propose_opportunity"]);
+const BOT_WRITES=new Set(["propose_contact","propose_account","propose_activity","propose_opportunity","propose_email_batch"]);
 const BOT={open:false,busy:false,msgs:[],ui:[],cards:{},held:null,notes:[],off:"",user:"",n:0};
 function botAccess(u){u=u||USER;return !!u&&!vacant(u)&&!DIALER_HUB;}
 function botStoreKey(){return BOT_STORE+":"+USER;}
@@ -13408,10 +13408,14 @@ function botSave(){try{const s=JSON.stringify({msgs:BOT.msgs,ui:BOT.ui.slice(-20
   if(s.length<600000)localStorage.setItem(botStoreKey(),s);else localStorage.removeItem(botStoreKey());}catch(e){}}
 function botReset(){Object.assign(BOT,{msgs:[],ui:[],cards:{},held:null,notes:[],off:""});botSave();botPaint();const i=document.getElementById("tqbIn");if(i)i.focus();}
 function botToggle(on){if(!botAccess())return;botLoad();BOT.open=on==null?!BOT.open:!!on;
+  if(BOT.open&&authed()&&(!BOT.mergeAt||Date.now()-BOT.mergeAt>60000))setTimeout(()=>botMergeLoad(),0);
   try{localStorage.setItem(BOT_STORE+":open",BOT.open?"1":"0");}catch(e){}
   botAfterRender();if(BOT.open){botPaint();setTimeout(()=>{const i=document.getElementById("tqbIn");if(i)i.focus();},30);}}
 function botAfterRender(){
   const ok=botAccess()&&authed();let el=document.getElementById("tqbot");
+  if(ok&&!BOT.mergeChecked){BOT.mergeChecked=true;const qs=new URLSearchParams(location.search),mid=qs.get("merge");
+    if(mid){qs.delete("merge");try{history.replaceState(null,"",location.pathname+(qs.toString()?"?"+qs:"")+location.hash);}catch(e){}
+      BOT.mergeAt=Date.now();setTimeout(()=>{botToggle(true);botMergeLoad(mid);},300);}}
   document.body.classList.toggle("tqbon",ok&&BOT.open);
   const tb=document.querySelector('[data-act="tqbot"]');if(tb)tb.classList.toggle("on",ok&&BOT.open);
   if(!ok||!BOT.open){if(el)el.remove();return;}
@@ -13511,11 +13515,14 @@ async function botRun(){
       const uses=blocks.filter(b=>b.type==="tool_use");
       if(j.stop_reason!=="tool_use"||!uses.length)break;
       const results=[],ids=[];
-      uses.forEach(u=>{
-        if(BOT_WRITES.has(u.name)){const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tuid:u.id,tool:u.name,v:botCardInit(u.name,u.input||{}),state:"open"};BOT.ui.push({k:"card",id:id});ids.push(id);return;}
-        let out;try{out=botTool(u.name,u.input||{});}catch(e){console.warn("TQbot tool",u.name,e);out={error:"That lookup failed: "+String(e&&e.message||e).slice(0,120)};}
+      let mergeCards=false;
+      for(const u of uses){
+        if(u.name==="propose_email_batch"){const c=mergeAddCard({id:String((u.input||{}).job_id||"")},u.id);c.state="open";ids.push(c.id);mergeCards=true;continue;}
+        if(BOT_WRITES.has(u.name)){const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tuid:u.id,tool:u.name,v:botCardInit(u.name,u.input||{}),state:"open"};BOT.ui.push({k:"card",id:id});ids.push(id);continue;}
+        let out;try{out=await botTool(u.name,u.input||{});}catch(e){console.warn("TQbot tool",u.name,e);out={error:"That lookup failed: "+String(e&&e.message||e).slice(0,120)};}
         let s=JSON.stringify(out);if(s.length>14000)s=s.slice(0,14000)+"…(cut)";
-        results.push({type:"tool_result",tool_use_id:u.id,content:s,is_error:!!(out&&out.error)});});
+        results.push({type:"tool_result",tool_use_id:u.id,content:s,is_error:!!(out&&out.error)});}
+      if(mergeCards)setTimeout(()=>botMergeLoad(),0);
       if(ids.length){BOT.held={results:results,ids:ids};break;} /* wait for the rep to save or cancel the cards */
       if(i===7){BOT.held={results:results,ids:[]};botSay("err","I stopped there. Say “keep going” and I’ll carry on.");break;}
       BOT.msgs.push({role:"user",content:results});botPaint();}
@@ -13532,7 +13539,7 @@ function botCardDone(c,result){
   const content=H.results.slice();
   H.ids.forEach(id=>{const x=BOT.cards[id];content.push({type:"tool_result",tool_use_id:x.tuid,content:JSON.stringify(x.result||{ok:false})});});
   BOT.held=null;BOT.msgs.push({role:"user",content:content});botRun();}
-function botCardName(t){return {propose_contact:"contact",propose_account:"account",propose_activity:"activity",propose_opportunity:"deal"}[t]||"card";}
+function botCardName(t){return {propose_contact:"contact",propose_account:"account",propose_activity:"activity",propose_opportunity:"deal",mail_merge:"email batch"}[t]||"card";}
 /* ---------- read tools ---------- */
 function botTool(name,x){
   if(name==="search_crm")return botSearch(x.query,x.kinds);
@@ -13541,6 +13548,7 @@ function botTool(name,x){
   if(name==="who_covers")return botCovers(x.state,x.distributor);
   if(name==="build_list")return botList(x.request,x.name);
   if(name==="find_people")return botFindPeople(x);
+  if(name==="email_batches")return botEmailBatches();
   if(name==="find_literature")return botLits(x.market);
   if(name==="make_literature")return botMakeLit(x);
   return {error:"unknown tool "+name};}
@@ -13793,6 +13801,72 @@ function botWeekHTML(who){
       g.n+=(+r.n||1);(r.names||[]).forEach(x=>{if(!g.names.includes(x))g.names.push(x);});if(r.extra)g.extra.push(r.extra);});
     return '<div class="tqday"><p class="tqdh">'+esc(d===todayStr()?"Today":lbl(d))+'</p>'+order.map(k=>botLogLine(groups[k])).join("")+'</div>';}).join("")+'</div>';
   return h;}
+/* Outlook mail-merge batches (2026-11-23, built with the mail-merge session; Max: "it should first send a preview to their inbox and then
+   they can go ahead and confirm it on AutoTQ bot"). A rep writes an email in Outlook with {{name}} / {{company}} and clicks AutoTQ › Send
+   personal copies; edge function `mail-merge` queues the batch as "awaiting" and mails the rep a preview with a link to <CRM>?merge=<jobId>.
+   Nothing goes out until the rep presses Send on this card (action "confirm"); Cancel stops a waiting batch or the rest of a sending one.
+   Cards come from that link, from opening TQbot (awaiting batches, checked at most once a minute) and from TQbot's propose_email_batch. */
+const MERGE_FN="/functions/v1/mail-merge";
+async function mergeApi(body){try{const r=await supa(MERGE_FN,{method:"POST",body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));return Object.assign({status:r.status},j);}
+  catch(e){return {status:0,ok:false,error:"offline"};}}
+function mergeCardFor(id){return Object.values(BOT.cards).find(c=>c.tool==="mail_merge"&&c.v.job&&c.v.job.id===id)||null;}
+function mergeAddCard(job,tuid){let c=mergeCardFor(job.id);
+  if(c){c.v.job=Object.assign({},c.v.job,job);if(tuid){c.tuid=tuid;if(job.status==="awaiting"||!c.v.job.status||c.v.job.status==="awaiting")c.state="open";}return c;}
+  const id="c"+(++BOT.n)+uid();c=BOT.cards[id]={id:id,tuid:tuid||"",tool:"mail_merge",state:(job.status||"awaiting")==="awaiting"?"open":"info",v:{job:job}};
+  BOT.ui.push({k:"card",id:id});return c;}
+function mergeBrief(j){return {id:j.id,subject:j.subject||"",status:j.status,to_send:j.toSend||0,sent:j.sent||0,failed:j.failed||0,held:j.held||0,
+  names:j.names||[],held_back:(j.heldList||[]).slice(0,10),created:j.createdAt||"",confirmed:j.confirmedAt||"",done:j.doneAt||""};}
+async function botMergeLoad(focusId){
+  if(BOT.mergeBusy)return null;BOT.mergeBusy=true;
+  const r=await mergeApi({action:"pending"});BOT.mergeBusy=false;BOT.mergeAt=Date.now();
+  if(!r.ok){if(focusId){botSay("err",r.signin?"Sign in again to confirm that email batch.":"Couldn't load that email batch ("+(r.error||("error "+r.status))+").");botSave();botPaint();}return r;}
+  BOT.mergeLeft=r.todayLeft;
+  const jobs=r.jobs||[];
+  jobs.forEach(j=>{const c=mergeCardFor(j.id);
+    if(c){c.v.job=j;if(c.state==="open"&&j.status!=="awaiting"){c.state="info";if(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id))botCardDone(c,{ok:false,error:"That batch is "+j.status+" already."});}}
+    else if(j.status==="awaiting"||j.id===focusId)mergeAddCard(j);});
+  /* a card the model put up for a batch that isn't on the list any more */
+  Object.values(BOT.cards).filter(c=>c.tool==="mail_merge"&&c.state==="open"&&!jobs.some(j=>j.id===c.v.job.id)).forEach(c=>{c.state="info";
+    if(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id))botCardDone(c,{ok:false,error:"No batch with that id is waiting."});});
+  if(focusId&&!jobs.some(j=>j.id===focusId))botSay("err","That email batch isn't waiting any more. It may have been sent or cancelled.");
+  BOT.scrollEnd=true;botSave();botPaint();return r;}
+async function botEmailBatches(){const r=await botMergeLoad();
+  if(!r||!r.ok)return {error:r&&r.signin?"The rep needs to sign in again.":"Couldn't reach the email batches ("+((r&&r.error)||"error")+")."};
+  return {today_left:r.todayLeft,batches:(r.jobs||[]).map(mergeBrief),note:"Waiting batches are on the rep's screen as cards with Send and Cancel."};}
+function botMergeCardHTML(c){const j=c.v.job||{},n=j.toSend||0,names=j.names||[];
+  const st=j.status==="cancelled"?["Cancelled","gray"]:j.status==="done"?["Sent","ok"]:j.status==="sending"?["Sending","info"]:j.status==="awaiting"?["Waiting for you","warn"]:["Loading","gray"];
+  let h='<div class="tqc'+(c.state==="open"?"":" done")+'" data-cid="'+c.id+'"><div class="tqch">'+svg("mail")+'<b>Email batch</b><span class="pill '+st[1]+'">'+st[0]+'</span></div>'+
+    '<p class="tqcx"><b>'+esc(j.subject||"…")+'</b></p>'+
+    (n?'<p class="tqcx">To '+n+' '+(n===1?"person":"people")+(names.length?': '+esc(names.join(", "))+(n>names.length?' and '+(n-names.length)+' more':''):'')+'</p>':'');
+  if(j.status==="sending"||j.status==="done")h+='<p class="tqcx">'+(j.sent||0)+' sent'+(j.failed?' · '+j.failed+' failed':'')+(j.status==="sending"?' · '+Math.max(0,n-(j.sent||0)-(j.failed||0))+' to go':'')+'</p>';
+  if((j.heldList||[]).length)h+='<details class="tqmore" style="display:block;margin:2px 0 4px"><summary style="margin:0">'+(j.held||j.heldList.length)+' held back</summary>'+
+    j.heldList.map(x=>esc(x.name||x.email||"")+(x.why?' — '+esc(x.why):'')).join("<br>")+'</details>';
+  if(c.state==="open"&&(j.status==="awaiting"||!j.status))h+='<p class="t2" style="white-space:normal;margin:6px 0 0">Check the preview in your inbox first. It goes out from your own mailbox, 3 a minute, 6am–10pm ET'+
+    (BOT.mergeLeft!=null?' · '+BOT.mergeLeft+' sends left today':'')+'.</p>'+
+    '<div class="tqca"><button class="btn coral" data-bact="mergeok" data-id="'+c.id+'"'+(c.busy||!n?" disabled":"")+'>'+svg("check")+' Send '+n+' email'+(n===1?"":"s")+'</button>'+
+    '<button class="btn ghost" data-bact="mergeno" data-id="'+c.id+'"'+(c.busy?" disabled":"")+'>Cancel batch</button></div>';
+  else if(j.status==="sending")h+='<div class="tqca"><button class="btn sm ghost" data-bact="mergeno" data-id="'+c.id+'"'+(c.busy?" disabled":"")+'>Stop the rest</button></div>';
+  if(c.result&&c.result.text)h+='<p class="tqcx" style="margin-top:8px">'+esc(c.result.text)+'</p>';
+  return h+'</div>';}
+async function botMergeAct(c,act){if(c.busy)return;c.busy=true;botPaintCard(c);
+  const j=c.v.job||{},r=await mergeApi({action:act==="ok"?"confirm":"cancel",job:j.id});c.busy=false;
+  if(r.status===401||r.signin){toast("Sign in again, then press it again");botPaintCard(c);return;}
+  let res;
+  if(act==="ok"){
+    if(r.ok){const now=r.today!=null?r.today:(r.sending!=null?r.sending:j.toSend);
+      const txt=r.inHours===false?"Confirmed. Sending starts at 6am ET.":"Sending "+now+" now"+(r.minutes?", about "+r.minutes+" min":"")+(r.later>0?"; the other "+r.later+" go tomorrow":"")+".";
+      c.v.job=Object.assign({},j,{status:"sending",confirmedAt:new Date().toISOString()});
+      res={ok:true,id:j.id,summary:'confirmed the email batch "'+(j.subject||"")+'" to '+(j.toSend||0)+" people. "+txt,text:txt};}
+    else res={ok:false,error:r.error||"That batch isn't waiting any more.",text:r.error||"That batch isn't waiting any more."};}
+  else{
+    if(r.ok){const txt="Cancelled"+(r.alreadySent?". "+r.alreadySent+" had already gone out":"")+".";
+      c.v.job=Object.assign({},j,{status:r.alreadySent?"done":"cancelled"});
+      res={ok:true,cancelled:true,id:j.id,summary:'cancelled the email batch "'+(j.subject||"")+'". '+txt,text:txt};}
+    else res={ok:false,error:r.error||"Nothing left to stop.",text:r.error||"Nothing left to stop."};}
+  c.result=res;
+  if(c.state==="open"||(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id)))botCardDone(c,res);
+  else{BOT.notes.push(res.ok?"I "+res.summary:"I tried to change an email batch: "+(res.error||""));botSave();botPaint();}
+  if(res.ok)toast(res.text);}
 function botLits(market){const ls=botLitPool(market),dp=distPiecesFor(market);
   const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"find_literature",state:"open",v:{market:market,ids:ls.map(l=>l.id),dist:dp?dp.name:""}};BOT.ui.push({k:"card",id:id});
   return {distributor_pieces:dp?[{title:"AutoTQ "+dp.name+" brochure (2 pages, Nov 19 2026: their logo and their item numbers)"},{title:"AutoTQ "+dp.name+" Fleet Safety Catalog (6 pages, Nov 19 2026)"}]:[],
@@ -13852,6 +13926,7 @@ function botFieldHTML(c,f){const v=c.v,k=f[0],x=botVal(v,k),req=f[3](v),dis=c.st
 function botCardHTML(c){
   const t=c.tool,v=c.v,done=c.state!=="open";
   if(t==="build_list")return botListCardHTML(c);
+  if(t==="mail_merge")return botMergeCardHTML(c);
   if(t==="find_literature")return botLitsCardHTML(c);
   if(t==="make_literature")return botLitCardHTML(c);
   const title={propose_contact:v.company_id?"New contact":"New contact + account",propose_account:"New account",propose_activity:"Log "+((LOG_TYPES.find(x=>x[0]===v.type)||[0,0,"activity"])[2]).toLowerCase(),propose_opportunity:"New opportunity"}[t]||"Card";
@@ -14013,6 +14088,8 @@ document.addEventListener("click",e=>{
   if(a==="litopen"){botLitOpen(t.dataset.id);return;}
   if(a==="litpage"&&c){botLitPage(c);return;}
   if(a==="litmail"&&c){const v=c.v;location.href="mailto:?subject="+encodeURIComponent(v.subject||v.headline||"AutoTQ")+"&body="+encodeURIComponent(botLitText(v));return;}
+  if(a==="mergeok"&&c){botMergeAct(c,"ok");return;}
+  if(a==="mergeno"&&c){botMergeAct(c,"no");return;}
   if(a==="litcopy"&&c){navigator.clipboard.writeText(botLitText(c.v)).then(()=>toast("Copied"),()=>toast("Couldn't copy"));return;}
 });
 function botGrow(i){i.style.height="auto";i.style.height=Math.min(160,i.scrollHeight)+"px";}
