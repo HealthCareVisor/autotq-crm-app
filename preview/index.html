@@ -1380,6 +1380,10 @@ body.tqbon .console{margin-right:400px}
 .tqdh{margin:0 0 4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:none}
 .tqlog{font-size:13.5px;line-height:1.5;padding:2px 0}.tqlk{font-weight:600}
 .tqmore{display:inline;font-size:12.5px;color:var(--muted)}.tqmore summary{display:inline;cursor:pointer;color:var(--coral-text);margin-left:4px}
+.tqcday+.tqcday{margin-top:8px;padding-top:8px;border-top:1px solid var(--line-2)}.tqcday>summary{cursor:pointer;font-size:13.5px;padding:2px 0}
+.tqcr{font-size:13px;line-height:1.5;margin:6px 0}.tqcr.me{display:flex;gap:8px;align-items:flex-start}.tqcr.me>div{background:var(--sunken);border-radius:10px;padding:6px 10px;max-width:80%}
+.tqct{font-size:11.5px;color:var(--hint);flex:none;margin-top:6px;width:58px}.tqcr.bot{padding-left:66px;color:var(--ink-2)}.tqcr.bot p{margin:0 0 4px}.tqcr.bot ul{margin:0 0 4px;padding-left:18px}
+.tqcr.note{padding-left:66px;color:var(--ok-t);font-size:12.5px}.tqcr.note .i{width:12px;height:12px;vertical-align:-1px}.tqcr.tools{padding-left:66px;color:var(--hint);font-size:12px}
 .tql b{font-size:13px}.tql span{font-size:12px;color:var(--muted)}.tql .t2{margin:4px 8px 0}
 .tqpre{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0 0;max-height:280px;overflow:auto}
 .tact .tqbtn svg.mark{width:11px;height:16px;color:var(--coral)}.tact .tqbtn.on svg.mark{color:var(--coral-tt)}
@@ -4295,6 +4299,7 @@ function viewTeammate(id){
   h+=kpiRow([["Actions this week",wk.length,""],["This month",mo.length,""],["All time",all.length,Object.keys(kinds).map(k=>kinds[k]+" "+k).join(" · ")],["Follow-ups waiting",q.todo.length+q.old.length,q.old.length+" stale",q.old.length?"warn":""]]);
   h+='<section style="margin:4px 0 18px">'+weekStripHTML(id,logState.tmDay||T,{title:t.name.split(" ")[0]+"\u2019s week",nav:"tmnav",dayNav:"tmnav"})+'</section>';
   h+='<section style="margin:0 0 18px">'+botWeekHTML(id)+'</section>';
+  if(BOT_CHAT_READERS.includes(USER))h+='<section style="margin:0 0 18px" id="tqchats">'+botChatsHTML(id)+'</section>';
   if(profile(id)==="sales")h+='<section style="margin:0 0 18px">'+fromOutreachHTML(id,{always:true,who:t.name.split(" ")[0],showDone:true,max:12})+'</section>';
   if(uAll.rows.length){h+='<div class="sectlabel">Time in the CRM <span class="cnt">last 14 days</span></div><div class="tablewrap" style="margin-bottom:18px"><table class="lv"><thead><tr><th>Day</th><th>Time</th><th>First</th><th>Last</th><th>Where</th></tr></thead><tbody>'+
     uAll.rows.slice(0,14).map(r=>{const tm=x=>x?new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"—";const vs=Object.keys(r.views||{}).sort((a,b)=>r.views[b]-r.views[a]).slice(0,4).map(v=>({today:"Home",opps:"Pipeline",activity:"Activity",leads:"Leads",quotes:"Quotes",accounts:"Accounts",contacts:"Contacts",export:"Lists",team:"Team",person:"Contact pages",roster:"Account pages",invoicing:"Invoicing"}[v]||v));
@@ -13867,6 +13872,42 @@ async function botMergeAct(c,act){if(c.busy)return;c.busy=true;botPaintCard(c);
   if(c.state==="open"||(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id)))botCardDone(c,res);
   else{BOT.notes.push(res.ok?"I "+res.summary:"I tried to change an email batch: "+(res.error||""));botSave();botPaint();}
   if(res.ok)toast(res.text);}
+/* TQbot chats on the teammate page (Max, 2026-11-23: reps' chats saved, readers = the admins). crm-bot writes one row per exchange to
+   public.bot_chats (RLS: only max@ / hannah@ / jamie@ can read); this reads the person's latest 300 and lists them by day: what they typed,
+   the cards they saved or turned down, what TQbot looked up and answered. Loaded once a minute at most per person, painted into #tqchats. */
+const BOT_CHAT_READERS=["max","hannah","jamie"];
+const BOT_TOOL_WORDS={search_crm:"looked up",get_record:"opened a record",my_numbers:"checked numbers",who_covers:"checked who covers a state",build_list:"built a list",
+  find_people:"found people",find_literature:"found literature",make_literature:"made literature",email_batches:"checked email batches",
+  propose_contact:"card: contact",propose_account:"card: account",propose_activity:"card: activity",propose_opportunity:"card: deal",propose_email_batch:"card: email batch"};
+function botChatsHTML(id){
+  if(!BOT_CHAT_READERS.includes(USER))return "";
+  const C=(BOT.chats=BOT.chats||{}),c=C[id];
+  if(!c||Date.now()-c.at>60000){if(!c||!c.busy)botChatsLoad(id);}
+  const head='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">TQbot chats'+(c&&c.rows?' <span class="cnt">'+c.rows.filter(r=>r.user_text).length+' messages</span>':'')+'</div></div>';
+  if(!c||!c.rows)return head+'<div class="card tqlogs"><p class="t2" style="margin:0">'+(c&&c.err?esc(c.err):'Loading…')+'</p></div>';
+  if(!c.rows.length)return head+'<div class="card tqlogs"><p class="t2" style="margin:0">No TQbot chats yet.</p></div>';
+  const byDay={};c.rows.forEach(r=>{const d=localDay(r.at);(byDay[d]=byDay[d]||[]).push(r);});
+  const days=Object.keys(byDay).sort().reverse();
+  const lbl=d=>d===todayStr()?"Today":new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+  return head+'<div class="card tqlogs">'+days.map((d,i)=>{const rows=byDay[d].slice().reverse(),n=rows.filter(r=>r.user_text).length;
+    return '<details class="tqcday"'+(i===0?' open':'')+'><summary><b>'+esc(lbl(d))+'</b> <span class="t2" style="display:inline">· '+n+' message'+(n===1?"":"s")+'</span></summary>'+rows.map(botChatRowHTML).join("")+'</details>';}).join("")+'</div>';}
+function botChatRowHTML(r){
+  const t=fmtTimeShort(r.at),tools=(r.tools||[]).map(x=>BOT_TOOL_WORDS[x.name]||x.name),res=(r.results||[]).map(x=>{let o={};try{o=JSON.parse(x.content);}catch(e){}
+    return o&&o.summary?(o.ok?"Saved: ":"")+o.summary:o&&o.cancelled?"Turned down a card":o&&o.status==="still_open"?"Left a card open":"";}).filter(Boolean);
+  let h='';
+  if(r.user_text)h+='<div class="tqcr me"><span class="tqct">'+esc(t)+'</span><div>'+esc(r.user_text).replace(/\n/g,"<br>")+'</div></div>';
+  res.forEach(x=>{h+='<div class="tqcr note">'+svg("check")+' '+esc(x)+'</div>';});
+  if(r.reply_text)h+='<div class="tqcr bot">'+botMd(r.reply_text)+'</div>';
+  if(tools.length)h+='<div class="tqcr tools">'+esc([...new Set(tools)].join(" · "))+'</div>';
+  return h;}
+async function botChatsLoad(id){const C=(BOT.chats=BOT.chats||{});const email=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===id);
+  if(!email){C[id]={at:Date.now(),rows:[]};return;}
+  C[id]=Object.assign(C[id]||{},{busy:true});
+  try{const r=await supa("/rest/v1/bot_chats?select=at,user_text,reply_text,tools,results&email=eq."+encodeURIComponent(email)+"&order=at.desc&limit=300");
+    const j=await r.json().catch(()=>null);
+    C[id]={at:Date.now(),rows:r.ok&&Array.isArray(j)?j:null,err:r.ok?"":"Couldn't load the chats ("+r.status+")."};}
+  catch(e){C[id]={at:Date.now(),rows:null,err:"Couldn't load the chats (offline)."};}
+  const el=document.getElementById("tqchats");if(el&&view==="teammate"&&curRep===id)el.innerHTML=botChatsHTML(id);}
 function botLits(market){const ls=botLitPool(market),dp=distPiecesFor(market);
   const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"find_literature",state:"open",v:{market:market,ids:ls.map(l=>l.id),dist:dp?dp.name:""}};BOT.ui.push({k:"card",id:id});
   return {distributor_pieces:dp?[{title:"AutoTQ "+dp.name+" brochure (2 pages, Nov 19 2026: their logo and their item numbers)"},{title:"AutoTQ "+dp.name+" Fleet Safety Catalog (6 pages, Nov 19 2026)"}]:[],
