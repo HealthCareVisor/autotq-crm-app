@@ -9908,7 +9908,10 @@ function tqOutcome(a){
   const sug=raw.map(x=>typeof x==="string"?x:(x&&(x.gs1_barcode||x.barcode))||"").filter(Boolean).slice(0,4);
   if(s===404)return {st:"unknown",msg:msg||"Not in Devin’s system",sug:sug};
   if(s===409){const ca=det.current_assignment||{};
-    return {st:"other",msg:msg||"On another order",other:{orderId:+ca.order_id||null,box:ca.box_db_id!=null?ca.box_db_id:null,po:String(ca.po_number||ca.order_po_number||"")}};}
+    const o={orderId:+ca.order_id||null,box:ca.box_db_id!=null?ca.box_db_id:null,po:String(ca.po_number||ca.order_po_number||"")};
+    if(ca.customer_name)o.customer=String(ca.customer_name);if(ca.order_status)o.status=String(ca.order_status);
+    if(det.resolution&&det.resolution.can_return_and_reassign===false)o.noReturn=true;
+    return {st:"other",msg:msg||"On another order",other:o};}
   if(s===400)return {st:"held",msg:msg||"Not released for shipping"};
   return {st:"failed",msg:msg||"Couldn’t reach Devin’s system"};
 }
@@ -9935,10 +9938,13 @@ function tqReconcile(serials,devices){
   const byId={},byCode={};(devices||[]).forEach(d=>{const x=tqDevice(d);if(!x)return;if(x.id)byId[x.id]=x;if(x.code)byCode[x.code]=x;});
   return (serials||[]).map(s=>{const dv=s&&s.dv;return (dv&&dv.id&&byId[dv.id])||byCode[String(s&&s.code||"")]||null;});
 }
-/* Devin's product ids differ between staging and production: match the payload's lines to his catalog by part number */
-function tqUseCatalog(p,products){
+/* Devin's product ids differ between staging and production: match the payload's lines to his catalog by part number. A part
+   his catalog doesn't list goes without an id (staging's catalog is empty); with no catalog at all, the built-in ids
+   (production's) stay only when keepIds says so. */
+function tqUseCatalog(p,products,keepIds){
   const by={};(products||[]).forEach(x=>{const c=String(x&&(x.product_code||x.code||x.sku)||"").toUpperCase();if(c&&x.id!=null)by[c]=x.id;});
-  (p.items||[]).forEach(it=>{const id=by[String(it.product_code||"").toUpperCase()];if(id!=null)it.product_id=id;});
+  (p.items||[]).forEach(it=>{const id=by[String(it.product_code||"").toUpperCase()];
+    if(id!=null)it.product_id=id;else if(Array.isArray(products)||!keepIds)delete it.product_id;});
   return p;
 }
 /*TQ-CORE-END*/
@@ -10175,7 +10181,9 @@ function srListHTML(){
     (S.codes.length?'<div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:4px 10px;align-items:center">'+S.codes.map((c,i)=>{
       const s=objs[c]||{code:c},d=tqSerialDv(s,env),mac=srMac(s),st=d&&SR_ST[d.st];
       let more="";
-      if(d&&d.st==="other")more=esc(d.msg||"")+((d.other&&d.other.po)||d.po?' — PO '+esc((d.other&&d.other.po)||d.po):'')+' <button class="btn sm ghost" data-act="srdvreturn" data-c="'+esc(c)+'">Return it &amp; assign here</button>';
+      if(d&&d.st==="other"){const ot=d.other||{},po=ot.po||d.po;
+        more=esc(d.msg||"")+(po?' — PO '+esc(po):'')+(ot.customer?' ('+esc(ot.customer)+(ot.status?', '+esc(ot.status.replace(/_/g," ")):'')+')':'')+
+          (ot.noReturn?'':' <button class="btn sm ghost" data-act="srdvreturn" data-c="'+esc(c)+'">Return it &amp; assign here</button>');}
       else if(d&&d.st==="unknown")more=esc(d.msg||"")+((d.sug||[]).length?' — did you mean '+d.sug.map(x=>'<button class="pill" data-act="srdvsug" data-c="'+esc(c)+'" data-v="'+esc(x)+'" style="cursor:pointer;color:var(--ink);background:rgba(120,120,120,.12)">'+esc(serialLabel(x))+'</button>').join(" ")+'?':'');
       else if(d&&(d.st==="held"||d.st==="failed")&&d.msg)more=esc(d.msg);
       return '<span style="font-size:13px;min-width:0;overflow-wrap:anywhere" title="'+esc(c)+'">'+esc(serialLabel(c))+'</span>'+
@@ -10289,7 +10297,7 @@ async function tqEnsureOrder(o){
   if(f.data&&f.data.several)return {ok:false,error:"Devin’s system has "+f.data.several.length+" orders with PO "+o.poNo+" ("+f.data.several.map(x=>"#"+x.id).join(", ")+") — say which one is this order"};
   const cat=await tqCatalog();
   const dist=o.orderType!=="direct"&&cat?(cat.distributors||[]).find(d=>poCoKey(d.name||d.company_name)===poCoKey(o.account)):null;
-  const body=tqUseCatalog(tqOrderPayload(o,{distId:dist&&dist.id}),cat?cat.products:[]);
+  const body=tqUseCatalog(tqOrderPayload(o,{distId:dist&&dist.id}),cat?cat.products:null,env==="production");
   const c=await tqBridge("create",{order:body});
   if(!c.ok)return {ok:false,error:"Couldn’t add the order to Devin’s system: "+c.error};
   const x=orderById(o.id)||o;tqSetLink(x,env,c.data.id,c.data.shipment_id);save();
@@ -10427,7 +10435,9 @@ async function tqPushTracking(oid){
   if(+o.shipCost>0)f.shipping_cost=+o.shipCost;if(o.shipService)f.service_type=o.shipService;
   const r=await tqBridge("shipInfo",{shipmentId:ship,fields:f});
   const x=orderById(oid);if(!x)return;
-  if(!r.ok){toast("Tracking didn’t reach Devin’s system: "+r.error);return;}
+  if(!r.ok){toast(/UniqueViolation|tracking_number.*(exists|duplicate)|duplicate key/i.test(r.error)
+    ?"Devin’s system already has tracking "+o.shipTracking+" on another order — it takes each tracking number once (orders boxed together need his Shipping screen)"
+    :"Tracking didn’t reach Devin’s system: "+String(r.error).slice(0,160));return;}
   x.tqTrk=Object.assign({},x.tqTrk,{[env]:key});save();srDvRedraw(oid);tqMaybeDone(oid);
 }
 function tqPushSoon(oid){
