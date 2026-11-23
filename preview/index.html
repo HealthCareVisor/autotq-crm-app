@@ -614,6 +614,19 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
   body.scprint .work,body.scprint .console{display:block;margin:0;padding:0}body.scprint .content{max-width:none;padding:0}body.scprint .sct,body.scprint .scday{break-inside:avoid}body.scprint .sct{animation:none}}
 /* rep analysis — "View analysis" (the Tim Ford report layout, any rep) */
 .sheet.rawide{max-width:760px}
+/* the deal page (2026-11-23): Edit opportunity fills the work area; two columns on wide screens, a footer that stays in view */
+.scrim.pagemode{background:var(--bg);padding:0;align-items:stretch;justify-content:stretch;animation:none}
+.scrim.pagemode .sheet{max-width:none;width:100%;max-height:none;height:100%;border-radius:0;box-shadow:none;padding:16px 28px 0;animation:fadein .15s ease-out}
+.sheet.pagesheet>.handle,.sheet.pagesheet>.sheetx{display:none}
+.dpg-top{margin:0 0 6px;max-width:1280px}.dpg-head{margin:0 0 16px;max-width:1280px}
+.sheet .dpg-h{font-size:24px;margin:0 0 4px;font-weight:700}
+.dpg-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,1fr);gap:18px;align-items:start;max-width:1280px}
+.dpg-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 18px 16px;margin-bottom:14px}
+.dpg-st{margin:0 0 2px;font-size:13px;font-weight:700;color:var(--muted)}
+.dpg-side{position:sticky;top:0}
+.dpg-foot{position:sticky;bottom:0;display:flex;gap:8px;align-items:center;background:var(--bg);border-top:1px solid var(--line);padding:12px 0 calc(14px + env(safe-area-inset-bottom));max-width:1280px;z-index:2}
+@media (max-width:900px){.dpg-grid{grid-template-columns:1fr}.dpg-side{position:static}}
+@media (max-width:640px){.scrim.pagemode .sheet{padding:12px 14px 0}}
 .rahead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 10px}.rahead h2{margin:0;font-size:22px}.rahead .grow{min-width:200px}.rahead .t2{white-space:normal}
 .ratools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 6px}.ratools .seg{margin:0;flex-wrap:wrap;max-width:100%}
 .raupd{font-size:12.5px;color:var(--muted);margin:2px 2px 0}
@@ -1712,8 +1725,21 @@ function chev(){return svg("chevR","chev");}
 function toast(m,undo){const t=document.getElementById("toast");t.textContent=m;
   if(undo){const b=document.createElement("button");b.type="button";b.className="tundo";b.textContent="Undo";b.onclick=e=>{e.stopPropagation();t.classList.remove("show");undo();};t.appendChild(b);}
   t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?5000:1900);}
-function openSheet(html){document.getElementById("sheet").classList.remove("rawide");document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");try{fbUpdate();}catch(e){}}
-function closeSheet(){document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}try{tqcOnSheetClose();}catch(e){}
+function openSheet(html){document.getElementById("sheet").classList.remove("rawide","pagesheet");{const sc=document.getElementById("scrim");sc.classList.remove("pagemode");sc.style.left="";}logState.oppPageSnap=null;logState.oppPageLeave=false;document.getElementById("sheet").innerHTML='<div class="handle"></div><button class="ibtn sheetx" data-act="closesheet" title="Close (Esc)" aria-label="Close">'+svg("x")+'</button>'+html;document.getElementById("scrim").classList.add("open");try{fbUpdate();}catch(e){}}
+/* a sheet that fills the work area like a page (the deal page): the sidebar stays visible on wide screens */
+function openPageSheet(html){openSheet(html);const sh=document.getElementById("sheet"),sc=document.getElementById("scrim");sh.classList.add("pagesheet");sc.classList.add("pagemode");
+  const sd=document.querySelector(".side");sc.style.left=window.innerWidth>640&&sd?Math.round(sd.getBoundingClientRect().right)+"px":"";sh.scrollTop=0;}
+function oppPageState(){const sh=document.getElementById("sheet");if(!sh)return "";
+  return JSON.stringify([[...sh.querySelectorAll("input,select,textarea")].filter(e=>e.id!=="oConQ"&&e.id!=="oQuoteQ").map(e=>e.type==="checkbox"?e.checked:e.value),
+    logState.oppStage,logState.oppContacts,logState.oppQuoteIds,logState.oppGhRep,logState.oppDistCid,logState.oppDistTbd]);}
+function oppPageChanged(){return !!logState.oppPageSnap&&!!logState.oppId&&!!oppById(logState.oppId)&&oppPageState()!==logState.oppPageSnap;}
+function closeSheet(){
+  {const sh=document.getElementById("sheet"),sc=document.getElementById("scrim");
+   if(sh.classList.contains("pagesheet")&&sc.classList.contains("open")){
+     if(!logState.oppPageLeave&&oppPageChanged()&&!confirm("Leave this deal without saving your changes?"))return;
+     sh.classList.remove("pagesheet");sc.classList.remove("pagemode");sc.style.left="";logState.oppPageSnap=null;}
+   logState.oppPageLeave=false;}
+  document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}try{tqcOnSheetClose();}catch(e){}
   if(logState.srStale){logState.srStale=false;render();}} /* serials saved while the sheet was open */
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
@@ -8521,39 +8547,43 @@ function formOpp(id,prefillCid,pre){ /* pre (new deal from a quote) = {quoteId, 
   const nameHTML=lbl("Opportunity name")+'<input class="f" id="oName" value="'+(o?esc(o.name):esc(pre.name||""))+'" placeholder="'+(o?"":"Fills itself from the customer")+'" autocomplete="off">';
   const closeV=o&&o.closeDate?o.closeDate:"";
   if(!o){formOppSteps(pre,selCid,distLabel,amt0,units0,repChips,dtypes,lbl);return;}
-  openSheet('<h2>'+(o?"Edit":"New")+' opportunity</h2>'+
-   (o?nameHTML:'')+
-   (o?oppNotesFormHTML(o):'')+
-   lbl("Customer")+comboField("oCidQ","Company or end user",selCid?((company(selCid)||{}).name||""):(o?o.accountName||"":(pre.acct||"")))+
-   lbl("Closing distributor",o?"":"optional")+comboField("oDistQ","Who the PO comes through",distLabel)+
-   '<div class="row" style="gap:10px;align-items:flex-start"><div style="flex:1;min-width:0">'+lbl("Kits")+'<input class="f" id="oUnits" type="number" min="0" inputmode="numeric" value="'+esc(String(units0))+'" placeholder="40"></div>'+
-   '<div style="flex:1;min-width:0">'+lbl("Amount ($)")+'<input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="0"><div id="oAmtHint" class="t2" style="margin-top:4px;min-height:16px"></div></div></div>'+
-   lbl("Expected close")+'<div class="chips" id="oCloseChips" style="margin-bottom:8px">'+oppCloseChipsHTML(closeV)+'</div>'+
-   '<input class="f" id="oClose" type="date" value="'+esc(closeV)+'">'+
-   (o?'':'<button class="btn coral block" data-act="saveOpp" style="margin-top:18px">Add opportunity</button>')+
-   /* everything else has a default and folds away; an existing deal opens with it unfolded */
-   '<details class="fold" id="oMore" style="margin-top:14px"'+(o?' open':'')+'><summary><span class="sectlabel" style="margin:0;font-size:13px">More</span>'+
-    (o?'':'<span class="t2" style="display:inline">stage, next step, people, quote, notes</span>')+'<span class="fchev">'+chev()+'</span></summary>'+
-   (o?'':nameHTML)+
-   lbl("Stage","% = chance it closes")+oppStageLadderHTML(logState.oppStage,o)+
-   lbl("Golden Hour sales person")+'<div class="chips" id="oGhRep">'+repChips+'</div>'+
-   '<label class="chkrow"><input type="checkbox" id="oDirect"'+(o&&o.direct?" checked":"")+'> Direct sale — no distributor</label>'+
-   '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:2 1 180px;min-width:0">'+lbl("Next step")+'<input class="f" id="oNextA" value="'+(o?esc(o.nextAction||""):"")+'" placeholder="e.g. Call purchasing" autocomplete="off"></div>'+
-   '<div style="flex:1 1 150px;min-width:0">'+lbl("When")+'<input class="f" id="oNextAD" type="date" value="'+(o?esc(o.nextActionDate||""):"")+'"></div></div>'+
-   lbl("People on this deal")+'<div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
-   '<div class="row" style="gap:8px;align-items:flex-start"><div style="flex:2;min-width:0">'+comboField("oConQ","Type a person…","")+'</div>'+
-   '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
-   '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>'+
-   oppQuotesFormHTML()+
-   lbl("Deal type")+'<select class="f" id="oType">'+dtypes.map(t=>'<option'+((o?o.dealType===t:(preCo&&preCo.type==="distributor"?t==="Stocking Order":false))?" selected":"")+'>'+t+'</option>').join("")+'</select>'+
-   '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1 1 120px;min-width:0">'+lbl("State","blank = the account's")+'<input class="f" id="oLoc" value="'+(o?esc(o.state||""):esc(pre.state||""))+'" placeholder="TN" maxlength="2"></div>'+
-   '<div style="flex:1 1 150px;min-width:0">'+lbl("Last contact",o&&oppLastTouch(o)?"auto: "+esc(oppLastTouch(o)):"")+'<input class="f" id="oLastC" type="date" value="'+(o?esc(o.lastContact||""):"")+'"></div></div>'+
-   lbl("Why that %",'(<span id="oProbPct">'+(logState.oppStage?oppStagePct(logState.oppStage,o):(o?oppProb(o):OPP_PROB["Qualification"]))+'</span>%)')+
-   '<input class="f" id="oProbWhy" value="'+(o?esc(o.probReason||""):"")+'" placeholder="e.g. Demo done, reviewing a 50-unit rollout" autocomplete="off">'+
-   '</details>'+
-   (o?'<button class="btn coral block" data-act="saveOpp" style="margin-top:18px">Save changes</button>':'')+
-   (o?'<button class="btn block" data-act="delopp" data-id="'+o.id+'" style="margin-top:8px;color:var(--dang-t)">Delete opportunity</button>':""));
+  /* the deal page (Max, 2026-11-23: "instead of the vertical banner for Opportunities I want a landing page for the opportunity that
+     allows them to edit it inside and then confirm and it will send them back to the pipeline with changes made"): the same fields and
+     ids as the old Edit sheet, laid out as a page over the work area (the sidebar stays); Confirm = saveOpp, then back where they came from */
+  const back=view==="opps"?"Pipeline":view==="roster"?"the account":view==="person"?"the contact":view==="today"?"Home":view==="quotes"?"Quotes":"where you were";
+  const card=(t,inner)=>'<div class="dpg-card"><p class="dpg-st">'+t+'</p>'+inner+'</div>';
+  openPageSheet(
+   '<div class="dpg-top"><button class="btn ghost sm" data-act="dpgback">'+svg("back")+' Back to '+esc(back)+'</button></div>'+
+   '<div class="dpg-head"><h2 class="dpg-h">'+esc(o.name)+'</h2><p class="t2">'+esc(oppAcctLabel(o))+' · '+esc(OPP_SHORT[o.stage]||o.stage)+' · '+(o.units||0)+' kits · '+money(o.amount||0)+
+     (oppGhRep(o)?' · '+esc(shortName(oppGhRep(o))):'')+'</p></div>'+
+   '<div class="dpg-grid"><div class="dpg-main">'+
+    card("The deal",nameHTML+
+     lbl("Customer")+comboField("oCidQ","Company or end user",selCid?((company(selCid)||{}).name||""):(o.accountName||""))+
+     lbl("Closing distributor")+comboField("oDistQ","Who the PO comes through",distLabel)+
+     '<label class="chkrow"><input type="checkbox" id="oDirect"'+(o.direct?" checked":"")+'> Direct sale — no distributor</label>'+
+     '<div class="row" style="gap:10px;align-items:flex-start"><div style="flex:1;min-width:0">'+lbl("Kits")+'<input class="f" id="oUnits" type="number" min="0" inputmode="numeric" value="'+esc(String(units0))+'" placeholder="40"></div>'+
+     '<div style="flex:1;min-width:0">'+lbl("Amount ($)")+'<input class="f" id="oAmt" inputmode="decimal" value="'+esc(String(amt0))+'" placeholder="0"><div id="oAmtHint" class="t2" style="margin-top:4px;min-height:16px"></div></div></div>'+
+     lbl("Expected close")+'<div class="chips" id="oCloseChips" style="margin-bottom:8px">'+oppCloseChipsHTML(closeV)+'</div>'+
+     '<input class="f" id="oClose" type="date" value="'+esc(closeV)+'">')+
+    card("Where it stands",lbl("Stage","% = chance it closes")+oppStageLadderHTML(logState.oppStage,o)+
+     lbl("Why that %",'(<span id="oProbPct">'+(logState.oppStage?oppStagePct(logState.oppStage,o):oppProb(o))+'</span>%)')+
+     '<input class="f" id="oProbWhy" value="'+esc(o.probReason||"")+'" placeholder="e.g. Demo done, reviewing a 50-unit rollout" autocomplete="off">'+
+     '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:2 1 180px;min-width:0">'+lbl("Next step")+'<input class="f" id="oNextA" value="'+esc(o.nextAction||"")+'" placeholder="e.g. Call purchasing" autocomplete="off"></div>'+
+     '<div style="flex:1 1 150px;min-width:0">'+lbl("When")+'<input class="f" id="oNextAD" type="date" value="'+esc(o.nextActionDate||"")+'"></div></div>'+
+     lbl("Golden Hour sales person")+'<div class="chips" id="oGhRep">'+repChips+'</div>'+
+     '<div class="row" style="gap:0 10px;align-items:flex-start;flex-wrap:wrap"><div style="flex:1 1 150px;min-width:0">'+lbl("Deal type")+'<select class="f" id="oType">'+dtypes.map(t=>'<option'+(o.dealType===t?" selected":"")+'>'+t+'</option>').join("")+'</select></div>'+
+     '<div style="flex:1 1 90px;min-width:0">'+lbl("State","blank = the account's")+'<input class="f" id="oLoc" value="'+esc(o.state||"")+'" placeholder="TN" maxlength="2"></div>'+
+     '<div style="flex:1 1 150px;min-width:0">'+lbl("Last contact",oppLastTouch(o)?"auto: "+esc(oppLastTouch(o)):"")+'<input class="f" id="oLastC" type="date" value="'+esc(o.lastContact||"")+'"></div></div>')+
+    card("People and quotes",lbl("People on this deal")+'<div id="oppCons" style="margin:2px 0 8px">'+oppConChips()+'</div>'+
+     '<div class="row" style="gap:8px;align-items:flex-start"><div style="flex:2;min-width:0">'+comboField("oConQ","Type a person…","")+'</div>'+
+     '<select class="f" id="oConRole" style="flex:1;min-width:0">'+OPP_ROLES.map(r=>'<option>'+r+'</option>').join("")+'</select>'+
+     '<button class="btn sm coral" data-act="oppAttach" style="flex:none">Attach</button></div>'+oppQuotesFormHTML())+
+   '</div><aside class="dpg-side">'+card("Notes",oppNotesFormHTML(o).replace(/^<label class="fl">Notes <span style="font-weight:400;color:var\(--hint\)">— /,'<label class="fl" style="margin-top:0"><span style="font-weight:400;color:var(--hint)">'))+'</aside></div>'+
+   '<details id="oMore" open hidden></details>'+
+   '<div class="dpg-foot"><button class="btn coral" data-act="dpgok">'+svg("check")+' Confirm changes</button><button class="btn" data-act="dpgback">Cancel</button>'+
+    '<button class="btn ghost" data-act="delopp" data-id="'+o.id+'" style="color:var(--dang-t);margin-left:18px">Delete deal</button></div>');
   oppAmtHint();oppStageCdSync();
+  setTimeout(()=>{logState.oppPageSnap=oppPageState();},0);
 }
 /* ----- New opportunity, one box at a time with a guide (Max, 2026-11-10: "simplify how the reps add opportunity, apparently it's too
    hard" → "make the entire process easier while still requiring all the data" → "text box by text box with an agent that walks them
@@ -14328,7 +14358,8 @@ document.addEventListener("click",e=>{
   if(a==="futeam"){fuTeamSheet();return;}
   if(a==="furep"){fuRepSheet(id);return;}
   if(a==="newoppfor"){formOpp(null,id);return;}
-  if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}(DB.quotes||[]).forEach(q=>{if(q&&q.oppId===id)q.oppId=null;});DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
+  if(a==="delopp"){const o=(DB.opps||[]).find(x=>x.id===id);if(o&&!canEditOpp(o)){toast("View only — "+oppOwnerName(o)+" owns this deal");return;}
+    if(!confirm("Delete \""+((o&&o.name)||"this deal")+"\"? This can't be undone."))return;(DB.quotes||[]).forEach(q=>{if(q&&q.oppId===id)q.oppId=null;});DB.opps=(DB.opps||[]).filter(x=>x.id!==id);save();closeSheet();render();toast("Opportunity removed");return;}
   if(a==="setOppStage"){logState.oppStage=t.dataset.v;{const cl=document.getElementById("oClose");if(cl&&!cl.value&&OPP_WINDOW[t.dataset.v]){cl.value=oppAddDays(OPP_WINDOW[t.dataset.v]);document.querySelectorAll("#oCloseChips .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===cl.value));}}setTimeout(oppStageCdSync,0);{const pe=document.getElementById("oProbPct"),eo=logState.oppId?DB.opps.find(x=>x.id===logState.oppId):null;if(pe)pe.textContent=oppStagePct(t.dataset.v,eo);}document.querySelectorAll("#oStage .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===t.dataset.v));oppAutoNext("stage");return;}
   if(a==="oppStep"){e.preventDefault();const fromRev=OPP_Q[logState.oppStep||0][0]==="review";logState.oppToReview=fromRev;oppStepGo(parseInt(t.dataset.v,10),t.dataset.f||"");return;}
   if(a==="oppStepNext"){oppStepNext();return;}
@@ -14349,6 +14380,8 @@ document.addEventListener("click",e=>{
   if(a==="pickOppCustCon"){const p=person(id);if(p){const c=company(p.cid);logState.oppCid=c?c.id:null;const i=document.getElementById("oCidQ");if(i)i.value=c?c.name:p.name;sugRender("oCidQ",[]);logState.oppContacts=logState.oppContacts||[];if(!logState.oppContacts.some(x=>x.pid===p.id))logState.oppContacts.push({pid:p.id,role:c&&c.type==="distributor"?"Distributor rep":"Buyer"});const w=document.getElementById("oppCons");if(w)w.innerHTML=oppConChips();oppCustPicked();oppAutoNext("cust");}return;}
   if(a==="oppCloseQuick"){const i=document.getElementById("oClose"),on=t.classList.contains("on");if(i)i.value=on?"":t.dataset.v;document.querySelectorAll("#oCloseChips .chip").forEach(x=>x.classList.toggle("on",!on&&x===t));oppStageCdSync();oppAutoNext("close");return;}
   if(a==="saveOpp"){saveOpp();return;}
+  if(a==="dpgok"){logState.oppPageLeave=true;saveOpp();if(document.getElementById("sheet").classList.contains("pagesheet")&&document.getElementById("scrim").classList.contains("open"))logState.oppPageLeave=false;return;}
+  if(a==="dpgback"){closeSheet();return;}
   if(a==="oppNewQuote"){saveOpp("newquote");return;}
   if(a==="oppExtQuote"){saveOpp("extquote");return;}
   if(a==="pickOppQuote"){oppAutoNext("quote");logState.oppQuoteIds=logState.oppQuoteIds||[];if(!logState.oppQuoteIds.includes(id))logState.oppQuoteIds.push(id);const i=document.getElementById("oQuoteQ");if(i)i.value="";sugRender("oQuoteQ",[]);oppQuoteRedraw();return;}
