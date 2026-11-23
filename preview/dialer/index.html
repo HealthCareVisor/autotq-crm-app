@@ -10328,6 +10328,7 @@ function srDvLineHTML(o){
     (l?'<span>Devin order <b>#'+esc(String(l.id))+'</b>'+(ss.length?' · '+on+' of '+ss.length+' on it':'')+'</span>':'<span style="color:var(--muted)">Not in Devin’s system yet</span>')+
     (busy?'<span style="color:var(--muted)">checking…</span>':'')+
     (todo&&!busy?'<button class="btn sm" data-act="srdvsync" data-id="'+o.id+'">Check &amp; send '+todo+' to Devin</button>':'')+
+    (l&&!busy&&need>ss.length?'<button class="btn sm ghost" data-act="srdvpull" data-id="'+o.id+'" title="Units already on Devin’s order come into this one, with their MAC addresses">Bring in serials from Devin’s order</button>':'')+
     (shipped?'<span style="color:var(--ok-t)">Shipped in Devin’s system ✓ '+esc(usDate(String(shipped.at).slice(0,10)))+'</span>'
       :ready?'<button class="btn sm ghost" data-act="srdvship" data-id="'+o.id+'">Mark shipped in Devin’s system</button>':'')+'</div>';
 }
@@ -10411,6 +10412,26 @@ function srUseSuggestion(oid,c,v){
   const k=S.codes.indexOf(c);if(k<0)return;
   if(S.codes.includes(v))S.codes.splice(k,1);else S.codes[k]=v;
   srCommit();srDvRedraw(oid);if(!S.codes.includes(c))srDevinRun(oid,[v]);
+}
+/* the other way round: units already on Devin's order (keyed in his app, e.g. National Safety's 55 on his #330) come into the CRM
+   order with their MACs — writes only the CRM */
+function srDevinPull(oid){
+  return srDevinQueue(oid,async()=>{
+    if(!await tqReady())return;
+    const env=TQ.env,o=orderById(oid),l=o&&tqLink(o,env);if(!l)return;
+    const r=await tqBridge("assigned",{orderId:l.id});
+    if(!r.ok){toast("Couldn’t read Devin’s order #"+l.id+": "+r.error);return;}
+    const x=orderById(oid);if(!x)return;
+    const have=new Set((x.serials||[]).map(s=>s.code)),now=new Date().toISOString();let n=0;
+    x.serials=x.serials||[];
+    ((r.data||{}).devices||[]).forEach(d=>{const v=tqDevice(d);if(!v||!v.code||have.has(v.code))return;
+      x.serials.push({code:v.code,at:now,by:USER,from:"devin"});have.add(v.code);n++;});
+    const hits=tqReconcile(x.serials,(r.data||{}).devices||[]);
+    x.serials.forEach((s,i)=>{if(hits[i])srPut(oid,s.code,"assigned",hits[i]);});
+    const S=logState.sr;if(S&&S.oid===oid)S.codes=x.serials.map(s=>s.code);
+    save();srDvRedraw(oid);tqMaybeDone(oid);
+    toast(n?"Brought in "+n+" serial"+(n>1?"s":"")+" from Devin’s order #"+l.id:"Devin’s order #"+l.id+" has nothing this order doesn’t");
+  });
 }
 /* serials typed before the link (or that failed): check and send them now */
 function srDevinSyncAll(oid){
@@ -14656,6 +14677,7 @@ document.addEventListener("click",e=>{
   if(a==="srdvreturn"){const S=logState.sr;if(S)srReturnAssign(S.oid,t.dataset.c);return;}
   if(a==="srdvsug"){const S=logState.sr;if(S)srUseSuggestion(S.oid,t.dataset.c,t.dataset.v);return;}
   if(a==="srdvall"){srDevinAllPending();return;}
+  if(a==="srdvpull"){srDevinPull(id);return;}
   if(a==="srcar"){const S=logState.sr;if(S){S.carrier=t.dataset.v;document.querySelectorAll('#srCar .qchip').forEach(x=>x.classList.toggle("on",x.dataset.v===S.carrier));}return;}
   if(a==="srsave"){saveSerials(id);return;}
   if(a==="srdevin"){srDevinDone(id);return;}
