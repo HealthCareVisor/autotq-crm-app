@@ -7243,7 +7243,7 @@ mk2SideHTML=function(){const more=shMore(),open=SH.more||more.some(([v])=>mk2On(
    TQbot (Max + Hannah): HX.tq relays one call to the tq-run function; the snap carries tqRuns + the person's tqProposals, and
    HX.proposal records a yes or no on a proposal (status + approvedBy/approvedAt or rejectedBy/rejectedAt). */
 if(APP==="marketing"){["agentChat","agentMem","agentReq","seo","seoMoves","tqRuns","tqProposals","connections","spendDaily"].forEach(c=>{if(!PULL_COLLECTIONS.includes(c))PULL_COLLECTIONS.push(c);});}
-const HX_BUILD="20261120234659";
+const HX_BUILD="20261123162602";
 const HXS={classic:false,subs:[],t:null};
 const HX_PEOPLE={max:["Max Herbst","Strategic Accounts","MH"],hannah:["Hannah Herbst","Founder, CEO","HH"],kellan:["Kellan Phillips","Outreach","KP"],carisse:["Carisse Joseph","Marketing","CJ"],elvi:["Elvi Levonja","Marketing","EL"]};
 const HX_MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -7270,7 +7270,8 @@ function hxAuto(){const td=todayStr(),first=hxSafe(()=>shSendPlan()[0][1],"2026-
   return SH_AUTO.map(a=>({t:a[0],d:a[1],when:a[2],st:a[3]==="run"?"on":a[3]==="cold"?(td>=first?"on":"soon"):"off",from:a[3]==="cold"?first:""}));}
 function hxSeo(){const g=id=>(DB.seo||[]).find(x=>x&&x.id===id)||null,st=(DB.settings||[]).find(x=>x&&x.id==="seoDesk")||{};
   return {latest:g("latest"),weeks:(g("weeks")||{}).weeks||[],targets:(g("targets")||{}).list||[],
-    moves:(DB.seoMoves||[]).filter(m=>m&&m.id&&!m.removed).map(m=>{const c=Object.assign({},m);delete c.research;return c;}),
+    moves:(DB.seoMoves||[]).filter(m=>m&&m.id&&!m.removed).map(m=>{const c=Object.assign({},m);delete c.research;if(c.draft){c.draft=Object.assign({},c.draft);delete c.draft.raw;}return c;}),
+    plan:g("plan"),ga4:g("ga4"),
     state:{running:st.running||st.drafting||"",startedAt:st.startedAt||"",lastRunAt:st.lastRunAt||"",lastResult:st.lastResult||"",lastError:st.lastError||""}};}
 /* Spend: month to date per tool (cents) from spendDaily, and this month's TQbot runs. Admins only; keys never appear here.
    partOf: a tool whose cents are already inside another's (TQbot inside Anthropic), shown as an "of which" line, not totalled */
