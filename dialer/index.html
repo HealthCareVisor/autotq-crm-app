@@ -9682,17 +9682,20 @@ function tqSerialCount(o){return (o.items||[]).filter(it=>tqNeedsSerial(it.sku))
 function tqLoanerNo(d){const p=(n,w)=>String(n).padStart(w,"0");
   return "LNR-"+d.getFullYear()+p(d.getMonth()+1,2)+p(d.getDate(),2)+"-"+d.getHours()+p(d.getMinutes(),2)+p(d.getSeconds(),2);}
 function tqOrderPayload(o,ctx){
-  ctx=ctx||{};const free=o.kind==="loaner"||o.kind==="free";
+  ctx=ctx||{};
+  /* orders keyed before the New-order form have no kind: a loaner is status "loaner" or an LNR- number */
+  const kind=o.kind||(o.status==="loaner"||/^LNR-/i.test(String(o.poNo||""))?"loaner":"po");
+  const free=kind==="loaner"||kind==="free";
   const st=o.shipTo||{},bt=o.billTo||st;
-  const tag=o.kind==="loaner"?"[LOANER ORDER] ":o.kind==="free"?"[FREE UNIT] ":"";
-  const note=String(o.notes||"").trim()||(o.kind==="loaner"?"Loaner unit(s) for evaluation/demo.":o.kind==="free"?"Free unit.":"");
+  const tag=kind==="loaner"?"[LOANER ORDER] ":kind==="free"?"[FREE UNIT] ":"";
+  const note=String(o.notes||"").trim()||(kind==="loaner"?"Loaner unit(s) for evaluation/demo.":kind==="free"?"Free unit.":"");
   const lineTotal=(o.items||[]).reduce((s,it)=>s+(+it.qty||0)*(+it.unit||0),0);
   const items=(o.items||[]).filter(it=>!/freight/i.test(String(it.sku||""))&&+it.qty>0).map(it=>{
     const k=tqSku(it.sku),m=TQ_PRODUCTS[k];
     const row={product_name:m?m[2]:String(it.sku),product_model_name:"AutoTQ",unit_price:free?0:(+it.unit||0),unit_cost:0,quantity_ordered:+it.qty};
     return Object.assign(m?{product_id:m[0],product_code:m[1]}:{},row);});
   const type=free?"house_account":(o.orderType==="direct"?"direct":o.orderType==="house"?"house_account":"stocking");
-  const p={po_number:o.poNo,customer_name:o.account,customer_email:o.contactEmail||undefined,customer_phone:o.contactPhone||undefined,
+  const p={po_number:o.poNo||("CRM-"+o.id),customer_name:o.account||"—",customer_email:o.contactEmail||undefined,customer_phone:o.contactPhone||undefined,
     customer_notes:(tag+note).trim()||undefined,
     shipping_address_line1:st.street,shipping_address_line2:st.street2||undefined,shipping_city:st.city,shipping_state:st.state,shipping_zip_code:st.zip,shipping_country:"USA",
     billing_address_line1:bt.street,billing_address_line2:bt.street2||undefined,billing_city:bt.city,billing_state:bt.state,billing_zip_code:bt.zip,billing_country:"USA",
@@ -9746,6 +9749,78 @@ function serialLabel(code){
   return code;
 }
 function tqFoldSweep(orders){return (orders||[]).filter(x=>!(x&&tqFoldCopy("orders",x.id,orders)));}
+/* ---- scans checked against Devin's device registry, assigned to his order (Max, 2026-11-23: "This is from devin for Mac
+   Addresses"). The bridge runs on Devin's staging or production system; everything it learns is kept per system, so a staging
+   test never passes for the real thing: o.tqId/o.tqShipId = production order (as before), o.tqStaging={id,shipId} = staging;
+   each serial's s.dv={env,st,id,mac,inv,po,msg,sug,other,at}; s.mac/s.deviceId = what production said. ---- */
+function tqDevice(d){
+  if(!d||typeof d!=="object")return null;
+  if(d.device&&typeof d.device==="object")d=Object.assign({},d,d.device);
+  const id=+(d.device_id||d.id)||null;
+  return {id:id,mac:String(d.mac_address||d.mac||""),inv:String(d.inventory_status||""),po:String(d.order_po_number||d.po_number||""),
+    box:d.box_id!=null?String(d.box_id):"",code:String(d.gs1_barcode||d.barcode||"")};
+}
+function tqLink(o,env){
+  if(!o||!env)return null;
+  if(env==="production")return o.tqId?{id:+o.tqId,shipId:+o.tqShipId||null}:null;
+  const s=o.tqStaging;return s&&s.id?{id:+s.id,shipId:+s.shipId||null}:null;
+}
+function tqSetLink(o,env,id,shipId){
+  if(env==="production"){o.tqId=+id;if(shipId)o.tqShipId=+shipId;}
+  else o.tqStaging={id:+id,shipId:shipId?+shipId:((o.tqStaging&&+o.tqStaging.id===+id&&o.tqStaging.shipId)||null)};
+}
+function tqSerialDv(s,env){return s&&s.dv&&env&&s.dv.env===env?s.dv:null;}
+/* what Devin's answer for one code means for that serial: ok · unknown (404) · held (400, not packable / released) ·
+   other (409, on another order) · failed */
+function tqGuessStatus(msg){msg=String(msg||"");
+  return /not\s*found|unknown|no (unit|device)/i.test(msg)?404:/already|another order|assigned to/i.test(msg)?409:/status|releas|packable|review/i.test(msg)?400:0;}
+function tqOutcome(a){
+  if(a&&a.ok)return {st:"ok"};
+  const det=(a&&a.detail&&typeof a.detail==="object")?a.detail:{},msg=String((a&&a.error)||"");
+  const s=+(a&&a.status)||tqGuessStatus(msg);
+  const raw=Array.isArray(det.suggestions)?det.suggestions:Array.isArray(det.near_matches)?det.near_matches:Array.isArray(det.similar)?det.similar:[];
+  const sug=raw.map(x=>typeof x==="string"?x:(x&&(x.gs1_barcode||x.barcode))||"").filter(Boolean).slice(0,4);
+  if(s===404)return {st:"unknown",msg:msg||"Not in Devin’s system",sug:sug};
+  if(s===409){const ca=det.current_assignment||{};
+    const o={orderId:+ca.order_id||null,box:ca.box_db_id!=null?ca.box_db_id:null,po:String(ca.po_number||ca.order_po_number||"")};
+    if(ca.customer_name)o.customer=String(ca.customer_name);if(ca.order_status)o.status=String(ca.order_status);
+    if(det.resolution&&det.resolution.can_return_and_reassign===false)o.noReturn=true;
+    return {st:"other",msg:msg||"On another order",other:o};}
+  if(s===400)return {st:"held",msg:msg||"Not released for shipping"};
+  return {st:"failed",msg:msg||"Couldn’t reach Devin’s system"};
+}
+/* assign-device / bulk-assign-devices answers → per code {ok, dev, out} */
+function tqAssignResults(codes,data){
+  const res={};data=data||{};
+  const list=Array.isArray(data.results)?data.results:null;
+  if(!list){
+    const devs=(Array.isArray(data.devices)?data.devices:(data.assignment&&Array.isArray(data.assignment.devices))?data.assignment.devices:[]).map(tqDevice).filter(Boolean);
+    codes.forEach(c=>{const d=devs.find(x=>x.code===c)||(codes.length===1&&devs.length===1?devs[0]:null);res[c]={ok:true,dev:d};});
+    return res;
+  }
+  codes.forEach((c,i)=>{
+    const it=list.find(x=>x&&String(x.gs1_barcode||x.barcode||x.input||"")===c)||(list.length===codes.length?list[i]:null);
+    if(!it){res[c]={ok:false,out:{st:"failed",msg:"No answer for this code"}};return;}
+    const bad=it.success===false||it.ok===false||!!it.error||/fail|error/i.test(String(it.status||""));
+    res[c]=bad?{ok:false,out:tqOutcome({ok:false,status:+it.status_code||0,error:String(it.error||it.message||it.detail||"Refused"),detail:it})}
+      :{ok:true,dev:tqDevice(it)};
+  });
+  return res;
+}
+/* Devin's list of devices on the order → the device for each of our serials (by device id, else by barcode) */
+function tqReconcile(serials,devices){
+  const byId={},byCode={};(devices||[]).forEach(d=>{const x=tqDevice(d);if(!x)return;if(x.id)byId[x.id]=x;if(x.code)byCode[x.code]=x;});
+  return (serials||[]).map(s=>{const dv=s&&s.dv;return (dv&&dv.id&&byId[dv.id])||byCode[String(s&&s.code||"")]||null;});
+}
+/* Devin's product ids differ between staging and production: match the payload's lines to his catalog by part number. A part
+   his catalog doesn't list goes without an id (staging's catalog is empty); with no catalog at all, the built-in ids
+   (production's) stay only when keepIds says so. */
+function tqUseCatalog(p,products,keepIds){
+  const by={};(products||[]).forEach(x=>{const c=String(x&&(x.product_code||x.code||x.sku)||"").toUpperCase();if(c&&x.id!=null)by[c]=x.id;});
+  (p.items||[]).forEach(it=>{const id=by[String(it.product_code||"").toUpperCase()];
+    if(id!=null)it.product_id=id;else if(Array.isArray(products)||!keepIds)delete it.product_id;});
+  return p;
+}
 /*TQ-CORE-END*/
 /*PO-CORE*/
 /* A PO PDF read by the po-scan function → order fields, and finding the order a PO belongs to (Max, 2026-11-17: "drop PDFs
@@ -9955,17 +10030,42 @@ function srPending(o){return !!(o.devin&&o.devin.state==="todo");}
 function srOtherOrder(code,oid){return (DB.orders||[]).find(x=>x&&x.id!==oid&&(x.serials||[]).some(s=>s.code===code))||null;}
 function srChipHTML(o){
   const need=srNeed(o),have=srHave(o);if(!need&&!have)return "";
-  const ok=need&&have>=need;
+  const ok=need&&have-srFlagged(o)>=need;
   return '<span class="pill" title="Serial numbers on this order" style="white-space:nowrap;color:'+(ok?'var(--ok-t)':'var(--warn-t,#a15c00)')+';background:'+(ok?'rgba(0,160,90,.12)':'rgba(255,180,0,.16)')+'">'+have+'/'+(need||have)+' serials'+(ok?' ✓':'')+'</span>'+
-    (srPending(o)?' <span class="pill" title="Not yet entered in Devin’s order system" style="white-space:nowrap;color:#3b6fb5;background:rgba(60,110,180,.12)">to Devin</span>':'');
+    (srPending(o)?' <span class="pill" title="Not yet entered in Devin’s order system" style="white-space:nowrap;color:#3b6fb5;background:rgba(60,110,180,.12)">to Devin</span>':'')+
+    (srFlagged(o)?' <span class="pill" title="Serials Devin’s system turned down — open Serials &amp; tracking" style="white-space:nowrap;color:#b42318;background:rgba(220,40,40,.10)">'+srFlagged(o)+' flagged</span>':'');
 }
+/* what Devin's system said about each serial (TQ-CORE keeps it per system: staging or production) */
+const SR_ST={checking:["Checking…","var(--muted)","rgba(120,120,120,.10)"],found:["Found","var(--muted)","rgba(120,120,120,.10)"],
+  assigned:["On Devin’s order ✓","var(--ok-t)","rgba(0,160,90,.12)"],unknown:["Unknown barcode","#b42318","rgba(220,40,40,.10)"],
+  held:["Not released","#b42318","rgba(220,40,40,.10)"],other:["On another order","#b42318","rgba(220,40,40,.10)"],
+  failed:["Not sent","var(--warn-t,#a15c00)","rgba(255,180,0,.16)"]};
+const SR_BAD=["unknown","held","other","failed"];
+function srEnv(){return TQ.ok?TQ.env:null;}
+function srFlagged(o){const env=srEnv();if(!env)return 0;return (o.serials||[]).filter(s=>{const d=tqSerialDv(s,env);return d&&SR_BAD.includes(d.st);}).length;}
+function srMac(s){const d=tqSerialDv(s,srEnv());return (d&&d.mac)||(s&&s.mac)||"";}
 function srListHTML(){
   const S=logState.sr;if(!S)return "";
-  const o=orderById(S.oid),need=o?srNeed(o):0;
-  return '<p style="margin:10px 0 6px;font-size:13px"><b>'+S.codes.length+(need?' / '+need:'')+'</b> serial'+(S.codes.length===1?'':'s')+(need&&S.codes.length>=need?' — all units covered ✓':need?' — '+(need-S.codes.length)+' to go':'')+
-    (S.codes.length?' <span style="color:var(--ok-t)">· saved to the order</span>':'')+'</p>'+
-    (S.codes.length?'<div style="display:flex;flex-wrap:wrap;gap:6px">'+S.codes.map((c,i)=>'<span class="pill" style="display:inline-flex;gap:6px;align-items:center;background:rgba(120,120,120,.10);color:var(--ink)" title="'+esc(c)+'">'+esc(serialLabel(c))+
-      '<button class="tkdel" data-act="srdel" data-i="'+i+'" aria-label="Remove '+esc(serialLabel(c))+'" style="width:18px;height:18px">'+svg("x")+'</button></span>').join("")+'</div>':'');
+  const o=orderById(S.oid),need=o?srNeed(o):0,env=srEnv(),objs={};
+  ((o&&o.serials)||[]).forEach(s=>{objs[s.code]=s;});
+  const bad=S.codes.filter(c=>{const d=tqSerialDv(objs[c],env);return d&&SR_BAD.includes(d.st);}).length;
+  const mono="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px",good=S.codes.length-bad;
+  return '<p style="margin:10px 0 6px;font-size:13px"><b>'+S.codes.length+(need?' / '+need:'')+'</b> serial'+(S.codes.length===1?'':'s')+(need&&good>=need?' — all units covered ✓':need&&good<need&&S.codes.length<need?' — '+(need-S.codes.length)+' to go':'')+
+    (S.codes.length?' <span style="color:var(--ok-t)">· saved to the order</span>':'')+(bad?' <span style="color:#b42318">· '+bad+' need'+(bad===1?'s':'')+' a look</span>':'')+'</p>'+
+    (S.codes.length?'<div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:4px 10px;align-items:center">'+S.codes.map((c,i)=>{
+      const s=objs[c]||{code:c},d=tqSerialDv(s,env),mac=srMac(s),st=d&&SR_ST[d.st];
+      let more="";
+      if(d&&d.st==="other"){const ot=d.other||{},po=ot.po||d.po;
+        more=esc(d.msg||"")+(po?' — PO '+esc(po):'')+(ot.customer?' ('+esc(ot.customer)+(ot.status?', '+esc(ot.status.replace(/_/g," ")):'')+')':'')+
+          (ot.noReturn?'':' <button class="btn sm ghost" data-act="srdvreturn" data-c="'+esc(c)+'">Return it &amp; assign here</button>');}
+      else if(d&&d.st==="unknown")more=esc(d.msg||"")+((d.sug||[]).length?' — did you mean '+d.sug.map(x=>'<button class="pill" data-act="srdvsug" data-c="'+esc(c)+'" data-v="'+esc(x)+'" style="cursor:pointer;color:var(--ink);background:rgba(120,120,120,.12)">'+esc(serialLabel(x))+'</button>').join(" ")+'?':'');
+      else if(d&&(d.st==="held"||d.st==="failed")&&d.msg)more=esc(d.msg);
+      return '<span style="font-size:13px;min-width:0;overflow-wrap:anywhere" title="'+esc(c)+'">'+esc(serialLabel(c))+'</span>'+
+        '<span style="'+mono+';color:var(--muted)" title="MAC address">'+(mac?esc(mac):'')+'</span>'+
+        '<span>'+(st?'<span class="pill" title="'+esc(d.inv?"Devin: "+d.inv.replace(/_/g," "):"")+'" style="white-space:nowrap;color:'+st[1]+';background:'+st[2]+'">'+st[0]+'</span>':'')+'</span>'+
+        '<button class="tkdel" data-act="srdel" data-i="'+i+'" aria-label="Remove '+esc(serialLabel(c))+'" style="width:18px;height:18px">'+svg("x")+'</button>'+
+        (more?'<span style="grid-column:1/-1;font-size:12.5px;color:#b42318;margin:-2px 0 4px">'+more+'</span>':'');
+    }).join("")+'</div>':'');
 }
 function formSerials(oid){
   const o=orderById(oid);if(!o)return;
@@ -9984,15 +10084,19 @@ function formSerials(oid){
     '<input class="f" id="srL" inputmode="numeric" maxlength="4" placeholder="Lot" style="width:76px;margin:0">'+
     '<input class="f" id="srS" inputmode="numeric" maxlength="9" placeholder="Serial" style="width:96px;margin:0">'+
     '<button class="btn" data-act="srbuild">Add</button></div>'+
+   '<div id="srDv">'+srDvLineHTML(o)+'</div>'+
    '<div id="srList">'+srListHTML()+'</div>'+
    lbl('Shipped with')+'<div id="srCar" style="display:flex;gap:6px;flex-wrap:wrap">'+SR_CARRIERS.map(c=>'<button class="qchip'+(S.carrier===c?" on":"")+'" data-act="srcar" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>'+
    '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" style="min-width:200px">'+lbl('Tracking #')+'<input class="f" id="srTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="1Z… (blank if hand delivered)"></div>'+
    '<div>'+lbl('Ship date')+'<input class="f" id="srDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div>'+
    '<div>'+lbl('Shipping cost <span style="font-weight:400;color:var(--hint)">optional</span>')+'<input class="f" id="srCost" inputmode="decimal" value="'+(o.shipCost||"")+'" placeholder="$" style="width:110px"></div></div>'+
    '<button class="btn coral block" data-act="srsave" data-id="'+o.id+'" style="margin-top:16px">Save</button>'+
-   '<p style="font-size:12.5px;color:var(--hint);margin:8px 0 0">Each serial is saved to the order the moment you add it — closing this loses nothing. Save keeps the carrier and tracking. Then it’s marked <b>to Devin</b> until it’s entered in Devin’s order system.</p>');
+   '<p id="srFoot" style="font-size:12.5px;color:var(--hint);margin:8px 0 0">'+srFootTxt()+'</p>');
   setTimeout(()=>{const el=document.getElementById("srIn");if(el)el.focus();},60);
+  if(typeof tqReady==="function")tqReady().then(()=>srDvRedraw(oid));
 }
+function srFootTxt(){return TQ.ok?'Each serial is saved to the order the moment you add it, checked in Devin’s system and added to his order. Save keeps the carrier and tracking.'
+  :'Each serial is saved to the order the moment you add it — closing this loses nothing. Save keeps the carrier and tracking. Then it’s marked <b>to Devin</b> until it’s entered in Devin’s order system.';}
 function srAddCodes(codes){
   const S=logState.sr;if(!S||!codes.length)return;
   const added=[],dup=[];
@@ -10002,7 +10106,7 @@ function srAddCodes(codes){
     if(other&&!confirm("Serial "+serialLabel(c)+" is already on "+(shortAcct(other.account)||"another order")+" (PO "+(other.poNo||"—")+").\n\nAdd it here too? (OK only if that unit came back, e.g. a returned loaner.)")){dup.push(serialLabel(c)+" (on "+shortAcct(other.account)+")");continue;}
     S.codes.push(c);added.push(c);
   }
-  if(added.length)srCommit();
+  if(added.length){srCommit();srDevinRun(S.oid,added);}
   const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();
   if(dup.length)toast("Skipped: "+dup.join(", "));
   else if(added.length)toast(added.length===1?"Added "+serialLabel(added[0]):"Added "+added.length+" serials");
@@ -10033,6 +10137,238 @@ function saveSerials(oid){
   const need=srNeed(o);
   toast("Saved — "+o.serials.length+(need?"/"+need:"")+" serials"+(o.shipTracking?" · "+o.shipCarrier+" "+o.shipTracking:"")+(srPending(o)?" · marked to Devin":""));
 }
+/* ---- the Devin link (orders-bridge edge function; Devin's API key lives only there). Max, 2026-11-23: each scan is checked in
+   Devin's system (MAC address, unknown / not released / on another order) and assigned to his order, replacing the hand entry. If
+   the bridge isn't there (not deployed, offline, not allowed) everything stays as before: serials save, "to Devin" stays. ---- */
+const TQ={ok:false,env:null,known:false,at:0,pinging:null,cat:null,catAt:0,chain:{},pushT:{}};
+async function tqBridge(action,payload){
+  try{
+    const r=await supa("/functions/v1/orders-bridge",{method:"POST",body:JSON.stringify(Object.assign({action:action},payload||{}))});
+    const j=await r.json().catch(()=>null);
+    if(!j||typeof j!=="object"||!("ok" in j))return {ok:false,status:r.status,error:"The Devin link answered "+r.status};
+    return j;
+  }catch(e){return {ok:false,status:0,error:"Couldn’t reach the Devin link"};}
+}
+function tqReady(){
+  if(!authed()||!srShipper())return Promise.resolve(false);
+  if(TQ.known&&Date.now()-TQ.at<600000)return Promise.resolve(TQ.ok);
+  if(!TQ.pinging)TQ.pinging=tqBridge("ping").then(p=>{
+    TQ.known=true;TQ.at=Date.now();TQ.ok=!!(p&&p.ok&&p.data&&p.data.keySet);TQ.env=TQ.ok?p.data.env:null;TQ.pinging=null;return TQ.ok;});
+  return TQ.pinging;
+}
+async function tqCatalog(){
+  if(TQ.cat&&TQ.cat.env===TQ.env&&Date.now()-TQ.catAt<600000)return TQ.cat;
+  const c=await tqBridge("catalog");if(!c.ok)return null;
+  TQ.cat=Object.assign({env:TQ.env},c.data);TQ.catAt=Date.now();return TQ.cat;
+}
+/* the order in Devin's system: the link we have, else his order with our id or PO number, else a new one (external_ref = our id) */
+async function tqEnsureOrder(o){
+  const env=TQ.env,l=tqLink(o,env);if(l)return {ok:true,link:l};
+  const f=await tqBridge("find",{ref:o.id,po:o.poNo||""});
+  if(!f.ok)return {ok:false,error:"Couldn’t look the order up in Devin’s system: "+f.error};
+  if(f.data&&f.data.order&&f.data.order.id){
+    const sh=(f.data.order.shipments||[])[0];tqSetLink(o,env,f.data.order.id,sh&&sh.id);save();return {ok:true,link:tqLink(o,env)};}
+  if(f.data&&f.data.several)return {ok:false,error:"Devin’s system has "+f.data.several.length+" orders with PO "+o.poNo+" ("+f.data.several.map(x=>"#"+x.id).join(", ")+") — say which one is this order"};
+  const cat=await tqCatalog();
+  const dist=o.orderType!=="direct"&&cat?(cat.distributors||[]).find(d=>poCoKey(d.name||d.company_name)===poCoKey(o.account)):null;
+  const body=tqUseCatalog(tqOrderPayload(o,{distId:dist&&dist.id}),cat?cat.products:null,env==="production");
+  const c=await tqBridge("create",{order:body});
+  if(!c.ok)return {ok:false,error:"Couldn’t add the order to Devin’s system: "+c.error};
+  const x=orderById(o.id)||o;tqSetLink(x,env,c.data.id,c.data.shipment_id);save();
+  return {ok:true,link:tqLink(x,env)};
+}
+/* one serial's state in the system the bridge points at (production also keeps s.mac / s.deviceId for good) */
+function srPut(oid,code,st,x){
+  const o=orderById(oid),s=o&&(o.serials||[]).find(v=>v.code===code);if(!s)return;
+  const env=TQ.env,p=tqSerialDv(s,env)||{};x=x||{};
+  s.dv={env:env,st:st,id:x.id||p.id||null,mac:x.mac||p.mac||"",inv:(x.inv!=null&&x.inv!==""?x.inv:p.inv)||"",po:(x.po!=null&&x.po!==""?x.po:p.po)||"",at:new Date().toISOString()};
+  if(x.msg)s.dv.msg=x.msg;if(x.sug&&x.sug.length)s.dv.sug=x.sug;if(x.other)s.dv.other=x.other;
+  if(env==="production"){if(s.dv.mac)s.mac=s.dv.mac;if(s.dv.id)s.deviceId=s.dv.id;}
+}
+function srDvRedraw(oid){
+  logState.srStale=true;
+  const S=logState.sr;if(!S||S.oid!==oid)return;
+  const o=orderById(oid),a=document.getElementById("srDv"),b=document.getElementById("srList"),f=document.getElementById("srFoot");
+  if(a)a.innerHTML=srDvLineHTML(o);if(b)b.innerHTML=srListHTML();if(f)f.innerHTML=srFootTxt();
+}
+function srDvLineHTML(o){
+  if(!o||!TQ.ok)return "";
+  const env=TQ.env,l=tqLink(o,env),ss=o.serials||[],st=s=>{const d=tqSerialDv(s,env);return d?d.st:"";};
+  const on=ss.filter(s=>st(s)==="assigned").length,busy=ss.some(s=>st(s)==="checking"),todo=ss.filter(s=>!["assigned","checking"].includes(st(s))).length;
+  const shipped=(o.tqShipped||{})[env],need=srNeed(o);
+  const ready=l&&!shipped&&ss.length&&on===ss.length&&(!need||on>=need)&&(o.shipTracking||o.shipCarrier==="Hand delivered");
+  return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 0;font-size:13px">'+
+    (env==="staging"?'<span class="pill" title="The Devin link points at his test system" style="color:#3b6fb5;background:rgba(60,110,180,.12)">Devin staging</span>':'')+
+    (l?'<span>Devin order <b>#'+esc(String(l.id))+'</b>'+(ss.length?' · '+on+' of '+ss.length+' on it':'')+'</span>':'<span style="color:var(--muted)">Not in Devin’s system yet</span>')+
+    (busy?'<span style="color:var(--muted)">checking…</span>':'')+
+    (todo&&!busy?'<button class="btn sm" data-act="srdvsync" data-id="'+o.id+'">Check &amp; send '+todo+' to Devin</button>':'')+
+    (l&&!busy&&need>ss.length?'<button class="btn sm ghost" data-act="srdvpull" data-id="'+o.id+'" title="Units already on Devin’s order come into this one, with their MAC addresses">Bring in serials from Devin’s order</button>':'')+
+    (shipped?'<span style="color:var(--ok-t)">Shipped in Devin’s system ✓ '+esc(usDate(String(shipped.at).slice(0,10)))+'</span>'
+      :ready?'<button class="btn sm ghost" data-act="srdvship" data-id="'+o.id+'">Mark shipped in Devin’s system</button>':'')+'</div>';
+}
+/* every Devin step for one order runs one after another */
+function srDevinQueue(oid,fn){
+  TQ.chain[oid]=(TQ.chain[oid]||Promise.resolve()).then(fn).catch(e=>{console.warn("Devin link",e);toast("Devin link: "+String(e&&e.message||e).slice(0,120));});
+  return TQ.chain[oid];
+}
+function srDevinRun(oid,codes){return srDevinQueue(oid,()=>srDevinWork(oid,codes));}
+async function srDevinWork(oid,codes){
+  if(!codes||!codes.length||!await tqReady())return;
+  const env=TQ.env,live=c=>{const o=orderById(oid);return o&&(o.serials||[]).some(s=>s.code===c);};
+  codes=codes.filter(live);if(!codes.length)return;
+  codes.forEach(c=>srPut(oid,c,"checking"));srDvRedraw(oid);
+  /* 1 · look each scan up: MAC, inventory status, unknown barcodes */
+  const ch=await tqBridge("check",{codes:codes});
+  if(!ch.ok){codes.forEach(c=>srPut(oid,c,"failed",{msg:ch.error}));save();srDvRedraw(oid);return;}
+  const go=[];
+  codes.forEach(c=>{const r=((ch.data||{}).results||{})[c]||{ok:false,status:0,error:"No answer for this code"};
+    if(r.ok){srPut(oid,c,"found",tqDevice(r.device)||{});go.push(c);}else{const out=tqOutcome(r);srPut(oid,c,out.st,out);}});
+  save();srDvRedraw(oid);
+  const send=go.filter(live);if(!send.length)return;
+  /* 2 · the order in Devin's system */
+  const o=orderById(oid);if(!o)return;
+  const e=await tqEnsureOrder(o);
+  if(!e.ok){send.forEach(c=>srPut(oid,c,"failed",{msg:e.error}));save();srDvRedraw(oid);return;}
+  /* 3 · assign, then 4 · Devin's own list of what's on his order decides */
+  await srAssign(oid,send.filter(live),e.link);
+}
+async function srAssign(oid,codes,link){
+  if(codes.length){
+    let a=await tqBridge("assign",{orderId:link.id,codes:codes});
+    if(!a.ok&&codes.length>1){for(const c of codes)await srAssign1(oid,c,link);}
+    else if(!a.ok){const out=tqOutcome(a);srPut(oid,codes[0],out.st,out);}
+    else{const rs=tqAssignResults(codes,a.data);codes.forEach(c=>{const r=rs[c];if(r.ok)srPut(oid,c,"assigned",r.dev||{});else srPut(oid,c,r.out.st,r.out);});}
+  }
+  await srReconcile(oid,link);save();srDvRedraw(oid);tqMaybeDone(oid);
+}
+async function srAssign1(oid,c,link){
+  const a=await tqBridge("assign",{orderId:link.id,codes:[c]});
+  if(a.ok)srPut(oid,c,"assigned",tqAssignResults([c],a.data)[c].dev||{});else{const out=tqOutcome(a);srPut(oid,c,out.st,out);}
+}
+async function srReconcile(oid,link){
+  const l=await tqBridge("assigned",{orderId:link.id});if(!l.ok)return;
+  const o=orderById(oid);if(!o)return;const env=TQ.env;
+  const hits=tqReconcile(o.serials||[],(l.data||{}).devices||[]);
+  (o.serials||[]).forEach((s,i)=>{const h=hits[i],d=tqSerialDv(s,env);
+    if(h)srPut(oid,s.code,"assigned",h);
+    else if(d&&d.st==="assigned")srPut(oid,s.code,"failed",{msg:"Not on Devin’s order — send it again"});});
+}
+/* × on a serial that's on Devin's order takes it off there first */
+async function srRemoveAt(i){
+  const S=logState.sr;if(!S)return;const oid=S.oid,c=S.codes[i];if(c==null)return;
+  const o=orderById(oid),s=o&&(o.serials||[]).find(x=>x.code===c),env=srEnv(),d=tqSerialDv(s,env),l=tqLink(o,env);
+  if(d&&d.st==="assigned"&&d.id&&l){
+    const r=await srDevinQueue(oid,()=>tqBridge("unassign",{orderId:l.id,deviceId:d.id}));
+    if(r&&!r.ok&&r.status!==404){toast("Devin’s system kept "+serialLabel(c)+" on his order: "+r.error);return;}
+  }
+  const S2=logState.sr;
+  if(S2&&S2.oid===oid){const k=S2.codes.indexOf(c);if(k>=0)S2.codes.splice(k,1);srCommit();}
+  else if(o){o.serials=(o.serials||[]).filter(x=>x.code!==c);o.devin={state:"todo",at:new Date().toISOString(),by:USER};save();}
+  srDvRedraw(oid);
+}
+/* a unit Devin has on another order (e.g. a loaner that came back): return it there and assign it here */
+function srReturnAssign(oid,c){
+  const o=orderById(oid),s=o&&(o.serials||[]).find(x=>x.code===c),d=tqSerialDv(s,srEnv());if(!d)return;
+  const where=d.other&&d.other.po?"PO "+d.other.po:d.po?"PO "+d.po:d.other&&d.other.orderId?"Devin order #"+d.other.orderId:"another order";
+  if(!confirm(serialLabel(c)+" is on "+where+" in Devin’s system.\n\nReturn it from there and assign it to this order? Only if that unit really came back (e.g. a returned loaner)."))return;
+  srPut(oid,c,"checking");srDvRedraw(oid);
+  return srDevinQueue(oid,async()=>{
+    const e=await tqEnsureOrder(orderById(oid));
+    if(!e.ok){srPut(oid,c,"failed",{msg:e.error});save();srDvRedraw(oid);return;}
+    const r=await tqBridge("returnAssign",{orderId:e.link.id,code:c});
+    if(r.ok)srPut(oid,c,"assigned",tqAssignResults([c],r.data)[c].dev||{});else{const out=tqOutcome(r);srPut(oid,c,out.st,out);}
+    await srReconcile(oid,e.link);save();srDvRedraw(oid);tqMaybeDone(oid);
+  });
+}
+/* Devin's near-match for an unknown barcode replaces the scanned one */
+function srUseSuggestion(oid,c,v){
+  const S=logState.sr;if(!S||S.oid!==oid)return;
+  const k=S.codes.indexOf(c);if(k<0)return;
+  if(S.codes.includes(v))S.codes.splice(k,1);else S.codes[k]=v;
+  srCommit();srDvRedraw(oid);if(!S.codes.includes(c))srDevinRun(oid,[v]);
+}
+/* the other way round: units already on Devin's order (keyed in his app, e.g. National Safety's 55 on his #330) come into the CRM
+   order with their MACs — writes only the CRM */
+function srDevinPull(oid){
+  return srDevinQueue(oid,async()=>{
+    if(!await tqReady())return;
+    const env=TQ.env,o=orderById(oid),l=o&&tqLink(o,env);if(!l)return;
+    const r=await tqBridge("assigned",{orderId:l.id});
+    if(!r.ok){toast("Couldn’t read Devin’s order #"+l.id+": "+r.error);return;}
+    const x=orderById(oid);if(!x)return;
+    const have=new Set((x.serials||[]).map(s=>s.code)),now=new Date().toISOString();let n=0;
+    x.serials=x.serials||[];
+    ((r.data||{}).devices||[]).forEach(d=>{const v=tqDevice(d);if(!v||!v.code||have.has(v.code))return;
+      x.serials.push({code:v.code,at:now,by:USER,from:"devin"});have.add(v.code);n++;});
+    const hits=tqReconcile(x.serials,(r.data||{}).devices||[]);
+    x.serials.forEach((s,i)=>{if(hits[i])srPut(oid,s.code,"assigned",hits[i]);});
+    const S=logState.sr;if(S&&S.oid===oid)S.codes=x.serials.map(s=>s.code);
+    save();srDvRedraw(oid);tqMaybeDone(oid);
+    toast(n?"Brought in "+n+" serial"+(n>1?"s":"")+" from Devin’s order #"+l.id:"Devin’s order #"+l.id+" has nothing this order doesn’t");
+  });
+}
+/* serials typed before the link (or that failed): check and send them now */
+function srDevinSyncAll(oid){
+  const o=orderById(oid);if(!o||!TQ.ok)return;const env=TQ.env;
+  const codes=(o.serials||[]).filter(s=>{const d=tqSerialDv(s,env);return !d||!["assigned","checking"].includes(d.st);}).map(s=>s.code);
+  if(codes.length)srDevinRun(oid,codes);
+  tqPushSoon(oid);
+}
+/* tracking typed or made in the CRM goes to Devin's shipment — no email, no status change */
+async function tqShipmentId(o,env){
+  const l=tqLink(o,env);if(!l)return null;if(l.shipId)return l.shipId;
+  const g=await tqBridge("get",{ids:[l.id]});const r=g.ok&&g.data&&g.data.orders&&g.data.orders[l.id];
+  const sh=r&&(r.shipments||[])[0];if(!sh||!sh.id)return null;
+  tqSetLink(o,env,l.id,sh.id);save();return +sh.id;
+}
+async function tqPushTracking(oid){
+  if(!await tqReady())return;
+  const env=TQ.env,o=orderById(oid);if(!o||!o.shipTracking||!tqLink(o,env))return;
+  const key=(o.shipCarrier||"")+"|"+o.shipTracking;if((o.tqTrk||{})[env]===key)return;
+  const ship=await tqShipmentId(o,env);if(!ship)return;
+  const f={tracking_number:o.shipTracking,carrier:o.shipCarrier||""};
+  if(+o.shipCost>0)f.shipping_cost=+o.shipCost;if(o.shipService)f.service_type=o.shipService;
+  const r=await tqBridge("shipInfo",{shipmentId:ship,fields:f});
+  const x=orderById(oid);if(!x)return;
+  if(!r.ok){toast(/UniqueViolation|tracking_number.*(exists|duplicate)|duplicate key/i.test(r.error)
+    ?"Devin’s system already has tracking "+o.shipTracking+" on another order — it takes each tracking number once (orders boxed together need his Shipping screen)"
+    :"Tracking didn’t reach Devin’s system: "+String(r.error).slice(0,160));return;}
+  x.tqTrk=Object.assign({},x.tqTrk,{[env]:key});save();srDvRedraw(oid);tqMaybeDone(oid);
+}
+function tqPushSoon(oid){
+  clearTimeout(TQ.pushT[oid]);
+  TQ.pushT[oid]=setTimeout(()=>srDevinQueue(oid,()=>tqPushTracking(oid)),700);
+}
+/* production only: once every serial is on Devin's order and the tracking is on his shipment, "to Devin" clears by itself */
+function tqMaybeDone(oid){
+  const o=orderById(oid);if(!o||TQ.env!=="production"||!srPending(o)||!tqLink(o,"production"))return;
+  if((o.serials||[]).some(s=>{const d=tqSerialDv(s,"production");return !d||d.st!=="assigned";}))return;
+  if(o.shipTracking&&(o.tqTrk||{}).production!==(o.shipCarrier||"")+"|"+o.shipTracking)return;
+  o.devin={state:"done",at:new Date().toISOString(),by:USER,via:"link"};save();srDvRedraw(oid);
+}
+/* Devin's Ship step, with his customer email off — only when someone presses it */
+function srDevinShip(oid){
+  const o=orderById(oid);if(!o||!TQ.ok)return;const env=TQ.env;
+  if(!confirm("Mark "+(shortAcct(o.account)||"this order")+" shipped in Devin’s "+(env==="staging"?"TEST (staging) ":"")+"system?\n\nHis customer email stays off. Once it’s shipped there, his system keeps the order for good — it can’t be deleted."))return;
+  return srDevinQueue(oid,async()=>{
+    await tqPushTracking(oid);
+    const x=orderById(oid),ship=x&&await tqShipmentId(x,env);
+    if(!ship){toast("Devin’s order has no shipment to mark");return;}
+    const hand=x.shipCarrier==="Hand delivered";
+    const r=await tqBridge("ship",{shipmentId:ship,method:hand?"hand_delivered":x.shipTracking?"carrier_label":"no_tracking"});
+    if(!r.ok){toast("Devin’s system didn’t mark it shipped: "+r.error);return;}
+    const y=orderById(oid);y.tqShipped=Object.assign({},y.tqShipped,{[env]:{at:new Date().toISOString(),by:USER}});
+    save();srDvRedraw(oid);toast("Marked shipped in Devin’s system");
+  });
+}
+/* the banner's button: every order still "to Devin" */
+function srDevinAllPending(){
+  if(!TQ.ok||TQ.env!=="production")return;
+  const p=(DB.orders||[]).filter(o=>o&&srPending(o));
+  if(!confirm("Send "+p.length+" order"+(p.length>1?"s":"")+" to Devin’s system?\n\nEach serial is checked and added to his order (orders he doesn’t have yet are created there), and tracking goes on his shipment. Nothing is marked shipped."))return;
+  p.forEach(o=>srDevinSyncAll(o.id));
+  toast("Sending "+p.length+" order"+(p.length>1?"s":"")+" to Devin’s system…");
+}
 function srDevinDone(oid){const o=orderById(oid);if(!o)return;o.devin={state:"done",at:new Date().toISOString(),by:USER};save();render();toast("Marked as entered in Devin’s system");}
 /* the dropdown's serial + shipping block */
 function srDetailsHTML(o){
@@ -10042,8 +10378,8 @@ function srDetailsHTML(o){
   return '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:13px">'+
     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>Serials</b> '+(need||have?srChipHTML(o):'<span style="color:var(--hint)">none needed</span>')+
       (o.shipCarrier&&(o.shipTracking||o.shipCarrier==="Hand delivered")?'<span style="color:var(--muted)">· '+esc(o.shipCarrier)+(tl?' '+tl:'')+(o.shipDate?' · '+esc(usDate(o.shipDate)):'')+'</span>':'')+'</div>'+
-    (have?'<p style="margin:6px 0 0;color:var(--muted)">'+(o.serials||[]).map(s=>esc(serialLabel(s.code))).join(" · ")+'</p>':'')+
-    (o.devin&&o.devin.state==="done"?'<p style="margin:6px 0 0;color:var(--ok-t)">In Devin’s system ✓ '+esc(usDate(String(o.devin.at).slice(0,10)))+'</p>':'')+
+    (have?'<p style="margin:6px 0 0;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px">'+(o.serials||[]).map(s=>'<span>'+esc(serialLabel(s.code))+(srMac(s)?' <span title="MAC address" style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:var(--hint)">'+esc(srMac(s))+'</span>':'')+'</span>').join("")+'</p>':'')+
+    (o.devin&&o.devin.state==="done"?'<p style="margin:6px 0 0;color:var(--ok-t)">In Devin’s system ✓ '+(o.tqId?'order #'+esc(String(o.tqId))+' · ':'')+esc(usDate(String(o.devin.at).slice(0,10)))+'</p>':'')+
     '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+
      (srShipper()?'<button class="btn sm'+(need&&have<need?' coral':'')+'" data-act="srform" data-id="'+o.id+'">'+(have||o.shipTracking?'Edit serials &amp; tracking':'Add serials &amp; tracking')+'</button>':'')+
      (srPending(o)&&srShipper()?'<button class="btn sm ghost" data-act="srdevin" data-id="'+o.id+'" title="Tick once it’s entered in Devin’s order system">Entered in Devin’s ✓</button>':'')+
@@ -10053,9 +10389,11 @@ function srDetailsHTML(o){
 function srPendingBannerHTML(){
   if(!srShipper())return "";
   const p=(DB.orders||[]).filter(o=>o&&srPending(o));if(!p.length)return "";
+  if(!TQ.known)tqReady().then(ok=>{if(ok)render();});
   return '<div class="card" style="padding:12px 16px;margin:0 0 10px;border-left:4px solid #3b6fb5;font-size:13.5px"><b>'+p.length+' order'+(p.length>1?'s have':' has')+' serials or tracking not yet in Devin’s system</b> — '+
     p.map(o=>esc(shortAcct(o.account)||o.poNo||"—")+' ('+srHave(o)+' serial'+(srHave(o)===1?'':'s')+(o.shipTracking?', tracking':'')+')').join(", ")+
-    '.<br><span style="color:var(--muted)">Ask Claude to “sync serials to Devin” — it enters them in Devin’s Orders screen and ticks them off here.</span></div>';
+    '.'+(TQ.ok&&TQ.env==="production"?' <button class="btn sm" data-act="srdvall" style="margin-left:6px">Send to Devin</button>'
+      :'<br><span style="color:var(--muted)">Ask Claude to “sync serials to Devin” — it enters them in Devin’s Orders screen and ticks them off here.</span>')+'</div>';
 }
 async function attachPoFile(id,file){
   const o=(DB.orders||[]).find(x=>x.id===id);if(!o||!file)return;
@@ -11887,7 +12225,9 @@ const SHIP_KEYS=["shipCarrier","shipTracking","shipTrackings","shipDate","shipSe
 function shipSyncMates(o){const now=new Date().toISOString();
   shipMates(o).forEach(m=>{const before=(m.shipCarrier||"")+"|"+(m.shipTracking||"");
     SHIP_KEYS.forEach(k=>{if(o[k]==null||o[k]==="")delete m[k];else m[k]=Array.isArray(o[k])?o[k].slice():o[k];});
-    if(m.shipTracking&&before!==(m.shipCarrier||"")+"|"+m.shipTracking)m.devin={state:"todo",at:now,by:USER};});}
+    if(m.shipTracking&&before!==(m.shipCarrier||"")+"|"+m.shipTracking)m.devin={state:"todo",at:now,by:USER};});
+  /* tracking on an order that's linked to Devin's goes on his shipment too */
+  [o].concat(shipMates(o)).forEach(x=>{if(x&&x.shipTracking)tqPushSoon(x.id);});}
 function shipAddrKey(o){const t=o.shipTo||{};return (String(t.street||"").toLowerCase().replace(/[^a-z0-9]/g,"")+"|"+String(t.zip||"").slice(0,5));}
 function shipJoinCands(o){if(!o||o.shipWith||!(o.shipTo&&o.shipTo.street))return [];const a=shortAcct(o.account).toLowerCase(),k=shipAddrKey(o);
   return toShipList().filter(x=>x.id!==o.id&&!shipMates(x).length&&shortAcct(x.account).toLowerCase()===a&&x.shipTo&&x.shipTo.street&&shipAddrKey(x)===k);}
@@ -13341,7 +13681,13 @@ document.addEventListener("click",e=>{
   if(a==="lnunship"){lnMarkShipped(id,false);return;}
   if(a==="sradd"){const el=document.getElementById("srIn");srAddCodes(serialSplit(el?el.value:""));if(el){el.value="";el.focus();}return;}
   if(a==="srbuild"){const r=serialBuild(val("srY"),val("srM"),val("srL"),val("srS"));if(r.error){toast(r.error);return;}srAddCodes(r.codes);const el=document.getElementById("srS");if(el){el.value="";el.focus();}return;}
-  if(a==="srdel"){const S=logState.sr;if(S){S.codes.splice(+t.dataset.i,1);srCommit();const el=document.getElementById("srList");if(el)el.innerHTML=srListHTML();}return;}
+  if(a==="srdel"){srRemoveAt(+t.dataset.i);return;}
+  if(a==="srdvsync"){srDevinSyncAll(id);return;}
+  if(a==="srdvship"){srDevinShip(id);return;}
+  if(a==="srdvreturn"){const S=logState.sr;if(S)srReturnAssign(S.oid,t.dataset.c);return;}
+  if(a==="srdvsug"){const S=logState.sr;if(S)srUseSuggestion(S.oid,t.dataset.c,t.dataset.v);return;}
+  if(a==="srdvall"){srDevinAllPending();return;}
+  if(a==="srdvpull"){srDevinPull(id);return;}
   if(a==="srcar"){const S=logState.sr;if(S){S.carrier=t.dataset.v;document.querySelectorAll('#srCar .qchip').forEach(x=>x.classList.toggle("on",x.dataset.v===S.carrier));}return;}
   if(a==="srsave"){saveSerials(id);return;}
   if(a==="srdevin"){srDevinDone(id);return;}
