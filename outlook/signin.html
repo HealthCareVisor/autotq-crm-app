@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoTQ sign-in</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+@font-face{font-family:"Inter";src:url(assets/inter-latin.woff2) format("woff2");font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+body{margin:0;background:#F6F5F1;color:#1A1916;font:14px/1.45 "Inter",-apple-system,"Segoe UI",Arial,sans-serif}
+.w{max-width:340px;margin:0 auto;padding:22px 18px}
+.top{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.top img{width:24px;height:24px;border-radius:6px}
+.top b{font-size:15px}
+label{display:block;font-size:12px;color:#4F4C45;margin:10px 0 4px;font-weight:550}
+input{width:100%;border:1px solid #D5D1C7;border-radius:8px;padding:9px 10px;font:inherit;background:#fff}
+input:focus{outline:none;border-color:#D85A30;box-shadow:0 0 0 3px rgba(216,90,48,.22)}
+button.pri{width:100%;margin-top:12px;border:0;border-radius:8px;padding:10px;background:#C4502A;color:#fff;font:inherit;font-weight:600;cursor:pointer}
+button.pri:hover{background:#B24622}
+button.lnk{background:none;border:0;padding:0;color:#9A3E1C;font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer}
+.alt{margin-top:10px;font-size:12.5px}
+.msg{margin-top:10px;font-size:12.5px;border-radius:8px;padding:7px 9px;background:#E9F3E3;color:#2F6A19}
+.msg.bad{background:#FCEBEA;color:#A7302A}
+</style>
+</head>
+<body>
+<div class="w" id="w"></div>
+<script>
+(function () {
+  var QS = new URLSearchParams(location.search);
+  var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  var SUPA_URL = (LOCAL && QS.get("api")) || "https://nrbjtqczntrwqoheurpt.supabase.co";
+  var SUPA_KEY = "sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
+  var st = { email: (QS.get("email") || "").toLowerCase(), step: "email", pw: false, msg: "", bad: false };
+  var esc = function (s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); };
+  var $ = function (id) { return document.getElementById(id); };
+  function draw() {
+    var code = st.step === "code";
+    $("w").innerHTML = '<div class="top"><img src="assets/icon-32.png" alt=""><b>Sign in to AutoTQ</b></div>' +
+      '<label for="em">Your email</label><input id="em" type="email" autocomplete="username" value="' + esc(st.email) + '"' + (code ? " readonly" : "") + ">" +
+      (code ? '<label for="cd">Code from the email</label><input id="cd" inputmode="numeric" autocomplete="one-time-code"><button class="pri" id="go">Sign in</button>' +
+        '<div class="alt"><button class="lnk" id="again">Send a new code</button></div>'
+        : st.pw ? '<label for="pw">CRM password</label><input id="pw" type="password" autocomplete="current-password"><button class="pri" id="go">Sign in</button>' +
+          '<div class="alt"><button class="lnk" id="tocode">Email me a code instead</button></div>'
+          : '<button class="pri" id="send">Email me a code</button><div class="alt"><button class="lnk" id="topw">Use my CRM password</button></div>') +
+      (st.msg ? '<div class="msg' + (st.bad ? " bad" : "") + '">' + esc(st.msg) + "</div>" : "");
+    var f = $(code ? "cd" : st.pw ? "pw" : "em"); if (f) f.focus();
+  }
+  function say(m, bad) { st.msg = m; st.bad = !!bad; draw(); }
+  function post(path, body) {
+    return fetch(SUPA_URL + path, { method: "POST", headers: { apikey: SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { ok: r.ok, j: j }; }); });
+  }
+  function sendCode() {
+    st.email = ($("em").value || "").trim().toLowerCase();
+    if (!/@goldenhourmedical\.com$/.test(st.email)) return say("Use your @goldenhourmedical.com address.", true);
+    say("Sending a code…");
+    post("/auth/v1/otp", { email: st.email, create_user: false }).then(function (r) {
+      if (!r.ok) return say(r.j.msg || r.j.error_description || "Couldn't send the code.", true);
+      st.step = "code"; say("Code sent to " + st.email + ".");
+    }).catch(function () { say("Network problem. Try again.", true); });
+  }
+  function signIn() {
+    var p = st.pw ? post("/auth/v1/token?grant_type=password", { email: ($("em").value || "").trim().toLowerCase(), password: $("pw").value || "" })
+      : post("/auth/v1/verify", { type: "email", email: st.email, token: ($("cd").value || "").replace(/\D/g, "") });
+    say("Checking…");
+    p.then(function (r) {
+      if (!r.ok || !r.j.access_token) return say(r.j.msg || r.j.error_description || "That didn't work. Try again.", true);
+      Office.context.ui.messageParent(JSON.stringify(r.j));
+    }).catch(function () { say("Network problem. Try again.", true); });
+  }
+  document.addEventListener("click", function (e) {
+    var id = e.target.id;
+    if (id === "send" || id === "again") sendCode();
+    else if (id === "go") signIn();
+    else if (id === "topw") { st.pw = true; st.msg = ""; draw(); }
+    else if (id === "tocode") { st.pw = false; st.msg = ""; draw(); }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    if (e.target.id === "em" && !st.pw && st.step === "email") sendCode();
+    else if (e.target.id === "cd" || e.target.id === "pw") signIn();
+  });
+  Office.onReady(draw);
+  draw();
+})();
+</script>
+</body>
+</html>
