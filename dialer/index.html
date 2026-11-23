@@ -1334,60 +1334,6 @@ div.dlrow{cursor:default}
 .dialbar .btn:not(.coral):not(.dlhang){background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff}
 @media (max-width:900px){.dlgrid{grid-template-columns:1fr}.dlrows{max-height:240px}}
 @media (max-width:640px){.dialbar{bottom:76px}.dlnum{align-items:flex-start}.dlcard{padding:16px}}
-/* TQbot side panel (2026-11-23): docked right on wide screens (the page makes room), over the page below 1100px, full screen on phones */
-.tqb{position:fixed;top:0;right:0;bottom:0;width:400px;z-index:55;background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;box-shadow:-14px 0 34px -26px rgba(26,25,22,.4)}
-body.tqbon .console{margin-right:400px}
-@media (max-width:1100px){body.tqbon .console{margin-right:0}.tqb{box-shadow:var(--sh-pop)}}
-@media (max-width:640px){.tqb{width:100%;left:0;z-index:70;border-left:0}}
-.tqbh{display:flex;align-items:center;gap:10px;padding:12px 10px 12px 16px;border-bottom:1px solid var(--line)}
-.tqbh b{display:block;font-size:15px;line-height:1.2}.tqbh .grow>span{display:block;font-size:12px;color:var(--muted)}
-.tqbav{width:32px;height:32px;border-radius:50%;background:var(--coral-t);color:var(--coral);display:inline-grid;place-items:center;flex:none}
-.tqbav svg.mark{width:13px;height:19px}.tqbav.lg{width:46px;height:46px}.tqbav.lg svg.mark{width:19px;height:27px}
-.tqbs{flex:1;overflow:auto;padding:16px 14px 10px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
-.tqm{max-width:92%;font-size:14px;line-height:1.5}
-.tqm p{margin:0 0 6px}.tqm p:last-child{margin-bottom:0}.tqm ul{margin:2px 0 6px;padding-left:18px}.tqm li{margin:2px 0}
-.tqm code{font-size:12.5px;background:var(--sunken);padding:1px 4px;border-radius:4px}
-.tqm.me{align-self:flex-end}.tqm.me>div{background:var(--ink);color:#fff;border-radius:14px 14px 4px 14px;padding:8px 12px}
-.tqm.bot{align-self:flex-start}
-.tqm.err{align-self:stretch;max-width:none;background:var(--warn-b);color:var(--warn-t);border-radius:var(--r);padding:8px 10px;font-size:13px;display:flex;gap:6px;align-items:flex-start}
-.tqm.err .i{width:15px;height:15px;flex:none;margin-top:1px}
-.tqw{font-size:12px;color:var(--hint);display:flex;align-items:center;gap:6px}.tqw .i{width:13px;height:13px}
-.tqw.busy .spinwheel{display:inline-block;width:14px;height:14px;border-width:2px;margin:0}
-.tqbf{display:flex;gap:8px;align-items:flex-end;padding:10px 12px 12px;border-top:1px solid var(--line);background:var(--surface-2)}
-.tqbf textarea{flex:1;resize:none;min-height:42px;max-height:160px;margin:0;font:inherit;font-size:14px;line-height:1.4}
-.tqbf .btn{flex:none;height:42px;padding:0 14px}
-.tqbhi{padding:6px 2px}.tqbhi .t1{font-weight:700;font-size:16px;margin:12px 0 4px}.tqbhi .t2{white-space:normal;margin:0 0 14px}
-.tqbsug{display:flex;flex-direction:column;align-items:flex-start;gap:6px}.tqbsug .qchip{text-align:left;height:auto;min-height:32px;padding:6px 11px;line-height:1.35}
-.tqc{align-self:stretch;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--surface-2);padding:12px}
-.tqc.done{background:var(--surface)}
-.tqch{display:flex;align-items:center;gap:8px;margin-bottom:6px}.tqch b{flex:1;font-size:14px}.tqch>.i{color:var(--coral);width:17px;height:17px}
-.tqcx{margin:0 0 6px;font-size:13px;color:var(--ink-2)}.tqcx .i{width:13px;height:13px;color:var(--ok-t);vertical-align:-2px}
-.tqfs{display:grid;grid-template-columns:1fr 1fr;gap:7px 10px;margin-top:4px}
-.tqf{display:flex;flex-direction:column;gap:3px;min-width:0}.tqf.wide{grid-column:1/-1}
-.tqf>span{font-size:11.5px;font-weight:600;color:var(--muted)}.tqf>span i{font-style:normal;font-weight:500;color:var(--dang-t)}.tqf>span i.n{color:var(--hint)}
-.tqf .f{margin:0;padding:7px 9px;font-size:13px;min-height:0;height:auto}
-.tqf textarea.f{resize:vertical;min-height:52px}
-.tqf.miss .f{border-color:#D9A19D;background:#FFFBFA}
-.tqc.done .f{background:transparent;border-color:transparent;padding-left:0;color:var(--ink)}
-.tqneed{font-size:12.5px;color:var(--dang-t);margin:8px 0 0}
-.tqca{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.tqca .btn:disabled{opacity:.45;cursor:not-allowed}
-.tql{display:flex;flex-direction:column;gap:1px;margin:2px -4px}
-.tql button{all:unset;cursor:pointer;display:flex;flex-direction:column;padding:6px 8px;border-radius:8px}.tql button:hover{background:var(--hover)}
-.tql button:focus-visible{outline:2px solid var(--coral)}
-.tql a{all:unset;cursor:pointer;display:flex;flex-direction:column;padding:6px 8px;border-radius:8px}.tql a:hover{background:var(--hover)}.tql a:focus-visible{outline:2px solid var(--coral)}
-.tqlogs{padding:12px 14px}.tqlogs .btn svg.mark{width:11px;height:16px;color:var(--coral)}.tqday+.tqday{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}
-.tqdh{margin:0 0 4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:none}
-.tqlog{font-size:13.5px;line-height:1.5;padding:2px 0}.tqlk{font-weight:600}
-.tqmore{display:inline;font-size:12.5px;color:var(--muted)}.tqmore summary{display:inline;cursor:pointer;color:var(--coral-text);margin-left:4px}
-.tqcday+.tqcday{margin-top:8px;padding-top:8px;border-top:1px solid var(--line-2)}.tqcday>summary{cursor:pointer;font-size:13.5px;padding:2px 0}
-.tqcr{font-size:13px;line-height:1.5;margin:6px 0}.tqcr.me{display:flex;gap:8px;align-items:flex-start}.tqcr.me>div{background:var(--sunken);border-radius:10px;padding:6px 10px;max-width:80%}
-.tqct{font-size:11.5px;color:var(--hint);flex:none;margin-top:6px;width:58px}.tqcr.bot{padding-left:66px;color:var(--ink-2)}.tqcr.bot p{margin:0 0 4px}.tqcr.bot ul{margin:0 0 4px;padding-left:18px}
-.tqcr.note{padding-left:66px;color:var(--ok-t);font-size:12.5px}.tqcr.note .i{width:12px;height:12px;vertical-align:-1px}.tqcr.tools{padding-left:66px;color:var(--hint);font-size:12px}
-.tql b{font-size:13px}.tql span{font-size:12px;color:var(--muted)}.tql .t2{margin:4px 8px 0}
-.tqpre{white-space:pre-wrap;font:inherit;font-size:13px;line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:6px 0 0;max-height:280px;overflow:auto}
-.tact .tqbtn svg.mark{width:11px;height:16px;color:var(--coral)}.tact .tqbtn.on svg.mark{color:var(--coral-tt)}
-@media (max-width:900px){.tact .tqbtn .t{display:none}}
 </style>
 </head>
 <body>
@@ -1403,7 +1349,7 @@ const SUPA_URL="https://nrbjtqczntrwqoheurpt.supabase.co";
 const SUPA_KEY="sb_publishable_nJhBA0zj3h11qzDWeIU0VA_1LrjKOp-";
 const SKEY="autotq_session_v1";
 const TEAM_EMAILS={"max@goldenhourmedical.com":"max","hannah@goldenhourmedical.com":"hannah","john@goldenhourmedical.com":"john","jamie@goldenhourmedical.com":"jamie","kellan@goldenhourmedical.com":"kellan","johnmorrison@goldenhourmedical.com":"johnm","billing@goldenhourmedical.com":"laresa","timford@goldenhourmedical.com":"tim"};
-const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail","dialTexts","botLog"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
+const SYNC_COLLECTIONS=["companies","people","manrep","demos","opps","confLeads","skus","tasks","activities","resources","conf","campaigns","leads","orders","lists","shipments","quotes","usage","goals","feedback","whiteboard","gpos","repcal","settings","dialCalls","dialMail","dialTexts"]; /* whiteboard = Future CRM notes, Max only (2026-11-06); gpos = Grainger drop-ship POs (2026-11-11); repcal = reps' Outlook travel/meetings/outreach for the admin Team calendar (2026-11-13) */
 let SESSION=null; try{SESSION=JSON.parse(localStorage.getItem(SKEY)||"null");}catch(e){}
 function authed(){return !!(SESSION&&SESSION.access_token);}
 function saveSession(s){SESSION=s;if(s)localStorage.setItem(SKEY,JSON.stringify(s));else localStorage.removeItem(SKEY);}
@@ -1563,7 +1509,6 @@ async function bootSync(){
   snapshotShadow();             // then baseline the shadow from merged state
   SYNC.booted=true;
   if(dialAccess()&&DIALER_HUB)setTimeout(dialInit,1200); /* the dialer's phone: ready to call, and callbacks ring here */
-  if(callAccess()&&CALL_RING.includes(USER))setTimeout(tqcInit,1500); /* in-CRM calling for the Johns (2026-11-23) */
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)pullChanges();});
@@ -1743,7 +1688,7 @@ function closeSheet(){
      if(!logState.oppPageLeave&&oppPageChanged()&&!confirm("Leave this deal without saving your changes?"))return;
      sh.classList.remove("pagesheet");sc.classList.remove("pagemode");sc.style.left="";logState.oppPageSnap=null;}
    logState.oppPageLeave=false;}
-  document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}try{tqcOnSheetClose();}catch(e){}
+  document.getElementById("scrim").classList.remove("open");try{fbUpdate();}catch(e){}
   if(logState.srStale){logState.srStale=false;render();}} /* serials saved while the sheet was open */
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
@@ -2192,7 +2137,7 @@ function render(){
    '<div class="work"><header class="tbar">'+hubMenuHTML()+(canGoBack()?'<button class="btn ghost backbtn" data-act="goback" title="Back to the previous page" aria-label="Back">'+svg("back")+'<span class="t">Back</span></button>':'')+
     '<div class="crumb"><h1>'+titles[view]+'</h1><div class="sub">'+(FUT?'<span style="color:'+FUTURE_TINT+';font-weight:600">Future CRM</span> · ':'')+subs[view]+'</div></div>'+
     (FUT?'':'<div class="gs">'+svg("search")+'<input id="gsearch" placeholder="Search accounts, contacts & leads…" value="'+esc(searchQ)+'" autocomplete="off"></div>')+
-    '<div class="tact"><button class="ibtn psearch" data-act="palopen" title="Search" aria-label="Search">'+svg("search")+'</button>'+(botAccess()?'<button class="btn tqbtn'+(BOT.open?" on":"")+'" data-act="tqbot" title="TQbot (Ctrl+J)" aria-label="TQbot">'+BRAND_MARK+'<span class="t">TQbot</span></button>':'')+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
+    '<div class="tact"><button class="ibtn psearch" data-act="palopen" title="Search" aria-label="Search">'+svg("search")+'</button>'+(mktAccess()?'<a class="btn" href="'+MKT_URL+'" data-act="extlink" title="Switch to AutoTQ Marketing" style="text-decoration:none">'+svg("mail")+'<span class="t">Marketing</span></a>':'')+
     (FUT?'<button class="btn coral" data-act="'+(view==="board"?"wbadd":"addopp")+'" title="'+(view==="board"?"New note":"New opportunity")+'">'+svg("plus")+'<span class="t">New</span></button>':'<button class="btn coral" data-act="addhub" title="Add to CRM">'+svg("plus")+'<span class="t">New</span></button>')+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'" title="'+(SYNC.online?"Synced with the team":"Offline — changes will sync when you\'re back")+'">'+(SYNC.online?"":"Offline")+'</span>'+
     (FUT?'':'<button class="ibtn" data-act="help" title="How this CRM works" aria-label="How this CRM works">'+svg("help")+'</button>')+
@@ -2212,7 +2157,6 @@ function render(){
   try{fbSync();}catch(e){}
   try{fuSchedule();}catch(e){}
   try{dialAfterRender();}catch(e){}
-  try{botLoad();botAfterRender();}catch(e){}
 }
 /* real navigation history — the back button returns to wherever you actually came from */
 let navStack=[];
@@ -4278,7 +4222,7 @@ function viewToday(){
   const sec=(id,x)=>x?'<section class="hsec" id="'+id+'">'+x+'</section>':'';
   h+=sec("hs-day",day);
   h+='<div class="homegrid"><div class="hcol">'+sec("hs-attn",attn)+sec("hs-fu",fu)+sec("hs-leads",lds)+'</div>'+
-     '<div class="hcol">'+sec("hs-tqbot",botAccess()?botWeekHTML(P==="admin"&&scopeRep?scopeRep:USER):"")+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
+     '<div class="hcol">'+sec("hs-conf",conf)+sec("hs-outreach",outreach)+sec("hs-lists",lists)+sec("hs-eod",eodSectionHTML())+sec("hs-team",P==="admin"?teamFeed():"")+'</div></div>';
   return h;
 }
 /* a teammate's page (admins): everything they've logged, their week, and their time in the CRM */
@@ -4298,8 +4242,6 @@ function viewTeammate(id){
    '<div class="facts"><div><b>Last active</b><span>'+esc(lastActive(id))+'</span></div><div><b>Today</b><span>'+fmtMins(uT.mins)+'</span></div><div><b>This week</b><span>'+fmtMins(uW.mins)+' · '+uW.days+' day'+(uW.days===1?"":"s")+'</span></div><div><b>All time</b><span>'+fmtMins(uAll.mins)+' · '+uAll.days+' day'+(uAll.days===1?"":"s")+(uAll.first?' · first seen '+esc(fmtDay(uAll.first)):'')+'</span></div></div></div>';
   h+=kpiRow([["Actions this week",wk.length,""],["This month",mo.length,""],["All time",all.length,Object.keys(kinds).map(k=>kinds[k]+" "+k).join(" · ")],["Follow-ups waiting",q.todo.length+q.old.length,q.old.length+" stale",q.old.length?"warn":""]]);
   h+='<section style="margin:4px 0 18px">'+weekStripHTML(id,logState.tmDay||T,{title:t.name.split(" ")[0]+"\u2019s week",nav:"tmnav",dayNav:"tmnav"})+'</section>';
-  h+='<section style="margin:0 0 18px">'+botWeekHTML(id)+'</section>';
-  if(BOT_CHAT_READERS.includes(USER))h+='<section style="margin:0 0 18px" id="tqchats">'+botChatsHTML(id)+'</section>';
   if(profile(id)==="sales")h+='<section style="margin:0 0 18px">'+fromOutreachHTML(id,{always:true,who:t.name.split(" ")[0],showDone:true,max:12})+'</section>';
   if(uAll.rows.length){h+='<div class="sectlabel">Time in the CRM <span class="cnt">last 14 days</span></div><div class="tablewrap" style="margin-bottom:18px"><table class="lv"><thead><tr><th>Day</th><th>Time</th><th>First</th><th>Last</th><th>Where</th></tr></thead><tbody>'+
     uAll.rows.slice(0,14).map(r=>{const tm=x=>x?new Date(x).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"—";const vs=Object.keys(r.views||{}).sort((a,b)=>r.views[b]-r.views[a]).slice(0,4).map(v=>({today:"Home",opps:"Pipeline",activity:"Activity",leads:"Leads",quotes:"Quotes",accounts:"Accounts",contacts:"Contacts",export:"Lists",team:"Team",person:"Contact pages",roster:"Account pages",invoicing:"Invoicing"}[v]||v));
@@ -8334,16 +8276,12 @@ function saveAccount(){
   const typed=(document.getElementById("dName")||{value:""}).value.trim();
   if(!typed){toast("Type the company name");return;}
   const info=logState.dist||lookup(typed);
-  const R=accountCreate(info,logState.acctKind||"enduser",logState.acctStage);
-  if(R.dup){const dup=R.dup;toast(dup.name+" is already in Accounts");closeSheet();pushNav();curCompany=dup.id;view="roster";render();return;}
-  const rec=R.rec;save();logState.dist=null;closeSheet();pushNav();curCompany=rec.id;view="roster";render();window.scrollTo(0,0);toast(rec.name+" added");
-}
-/* New account's save (the form and TQbot): a duplicate name is the existing account */
-function accountCreate(info,k,stage){
-  const dup=DB.companies.find(c=>c.name.toLowerCase()===info.name.toLowerCase());if(dup)return {dup:dup};
+  const dup=DB.companies.find(c=>c.name.toLowerCase()===info.name.toLowerCase());
+  if(dup){toast(dup.name+" is already in Accounts");closeSheet();pushNav();curCompany=dup.id;view="roster";render();return;}
+  const k=logState.acctKind||"enduser";
   const rec={id:uid(),name:info.name,type:k,city:info.city||"",state:info.state||"",industry:info.industry||"",website:info.website||"",territory:regionFromState(info.state),owner:USER,sourcedBy:""};
-  if(k==="distributor"){rec.dstatus=stage==="stocking"?"setup":(stage||"potential");if(stage==="stocking")rec.stage="Stocking";}
-  DB.companies.unshift(rec);return {rec:rec};
+  if(k==="distributor"){rec.dstatus=logState.acctStage==="stocking"?"setup":(logState.acctStage||"potential");if(logState.acctStage==="stocking")rec.stage="Stocking";}
+  DB.companies.unshift(rec);save();logState.dist=null;closeSheet();pushNav();curCompany=rec.id;view="roster";render();window.scrollTo(0,0);toast(rec.name+" added");
 }
 function formSimpleCompany(type,label){
   openSheet('<h2>Add '+label+'</h2><label class="fl">Company name</label><input class="f" id="dName" placeholder="Start typing…" autocomplete="off"><div id="dFill"></div>'+
@@ -9084,12 +9022,11 @@ function spokePick(v){logState.spoke=v||"";
   document.querySelectorAll("#spokeTypes .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===logState.spoke));
   const m=document.getElementById("spokeMore");if(m)m.style.display=logState.spoke?"block":"none";}
 /* logs the conversation for p (returns the label for the toast, "" when nothing was logged) */
-function spokeSave(p){const t=logState.spoke;logState.spoke="";if(!t||!p)return "";return spokeLog(p,t,val("spokeDate")||todayStr(),val("spokeNote"));}
-function spokeLog(p,t,d,note){
-  const when=d>=todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
+function spokeSave(p){const t=logState.spoke;logState.spoke="";if(!t||!p)return "";
+  const d=val("spokeDate")||todayStr(),when=d>=todayStr()?new Date().toISOString():d+"T12:00:00.000Z";
   const lbl=(SPOKE_TYPES.find(x=>x[0]===t)||["",t])[1];
   DB.activities=DB.activities||[];
-  DB.activities.unshift({id:uid(),type:t,pid:p.id,cid:p.cid||null,note:note||lbl+" — added them to the CRM",date:when,by:USER});
+  DB.activities.unshift({id:uid(),type:t,pid:p.id,cid:p.cid||null,note:val("spokeNote")||lbl+" — added them to the CRM",date:when,by:USER});
   if(!p.last||new Date(when)>new Date(p.last))p.last=when;
   return lbl.toLowerCase()+" logged";}
 function formNewContactFor(cid){
@@ -9207,29 +9144,23 @@ async function bcHandleFile(file){
   bcStatus(bcThumb(n?'<b style="color:var(--ok-t)">'+svg("check")+' Pulled '+n+' detail'+(n>1?"s":"")+' off the card.</b> Give it a quick look'+(hit?" — matched to your account "+esc(hit.name):"")+', then add your note.':"Couldn't find any text on that card — try a closer, sharper shot or type the details."));
   const note=document.getElementById("spokeNote");if(note&&n&&logState.spoke)note.focus();
 }
-/* the one contact save (business-card form, TQbot, calls from an unknown number): matches the account by name (bcMatchCompany),
-   finds the person by email or name+account, only fills blanks on an existing one */
-function contactUpsert(d){
-  const name=d.name,coTxt=d.coTxt||"",city=d.city||"",st=String(d.st||"").toUpperCase().slice(0,2),email=String(d.email||"").toLowerCase();
-  const phone=d.phone||d.mobile||"",mobile=d.phone?(d.mobile||""):"",title=d.title||"",card=d.card||{},src=d.source||"Business card";
-  let c=d.cid?company(d.cid):bcMatchCompany(coTxt),newCo=false;
-  if(!c&&coTxt){c={id:uid(),name:coTxt,type:d.kind||"enduser",city:city,state:st,website:card.website?"https://"+String(card.website).replace(/^https?:\/\//i,""):"",owner:USER,source:src};
-    if(c.type==="distributor"){c.territory=regionFromState(st);c.dstatus="potential";}
+function saveCard(){
+  const b=logState.bc;if(!b)return;
+  const name=val("bcName");if(!name){toast("Add the person's name");return;}
+  const coTxt=val("bcCoQ"),city=val("bcCity"),st=val("bcState").toUpperCase().slice(0,2),email=val("bcEmail").toLowerCase();
+  const phone=val("bcPhone")||val("bcMobile"),mobile=val("bcPhone")?val("bcMobile"):"",title=val("bcTitle");
+  const card=b.card||{};
+  let c=b.cid?company(b.cid):bcMatchCompany(coTxt),newCo=false;
+  if(!c&&coTxt){c={id:uid(),name:coTxt,type:b.kind,city:city,state:st,website:card.website?"https://"+String(card.website).replace(/^https?:\/\//i,""):"",owner:USER,source:"Business card"};
+    if(b.kind==="distributor"){c.territory=regionFromState(st);c.dstatus="potential";}
     DB.companies.unshift(c);newCo=true;}
   const addr=[card.street,[city||card.city,[st||String(card.state||"").toUpperCase(),card.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ")].filter(Boolean).join(", ");
   let p=(email&&DB.people.find(x=>(x.email||"").toLowerCase()===email))||DB.people.find(x=>(x.name||"").toLowerCase()===name.toLowerCase()&&(c?x.cid===c.id:!x.cid)),isNew=!p;
-  if(isNew){p={id:uid(),name:name,cid:c?c.id:null,branch:c?c.name+(city?" — "+city:""):"",role:title||"Contact",email:email,phone:phone,city:city,state:st,units:0,pos:0,last:null,source:src};
+  if(isNew){p={id:uid(),name:name,cid:c?c.id:null,branch:c?c.name+(city?" — "+city:""):"",role:title||"Contact",email:email,phone:phone,city:city,state:st,units:0,pos:0,last:null,source:"Business card"};
     if(mobile)p.mobile=mobile;if(card.street&&addr)p.address=addr;DB.people.unshift(p);}
   else{ // already in the CRM — only fill what's blank
     [["role",title],["email",email],["phone",phone],["mobile",mobile],["city",city],["state",st],["address",card.street?addr:""]].forEach(f=>{if(f[1]&&!p[f[0]])p[f[0]]=f[1];});
     if(!p.cid&&c){p.cid=c.id;if(!p.branch)p.branch=c.name+(city?" — "+city:"");}}
-  return {p:p,c:c,isNew:isNew,newCo:newCo};
-}
-function saveCard(){
-  const b=logState.bc;if(!b)return;
-  const name=val("bcName");if(!name){toast("Add the person's name");return;}
-  const U=contactUpsert({name:name,coTxt:val("bcCoQ"),cid:b.cid||null,kind:b.kind,city:val("bcCity"),st:val("bcState"),email:val("bcEmail"),phone:val("bcPhone"),mobile:val("bcMobile"),title:val("bcTitle"),card:b.card||{},source:"Business card"});
-  const p=U.p,c=U.c,isNew=U.isNew,newCo=U.newCo;
   const lg=spokeSave(p);
   save();closeSheet();pushNav();curPerson=p.id;view="person";render();window.scrollTo(0,0);
   toast(name+(isNew?" added":" updated")+(newCo?" · new account "+c.name:"")+(lg?" · "+lg:""));
@@ -9556,13 +9487,6 @@ function expRows(){
 }
 const STATE_NAMES={alabama:"AL",alaska:"AK",arizona:"AZ",arkansas:"AR",california:"CA",colorado:"CO",connecticut:"CT",delaware:"DE",florida:"FL",georgia:"GA",hawaii:"HI",idaho:"ID",illinois:"IL",indiana:"IN",iowa:"IA",kansas:"KS",kentucky:"KY",louisiana:"LA",maine:"ME",maryland:"MD",massachusetts:"MA",michigan:"MI",minnesota:"MN",mississippi:"MS",missouri:"MO",montana:"MT",nebraska:"NE",nevada:"NV","new hampshire":"NH","new jersey":"NJ","new mexico":"NM","new york":"NY","north carolina":"NC","north dakota":"ND",ohio:"OH",oklahoma:"OK",oregon:"OR",pennsylvania:"PA","rhode island":"RI","south carolina":"SC","south dakota":"SD",tennessee:"TN",texas:"TX",utah:"UT",vermont:"VT",virginia:"VA",washington:"WA","west virginia":"WV",wisconsin:"WI",wyoming:"WY"};
 function ensureLists(){DB.lists=DB.lists||[];}
-/* Save list (Lists and TQbot): one synced list record */
-function listMake(picked,nm,query,fields,kinds){ensureLists(); /* kinds[i]: "p" contact (default), "lead" (Leads), "cl" (conference lead) */
-  const nl={id:uid(),name:nm,by:USER,assignee:null,createdAt:new Date().toISOString(),query:query||"",fields:fields,
-    items:picked.map((p,i)=>{const k=kinds?kinds[i]:"p";
-      const it={pid:k==="p"?p.id:null,name:p.name,company:(company(p.cid)||{}).name||p.branch||p.company||"",role:p.role||p.title||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""};
-      if(k==="lead")it.leadId=p.id;if(k==="cl")it.refId=p.id;return it;})};
-  DB.lists.unshift(nl);return nl;}
 function shortName(id){if(id==="house")return "House";const n=teamById(id).name.split(" ")[0];return n+(id==="johnm"?" M.":id==="john"?" C.":"");}
 function mdStamp(iso){if(!iso)return"";const d=new Date(iso);return (d.getMonth()+1)+"/"+d.getDate();}
 function listLog(l,it,type,note){const pr=it.pid?person(it.pid):null;if(!pr&&!it.name)return;
@@ -13342,876 +13266,12 @@ document.addEventListener("change",e=>{
   if(e.target&&e.target.classList&&e.target.classList.contains("campfield")){campFieldChange(e.target);}
 });
 
-/* ================= TQbot — the CRM's side-panel assistant (Max, 2026-11-23: "fully functional AutoTQ bot… on the side window;
-   it should be able to answer ANY questions the reps have, create literature for them; create lists for them based on states;
-   say they have a contact they want to input into the CRM they can do it all here… they can also do opportunities").
-   Edge function `crm-bot` (AutoTQ_CRM_scripts/crm-bot/) holds the instructions, the tool list and the key, and calls Claude.
-   THIS page runs the tool loop. Read tools answer from the local book (a sales rep only ever gets their own deals, quotes and
-   numbers: ownOnly()). Write tools become cards in the chat that save only when the rep presses Save, through the CRM's own
-   paths: contactUpsert (= the business-card save) + spokeLog, accountCreate (= New account), the Log activity record, the real
-   New opportunity form checked by oppMissing() and saved by saveOpp(), and listMake (= Save list). Nothing saves with a blank
-   required value; optional blanks show as "none". The conversation is kept per seat on this device (autotq_bot_v1:<seat>). */
-const BOT_FN="/functions/v1/crm-bot",BOT_STORE="autotq_bot_v1";
-const BOT_WRITES=new Set(["propose_contact","propose_account","propose_activity","propose_opportunity","propose_email_batch"]);
-const BOT={open:false,busy:false,msgs:[],ui:[],cards:{},held:null,notes:[],off:"",user:"",n:0};
-function botAccess(u){u=u||USER;return !!u&&!vacant(u)&&!DIALER_HUB;}
-function botStoreKey(){return BOT_STORE+":"+USER;}
-function botLoad(){if(BOT.user===USER)return;Object.assign(BOT,{msgs:[],ui:[],cards:{},held:null,notes:[],off:"",user:USER,busy:false});
-  try{const j=JSON.parse(localStorage.getItem(botStoreKey())||"null");if(j&&Array.isArray(j.msgs)){BOT.msgs=j.msgs;BOT.ui=j.ui||[];BOT.cards=j.cards||{};BOT.held=j.held||null;BOT.notes=j.notes||[];}
-    BOT.open=localStorage.getItem(BOT_STORE+":open")==="1"&&window.innerWidth>900;}catch(e){}}
-function botSave(){try{const s=JSON.stringify({msgs:BOT.msgs,ui:BOT.ui.slice(-200),cards:BOT.cards,held:BOT.held,notes:BOT.notes});
-  if(s.length<600000)localStorage.setItem(botStoreKey(),s);else localStorage.removeItem(botStoreKey());}catch(e){}}
-function botReset(){Object.assign(BOT,{msgs:[],ui:[],cards:{},held:null,notes:[],off:""});botSave();botPaint();const i=document.getElementById("tqbIn");if(i)i.focus();}
-function botToggle(on){if(!botAccess())return;botLoad();BOT.open=on==null?!BOT.open:!!on;
-  if(BOT.open&&authed()&&(!BOT.mergeAt||Date.now()-BOT.mergeAt>60000))setTimeout(()=>botMergeLoad(),0);
-  try{localStorage.setItem(BOT_STORE+":open",BOT.open?"1":"0");}catch(e){}
-  botAfterRender();if(BOT.open){botPaint();setTimeout(()=>{const i=document.getElementById("tqbIn");if(i)i.focus();},30);}}
-function botAfterRender(){
-  const ok=botAccess()&&authed();let el=document.getElementById("tqbot");
-  if(ok&&!BOT.mergeChecked){BOT.mergeChecked=true;const qs=new URLSearchParams(location.search),mid=qs.get("merge");
-    if(mid){qs.delete("merge");try{history.replaceState(null,"",location.pathname+(qs.toString()?"?"+qs:"")+location.hash);}catch(e){}
-      BOT.mergeAt=Date.now();setTimeout(()=>{botToggle(true);botMergeLoad(mid);},300);}}
-  document.body.classList.toggle("tqbon",ok&&BOT.open);
-  const tb=document.querySelector('[data-act="tqbot"]');if(tb)tb.classList.toggle("on",ok&&BOT.open);
-  if(!ok||!BOT.open){if(el)el.remove();return;}
-  if(!el){el=document.createElement("aside");el.id="tqbot";el.className="tqb";el.setAttribute("aria-label","TQbot");
-    el.innerHTML='<div class="tqbh"><span class="tqbav">'+BRAND_MARK+'</span><div class="grow"><b>TQbot</b><span>Ask anything. You check every save.</span></div>'+
-      '<button class="ibtn" data-bact="new" title="New chat" aria-label="New chat">'+svg("plus")+'</button>'+
-      '<button class="ibtn" data-bact="close" title="Close (Ctrl+J)" aria-label="Close">'+svg("x")+'</button></div>'+
-      '<div class="tqbs" id="tqbScroll"></div>'+
-      '<div class="tqbf"><textarea id="tqbIn" rows="1" placeholder="Ask TQbot, or tell it what to add…" autocomplete="off"></textarea>'+
-      '<button class="btn coral" data-bact="send" title="Send (Enter)" aria-label="Send">'+svg("arrow")+'</button></div>';
-    document.body.appendChild(el);botPaint();}
-}
-/* ---- the thread ---- */
-function botInline(s){return s.replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>").replace(/`([^`\n]+)`/g,"<code>$1</code>");}
-function botMd(s){const lines=esc(String(s||"").replace(/^#{1,6}\s+(.*)$/gm,"**$1**")).split(/\n/);let h="",ul=false;
-  lines.forEach(l=>{const m=/^\s*(?:[-•*]|\d+[.)])\s+(.*)$/.exec(l);
-    if(m){if(!ul){h+="<ul>";ul=true;}h+="<li>"+botInline(m[1])+"</li>";return;}
-    if(ul){h+="</ul>";ul=false;}
-    if(l.trim())h+="<p>"+botInline(l)+"</p>";});
-  return h+(ul?"</ul>":"");}
-function botSuggest(){const p=profile();
-  const qs=p==="sales"?["How am I doing this month?","Make me a list of Grainger reps in "+(userRegion(USER)==="East"?"Ohio":"Texas"),"Who covers "+(userRegion(USER)==="East"?"Pennsylvania":"Missouri")+" for us?","What does 40 kits cost through a distributor?","Write a one-pager for a hockey rink"]
-    :p==="outreach"?["Make me a list of end users in Florida","Who covers Ohio for us?","Write a short email to a school safety director","What's in the AutoTQ kit?"]
-    :["How is John Morrison doing this month?","Set-up distributors with reps in Texas","What does 40 kits cost through a distributor?","Write a one-pager for campus police"];
-  return '<div class="tqbhi"><span class="tqbav lg">'+BRAND_MARK+'</span><p class="t1">Hi '+esc(String(teamById(USER).name||"").split(" ")[0])+'. What do you need?</p>'+
-    '<p class="t2">Ask about products, prices, territories or your numbers. Tell me who to add, what to log or what deal to start, and I’ll fill it in for you to check.</p>'+
-    '<div class="tqbsug">'+qs.map(q=>'<button class="qchip" data-bact="ask" data-q="'+esc(q)+'">'+esc(q)+'</button>').join("")+'</div></div>';}
-function botPaint(){
-  const el=document.getElementById("tqbScroll");if(!el)return;
-  const ae=document.activeElement,fid=ae&&ae.dataset&&ae.dataset.bf?ae.dataset.bf+"|"+ae.dataset.bc:"",selS=fid?ae.selectionStart:0;
-  let h=BOT.ui.length?"":botSuggest();
-  BOT.ui.forEach(u=>{
-    if(u.k==="me")h+='<div class="tqm me"><div>'+esc(u.t).replace(/\n/g,"<br>")+'</div></div>';
-    else if(u.k==="bot")h+='<div class="tqm bot">'+botMd(u.t)+'</div>';
-    else if(u.k==="work")h+='<div class="tqw">'+svg("check")+' '+esc(u.t)+'</div>';
-    else if(u.k==="err")h+='<div class="tqm err">'+svg("alert")+' '+esc(u.t)+'</div>';
-    else if(u.k==="card"&&BOT.cards[u.id])h+=botCardHTML(BOT.cards[u.id]);});
-  if(BOT.busy)h+='<div class="tqw busy"><span class="spinwheel"></span> TQbot is working…</div>';
-  else if(BOT.retry)h+='<div class="tqca"><button class="btn sm" data-bact="retry">Try again</button></div>';
-  const atEnd=el.scrollHeight-el.scrollTop-el.clientHeight<60;
-  el.innerHTML=h;
-  if(fid){const f=el.querySelector('[data-bf="'+fid.split("|")[0]+'"][data-bc="'+fid.split("|")[1]+'"]');if(f){f.focus();try{f.setSelectionRange(selS,selS);}catch(e){}}}
-  if(atEnd||BOT.scrollEnd){el.scrollTop=el.scrollHeight;BOT.scrollEnd=false;}
-  const sb=document.querySelector('#tqbot [data-bact="send"]');if(sb)sb.disabled=BOT.busy;}
-function botSay(k,t){BOT.ui.push({k:k,t:t});}
-/* ---- the page's context for the model: who is asking, today, the price list, the territory map ---- */
-function botCtx(){
-  const me=teamById(USER),west=repForRegion("West");
-  const terr=r=>{const id=repForRegion(r);return id&&!vacant(id)?teamById(id).name:"Open seat";};
-  const all=Object.values(STATE_NAMES);
-  /* kept the same all day (no clock, no page) so the cached conversation isn't thrown away; where the rep is rides with their message */
-  return {today:todayStr(),weekday:new Date().toLocaleDateString("en-US",{weekday:"long"}),
-    user:{id:USER,name:me.name,role:me.role,profile:profile(),territory:userRegion(USER)||"",sees_only_own_numbers:ownOnly()},
-    team:TEAM.filter(t=>!t.vacant).map(t=>({id:t.id,name:t.name,role:t.role})),
-    price_list:QUOTE_CAT.map(r=>({part:r[0],name:r[1],what:r[2],msrp:r[3],distributor_price:r[4]})),
-    distributor_kit_tiers:KIT_TIERS.map(x=>({from_qty:x[0],price_each:x[1]})),
-    territories:{East:{rep:terr("East"),states:all.filter(s=>regionFromState(s)==="East")},Central:{rep:terr("Central"),states:all.filter(s=>regionFromState(s)==="Central")},
-      West:{rep:terr("West")+(west&&vacant(west)?" (deals credit the open West seat)":""),states:all.filter(s=>regionFromState(s)==="West")}}};}
-/* ---- the loop ---- */
-/* where the rep is goes with their message (not in the system block, so the cached conversation survives page changes) */
-function botWhere(){
-  if(view==="person"&&curPerson&&person(curPerson)){const p=person(curPerson);return "I'm on the contact page of "+p.name+" (contact id "+p.id+(company(p.cid)?", "+company(p.cid).name:"")+").";}
-  if(view==="roster"&&curCompany&&company(curCompany)){const c=company(curCompany);return "I'm on the account page of "+c.name+" (account id "+c.id+", "+typeLabel(c.type)+").";}
-  return "";}
-async function botSend(text){
-  text=String(text||"").trim();if(!text||BOT.busy)return;botLoad();
-  const content=[];
-  const last=BOT.msgs[BOT.msgs.length-1];
-  if(last&&last.role==="user"){ /* the last request failed: the rep's new words join it */
-    BOT.msgs.pop();(typeof last.content==="string"?[{type:"text",text:last.content}]:last.content).forEach(b=>content.push(b));}
-  if(BOT.held){ /* cards still on screen: the model gets the reads it asked for plus "still open" for each card */
-    BOT.held.results.forEach(r=>content.push(r));
-    BOT.held.ids.forEach(id=>{const c=BOT.cards[id];if(c&&c.state==="open"){c.leftOpen=true;content.push({type:"tool_result",tool_use_id:c.tuid,content:JSON.stringify({status:"still_open",note:"The rep typed a new message instead of saving this card. It stays on screen; they may still save it."})});}});
-    BOT.held=null;}
-  if(BOT.notes.length){content.push({type:"text",text:"(Since my last message: "+BOT.notes.join(" ")+")"});BOT.notes=[];}
-  const w=botWhere();if(w&&w!==BOT.where){content.push({type:"text",text:"("+w+")"});}BOT.where=w;
-  content.push({type:"text",text:text});
-  BOT.msgs.push({role:"user",content:content});botSay("me",text);BOT.scrollEnd=true;
-  await botRun();}
-async function botRun(){
-  if(BOT.busy)return;BOT.busy=true;BOT.retry=false;botPaint();
-  try{
-    for(let i=0;i<8;i++){
-      let r,j={};
-      try{r=await supa(BOT_FN,{method:"POST",body:JSON.stringify({messages:BOT.msgs,ctx:botCtx()})});j=await r.json().catch(()=>({}));}
-      catch(e){r=null;}
-      if(!r||!r.ok){const st=r?r.status:0,why=(j&&j.error)||"";
-        /* the request stays the last message: Try again resends it; a new message from the rep joins it (botSend) */
-        const setup=st===404||st===503||/secret is not set|was rejected/.test(why)||(!r&&navigator.onLine);
-        botSay("err",setup?"TQbot isn't switched on yet. Max is finishing the setup.":st===403?"TQbot is only for the team's sign-ins.":st===413||/too long/.test(why)?"This chat is full. Start a new one with the + button.":st===429?"Busy right now. Try again in a minute.":!navigator.onLine?"You're offline. Try again when you're back.":"That didn't go through ("+(why||"error "+st)+").");
-        BOT.retry=!setup&&st!==403&&st!==413;
-        break;}
-      const blocks=Array.isArray(j.content)?j.content:[];
-      BOT.msgs.push({role:"assistant",content:blocks.length?blocks:[{type:"text",text:"…"}]});
-      blocks.filter(b=>b.type==="text"&&String(b.text||"").trim()).forEach(b=>botSay("bot",b.text));
-      if(j.stop_reason==="max_tokens"){botSay("err","That ran long. Ask for a shorter answer or one thing at a time.");}
-      const uses=blocks.filter(b=>b.type==="tool_use");
-      if(j.stop_reason!=="tool_use"||!uses.length)break;
-      const results=[],ids=[];
-      let mergeCards=false;
-      for(const u of uses){
-        if(u.name==="propose_email_batch"){const c=mergeAddCard({id:String((u.input||{}).job_id||"")},u.id);c.state="open";ids.push(c.id);mergeCards=true;continue;}
-        if(BOT_WRITES.has(u.name)){const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tuid:u.id,tool:u.name,v:botCardInit(u.name,u.input||{}),state:"open"};BOT.ui.push({k:"card",id:id});ids.push(id);continue;}
-        let out;try{out=await botTool(u.name,u.input||{});}catch(e){console.warn("TQbot tool",u.name,e);out={error:"That lookup failed: "+String(e&&e.message||e).slice(0,120)};}
-        let s=JSON.stringify(out);if(s.length>14000)s=s.slice(0,14000)+"…(cut)";
-        results.push({type:"tool_result",tool_use_id:u.id,content:s,is_error:!!(out&&out.error)});}
-      if(mergeCards)setTimeout(()=>botMergeLoad(),0);
-      if(ids.length){BOT.held={results:results,ids:ids};break;} /* wait for the rep to save or cancel the cards */
-      if(i===7){BOT.held={results:results,ids:[]};botSay("err","I stopped there. Say “keep going” and I’ll carry on.");break;}
-      BOT.msgs.push({role:"user",content:results});botPaint();}
-  }finally{BOT.busy=false;botSave();BOT.scrollEnd=true;botPaint();}}
-/* a card was saved or cancelled: once every held card is done, the model hears back and carries on */
-function botCardDone(c,result){
-  c.state=result.ok?"saved":"cancelled";c.result=result;
-  const H=BOT.held;
-  if(!H||!H.ids.includes(c.id)){ /* left open earlier: tell the model with the next message */
-    BOT.notes.push(result.ok?"I saved the "+botCardName(c.tool)+" card: "+result.summary+(result.id?" (id "+result.id+")":"")+".":"I didn't save the "+botCardName(c.tool)+" card.");
-    botSave();botPaint();return;}
-  const open=H.ids.filter(id=>BOT.cards[id]&&BOT.cards[id].state==="open");
-  botSave();botPaint();if(open.length)return;
-  const content=H.results.slice();
-  H.ids.forEach(id=>{const x=BOT.cards[id];content.push({type:"tool_result",tool_use_id:x.tuid,content:JSON.stringify(x.result||{ok:false})});});
-  BOT.held=null;BOT.msgs.push({role:"user",content:content});botRun();}
-function botCardName(t){return {propose_contact:"contact",propose_account:"account",propose_activity:"activity",propose_opportunity:"deal",mail_merge:"email batch"}[t]||"card";}
-/* ---------- read tools ---------- */
-function botTool(name,x){
-  if(name==="search_crm")return botSearch(x.query,x.kinds);
-  if(name==="get_record")return botRecord(x.id,x.kind);
-  if(name==="my_numbers")return botNumbers(x.period,x.rep);
-  if(name==="who_covers")return botCovers(x.state,x.distributor);
-  if(name==="build_list")return botList(x.request,x.name);
-  if(name==="find_people")return botFindPeople(x);
-  if(name==="email_batches")return botEmailBatches();
-  if(name==="find_literature")return botLits(x.market);
-  if(name==="make_literature")return botMakeLit(x);
-  return {error:"unknown tool "+name};}
-function botStates(p){return personStates(p).map(s=>String(s).toUpperCase().slice(0,2));}
-function botPersonBrief(p){const c=company(p.cid);return {id:p.id,name:p.name,title:p.role||"",company:c?c.name:(p.branch||""),company_id:c?c.id:"",company_type:c?c.type:"",
-  email:p.email||"",phone:p.phone||"",mobile:p.mobile||"",city:p.city||"",states:botStates(p),last_touch:p.last?localDay(p.last):""};}
-function botCoBrief(c){return {id:c.id,name:c.name,type:c.type,distributor_status:c.type==="distributor"?distStatus(c):"",city:c.city||"",state:c.state||"",region:companyRegion(c)||"",contacts:DB.people.filter(p=>p.cid===c.id).length};}
-function botMyOpp(o){return !ownOnly()||oppGhRep(o)===USER;}
-function botMyQuote(q){return !ownOnly()||q.by===USER;}
-function botOppBrief(o){return {id:o.id,name:o.name,customer:oppAcctLabel(o),closing_distributor:o.direct?"Direct sale":oppDistLabel(o),stage:o.stage,stage_name:OPP_SHORT[o.stage]||o.stage,
-  kits:o.units||0,amount:o.amount||0,expected_close:o.closeDate||"",next_step:o.nextAction||"",next_step_date:o.nextActionDate||"",sales_person:shortName(oppGhRep(o)||"")||""};}
-function botQuoteBrief(q){return {id:q.id,no:q.no,date:q.date||"",customer:q.account||"",contact:q.contactName||"",total:quoteTotal(q),kits:quoteUnits(q),status:quoteState(q),deal_id:q.oppId||""};}
-function botSearch(q,kinds){
-  q=String(q||"").trim().toLowerCase();if(q.length<2)return {error:"Search needs at least two letters"};
-  const K=new Set(kinds&&kinds.length?kinds:["contact","account","deal","quote","lead"]),words=q.split(/\s+/).filter(Boolean),dq=q.replace(/\D/g,"");
-  const hit=a=>{const h=a.filter(Boolean).join(" ").toLowerCase();return words.every(w=>h.includes(w));};
-  const ph=a=>dq.length>=7&&a.some(x=>dialDigits(x).includes(dq.slice(-10)));
-  const out={};
-  if(K.has("contact"))out.contacts=DB.people.filter(p=>{const c=company(p.cid);return hit([p.name,p.email,p.role,c&&c.name,p.branch,p.city,p.state,(p.states||[]).join(" ")])||ph([p.phone,p.mobile]);}).slice(0,12).map(botPersonBrief);
-  if(K.has("account"))out.accounts=DB.companies.filter(c=>hit([c.name,c.city,c.state,c.industry,c.website])).slice(0,12).map(botCoBrief);
-  if(K.has("deal"))out.deals=myOpps().filter(o=>botMyOpp(o)&&hit([o.name,oppAcctLabel(o),oppDistLabel(o),o.state])).slice(0,12).map(botOppBrief);
-  if(K.has("quote"))out.quotes=quotesAll().filter(x=>botMyQuote(x)&&hit([x.no,x.account,x.contactName,x.contactEmail])).slice(0,12).map(botQuoteBrief);
-  if(K.has("lead")){ensureLeads();
-    out.leads=DB.leads.filter(l=>!l.removed&&(hit([l.name,l.company,l.email,l.city,l.state,l.conf])||ph([l.phone]))).slice(0,8).map(l=>({id:l.id,kind:"lead",name:l.name,company:l.company||"",email:l.email||"",phone:l.phone||"",state:l.state||"",source:l.conf||""}))
-      .concat((DB.confLeads||[]).filter(l=>hit([l.name,l.company,l.email,l.city,l.state,l.conf])||ph([l.phone])).slice(0,8).map(l=>({id:l.id,kind:"conference lead",name:l.name,company:l.company||"",email:l.email||"",phone:l.phone||"",state:l.state||"",source:l.conf||""})));}
-  if(ownOnly())out.note="Deals and quotes: only yours.";
-  return out;}
-function botRecord(id,kind){
-  if(kind==="contact"){const p=person(id);if(!p)return {error:"No contact with that id"};
-    const acts=actsForPerson(id).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,8)
-      .map(a=>({date:localDay(a.date),type:actLabel(a.type,a),by:a.by===USER?"you":shortName(a.by||""),note:String(a.note||"").slice(0,180)}));
-    const deals=myOpps().filter(o=>oppIsOpen(o)&&botMyOpp(o)&&((o.contacts||[]).some(c=>c.pid===id)||o.distRepPid===id||o.manrepPid===id||(p.cid&&o.accountId===p.cid))).slice(0,6).map(botOppBrief);
-    return Object.assign(botPersonBrief(p),{region:personRegion(p)||"",kind:contactType(p)||"",territory_rep:shortName(repForRegion(personRegion(p))||"")||"",history:acts,open_deals:deals,email_note:/verify before sending/i.test(String(p.note||"")+" "+String(p.emailNote||""))?"verify before sending":""});}
-  if(kind==="account"){const c=company(id);if(!c)return {error:"No account with that id"};
-    const ppl=DB.people.filter(p=>p.cid===id);
-    return Object.assign(botCoBrief(c),{industry:c.industry||"",website:c.website||"",territory_rep:shortName(repForRegion(companyRegion(c))||"")||"",
-      buys_from:(c.buysFrom||[]).map(b=>(b.first?"★ ":"")+(b.cid&&company(b.cid)?company(b.cid).name:b.name)),
-      people:ppl.slice(0,15).map(p=>({id:p.id,name:p.name,title:p.role||"",states:botStates(p),phone:p.phone||"",email:p.email||""})),people_total:ppl.length,
-      units_bought:c.units||0,orders:c.orders||0,demo_units:c.demoCount||0,
-      part_numbers:botPartNos(c),recent_orders:botAcctOrders(c),
-      your_open_deals:myOpps().filter(o=>oppIsOpen(o)&&botMyOpp(o)&&(o.accountId===id||o.distributorId===id)).slice(0,8).map(botOppBrief),
-      your_quotes:quotesAll().filter(q=>botMyQuote(q)&&(q.cid===id||q.distCid===id)).slice(0,6).map(botQuoteBrief)});}
-  if(kind==="deal"){const o=(DB.opps||[]).find(x=>x.id===id);if(!o)return {error:"No deal with that id"};if(!botMyOpp(o))return {error:"That deal belongs to another rep"};
-    return Object.assign(botOppBrief(o),{state:o.state||"",deal_type:o.dealType||"",why:o.probReason||"",last_contact:o.lastContact||"",
-      people:(o.contacts||[]).map(c=>({id:c.pid,name:(person(c.pid)||{}).name||"",role:c.role})),quotes:oppQuotes(o).map(botQuoteBrief),latest_note:String(o.note||"").slice(0,300)});}
-  if(kind==="quote"){const q=quoteById(id);if(!q)return {error:"No quote with that id"};if(!botMyQuote(q))return {error:"That quote belongs to another rep"};
-    return Object.assign(botQuoteBrief(q),{level:q.level==="dist"?"distributor price":"list price",lines:(q.items||[]).map(i=>({part:i.sku,name:i.name,qty:i.qty,each:i.unit})),buy_through:q.distName||"",valid_days:q.validDays||""});}
-  if(kind==="lead"){ensureLeads();const l=DB.leads.find(x=>x.id===id)||(DB.confLeads||[]).find(x=>x.id===id);if(!l)return {error:"No lead with that id"};
-    return {id:l.id,name:l.name,company:l.company||"",title:l.title||"",email:l.email||"",phone:l.phone||"",city:l.city||"",state:l.state||"",source:l.conf||"",notes:String(l.notes||l.note||"").slice(0,400),
-      touches:(l.touches||l.calls||[]).slice(-5).map(t=>({date:localDay(t.date||t.at),how:t.method||t.out||"",note:String(t.note||"").slice(0,140)}))};}
-  return {error:"Unknown kind"};}
-function botRange(p){const T=new Date();T.setHours(0,0,0,0);const mon=new Date(T);mon.setDate(T.getDate()-((T.getDay()+6)%7));let a,b=todayStr();
-  if(p==="today")a=b;
-  else if(p==="this_week")a=ymd(mon);
-  else if(p==="last_week"){const s=new Date(mon);s.setDate(mon.getDate()-7);const e=new Date(mon);e.setDate(mon.getDate()-1);a=ymd(s);b=ymd(e);}
-  else if(p==="this_month")a=ymd(new Date(T.getFullYear(),T.getMonth(),1));
-  else if(p==="last_month"){a=ymd(new Date(T.getFullYear(),T.getMonth()-1,1));b=ymd(new Date(T.getFullYear(),T.getMonth(),0));}
-  else if(p==="this_quarter")a=ymd(new Date(T.getFullYear(),Math.floor(T.getMonth()/3)*3,1));
-  else if(p==="ytd")a=ymd(new Date(T.getFullYear(),0,1));
-  else{const s=new Date(T);s.setDate(T.getDate()-29);a=ymd(s);}
-  return [a,b];}
-function botNumbers(period,rep){
-  const who=profile()==="admin"&&rep&&TEAM.some(t=>t.id===rep)?rep:USER;
-  if(rep&&rep!==USER&&who===USER&&ownOnly())return {error:"You only see your own numbers. Your manager can see the team's."};
-  const [a,b]=botRange(period),inR=d=>{d=localDay(d);return !!d&&d>=a&&d<=b;};
-  const open=myOpps().filter(o=>oppIsOpen(o)&&oppGhRep(o)===who);
-  const won=myOpps().filter(o=>o.stage==="Closed Won"&&oppGhRep(o)===who&&inR(o.closeDate||o.updatedAt||o.createdAt));
-  const qs=quotesAll().filter(q=>q.by===who&&inR(q.date||q.createdAt));
-  const ords=(DB.orders||[]).filter(o=>orderIsSale(o)&&orderRep(o)===who&&inR(o.poDate));
-  const acts=(DB.activities||[]).filter(x=>x&&x.by===who&&inR(x.date)),byType={};
-  acts.forEach(x=>{const k=x.vm?"voicemail":x.type;byType[k]=(byType[k]||0)+1;});
-  let fu=[];try{fu=fuItems(who);}catch(e){}
-  return {rep:teamById(who).name,period:period,from:a,to:b,
-    open_pipeline:{deals:open.length,kits:open.reduce((s,o)=>s+(o.units||0),0),amount:Math.round(open.reduce((s,o)=>s+(o.amount||0),0)),by_stage:OPP_STAGES.filter(s=>oppIsOpen({stage:s})).map(s=>({stage:OPP_SHORT[s],deals:open.filter(o=>o.stage===s).length}))},
-    deals_won:{deals:won.length,kits:won.reduce((s,o)=>s+(o.units||0),0),amount:Math.round(won.reduce((s,o)=>s+(o.amount||0),0))},
-    quotes:{count:qs.length,total:Math.round(qs.reduce((s,q)=>s+quoteTotal(q),0)),kits:qs.reduce((s,q)=>s+quoteUnits(q),0)},
-    orders_sold:{orders:ords.length,kits:ords.reduce((s,o)=>s+orderUnits(o),0),amount:Math.round(ords.reduce((s,o)=>s+(o.amount||0),0))},
-    activity:{total:acts.length,by_type:byType},follow_ups:{open:fu.length,late:fu.filter(x=>x.late).length,late_list:fu.filter(x=>x.late).slice(0,5).map(x=>x.due+" · "+x.title+(x.sub?" · "+x.sub:""))}};}
-function botCovers(state,dist){
-  const st=String(state||"").trim().toUpperCase().slice(0,2);if(!Object.values(STATE_NAMES).includes(st))return {error:"Give a two-letter US state"};
-  const reg=regionFromState(st),rid=repForRegion(reg),dq=String(dist||"").trim().toLowerCase();
-  const inSt=p=>botStates(p).includes(st);
-  const ds=DB.companies.filter(c=>c.type==="distributor"&&(dq?String(c.name).toLowerCase().includes(dq):distStatus(c)==="setup")).map(c=>{
-    const reps=DB.people.filter(p=>p.cid===c.id&&inSt(p));
-    return {id:c.id,name:c.name,status:distStatus(c),reps_in_state:reps.length,reps:reps.slice(0,5).map(p=>({id:p.id,name:p.name,title:p.role||"",phone:p.phone||"",email:p.email||""}))};})
-    .filter(x=>x.reps_in_state||dq).sort((x,y)=>y.reps_in_state-x.reps_in_state).slice(0,10);
-  const mr=DB.people.filter(p=>contactType(p)==="manrep"&&inSt(p)).slice(0,8).map(p=>({id:p.id,name:p.name,company:(company(p.cid)||{}).name||"",phone:p.phone||""}));
-  return {state:st,territory:reg,golden_hour_rep:rid&&!vacant(rid)?teamById(rid).name:"Open seat",distributors:ds,man_reps:mr,
-    end_user_accounts:DB.companies.filter(c=>c.type==="enduser"&&String(c.state||"").toUpperCase()===st).length,
-    demo_units:(DB.demos||[]).filter(d=>String(d.state||"").toUpperCase()===st).length};}
-function botList(request,name){
-  const f=listRead(String(request||""));const keep=expF;
-  expF={mode:"contacts",acctCid:f.acctCid,acctTxt:"",types:f.who==="all"?[]:[f.who],dstatus:f.dstatus,states:f.states.join(", "),region:f.region,needEmail:false,needPhone:false,q:f.q.toLowerCase()};
-  let d;try{d=expRows();}finally{expF=keep;}
-  const chips=listReadChips(f),objs=d.objs;
-  const id="c"+(++BOT.n)+uid();
-  BOT.cards[id]={id:id,tool:"build_list",state:"open",v:{request:request,name:name||(chips.join(" — ")+" · "+new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"})),chips:chips,pids:objs.map(p=>p.id)}};
-  BOT.ui.push({k:"card",id:id});
-  return {count:objs.length,read_as:chips,with_phone:objs.filter(p=>p.phone).length,first:objs.slice(0,15).map(p=>p.name+" · "+((company(p.cid)||{}).name||p.branch||"")+" · "+botStates(p).join(" ")),
-    shown:"The rep sees the list with a Save list button."};}
-function botLitPool(market){const hay=String(market||"");const isDist=/distribut|reseller|channel|grainger|fastenal|ritz|ballard|dealer/i.test(hay);
-  const pool=DIAL_LIT.filter(l=>!!l.dist===isDist),seen=new Set();
-  return pool.filter(l=>l.m&&l.m.test(hay)).concat(pool.filter(l=>l.any)).filter(l=>!seen.has(l.id)&&seen.add(l.id)).slice(0,6);}
-/* find_people (Max, 2026-11-23: "leads in Texas that haven't been touched from our 2026 conferences", "a call list for Texas EMS
-   people", "Grainger contacts in southern California"): contacts, Leads and conference leads by state, place (city, county, metro,
-   or a Grainger district / territory name — Grainger sellers carry those, not cities), area code, title / industry words,
-   company, kind, conference and "nobody has touched them" (no call, no logged touch, no email). A conference lead that became a
-   contact is listed once, as the contact; a conference lead pushed to Leads is listed once, as the conference lead. */
-function botRx(words){const w=(words||[]).map(x=>String(x||"").trim().toLowerCase()).filter(Boolean);if(!w.length)return null;
-  return new RegExp("(^|[^a-z0-9])("+w.map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")(?=$|[^a-z0-9])","i");}
-function botRowObj(r){const k=r[0],id=r[1];
-  const o=k==="p"?person(id):k==="cl"?(DB.confLeads||[]).find(l=>l.id===id):(DB.leads||[]).find(l=>l.id===id);
-  return o?{k:k,o:o}:null;}
-function botFindPeople(x){
-  x=x||{};const src=new Set(x.sources&&x.sources.length?x.sources:["contacts","leads","conference_leads"]);
-  const sts=(x.states||[]).map(s=>String(s).trim().toUpperCase().slice(0,2)).filter(Boolean);
-  const placeRx=botRx(x.places),kwRx=botRx(x.keywords),acs=(x.area_codes||[]).map(a=>String(a).replace(/\D/g,"")).filter(a=>a.length===3);
-  const coq=String(x.company||"").trim().toLowerCase(),conf=String(x.conference||"").trim().toLowerCase(),kind=x.kind||"any";
-  const where=(stList,placeHay,phones)=>{
-    if(sts.length&&!stList.some(s=>sts.includes(s)))return false;
-    if(!placeRx&&!acs.length)return true;
-    if(placeRx&&placeRx.test(placeHay))return true;
-    return acs.length>0&&phones.some(ph=>{const d=dialDigits(ph);return !!d&&acs.includes(d.slice(0,3));});};
-  ensureLeads();const out=[];
-  const clIds=new Set((DB.confLeads||[]).map(l=>l.id));
-  const leadByRef=new Map(DB.leads.filter(l=>!l.removed&&l.refId).map(l=>[l.refId,l]));
-  const actPids=new Set((DB.activities||[]).map(a=>a&&a.pid).filter(Boolean));
-  const pTouched=p=>!!p.last||actPids.has(p.id);
-  if(src.has("contacts")&&!conf)DB.people.forEach(p=>{
-    const c=company(p.cid),k=contactType(p)||"enduser";
-    if((kind==="end_user"&&k!=="enduser")||(kind==="distributor_rep"&&k!=="distrep")||(kind==="man_rep"&&k!=="manrep"))return;
-    if(coq&&!String((c&&c.name)||p.branch||"").toLowerCase().includes(coq))return;
-    if(!where(botStates(p),[p.city,p.territory,p.district,p.branch,p.address,p.note].join(" "),[p.phone,p.mobile]))return;
-    if(kwRx&&!kwRx.test([p.role,c&&c.name,c&&c.industry,p.branch,p.district].join(" ")))return;
-    if(x.has_phone&&!(p.phone||p.mobile))return;
-    const t=pTouched(p);if(x.untouched&&t)return;
-    out.push({k:"p",o:p,row:{id:p.id,source:"contact",name:p.name,title:p.role||"",company:(c&&c.name)||p.branch||"",city:p.city||"",state:botStates(p).join(" "),
-      area:p.district||p.territory||"",phone:p.phone||p.mobile||"",email:p.email||"",last_touch:p.last?localDay(p.last):"",touched:t?"yes":"no"}});});
-  const clTouched=l=>{if((l.calls||[]).length||l.lastCall||l.contactedAt||l.contacted)return "called";
-    const cp=l.refPid&&person(l.refPid);if(cp&&pTouched(cp))return "worked as a contact";
-    const ld=leadByRef.get(l.id);if(ld&&(ld.touches||[]).length)return "worked in Leads";
-    return l.lastEmail?"emailed":"";};
-  if(src.has("conference_leads"))(DB.confLeads||[]).forEach(l=>{
-    if(!l||l.removed)return;
-    if(conf&&!String(l.conf||"").toLowerCase().includes(conf))return;
-    const seg=String(l.segment||"");
-    if(kind==="end_user"&&/distributor|set aside/i.test(seg))return;
-    if((kind==="distributor_rep"||kind==="man_rep")&&!/distributor|rep/i.test(seg))return;
-    if(coq&&!String(l.company||"").toLowerCase().includes(coq))return;
-    if(!where([String(l.state||"").toUpperCase().slice(0,2)],[l.city,l.notes].join(" "),[l.phone]))return;
-    if(kwRx&&!kwRx.test([l.title,l.company,l.notes,seg].join(" ")))return;
-    if(x.has_phone&&!l.phone)return;
-    const t=clTouched(l);if(x.untouched&&t)return;
-    out.push({k:"cl",o:l,row:{id:l.id,source:"conference lead",conference:l.conf||"",name:l.name,title:l.title||"",company:l.company||"",city:l.city||"",state:l.state||"",
-      phone:l.phone||"",email:l.email||"",status:l.status||"",interest:l.temp||"",touched:t||"no",
-      last_call:(l.calls||[]).length?localDay(l.calls[l.calls.length-1].at)+" by "+(l.calls[l.calls.length-1].by===USER?"you":shortName(l.calls[l.calls.length-1].by||"")||"a teammate"):""}});});
-  if(src.has("leads"))DB.leads.forEach(l=>{
-    if(!l||l.removed||(l.refId&&clIds.has(l.refId)&&src.has("conference_leads")))return;
-    if(conf&&!String(l.conf||"").toLowerCase().includes(conf))return;
-    const dist=l.kind==="distributor"||/distributor/i.test(String(l.segment||""));
-    if((kind==="end_user"&&dist)||((kind==="distributor_rep"||kind==="man_rep")&&!dist))return;
-    if(coq&&!String(l.company||"").toLowerCase().includes(coq))return;
-    if(!where([String(l.state||"").toUpperCase().slice(0,2)],[l.city,l.notes,l.note].join(" "),[l.phone]))return;
-    if(kwRx&&!kwRx.test([l.title,l.company,l.notes,l.note,l.segment,l.conf].join(" ")))return;
-    if(x.has_phone&&!l.phone)return;
-    const t=(l.touches||[]).length?"worked in Leads":"";if(x.untouched&&t)return;
-    out.push({k:"lead",o:l,row:{id:l.id,source:"lead",conference:l.conf||"",name:l.name,title:l.title||"",company:l.company||"",city:l.city||"",state:l.state||"",
-      phone:l.phone||"",email:l.email||"",handed_to:l.assignee?shortName(l.assignee):"",touched:t||"no"}});});
-  const pids=new Set(out.filter(r=>r.k==="p").map(r=>r.o.id));
-  /* one row per person: a conference lead promoted to a contact, or the same email / name+company seen again, is dropped (contacts come first) */
-  const seen=new Set(),nk=s=>String(s||"").toLowerCase().replace(/[^a-z0-9]+/g,"");
-  const res=out.filter(r=>{if(r.k==="cl"&&r.o.refPid&&pids.has(r.o.refPid))return false;
-    const em=String(r.row.email||"").trim().toLowerCase(),nm=nk(r.row.name)+"|"+nk(r.row.company).slice(0,12);
-    if((em&&seen.has("e:"+em))||seen.has("n:"+nm))return false;if(em)seen.add("e:"+em);seen.add("n:"+nm);return true;});
-  const by={};res.forEach(r=>{by[r.row.source]=(by[r.row.source]||0)+1;});
-  const chips=[sts.join(", "),(x.places||[]).slice(0,3).join(" / "),(x.area_codes||[]).length?"area codes "+x.area_codes.slice(0,4).join(" "):"",(x.keywords||[]).slice(0,3).join(" / "),
-    x.company||"",x.conference?"conference "+x.conference:"",x.untouched?"not touched":"",x.has_phone?"with a phone":""].filter(Boolean);
-  if(res.length){const id="c"+(++BOT.n)+uid();
-    BOT.cards[id]={id:id,tool:"build_list",state:"open",v:{request:chips.join(" · "),name:chips.join(" · ")+" · "+new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"}),chips:chips,rows:res.slice(0,500).map(r=>[r.k,r.o.id])}};
-    BOT.ui.push({k:"card",id:id});}
-  return {count:res.length,by_source:by,with_phone:res.filter(r=>r.row.phone).length,with_email:res.filter(r=>r.row.email).length,
-    rows:res.slice(0,40).map(r=>r.row),not_shown:Math.max(0,res.length-40),
-    shown:res.length?"The rep sees all of them (up to 500) with a Save list button.":"Nothing matched. Try fewer filters or other words."};}
-/* each distributor's own AutoTQ brochure (2 pp) + Fleet Safety Catalog (6 pp), 2026-11-19, with its logo and item numbers — on the
-   GHM Hub (reps open them with their Microsoft sign-in). Folder = distributor name; files AutoTQ_<stem>_Brochure.pdf / _Fleet_Safety_Catalog.pdf */
-const DIST_PIECES_BASE="https://netorg13317017.sharepoint.com/sites/GHMHub/Shared%20Documents/Sales%20Literature/Distributor%20Brochures/";
-const DIST_PIECES=["AED Authority","AED Professionals","Advocates4Health","Ballard Industrial","CPR Savers","Campbell Supply Company","Central Welding Supply",
-  "Copperstate","Coro Medical","Culpeper CPR","D&M Distributors","Dixie EMS","Fastenal","Gallaway Safety","Grainger","Immediate Response Training","Industrial Supply",
-  "K-Safety","LeeSar","MSC Industrial Supply","Mars Supply","Medique","Morton Safety","Packer Fastener","Rescue One","Ritz Safety","Safety Products Inc","Sent911",
-  "UniFirst","William V. MacGill & Co","Zoro"];
-function distPiecesFor(text){const t=" "+String(text||"").toLowerCase().replace(/[^a-z0-9&]+/g," ")+" ";
-  const hit=DIST_PIECES.find(d=>t.includes(" "+d.toLowerCase().replace(/[^a-z0-9&]+/g," ").trim()+" "))||
-    DIST_PIECES.find(d=>{const w=d.toLowerCase().split(/[^a-z0-9]+/).filter(x=>x.length>=4&&!/^(safety|supply|medical|industrial|company|distributors|products|response|training|welding|central)$/.test(x));return w.some(x=>t.includes(" "+x+" "));});
-  if(!hit)return null;
-  const stem=hit.replace(/&/g,"and").replace(/[^A-Za-z0-9]+/g,"_").replace(/^_|_$/g,""),dir=DIST_PIECES_BASE+encodeURIComponent(hit)+"/";
-  return {name:hit,brochure:dir+"AutoTQ_"+stem+"_Brochure.pdf",catalog:dir+"AutoTQ_"+stem+"_Fleet_Safety_Catalog.pdf"};}
-/* a distributor account's part numbers (theirs beside ours), the price on file and its recent POs */
-function botPartNos(c){const out=[];
-  (DB.skus||[]).forEach(s=>{const v=(c.partNos||{})[s.id];if(v)out.push({our_part:s.mpn||"",name:s.name||"",their_part:v});});
-  (c.pnRows||[]).forEach(r=>{const d=(c.pnData||{})[r.id]||{},row={our_part:r.mpn||"",name:r.name||""};
-    (c.pnCols||[]).forEach(col=>{if(d[col.id])row[col.label]=d[col.id];});if(Object.keys(row).length>2)out.push(row);});
-  return out;}
-function botAcctOrders(c){return (DB.orders||[]).filter(o=>{if(!o||o.dupOf||!(+o.amount>0))return false;const oc=orderCompany(o);return !!oc&&oc.id===c.id;})
-  .sort((a,b)=>String(b.poDate||"").localeCompare(String(a.poDate||""))).slice(0,6)
-  .map(o=>({po:o.poNo||"",date:o.poDate||"",status:o.status||"",amount:+o.amount||0,lines:(o.items||[]).map(i=>({part:i.sku,qty:i.qty,each:i.unit}))}));}
-/* TQbot's log (Max, 2026-11-23: "have each of their TQbot entries be saved based on date in their home tabs… their week… TQbot sent
-   out 111 emails to this person, this person and this person"). One synced record per thing TQbot did for someone, in collection
-   `botLog`: {id, by, at, day (local YYYY-MM-DD), kind, sub, n, names[], extra, src}. kind = contact | account | activity (sub = the
-   log type) | deal | list | onepager | email_draft | email_sent; src = "tqbot", or "mailmerge" for emails the Outlook mail-merge add-in
-   sends (it writes the same records). Home shows the signed-in person's week (an admin's Home: the rep picked in "Whose week"), the
-   teammate page shows that person's, Sunday to Saturday like the week strip, newest day first, ‹ › for earlier weeks. */
-function botLogs(){DB.botLog=DB.botLog||[];return DB.botLog;}
-function botLogAdd(kind,o){try{
-  const r=Object.assign({id:"bl_"+uid()+uid(),by:USER,at:new Date().toISOString(),day:todayStr(),kind:kind,src:"tqbot",n:1,names:[]},o||{});
-  r.names=(r.names||[]).map(x=>String(x||"").trim()).filter(Boolean).slice(0,200);botLogs().unshift(r);save();}catch(e){console.warn("TQbot log",e);}}
-/* what a saved card leaves in the log */
-function botLogCard(c,r){const v=c.v||{};
-  if(c.tool==="propose_contact"){const p=person(r.contact_id||r.id);botLogAdd("contact",{names:[p?p.name:v.name],extra:r.account_id&&!v.company_id&&company(r.account_id)?"new account "+company(r.account_id).name:""});}
-  else if(c.tool==="propose_account")botLogAdd("account",{names:[(company(r.id)||{}).name||v.name]});
-  else if(c.tool==="propose_activity"){const p=person(v.person_id);botLogAdd("activity",{sub:v.type,names:[p?p.name:""],extra:botVal(v,"follow_up_date")?"follow-up "+new Date(botVal(v,"follow_up_date")+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}):""});}
-  else if(c.tool==="propose_opportunity"){const o=(DB.opps||[]).find(x=>x.id===r.id);botLogAdd("deal",{names:[o?o.name:v.name],extra:o?(o.units||0)+" kits · "+money(o.amount||0):""});}}
-const BOT_LOG_WORDS={contact:["Added","contact","contacts"],account:["Added","account","accounts"],deal:["Started","deal","deals"],list:["Built","call list","call lists"],
-  onepager:["Made","one-pager","one-pagers"],email_draft:["Wrote","email","emails"],email_sent:["Sent","email","emails"]};
-const BOT_LOG_ACTS={call:["call","calls"],email:["email","emails"],visit:["visit","visits"],training:["training","trainings"],demo:["demo","demos"],note:["note","notes"]};
-function botLogLine(g){
-  let verb,one,many;
-  if(g.kind==="activity"){const a=BOT_LOG_ACTS[g.sub]||["activity","activities"];verb="Logged";one=a[0];many=a[1];}
-  else{const w=BOT_LOG_WORDS[g.kind]||["Did","thing","things"];verb=w[0];one=w[1];many=w[2];}
-  const names=g.names,shown=names.slice(0,8),rest=names.length-shown.length;
-  const to=g.kind==="email_sent"?" to ":": ";
-  return '<div class="tqlog"><span class="tqlk">'+esc(verb+" "+g.n+" "+(g.n===1?one:many))+'</span>'+(names.length?esc(to)+esc(shown.join(", ")):"")+
-    (g.extra.length?' <span class="t2" style="display:inline">· '+esc(g.extra.slice(0,3).join(" · "))+'</span>':'')+
-    (rest>0?'<details class="tqmore"><summary>and '+rest+' more</summary>'+esc(names.slice(8).join(", "))+'</details>':'')+'</div>';}
-function botWeekHTML(who){
-  const off=Math.min(0,logState.botWk||0),days=weekOf(dAdd(todayStr(),7*off));
-  const mine=botLogs().filter(r=>r&&r.by===who&&r.day>=days[0]&&r.day<=days[6]);
-  const lbl=d=>new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
-  const when=off===0?"this week":off===-1?"last week":lbl(days[0])+" – "+lbl(days[6]);
-  const sent=mine.filter(r=>r.kind==="email_sent").reduce((s,r)=>s+(+r.n||1),0);
-  let h='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">'+(who===USER?"TQbot ":"TQbot for "+esc(shortName(who))+" ")+esc(when)+
-    (mine.length?' <span class="cnt">'+mine.length+(sent?' · '+sent+' emails sent':'')+'</span>':'')+'</div>'+
-    '<span style="margin-left:auto;display:flex;gap:4px"><button class="ibtn" data-act="botwk" data-v="-1" title="Earlier week" aria-label="Earlier week">'+svg("chevL")+'</button>'+
-    '<button class="ibtn" data-act="botwk" data-v="1" title="Later week" aria-label="Later week"'+(off>=0?" disabled":"")+'>'+svg("chevR")+'</button></span></div>';
-  if(!mine.length)return h+'<div class="card tqlogs"><p class="t2" style="margin:0">Nothing from TQbot '+(off===0?"yet this week":"that week")+'.</p>'+
-    (who===USER&&botAccess()?'<button class="btn sm" data-act="tqbot" style="margin-top:8px">'+BRAND_MARK+' Ask TQbot</button>':'')+'</div>';
-  const byDay={};mine.forEach(r=>{(byDay[r.day]=byDay[r.day]||[]).push(r);});
-  h+='<div class="card tqlogs">'+days.slice().reverse().filter(d=>byDay[d]).map(d=>{
-    const groups={},order=[];
-    byDay[d].slice().reverse().forEach(r=>{const k=r.kind+(r.sub?":"+r.sub:"");let g=groups[k];if(!g){g=groups[k]={kind:r.kind,sub:r.sub,n:0,names:[],extra:[]};order.push(k);}
-      g.n+=(+r.n||1);(r.names||[]).forEach(x=>{if(!g.names.includes(x))g.names.push(x);});if(r.extra)g.extra.push(r.extra);});
-    return '<div class="tqday"><p class="tqdh">'+esc(d===todayStr()?"Today":lbl(d))+'</p>'+order.map(k=>botLogLine(groups[k])).join("")+'</div>';}).join("")+'</div>';
-  return h;}
-/* Outlook mail-merge batches (2026-11-23, built with the mail-merge session; Max: "it should first send a preview to their inbox and then
-   they can go ahead and confirm it on AutoTQ bot"). A rep writes an email in Outlook with {{name}} / {{company}} and clicks AutoTQ › Send
-   personal copies; edge function `mail-merge` queues the batch as "awaiting" and mails the rep a preview with a link to <CRM>?merge=<jobId>.
-   Nothing goes out until the rep presses Send on this card (action "confirm"); Cancel stops a waiting batch or the rest of a sending one.
-   Cards come from that link, from opening TQbot (awaiting batches, checked at most once a minute) and from TQbot's propose_email_batch. */
-const MERGE_FN="/functions/v1/mail-merge";
-async function mergeApi(body){try{const r=await supa(MERGE_FN,{method:"POST",body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));return Object.assign({status:r.status},j);}
-  catch(e){return {status:0,ok:false,error:"offline"};}}
-function mergeCardFor(id){return Object.values(BOT.cards).find(c=>c.tool==="mail_merge"&&c.v.job&&c.v.job.id===id)||null;}
-function mergeAddCard(job,tuid){let c=mergeCardFor(job.id);
-  if(c){c.v.job=Object.assign({},c.v.job,job);if(tuid){c.tuid=tuid;if(job.status==="awaiting"||!c.v.job.status||c.v.job.status==="awaiting")c.state="open";}return c;}
-  const id="c"+(++BOT.n)+uid();c=BOT.cards[id]={id:id,tuid:tuid||"",tool:"mail_merge",state:(job.status||"awaiting")==="awaiting"?"open":"info",v:{job:job}};
-  BOT.ui.push({k:"card",id:id});return c;}
-function mergeBrief(j){return {id:j.id,subject:j.subject||"",status:j.status,to_send:j.toSend||0,sent:j.sent||0,failed:j.failed||0,held:j.held||0,
-  names:j.names||[],held_back:(j.heldList||[]).slice(0,10),created:j.createdAt||"",confirmed:j.confirmedAt||"",done:j.doneAt||""};}
-async function botMergeLoad(focusId){
-  if(BOT.mergeBusy)return null;BOT.mergeBusy=true;
-  const r=await mergeApi({action:"pending"});BOT.mergeBusy=false;BOT.mergeAt=Date.now();
-  if(!r.ok){if(focusId){botSay("err",r.signin?"Sign in again to confirm that email batch.":"Couldn't load that email batch ("+(r.error||("error "+r.status))+").");botSave();botPaint();}return r;}
-  BOT.mergeLeft=r.todayLeft;
-  const jobs=r.jobs||[];
-  jobs.forEach(j=>{const c=mergeCardFor(j.id);
-    if(c){c.v.job=j;if(c.state==="open"&&j.status!=="awaiting"){c.state="info";if(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id))botCardDone(c,{ok:false,error:"That batch is "+j.status+" already."});}}
-    else if(j.status==="awaiting"||j.id===focusId)mergeAddCard(j);});
-  /* a card the model put up for a batch that isn't on the list any more */
-  Object.values(BOT.cards).filter(c=>c.tool==="mail_merge"&&c.state==="open"&&!jobs.some(j=>j.id===c.v.job.id)).forEach(c=>{c.state="info";
-    if(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id))botCardDone(c,{ok:false,error:"No batch with that id is waiting."});});
-  if(focusId&&!jobs.some(j=>j.id===focusId))botSay("err","That email batch isn't waiting any more. It may have been sent or cancelled.");
-  BOT.scrollEnd=true;botSave();botPaint();return r;}
-async function botEmailBatches(){const r=await botMergeLoad();
-  if(!r||!r.ok)return {error:r&&r.signin?"The rep needs to sign in again.":"Couldn't reach the email batches ("+((r&&r.error)||"error")+")."};
-  return {today_left:r.todayLeft,batches:(r.jobs||[]).map(mergeBrief),note:"Waiting batches are on the rep's screen as cards with Send and Cancel."};}
-function botMergeCardHTML(c){const j=c.v.job||{},n=j.toSend||0,names=j.names||[];
-  const st=j.status==="cancelled"?["Cancelled","gray"]:j.status==="done"?["Sent","ok"]:j.status==="sending"?["Sending","info"]:j.status==="awaiting"?["Waiting for you","warn"]:["Loading","gray"];
-  let h='<div class="tqc'+(c.state==="open"?"":" done")+'" data-cid="'+c.id+'"><div class="tqch">'+svg("mail")+'<b>Email batch</b><span class="pill '+st[1]+'">'+st[0]+'</span></div>'+
-    '<p class="tqcx"><b>'+esc(j.subject||"…")+'</b></p>'+
-    (n?'<p class="tqcx">To '+n+' '+(n===1?"person":"people")+(names.length?': '+esc(names.join(", "))+(n>names.length?' and '+(n-names.length)+' more':''):'')+'</p>':'');
-  if(j.status==="sending"||j.status==="done")h+='<p class="tqcx">'+(j.sent||0)+' sent'+(j.failed?' · '+j.failed+' failed':'')+(j.status==="sending"?' · '+Math.max(0,n-(j.sent||0)-(j.failed||0))+' to go':'')+'</p>';
-  if((j.heldList||[]).length)h+='<details class="tqmore" style="display:block;margin:2px 0 4px"><summary style="margin:0">'+(j.held||j.heldList.length)+' held back</summary>'+
-    j.heldList.map(x=>esc(x.name||x.email||"")+(x.why?' — '+esc(x.why):'')).join("<br>")+'</details>';
-  if(c.state==="open"&&(j.status==="awaiting"||!j.status))h+='<p class="t2" style="white-space:normal;margin:6px 0 0">Check the preview in your inbox first. It goes out from your own mailbox, 3 a minute, 6am–10pm ET'+
-    (BOT.mergeLeft!=null?' · '+BOT.mergeLeft+' sends left today':'')+'.</p>'+
-    '<div class="tqca"><button class="btn coral" data-bact="mergeok" data-id="'+c.id+'"'+(c.busy||!n?" disabled":"")+'>'+svg("check")+' Send '+n+' email'+(n===1?"":"s")+'</button>'+
-    '<button class="btn ghost" data-bact="mergeno" data-id="'+c.id+'"'+(c.busy?" disabled":"")+'>Cancel batch</button></div>';
-  else if(j.status==="sending")h+='<div class="tqca"><button class="btn sm ghost" data-bact="mergeno" data-id="'+c.id+'"'+(c.busy?" disabled":"")+'>Stop the rest</button></div>';
-  if(c.result&&c.result.text)h+='<p class="tqcx" style="margin-top:8px">'+esc(c.result.text)+'</p>';
-  return h+'</div>';}
-async function botMergeAct(c,act){if(c.busy)return;c.busy=true;botPaintCard(c);
-  const j=c.v.job||{},r=await mergeApi({action:act==="ok"?"confirm":"cancel",job:j.id});c.busy=false;
-  if(r.status===401||r.signin){toast("Sign in again, then press it again");botPaintCard(c);return;}
-  let res;
-  if(act==="ok"){
-    if(r.ok){const now=r.today!=null?r.today:(r.sending!=null?r.sending:j.toSend);
-      const txt=r.inHours===false?"Confirmed. Sending starts at 6am ET.":"Sending "+now+" now"+(r.minutes?", about "+r.minutes+" min":"")+(r.later>0?"; the other "+r.later+" go tomorrow":"")+".";
-      c.v.job=Object.assign({},j,{status:"sending",confirmedAt:new Date().toISOString()});
-      res={ok:true,id:j.id,summary:'confirmed the email batch "'+(j.subject||"")+'" to '+(j.toSend||0)+" people. "+txt,text:txt};}
-    else res={ok:false,error:r.error||"That batch isn't waiting any more.",text:r.error||"That batch isn't waiting any more."};}
-  else{
-    if(r.ok){const txt="Cancelled"+(r.alreadySent?". "+r.alreadySent+" had already gone out":"")+".";
-      c.v.job=Object.assign({},j,{status:r.alreadySent?"done":"cancelled"});
-      res={ok:true,cancelled:true,id:j.id,summary:'cancelled the email batch "'+(j.subject||"")+'". '+txt,text:txt};}
-    else res={ok:false,error:r.error||"Nothing left to stop.",text:r.error||"Nothing left to stop."};}
-  c.result=res;
-  if(c.state==="open"||(c.tuid&&BOT.held&&BOT.held.ids.includes(c.id)))botCardDone(c,res);
-  else{BOT.notes.push(res.ok?"I "+res.summary:"I tried to change an email batch: "+(res.error||""));botSave();botPaint();}
-  if(res.ok)toast(res.text);}
-/* TQbot chats on the teammate page (Max, 2026-11-23: reps' chats saved, readers = the admins). crm-bot writes one row per exchange to
-   public.bot_chats (RLS: only max@ / hannah@ / jamie@ can read); this reads the person's latest 300 and lists them by day: what they typed,
-   the cards they saved or turned down, what TQbot looked up and answered. Loaded once a minute at most per person, painted into #tqchats. */
-const BOT_CHAT_READERS=["max","hannah","jamie"];
-const BOT_TOOL_WORDS={search_crm:"looked up",get_record:"opened a record",my_numbers:"checked numbers",who_covers:"checked who covers a state",build_list:"built a list",
-  find_people:"found people",find_literature:"found literature",make_literature:"made literature",email_batches:"checked email batches",
-  propose_contact:"card: contact",propose_account:"card: account",propose_activity:"card: activity",propose_opportunity:"card: deal",propose_email_batch:"card: email batch"};
-function botChatsHTML(id){
-  if(!BOT_CHAT_READERS.includes(USER))return "";
-  const C=(BOT.chats=BOT.chats||{}),c=C[id];
-  if(!c||Date.now()-c.at>60000){if(!c||!c.busy)botChatsLoad(id);}
-  const head='<div class="lvhead" style="margin:0 0 10px"><div class="sectlabel" style="margin:0">TQbot chats'+(c&&c.rows?' <span class="cnt">'+c.rows.filter(r=>r.user_text).length+' messages</span>':'')+'</div></div>';
-  if(!c||!c.rows)return head+'<div class="card tqlogs"><p class="t2" style="margin:0">'+(c&&c.err?esc(c.err):'Loading…')+'</p></div>';
-  if(!c.rows.length)return head+'<div class="card tqlogs"><p class="t2" style="margin:0">No TQbot chats yet.</p></div>';
-  const byDay={};c.rows.forEach(r=>{const d=localDay(r.at);(byDay[d]=byDay[d]||[]).push(r);});
-  const days=Object.keys(byDay).sort().reverse();
-  const lbl=d=>d===todayStr()?"Today":new Date(d+"T12:00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
-  return head+'<div class="card tqlogs">'+days.map((d,i)=>{const rows=byDay[d].slice().reverse(),n=rows.filter(r=>r.user_text).length;
-    return '<details class="tqcday"'+(i===0?' open':'')+'><summary><b>'+esc(lbl(d))+'</b> <span class="t2" style="display:inline">· '+n+' message'+(n===1?"":"s")+'</span></summary>'+rows.map(botChatRowHTML).join("")+'</details>';}).join("")+'</div>';}
-function botChatRowHTML(r){
-  const t=fmtTimeShort(r.at),tools=(r.tools||[]).map(x=>BOT_TOOL_WORDS[x.name]||x.name),res=(r.results||[]).map(x=>{let o={};try{o=JSON.parse(x.content);}catch(e){}
-    return o&&o.summary?(o.ok?"Saved: ":"")+o.summary:o&&o.cancelled?"Turned down a card":o&&o.status==="still_open"?"Left a card open":"";}).filter(Boolean);
-  let h='';
-  if(r.user_text)h+='<div class="tqcr me"><span class="tqct">'+esc(t)+'</span><div>'+esc(r.user_text).replace(/\n/g,"<br>")+'</div></div>';
-  res.forEach(x=>{h+='<div class="tqcr note">'+svg("check")+' '+esc(x)+'</div>';});
-  if(r.reply_text)h+='<div class="tqcr bot">'+botMd(r.reply_text)+'</div>';
-  if(tools.length)h+='<div class="tqcr tools">'+esc([...new Set(tools)].join(" · "))+'</div>';
-  return h;}
-async function botChatsLoad(id){const C=(BOT.chats=BOT.chats||{});const email=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===id);
-  if(!email){C[id]={at:Date.now(),rows:[]};return;}
-  C[id]=Object.assign(C[id]||{},{busy:true});
-  try{const r=await supa("/rest/v1/bot_chats?select=at,user_text,reply_text,tools,results&email=eq."+encodeURIComponent(email)+"&order=at.desc&limit=300");
-    const j=await r.json().catch(()=>null);
-    C[id]={at:Date.now(),rows:r.ok&&Array.isArray(j)?j:null,err:r.ok?"":"Couldn't load the chats ("+r.status+")."};}
-  catch(e){C[id]={at:Date.now(),rows:null,err:"Couldn't load the chats (offline)."};}
-  const el=document.getElementById("tqchats");if(el&&view==="teammate"&&curRep===id)el.innerHTML=botChatsHTML(id);}
-function botLits(market){const ls=botLitPool(market),dp=distPiecesFor(market);
-  const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"find_literature",state:"open",v:{market:market,ids:ls.map(l=>l.id),dist:dp?dp.name:""}};BOT.ui.push({k:"card",id:id});
-  return {distributor_pieces:dp?[{title:"AutoTQ "+dp.name+" brochure (2 pages, Nov 19 2026: their logo and their item numbers)"},{title:"AutoTQ "+dp.name+" Fleet Safety Catalog (6 pages, Nov 19 2026)"}]:[],
-    pieces:ls.map(l=>({id:l.id,title:l.title})),shown:"The rep sees these with Open buttons"+(dp?" (the "+dp.name+" pieces open on the GHM Hub with their Microsoft sign-in)":"")+"."};}
-function botMakeLit(x){botLogAdd(x.kind==="email"?"email_draft":"onepager",{names:[x.kind==="email"?(x.subject||x.headline||""):(x.headline||x.market||"")],extra:x.customer||x.market||""});const id="c"+(++BOT.n)+uid();BOT.cards[id]={id:id,tool:"make_literature",state:"open",v:Object.assign({},x)};BOT.ui.push({k:"card",id:id});
-  return {shown:"The rep sees it with Open / Print and Copy buttons. Nothing was sent."};}
-/* ---------- write cards ---------- */
-const BOT_SPOKE=[["none","Not yet"],["call","Call"],["email","Email"],["visit","Visit"],["training","Train"],["demo","Demo"]];
-function botCardInit(tool,x){const v=Object.assign({},x);
-  if(tool==="propose_contact"){const hit=(v.company_id&&company(v.company_id))||bcMatchCompany(v.company);if(hit){v.company_id=hit.id;v.company=hit.name;}else v.company_id="";
-    v.state=String(v.state||"").toUpperCase().slice(0,2);}
-  if(tool==="propose_account"){v.state=String(v.state||"").toUpperCase().slice(0,2);}
-  if(tool==="propose_opportunity"){v.state=String(v.state||"").toUpperCase().slice(0,2);
-    const c=(v.customer_id&&company(v.customer_id))||bcMatchCompany(v.customer);v.customer_id=c?c.id:"";if(c)v.customer=c.name;
-    if(!v.direct_sale&&!v.distributor_not_sure){const d=(v.closing_distributor_id&&company(v.closing_distributor_id))||bcMatchCompany(v.closing_distributor);v.closing_distributor_id=d?d.id:"";if(d)v.closing_distributor=d.name;}
-    v.people=(v.people||[]).filter(p=>person(p.person_id));
-    if(ownOnly())v.sales_person=USER;else if(!TEAM.some(t=>t.id===v.sales_person))v.sales_person=repForRegion(regionFromState(v.state))||"";}
-  return v;}
-/* each card's fields: [key, label, kind, required(v)] — kind: text | date | num | state | sel:<opts> | area */
-function botFields(tool,v){
-  const R=()=>true,O=()=>false;
-  if(tool==="propose_contact")return [["name","Name","text",R],["title","Title","text",O],["company","Company","text",R],
-    ["company_kind","New company is a","sel:enduser=End user|distributor=Distributor",x=>!x.company_id&&!!x.company],
-    ["email","Email","text",O],["phone","Phone","text",O],["mobile","Mobile","text",O],["city","City","text",O],["state","State","state",R],
-    ["spoke","Have you spoken?","sel:"+BOT_SPOKE.map(s=>s[0]+"="+s[1]).join("|"),R],["spoke_date","When","date",x=>x.spoke&&x.spoke!=="none"],["note","Note","area",x=>x.spoke&&x.spoke!=="none"]];
-  if(tool==="propose_account")return [["name","Company","text",R],["kind","Type","sel:enduser=End user|distributor=Distributor",R],["city","City","text",O],["state","State","state",R],
-    ["website","Website","text",O],["distributor_stage","Distributor stage","sel:potential=Potential|setup=Set up|stocking=Stocking",x=>x.kind==="distributor"]];
-  if(tool==="propose_activity")return [["type","What","sel:"+LOG_TYPES.map(t=>t[0]+"="+t[2]).join("|"),R],["date","When","date",R],
-    ["outcome","Outcome","sel:=—|Interested=Interested|Wants quote=Wants quote|Potential opportunity=Potential opportunity|Not now=Not now|Left voicemail=Left voicemail",O],
-    ["note","Note","area",R],["follow_up_date","Follow up on","date",O],["follow_up_title","Follow-up","text",x=>!!x.follow_up_date]];
-  if(tool==="propose_opportunity"){const dist=x=>!x.direct_sale&&!x.distributor_not_sure;
-    return [["name","Deal name","text",R],["customer","Customer","text",R],["state","State","state",R],["deal_type","Deal type","sel:End User Order=End user order|Stocking Order=Stocking order|Training / Demo=Training / demo|Other=Other",R],
-    ["closing_distributor","Closing distributor","text",dist],["kits","Kits","num",R],["amount","Amount ($)","num",R],["expected_close","Expected close","date",R],
-    ["stage","Stage","sel:"+OPP_OPEN.concat(["Closed Won","Closed Lost"]).map(s=>s+"="+(OPP_SHORT[s]||s)+" "+OPP_PROB[s]+"%").join("|"),R],["why","Why that stage","text",R],
-    ["last_contact","Last contact","date",R],["next_step","Next step","text",R],["next_step_date","When","date",R],
-    ["sales_person","Golden Hour sales person","sel:"+uniqIds(GH_REPS.concat(["jamie","max"])).filter(id=>!vacant(id)||v.sales_person===id).map(id=>id+"="+shortName(id)).join("|"),x=>!ownOnly()],
-    ["notes","Notes","area",R]];}
-  return [];}
-function botVal(v,k){const x=v[k];return x==null?"":String(x).trim();}
-function botMissing(c){const v=c.v,m=[];
-  botFields(c.tool,v).forEach(f=>{if(f[3](v)&&!botVal(v,f[0]))m.push(f[1]);if(f[2]==="state"&&botVal(v,f[0])&&!Object.values(STATE_NAMES).includes(botVal(v,f[0]).toUpperCase()))m.push(f[1]+" (two letters)");
-    if(f[2]==="date"&&botVal(v,f[0])&&!/^\d{4}-\d{2}-\d{2}$/.test(botVal(v,f[0])))m.push(f[1]+" (a date)");});
-  if(c.tool==="propose_contact"&&botVal(v,"email")&&!dialEmailOk(v.email))m.push("a real email (or none)");
-  if(c.tool==="propose_activity"&&!person(v.person_id))m.push("who it was with (a contact in the CRM)");
-  if(c.tool==="propose_opportunity"){if(!(parseInt(v.kits,10)>0))m.push("kits above 0");if(!(parseFloat(v.amount)>0))m.push("an amount above 0");
-    if(!(v.people||[]).some(p=>person(p.person_id)))m.push("a person on the deal (ask TQbot to add one)");
-    if(v.direct_sale&&!(v.quote_id&&quoteById(v.quote_id)))m.push("the quote (a direct sale needs one)");}
-  return [...new Set(m)];}
-function botFieldHTML(c,f){const v=c.v,k=f[0],x=botVal(v,k),req=f[3](v),dis=c.state!=="open"?" disabled":"";
-  const a='data-bf="'+k+'" data-bc="'+c.id+'"',miss=req&&!x;
-  let inp;
-  if(f[2].indexOf("sel:")===0){const opts=f[2].slice(4).split("|").map(o=>o.split("="));
-    inp='<select class="f" '+a+dis+'>'+(opts.some(o=>o[0]===x)?"":'<option value="" selected>Pick one</option>')+opts.map(o=>'<option value="'+esc(o[0])+'"'+(o[0]===x?" selected":"")+'>'+esc(o[1])+'</option>').join("")+'</select>';}
-  else if(f[2]==="area")inp='<textarea class="f" rows="2" '+a+dis+' placeholder="'+(req?"Needed":"none")+'">'+esc(x)+'</textarea>';
-  else inp='<input class="f" '+a+dis+' type="'+(f[2]==="date"?"date":"text")+'"'+(f[2]==="num"?' inputmode="decimal"':'')+(f[2]==="state"?' maxlength="2" style="text-transform:uppercase"':'')+' value="'+esc(x)+'" placeholder="'+(req?"Needed":"none")+'" autocomplete="off">';
-  return '<label class="tqf'+(miss?" miss":"")+(f[2]==="area"?" wide":"")+'"><span>'+esc(f[1])+(miss?' <i>needed</i>':(!req&&!x?' <i class="n">none</i>':''))+'</span>'+inp+'</label>';}
-function botCardHTML(c){
-  const t=c.tool,v=c.v,done=c.state!=="open";
-  if(t==="build_list")return botListCardHTML(c);
-  if(t==="mail_merge")return botMergeCardHTML(c);
-  if(t==="find_literature")return botLitsCardHTML(c);
-  if(t==="make_literature")return botLitCardHTML(c);
-  const title={propose_contact:v.company_id?"New contact":"New contact + account",propose_account:"New account",propose_activity:"Log "+((LOG_TYPES.find(x=>x[0]===v.type)||[0,0,"activity"])[2]).toLowerCase(),propose_opportunity:"New opportunity"}[t]||"Card";
-  let h='<div class="tqc'+(done?" done":"")+'" data-cid="'+c.id+'"><div class="tqch">'+svg(t==="propose_opportunity"?"chart":t==="propose_activity"?"clock":t==="propose_account"?"ware":"users")+'<b>'+esc(title)+'</b>'+
-    (c.state==="saved"?'<span class="pill ok">Saved</span>':c.state==="cancelled"?'<span class="pill gray">Not saved</span>':c.leftOpen?'<span class="pill warn">Still open</span>':'')+'</div>';
-  if(t==="propose_contact"&&v.company_id)h+='<p class="tqcx">'+svg("check")+' '+esc(v.company)+' is already in the CRM — the contact goes on it.</p>';
-  if(t==="propose_activity"){const p=person(v.person_id);h+='<p class="tqcx">'+(p?'With <b>'+esc(p.name)+'</b>'+(company(p.cid)?' · '+esc(company(p.cid).name):''):'<span style="color:var(--dang-t)">No contact picked</span>')+'</p>';}
-  if(t==="propose_opportunity"){
-    h+='<p class="tqcx">'+(v.customer_id?svg("check")+' Customer is in the CRM':'Customer not in the CRM yet — the deal keeps the name')+'</p>';
-    const ds=v.direct_sale?"Direct sale":v.distributor_not_sure?"Not sure yet":"";
-    if(ds)h+='<p class="tqcx">Closing distributor: <b>'+ds+'</b></p>';
-    h+='<p class="tqcx">People: '+((v.people||[]).map(p=>'<b>'+esc((person(p.person_id)||{}).name||"?")+'</b> ('+esc(p.role)+')').join(", ")||'<span style="color:var(--dang-t)">none</span>')+'</p>';
-    if(v.quote_id&&quoteById(v.quote_id))h+='<p class="tqcx">Quote: <b>'+esc(quoteById(v.quote_id).no)+'</b></p>';}
-  h+='<div class="tqfs">'+botFields(t,v).filter(f=>!(t==="propose_opportunity"&&((f[0]==="closing_distributor"&&(v.direct_sale||v.distributor_not_sure))||(f[0]==="sales_person"&&ownOnly())))).map(f=>botFieldHTML(c,f)).join("")+'</div>';
-  if(!done){const m=botMissing(c);
-    h+=(m.length?'<p class="tqneed">Still needed: '+esc(m.join(", "))+'</p>':'')+
-      '<div class="tqca"><button class="btn coral" data-bact="cardsave" data-id="'+c.id+'"'+(m.length?" disabled":"")+'>'+svg("check")+' Save</button><button class="btn ghost" data-bact="cardno" data-id="'+c.id+'">Not this</button></div>';}
-  else if(c.result&&c.result.ok&&c.result.open)h+='<div class="tqca"><button class="btn sm" data-bact="cardopen" data-id="'+c.id+'">Open '+esc(c.result.open[0]==="opp"?"the deal":c.result.open[0]==="roster"?"the account":"the contact")+'</button></div>';
-  else if(c.result&&!c.result.ok&&c.result.error)h+='<p class="tqneed">'+esc(c.result.error)+'</p>';
-  return h+'</div>';}
-function botListRows(v){return v.rows?v.rows.map(botRowObj).filter(Boolean):(v.pids||[]).map(person).filter(Boolean).map(p=>({k:"p",o:p}));}
-function botListCardHTML(c){const v=c.v,rs=botListRows(v),ps=rs;
-  let h='<div class="tqc'+(c.state!=="open"?" done":"")+'"><div class="tqch">'+svg("users")+'<b>Call list · '+ps.length+' '+(ps.length===1?"person":"people")+'</b>'+(c.state==="saved"?'<span class="pill ok">Saved</span>':'')+'</div>'+
-    (v.chips&&v.chips.length?'<div class="qa-types" style="margin:4px 0 8px">'+v.chips.map(x=>'<span class="qchip on" style="pointer-events:none">'+esc(x)+'</span>').join("")+'</div>':'');
-  h+='<div class="tql">'+rs.slice(0,8).map(r=>{const p=r.o,act=r.k==="p"?"person":r.k==="cl"?"leadopen":"openlead";
-      return '<button data-act="'+act+'" data-id="'+esc(p.id)+'"><b>'+esc(p.name)+'</b><span>'+esc((company(p.cid)||{}).name||p.branch||p.company||"")+(personStates(p).length?" · "+esc(personStates(p).join(" ")):"")+
-        (r.k==="p"?"":" · "+esc(r.k==="cl"?(p.conf||"conference lead"):"lead"))+(p.phone||p.mobile?"":" · no number")+'</span></button>';}).join("")+
-    (ps.length>8?'<p class="t2">+ '+(ps.length-8)+' more</p>':'')+(ps.length?'':'<p class="t2">Nobody matches that.</p>')+'</div>';
-  if(c.state==="open"&&ps.length)h+='<label class="tqf wide"><span>List name</span><input class="f" data-bf="name" data-bc="'+c.id+'" value="'+esc(v.name||"")+'"></label>'+
-    '<div class="tqca"><button class="btn coral" data-bact="listsave" data-id="'+c.id+'">'+svg("check")+' Save list</button></div>';
-  if(c.state==="saved"&&c.result&&c.result.id)h+='<div class="tqca"><button class="btn sm" data-act="listgo" data-id="'+esc(c.result.id)+'">Open the list</button></div>';
-  return h+'</div>';}
-function botLitsCardHTML(c){const ls=(c.v.ids||[]).map(id=>DIAL_LIT.find(l=>l.id===id)).filter(Boolean),dp=c.v.dist?distPiecesFor(c.v.dist):null;
-  return '<div class="tqc"><div class="tqch">'+svg("file")+'<b>Approved literature</b></div><div class="tql">'+
-    (dp?'<a href="'+esc(dp.brochure)+'" target="_blank" rel="noopener"><b>AutoTQ × '+esc(dp.name)+' brochure</b><span>2 pages · Nov 19 · their logo + item numbers · GHM Hub</span></a>'+
-      '<a href="'+esc(dp.catalog)+'" target="_blank" rel="noopener"><b>AutoTQ × '+esc(dp.name)+' Fleet Safety Catalog</b><span>6 pages · Nov 19 · GHM Hub</span></a>':'')+ls.map(l=>'<button data-bact="litopen" data-id="'+l.id+'"><b>'+esc(l.title)+'</b><span>Open the PDF</span></button>').join("")+'</div></div>';}
-function botLitCardHTML(c){const v=c.v;
-  if(v.kind==="email"){const body=botLitText(v);
-    return '<div class="tqc"><div class="tqch">'+svg("mail")+'<b>Email draft</b></div><p class="tqcx"><b>'+esc(v.subject||v.headline||"")+'</b></p><pre class="tqpre">'+esc(body)+'</pre>'+
-      '<div class="tqca"><button class="btn sm coral" data-bact="litmail" data-id="'+c.id+'">'+svg("mail")+' Open in my email</button><button class="btn sm" data-bact="litcopy" data-id="'+c.id+'">Copy</button></div></div>';}
-  return '<div class="tqc"><div class="tqch">'+svg("file")+'<b>One-pager'+(v.market?' · '+esc(v.market):'')+'</b></div><p class="tqcx"><b>'+esc(v.headline||"")+'</b></p>'+(v.sub?'<p class="tqcx">'+esc(v.sub)+'</p>':'')+
-    '<div class="tqca"><button class="btn sm coral" data-bact="litpage" data-id="'+c.id+'">'+svg("file")+' Open · print to PDF</button></div></div>';}
-/* ---- saving each card through the CRM's own paths ---- */
-function botCardSave(c){
-  const v=c.v,m=botMissing(c);if(m.length){toast("Still needed: "+m.join(", "));return;}
-  let r;
-  try{
-    if(c.tool==="propose_contact")r=botSaveContact(v);
-    else if(c.tool==="propose_account")r=botSaveAccount(v);
-    else if(c.tool==="propose_activity")r=botSaveActivity(v);
-    else if(c.tool==="propose_opportunity")r=botSaveOpp(v);
-  }catch(e){console.error("TQbot save",e);r={ok:false,error:"That didn't save: "+String(e&&e.message||e).slice(0,120)};}
-  if(!r)return;
-  if(!r.ok&&r.stay){toast(r.error);c.result=r;botPaint();return;} /* fixable on the card: stays open */
-  if(r.ok&&!/already/.test(r.summary||""))botLogCard(c,r);
-  botCardDone(c,r);if(r.ok){render();toast(r.toast||"Saved");}}
-function botSaveContact(v){
-  const r=contactUpsert({name:v.name.trim(),coTxt:v.company_id?"":v.company.trim(),cid:v.company_id||null,kind:v.company_kind||"enduser",city:botVal(v,"city"),st:botVal(v,"state"),
-    email:botVal(v,"email"),phone:botVal(v,"phone"),mobile:botVal(v,"mobile"),title:botVal(v,"title"),card:{},source:"TQbot"});
-  let lg="";if(v.spoke&&v.spoke!=="none")lg=spokeLog(r.p,v.spoke,botVal(v,"spoke_date")||todayStr(),botVal(v,"note"));
-  else if(botVal(v,"note")&&!r.p.note)r.p.note=botVal(v,"note");
-  save();
-  return {ok:true,id:r.p.id,summary:r.p.name+(r.isNew?" added":" was already in the CRM (filled what was blank)")+(r.newCo?"; new account "+r.c.name+" ("+r.c.id+")":"")+(lg?"; "+lg:""),
-    contact_id:r.p.id,account_id:r.c?r.c.id:"",open:["person",r.p.id],toast:r.p.name+(r.isNew?" added":" updated")+(r.newCo?" · new account "+r.c.name:"")+(lg?" · "+lg:"")};}
-function botSaveAccount(v){
-  const L=lookup(v.name),info={name:L.name,city:botVal(v,"city"),state:botVal(v,"state").toUpperCase(),industry:L.guessed?"":L.industry,website:botVal(v,"website")||(L.guessed?"":L.website)};
-  const r=accountCreate(info,v.kind,v.kind==="distributor"?v.distributor_stage:"");
-  if(r.dup)return {ok:true,id:r.dup.id,summary:r.dup.name+" was already in Accounts (nothing new saved)",open:["roster",r.dup.id],toast:r.dup.name+" is already in Accounts"};
-  save();return {ok:true,id:r.rec.id,summary:r.rec.name+" added ("+typeLabel(r.rec.type)+")",open:["roster",r.rec.id],toast:r.rec.name+" added"};}
-function botSaveActivity(v){
-  const p=person(v.person_id);if(!p)return {ok:false,stay:true,error:"Pick who it was with"};
-  const day=botVal(v,"date"),when=day>=todayStr()?new Date().toISOString():day+"T12:00:00.000Z",out=botVal(v,"outcome");
-  const rec={id:uid(),type:v.type,pid:p.id,note:botVal(v,"note")+(out?" · "+out:""),date:when,by:USER,norm:2};
-  if(rec.type==="call"&&out==="Left voicemail")rec.vm=true;
-  DB.activities=DB.activities||[];DB.activities.unshift(rec);
-  if(!p.last||new Date(when)>new Date(p.last))p.last=when;
-  let fu="";
-  if(botVal(v,"follow_up_date")){ensureTasks();const t={id:uid(),owner:USER,title:botVal(v,"follow_up_title")||"Follow up",type:v.type==="email"?"email":"call",due:botVal(v,"follow_up_date"),done:false,createdAt:new Date().toISOString(),pid:p.id,actId:rec.id};
-    DB.tasks.unshift(t);rec.fuTask=t.id;fu="; follow-up on "+t.due;}
-  save();
-  return {ok:true,id:rec.id,summary:actLabel(rec.type,rec)+" with "+p.name+" on "+day+" logged"+fu,open:["person",p.id],toast:"Logged — "+p.name.split(" ")[0]+(fu?" · follow-up "+botVal(v,"follow_up_date"):"")};}
-function botSaveOpp(v){
-  /* the real New opportunity form, filled in, checked by oppMissing(), saved by saveOpp() */
-  const cid=v.customer_id&&company(v.customer_id)?v.customer_id:"";
-  formOpp(null,cid||null,{acct:cid?"":v.customer,state:v.state,name:v.name,note:v.notes,last:v.last_contact});
-  const set=(id,x)=>{const el=document.getElementById(id);if(el)el.value=x==null?"":String(x);};
-  set("oCidQ",cid?company(cid).name:v.customer);set("oLoc",String(v.state).toUpperCase());oppSetType(v.deal_type);
-  const dir=document.getElementById("oDirect");
-  if(v.direct_sale){oppSetDist(null,"");if(dir)dir.checked=true;logState.oppDistTbd=false;}
-  else if(v.distributor_not_sure){oppSetDist(null,"");if(dir)dir.checked=false;logState.oppDistTbd=true;}
-  else{const did=v.closing_distributor_id&&company(v.closing_distributor_id)?v.closing_distributor_id:"";oppSetDist(did||null,did?company(did).name:v.closing_distributor);logState.oppDistTbd=false;}
-  set("oUnits",parseInt(v.kits,10));set("oAmt",parseFloat(v.amount));logState.oppAmtHand=true;
-  set("oClose",v.expected_close);logState.oppStage=v.stage;set("oProbWhy",v.why);set("oLastC",v.last_contact);
-  set("oNextA",v.next_step);set("oNextAD",v.next_step_date);
-  logState.oppContacts=(v.people||[]).filter(p=>person(p.person_id)).map(p=>({pid:p.person_id,role:p.role}));
-  logState.oppQuoteIds=v.quote_id&&quoteById(v.quote_id)?[v.quote_id]:[];
-  if(!ownOnly()&&v.sales_person)logState.oppGhRep=v.sales_person;
-  set("oName",v.name);set("oNotes",v.notes);
-  const miss=oppMissing();
-  if(miss.length){closeSheet();return {ok:false,stay:true,error:"The deal form still needs "+miss.map(x=>x.l).join(", ")};}
-  const n0=(DB.opps||[]).length;saveOpp();
-  const o=(DB.opps||[]).length>n0?DB.opps[0]:null;
-  if(!o){closeSheet();return {ok:false,stay:true,error:"The deal form didn't save it — open + New › Opportunity to check"};}
-  return {ok:true,id:o.id,summary:o.name+" ("+(OPP_SHORT[o.stage]||o.stage)+", "+(o.units||0)+" kits, "+money(o.amount||0)+") added to the pipeline",open:["opp",o.id],toast:"Opportunity added — "+o.name};}
-function botListSave(c){const v=c.v,rs=botListRows(v);if(!rs.length)return;
-  const nm=botVal(v,"name")||"Call list";
-  const nl=listMake(rs.map(r=>r.o),nm,v.request||"",["company","phone","email","state"],rs.map(r=>r.k));
-  if(ownOnly())nl.assignee=USER; /* a rep's own list shows on their Home (From outreach) and in Leads */
-  save();c.state="saved";c.result={ok:true,id:nl.id};botLogAdd("list",{names:[nm],extra:nl.items.length+" people"});botSave();botPaint();toast('"'+nm+'" saved — '+nl.items.length+' people');
-  BOT.notes.push('I saved the list "'+nm+'" ('+nl.items.length+' people).');}
-/* ---- literature: an approved PDF, or a piece laid out in the literature house look ---- */
-async function botLitOpen(id){const l=DIAL_LIT.find(x=>x.id===id);if(!l)return;const w=window.open("","_blank");
-  try{const r=await supa("/storage/v1/object/authenticated/marketing/"+l.path.split("/").map(encodeURIComponent).join("/"));
-    if(!r.ok)throw new Error("HTTP "+r.status);const b=await r.blob();const u=URL.createObjectURL(new Blob([b],{type:"application/pdf"}));
-    if(w)w.location.href=u;else location.href=u;}
-  catch(e){if(w)w.close();toast("Couldn't open "+l.title+" — ask Max for the PDF");}}
-function botLitText(v){const me=teamById(USER);
-  return ["Hi there,"].concat([v.headline].concat(v.body||[]).filter(Boolean)).concat(v.bullets&&v.bullets.length?[v.bullets.map(b=>"- "+b).join("\n")]:[]).concat(v.proof?[v.proof]:[]).concat(v.cta?[v.cta]:[])
-    .concat([String(me.name||"").split(" ")[0]+"\n"+(me.name||"")+" · Golden Hour Medical, makers of AutoTQ"]).join("\n\n");}
-function botLitHTML(v){const me=teamById(USER),email=Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===USER)||"salessupport@goldenhourmedical.com",A=assetUrl("");
-  const e=esc;
-  return '<!doctype html><html><head><meta charset="utf-8"><title>'+e(v.headline||"AutoTQ")+'</title><style>'+
-   '@font-face{font-family:Inter;src:url("'+A+'inter-latin.woff2") format("woff2");font-weight:100 900}'+
-   '@page{size:letter;margin:0}*{box-sizing:border-box}html,body{margin:0;background:#E9E7E3}body{font-family:Inter,system-ui,sans-serif;color:#16181B;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
-   '.page{width:8.5in;height:11in;margin:20px auto;background:#fff;position:relative;overflow:hidden;display:flex;flex-direction:column}'+
-   '.top{height:10px;background:#D12020}.wrap{padding:.6in .7in .4in;flex:1;display:flex;flex-direction:column}'+
-   '.lock{height:40px;width:auto;align-self:flex-start;margin-bottom:.4in}.kick{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#A8161A;margin:0 0 10px}'+
-   'h1{font-size:40px;line-height:1.08;font-weight:800;letter-spacing:-.02em;margin:0 0 14px;max-width:6.6in}.sub{font-size:17px;line-height:1.45;color:#62656B;margin:0 0 22px;max-width:6.4in}'+
-   '.row{display:flex;gap:.4in;align-items:flex-start}.txt{flex:1}.txt p{font-size:14.5px;line-height:1.6;margin:0 0 12px}'+
-   '.ph{width:2.6in;flex:none;background:#F4F3F1;border:1px solid #DEDBD6;padding:12px}.ph img{width:100%;display:block;mix-blend-mode:multiply}'+'.page.d1 h1{font-size:34px}.page.d1 .txt p,.page.d1 li{font-size:13.5px}.page.d1 .wrap{padding-top:.5in}.page.d1 .lock{margin-bottom:.3in}'+'.page.d2 h1{font-size:30px}.page.d2 .sub{font-size:15px;margin-bottom:16px}.page.d2 .txt p,.page.d2 li{font-size:12.5px;line-height:1.5}.page.d2 li{padding:6px 0 6px 20px}.page.d2 li:before{top:12px}.page.d2 .proof{margin-top:16px;font-size:14px}'+
-   'ul{list-style:none;padding:0;margin:8px 0 0}li{font-size:14.5px;line-height:1.45;padding:9px 0 9px 22px;border-top:1px solid #DEDBD6;position:relative}li:before{content:"";position:absolute;left:2px;top:15px;width:8px;height:8px;background:#D12020}'+
-   '.proof{margin:24px 0 0;padding:16px 18px;background:#F4F3F1;border-left:4px solid #D12020;font-size:15px;line-height:1.5;font-weight:600}'+
-   '.cta{margin-top:auto;background:#16181B;color:#fff;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:20px}.cta b{font-size:19px;line-height:1.3}.cta span{font-size:12.5px;line-height:1.5;color:#D9D6D0;text-align:right}'+
-   '.foot{padding:12px .7in;font-size:10.5px;color:#62656B;display:flex;justify-content:space-between}'+
-   '.bar{position:fixed;top:0;left:0;right:0;background:#16181B;color:#fff;padding:10px 16px;display:flex;gap:10px;align-items:center;font-size:13px;z-index:5}.bar button{font:inherit;font-weight:700;background:#D12020;color:#fff;border:0;padding:8px 14px;cursor:pointer}'+
-   '@media print{.bar{display:none}html,body{background:#fff}.page{margin:0}}</style></head><body>'+
-   '<div class="bar"><span style="flex:1">'+e(v.market||"AutoTQ one-pager")+'</span><button onclick="print()">Print · Save as PDF</button></div>'+
-   '<div class="page"><div class="top"></div><div class="wrap"><img class="lock" src="'+A+'lockup_hd.png" alt="AutoTQ">'+
-   (v.market?'<p class="kick">'+e(v.customer||v.market)+'</p>':'')+'<h1>'+e(v.headline||"")+'</h1>'+(v.sub?'<p class="sub">'+e(v.sub)+'</p>':'')+
-   '<div class="row"><div class="txt">'+(v.body||[]).map(p=>'<p>'+e(p)+'</p>').join("")+(v.bullets&&v.bullets.length?'<ul>'+v.bullets.map(b=>'<li>'+e(b)+'</li>').join("")+'</ul>':'')+'</div>'+
-   '<div class="ph"><img src="'+A+'lit_kit_open.jpg" alt="The AutoTQ kit"></div></div>'+
-   (v.proof?'<p class="proof">'+e(v.proof)+'</p>':'')+
-   '<div class="cta" style="margin-top:28px"><b>'+e(v.cta||"Want a free station plan?")+'</b><span>'+e(me.name||"")+'<br>'+e(email)+'<br>theAutoTQ.com</span></div></div>'+
-   '<div class="foot"><span>Golden Hour Medical · makers of AutoTQ</span><span>'+e(GHM_ADDR)+'</span></div></div>'+'<script>(function(){var p=document.querySelector(".page"),f=function(){return p.scrollHeight>p.clientHeight+1;};'+'function go(){p.className="page";if(f())p.classList.add("d1");if(f())p.classList.add("d2");}'+'if(document.fonts&&document.fonts.ready)document.fonts.ready.then(go);window.addEventListener("load",go);go();})();<\/script></body></html>';}
-function botLitPage(c){const w=window.open("","_blank");if(!w){toast("Allow pop-ups to open the one-pager");return;}w.document.write(botLitHTML(c.v));w.document.close();}
-/* panel events: data-bact (its own attribute, so no clash with the app's data-act names) */
-document.addEventListener("click",e=>{
-  const t=e.target.closest&&e.target.closest("[data-bact]");if(!t||!t.closest("#tqbot"))return;
-  const a=t.dataset.bact,c=t.dataset.id?BOT.cards[t.dataset.id]:null;
-  if(a==="close"){botToggle(false);return;}
-  if(a==="new"){if(BOT.busy)return;if(BOT.ui.length&&!confirm("Start a new chat? This one is cleared from TQbot (anything you saved stays in the CRM)."))return;botReset();return;}
-  if(a==="send"){const i=document.getElementById("tqbIn");const v=i?i.value:"";if(i){i.value="";botGrow(i);}botSend(v);return;}
-  if(a==="ask"){botSend(t.dataset.q);return;}
-  if(a==="retry"){const l=BOT.msgs[BOT.msgs.length-1];if(l&&l.role==="user")botRun();else BOT.retry=false,botPaint();return;}
-  if(a==="cardsave"&&c&&c.state==="open"){botCardSave(c);return;}
-  if(a==="cardno"&&c&&c.state==="open"){botCardDone(c,{ok:false,cancelled:true,note:"The rep chose not to save this card."});return;}
-  if(a==="cardopen"&&c&&c.result&&c.result.open){const o=c.result.open;if(o[0]==="opp"){formOpp(o[1]);return;}pushNav();if(o[0]==="person")curPerson=o[1];else curCompany=o[1];view=o[0];render();window.scrollTo(0,0);return;}
-  if(a==="listsave"&&c&&c.state==="open"){botListSave(c);return;}
-  if(a==="litopen"){botLitOpen(t.dataset.id);return;}
-  if(a==="litpage"&&c){botLitPage(c);return;}
-  if(a==="litmail"&&c){const v=c.v;location.href="mailto:?subject="+encodeURIComponent(v.subject||v.headline||"AutoTQ")+"&body="+encodeURIComponent(botLitText(v));return;}
-  if(a==="mergeok"&&c){botMergeAct(c,"ok");return;}
-  if(a==="mergeno"&&c){botMergeAct(c,"no");return;}
-  if(a==="litcopy"&&c){navigator.clipboard.writeText(botLitText(c.v)).then(()=>toast("Copied"),()=>toast("Couldn't copy"));return;}
-});
-function botGrow(i){i.style.height="auto";i.style.height=Math.min(160,i.scrollHeight)+"px";}
-document.addEventListener("input",e=>{const t=e.target;if(!t||!t.closest||!t.closest("#tqbot"))return;
-  if(t.id==="tqbIn"){botGrow(t);return;}
-  if(t.dataset.bf&&t.dataset.bc){const c=BOT.cards[t.dataset.bc];if(!c||c.state!=="open")return;c.v[t.dataset.bf]=t.dataset.bf==="state"?t.value.toUpperCase():t.value;
-    if(t.tagName==="SELECT"||!botMissingSame(c))botPaintCard(c);else botSaveSoon();}});
-document.addEventListener("change",e=>{const t=e.target;if(!t||!t.closest||!t.closest("#tqbot")||!t.dataset.bf)return;const c=BOT.cards[t.dataset.bc];if(c&&c.state==="open"){c.v[t.dataset.bf]=t.value;botPaintCard(c);}});
-function botMissingSame(c){const k=botMissing(c).join("|");const same=c._miss===k;c._miss=k;return same;}
-function botPaintCard(c){const el=document.querySelector('#tqbot .tqc[data-cid="'+c.id+'"]');if(!el){botPaint();return;}
-  const ae=document.activeElement,k=ae&&ae.dataset?ae.dataset.bf:"",s=k?ae.selectionStart:0;
-  const d=document.createElement("div");d.innerHTML=botCardHTML(c);el.replaceWith(d.firstChild);
-  if(k){const f=document.querySelector('#tqbot [data-bf="'+k+'"][data-bc="'+c.id+'"]');if(f){f.focus();try{f.setSelectionRange(s,s);}catch(x){}}}
-  botSaveSoon();}
-function botSaveSoon(){clearTimeout(BOT.st);BOT.st=setTimeout(botSave,400);}
-document.addEventListener("keydown",e=>{
-  if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="j"&&USER&&authed()&&botAccess()){e.preventDefault();botToggle();return;}
-  if(e.target&&e.target.id==="tqbIn"&&e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();const v=e.target.value;e.target.value="";botGrow(e.target);botSend(v);}});
-
-/* ================= Calling from the CRM (Max, 2026-11-23: "in-CRM dialing for John Cornejo and John Morrison… every call
-   tracked"). For CALL_USERS every tel: link in the CRM (contact page, person sheet, call lists, leads, conference leads)
-   becomes a call from the computer through the `dialer` function's Twilio token (each seat has its own caller ID:
-   TWILIO_CALLER_ID_<SEAT>). A bar shows the timer, Mute and Hang up. When the call ends, "How did it go?" asks the outcome
-   and a note; Save logs it the way the Dialer's Push to CRM does (dialPushCall: a call activity on the contact, a
-   conference-lead call or a lead touch, with secs, out, vm and phone; a call-back to-do). Closing the sheet still logs the
-   call ("outcome not picked"). Without a caller ID yet (token 403/503) Call opens the phone (tel:) and the sheet still logs it.
-   Max's own Dialer page is untouched; on the CRM page his calls go out the same way but his tab never registers for incoming. */
-const CALL_USERS=["johnm","john","max"],CALL_RING=["johnm","john"];
-const TQC={dev:null,state:"off",err:"",call:null,accepted:false,acceptedAt:0,startedAt:0,muted:false,ent:null,d:"",tick:null,pend:null,via:""};
-function callAccess(u){u=u||USER;return CALL_USERS.includes(u)&&!DIALER_HUB;}
-async function tqcInit(){
-  if(!callAccess()||!authed()||TQC.state==="loading"||TQC.state==="ready")return;
-  TQC.state="loading";
-  let t=null;
-  try{const r=await supa("/functions/v1/dialer?action=token",{method:"POST",body:"{}"});const b=await r.json().catch(()=>({}));
-    if(r.ok&&b.token)t=b;else{TQC.state="unset";TQC.err=b.error||("HTTP "+r.status);return;}}
-  catch(e){TQC.state="unset";TQC.err="offline";return;}
-  try{await dialLoadSdk();
-    const dev=new Twilio.Device(t.token,{codecPreferences:["opus","pcmu"],closeProtection:"You're on a call — leave the page?",logLevel:"error"});
-    dev.on("error",err=>{TQC.err=(err&&err.message)||"Phone error";});
-    dev.on("tokenWillExpire",async()=>{try{const r=await supa("/functions/v1/dialer?action=token",{method:"POST",body:"{}"});const b=await r.json();if(b.token)dev.updateToken(b.token);}catch(e){}});
-    if(CALL_RING.includes(USER)){dev.on("incoming",tqcIncoming);dev.register().catch(()=>{});}
-    TQC.dev=dev;TQC.state="ready";TQC.callerId=t.callerId||"";
-  }catch(e){TQC.state="unset";TQC.err=(e&&e.message)||"Phone error";}}
-function tqcEntFor(d){
-  if(view==="person"&&curPerson){const p=person(curPerson);if(p&&[p.phone,p.mobile].some(x=>dialDigits(x)===d))return dialEntry("p",p);}
-  return dialFindByDigits(d);}
-async function tqcStart(raw){
-  if(TQC.call){toast("You're already on a call");return;}
-  if(TQC.pend){tqcSheet();return;}
-  const d=dialDigits(raw);if(!d){toast("That number can't be dialed from the CRM");return;}
-  const ent=tqcEntFor(d);
-  if(TQC.state!=="ready"){toast("Starting the phone…");await tqcInit();}
-  if(TQC.state!=="ready"){ /* no caller ID yet: the phone app, and the call is still written up when they come back */
-    TQC.pend={ent:ent,d:d,secs:0,at:new Date().toISOString(),via:"phone"};location.href="tel:+1"+d;
-    setTimeout(()=>{if(TQC.pend&&!TQC.call)tqcSheet();},1500);return;}
-  try{const call=await TQC.dev.connect({params:{To:"+1"+d}});
-    Object.assign(TQC,{call:call,ent:ent,d:d,accepted:false,acceptedAt:0,startedAt:Date.now(),muted:false,via:"crm"});
-    call.on("accept",()=>{TQC.accepted=true;TQC.acceptedAt=Date.now();tqcBar();});
-    ["disconnect","cancel","reject"].forEach(ev=>call.on(ev,()=>tqcEnded(call)));
-    call.on("error",err=>{toast("Call problem: "+((err&&err.message)||"unknown"));tqcEnded(call);});
-    TQC.tick=setInterval(()=>{const el=document.getElementById("tqcT");if(el&&TQC.accepted)el.textContent=dialClock(Math.round((Date.now()-TQC.acceptedAt)/1000));},1000);
-    tqcBar();}
-  catch(err){toast("Couldn't start the call: "+((err&&err.message)||err));}}
-function tqcEnded(call){if(TQC.call!==call)return;
-  const secs=TQC.accepted?Math.round((Date.now()-TQC.acceptedAt)/1000):0;
-  TQC.pend={ent:TQC.ent,d:TQC.d,secs:secs,at:new Date(TQC.startedAt||Date.now()).toISOString(),via:TQC.via,answered:TQC.accepted};
-  clearInterval(TQC.tick);Object.assign(TQC,{call:null,accepted:false,muted:false,ent:null});tqcBar();tqcSheet();}
-function tqcBar(){let el=document.getElementById("tqcbar");
-  if(!TQC.call&&!TQC.inc){if(el)el.remove();return;}
-  if(!el){el=document.createElement("div");el.id="tqcbar";el.className="dialbar";document.body.appendChild(el);}
-  if(TQC.inc){const d=dialDigits(TQC.inc.parameters&&TQC.inc.parameters.From||""),m=d&&dialFindByDigits(d);
-    el.innerHTML=svg("phone")+'<span class="grow"><b>Incoming call</b> · '+esc(dialFmt(d)||"Unknown")+(m?' · '+esc(m.name+(m.co?", "+m.co:"")):'')+'</span><button class="btn sm coral" data-act="tqcans">Answer</button><button class="btn sm" data-act="tqcdec">Decline</button>';return;}
-  const e=TQC.ent;
-  el.innerHTML=svg("phone")+'<span class="grow"><b>'+esc(e?e.name:dialFmt(TQC.d))+'</b>'+(e&&e.co?' · '+esc(e.co):'')+' · '+(TQC.accepted?'<span id="tqcT">'+dialClock(Math.round((Date.now()-TQC.acceptedAt)/1000))+'</span>':'Calling…')+'</span>'+
-    '<button class="btn sm'+(TQC.muted?" on":"")+'" data-act="tqcmute">'+(TQC.muted?"Unmute":"Mute")+'</button><button class="btn sm dlhang" data-act="tqchang">Hang up</button>';}
-function tqcIncoming(call){if(TQC.call||TQC.inc){try{call.reject();}catch(e){}return;}TQC.inc=call;
-  const clr=()=>{if(TQC.inc===call){TQC.inc=null;tqcBar();}};["cancel","reject","disconnect"].forEach(ev=>call.on(ev,clr));tqcBar();}
-function tqcAnswer(){const call=TQC.inc;if(!call)return;TQC.inc=null;const d=dialDigits(call.parameters&&call.parameters.From||"");
-  Object.assign(TQC,{call:call,ent:d?dialFindByDigits(d):null,d:d,accepted:true,acceptedAt:Date.now(),startedAt:Date.now(),muted:false,via:"in"});
-  ["disconnect","cancel","reject"].forEach(ev=>call.on(ev,()=>tqcEnded(call)));call.accept();
-  TQC.tick=setInterval(()=>{const el=document.getElementById("tqcT");if(el)el.textContent=dialClock(Math.round((Date.now()-TQC.acceptedAt)/1000));},1000);tqcBar();}
-const TQC_OUTS=[["noanswer","No answer"],["vm","Left voicemail"],["talked","Talked"],["interested","Interested"],["callback","Call back"],["notint","Not interested"],["wrong","Wrong number"]];
-function tqcSheet(){const P=TQC.pend;if(!P)return;const e=P.ent;P.out=P.out||(P.via!=="phone"&&!P.answered?"noanswer":"");
-  openSheet('<h2>How did the call go?</h2><p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+(e?'<b>'+esc(e.name)+'</b>'+(e.co?' · '+esc(e.co):''):esc(dialFmt(P.d)))+' · '+esc(dialFmt(P.d))+
-    (P.secs?' · '+dialClock(P.secs):P.via==="phone"?' · from your phone':'')+'</p>'+
-    (e?'':'<label class="fl">Who was it? <span style="font-weight:400;color:var(--hint)">this number isn\'t in the CRM — it\'s added as a contact</span></label><input class="f" id="tqcName" placeholder="Name" autocomplete="off"><input class="f" id="tqcCo" placeholder="Company" autocomplete="off" style="margin-top:8px">')+
-    '<label class="fl">Outcome</label><div class="chips" id="tqcOuts">'+TQC_OUTS.map(o=>'<span class="chip'+(P.out===o[0]?" on":"")+'" data-act="tqcout" data-v="'+o[0]+'">'+o[1]+'</span>').join("")+'</div>'+
-    '<div id="tqcCbW" style="display:'+(P.out==="callback"||P.out==="interested"?"block":"none")+'"><label class="fl">Call back on</label><input class="f" id="tqcCb" type="date" value="'+esc(P.cb||dAdd(todayStr(),P.out==="interested"?2:1))+'"></div>'+
-    '<label class="fl">Note</label><textarea class="f" id="tqcNote" placeholder="What happened?">'+esc(P.note||"")+'</textarea>'+
-    '<button class="btn coral block" data-act="tqcsave" style="margin-top:16px">Save the call</button>');}
-function tqcLog(P,out,note,cb){
-  let e=P.ent;
-  if(!e){const nm=(P.name||"").trim()||("Caller "+dialFmt(P.d));const r=contactUpsert({name:nm,coTxt:(P.co||"").trim(),cid:null,kind:"enduser",phone:dialFmt(P.d),card:{},source:"Call from the CRM"});e=dialEntry("p",r.p);}
-  const c={id:uid(),key:e.key,name:e.name,co:e.co||"",title:e.title||"",phone:P.d,out:out||"noout",note:(note||"").trim(),secs:P.secs||0,at:P.at,by:USER,src:"crm-call"};
-  if(cb&&(out==="callback"||out==="interested"))c.cb=cb;
-  const r=e.rec;if(out==="wrong")r.badPhone=P.d;
-  dialPushCall(c);
-  const a=c.actId&&(DB.activities||[]).find(x=>x.id===c.actId);
-  if(a){a.callVia=P.via;if(!out)a.note="Call · outcome not picked"+(c.note?" · "+c.note:"");}
-  save();return c;}
-function tqcSave(){const P=TQC.pend;if(!P)return;
-  if(!P.ent){P.name=val("tqcName");P.co=val("tqcCo");if(!P.name){toast("Add who it was");return;}}
-  if(!P.out){toast("Pick how the call went");return;}
-  const c=tqcLog(P,P.out,val("tqcNote"),(document.getElementById("tqcCb")||{}).value||"");
-  TQC.pend=null;closeSheet();render();toast(dialOutLabel(c.out)+" · "+c.name+(c.cb?" · call back "+c.cb:"")+" — logged");}
-/* closing the sheet without Save still logs the call, once */
-function tqcOnSheetClose(){const P=TQC.pend;if(!P||P.closing)return;P.closing=true;P.note=val("tqcNote");
-  try{if(!P.ent&&val("tqcName"))P.name=val("tqcName"),P.co=val("tqcCo");tqcLog(P,"",P.note,"");}finally{TQC.pend=null;}
-  setTimeout(()=>{render();toast("Call logged — outcome not picked");},0);}
-document.addEventListener("click",e=>{ /* capture: tel: links anywhere become a call from the CRM */
-  if(!USER||!callAccess())return;const a=e.target.closest&&e.target.closest('a[href^="tel:"]');if(!a)return;
-  e.preventDefault();e.stopPropagation();tqcStart(a.getAttribute("href").slice(4));},true);
-function tqcAct(a,t){
-  if(a==="tqchang"){if(TQC.call)try{TQC.call.disconnect();}catch(e){}return true;}
-  if(a==="tqcmute"){if(TQC.call){TQC.muted=!TQC.muted;try{TQC.call.mute(TQC.muted);}catch(e){}tqcBar();}return true;}
-  if(a==="tqcans"){tqcAnswer();return true;}
-  if(a==="tqcdec"){if(TQC.inc){try{TQC.inc.reject();}catch(e){}TQC.inc=null;tqcBar();}return true;}
-  if(a==="tqcout"){const P=TQC.pend;if(!P)return true;P.out=t.dataset.v;document.querySelectorAll("#tqcOuts .chip").forEach(x=>x.classList.toggle("on",x.dataset.v===P.out));
-    const w=document.getElementById("tqcCbW");if(w)w.style.display=P.out==="callback"||P.out==="interested"?"block":"none";return true;}
-  if(a==="tqcsave"){tqcSave();return true;}
-  return false;}
 document.addEventListener("click",e=>{
   if(fltOpen&&!(e.target.closest&&e.target.closest(".fwrap"))){fltOpen=null;fltSync();}
   if(sidePop&&!(e.target.closest&&e.target.closest('[data-act="sidews"],[data-act="sideuser"],[data-act="hubmenu"]')))sidePopSet(null);
   const t=e.target.closest("[data-act]");if(!t)return;
   const a=t.dataset.act,id=t.dataset.id;
   if(a.indexOf("dial")===0&&dialAct(a,t))return;
-  if(a==="tqbot"){botToggle();return;}
-  if(a==="botwk"){logState.botWk=Math.min(0,(logState.botWk||0)+(+t.dataset.v||0));render();return;}
-  if(a.indexOf("tqc")===0&&tqcAct(a,t))return;
   if(a==="pickuser"){logState.pwEmail=t.dataset.email;renderLogin();return;}
   if(a==="sendotp"){sendOtp(t.dataset.email);return;}
   if(a==="verifypw"){verifyPw();return;}
@@ -14822,7 +13882,9 @@ document.addEventListener("click",e=>{
     if(!picked.length){toast("Nothing picked");return;}
     ensureLists();
     const nm=(document.getElementById("listName")||{value:""}).value.trim()||R.name;
-    const nl=listMake(picked,nm,logState.listQ||"",[...R.fields]);logState.listResults=null;logState.listQ="";save();pushNav();curList=nl.id;render();window.scrollTo(0,0);toast('"'+nm+'" saved — '+nl.items.length+' people');return;}
+    const nl={id:uid(),name:nm,by:USER,assignee:null,createdAt:new Date().toISOString(),query:logState.listQ||"",fields:[...R.fields],
+      items:picked.map(p=>({pid:p.id,name:p.name,company:(company(p.cid)||{}).name||p.branch||"",role:p.role||"",phone:p.phone||"",email:p.email||"",city:p.city||"",state:personStates(p).join(" "),done:false,note:""}))};
+    DB.lists.unshift(nl);logState.listResults=null;logState.listQ="";save();pushNav();curList=nl.id;render();window.scrollTo(0,0);toast('"'+nm+'" saved — '+nl.items.length+' people');return;}
   if(a==="listgo"){pushNav();view="export";curList=t.dataset.id;listQ="";render();window.scrollTo(0,0);return;}
   if(a==="listopen"){pushNav();curList=t.dataset.id;render();window.scrollTo(0,0);return;}
   if(a==="listback"){curList=null;render();return;}
