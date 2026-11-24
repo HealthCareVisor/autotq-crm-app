@@ -593,7 +593,7 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .scw,.scx{display:flex;flex-direction:column;gap:2px;min-width:0}.scw b,.scx b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.scw small,.scx small{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .scprev{white-space:pre-wrap;background:var(--sunken);border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.5;margin:12px 0 8px;overflow-wrap:anywhere}
 .sctiles.fu7{grid-template-columns:repeat(7,minmax(0,1fr))}.sct.scsm .scv{font-size:18px}
-.sct.fu{font:inherit;text-align:left;color:var(--ink);cursor:pointer}.sct.fu:hover{background:var(--sunken)}.sct.fu:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.sct.fu,.sct.scbtn{font:inherit;text-align:left;color:var(--ink);cursor:pointer}.sct.scbtn:hover{background:var(--sunken)}.sct.scbtn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}.sct.scbtn .scl .i{width:12px;height:12px;vertical-align:-2px}.sct.fu:hover{background:var(--sunken)}.sct.fu:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .fuband{display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%;font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 10px;cursor:pointer;box-shadow:var(--sh-1)}
 .fuband:hover{background:var(--sunken)}.fuband.sg{border-left-color:var(--st-ok)}.fuband.sy{border-left-color:var(--st-warn)}.fuband.sr{border-left-color:var(--st-dang)}
 .fuband .scl{font-size:13px}.fuband .scv{font-size:26px}.fuband .fusub{font-size:13px;color:var(--muted)}.fuband .fumost{font-size:13px;font-weight:600;margin-left:auto;display:inline-flex;align-items:center;gap:4px}
@@ -707,6 +707,9 @@ span.gtag{cursor:default}.gtag.on{border-color:var(--st-warn);color:#8a6800;font
 .rathr button{display:flex;width:100%;text-align:left;border:0;background:none;padding:5px 0;font:inherit;font-size:13px;border-top:1px dashed var(--line);color:var(--ink);cursor:pointer;min-width:0}
 .rathr button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rathr button:hover span{text-decoration:underline}.rathr .cur{font-weight:700}
 .raacts{display:flex;gap:8px;flex-wrap:wrap}
+.wicomp{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line-2);padding-top:12px}.wicomp .fl{margin-top:8px}.wicomp .raacts{margin-top:10px}
+.wihd{display:flex;gap:4px 10px;align-items:baseline;flex-wrap:wrap}.wihd b{font-size:14px}.wihd span{font-size:12.5px;color:var(--muted)}
+.f.wibody{min-height:170px;line-height:1.5;resize:vertical}.seg.wifrom{margin:0;align-self:flex-start}.wifromad{font-size:12px;color:var(--muted);margin-top:4px}.wicomp .dlsig{margin-top:8px}
 .sheet .rarow{grid-template-columns:76px minmax(0,1fr);gap:4px 10px;padding:10px 12px}.sheet .rarow .rabadge{grid-column:2}.sheet .rarow .ramain,.sheet .rarow .ratags{grid-column:1/-1}.sheet .rarow .ratags{justify-content:flex-start}.sheet .raopen{padding:2px 12px 14px}
 @media (max-width:1100px){.ragrid{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:900px){.rakpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -3112,6 +3115,7 @@ async function rmLoad(mon){
   }catch(e){RM.weeks[mon]=RM.weeks[mon]||[];RM.at[mon]=Date.now();RM.err="The email numbers didn’t load — refresh in a minute.";}
   RM.busy[mon]=false;
   if(view==="today"||view==="repweek")render();
+  wiPaint();
 }
 /* emails per rep per day for the Analysis week ribbon */
 function rmDays(from,to){const k=from+"|"+to;
@@ -3194,15 +3198,15 @@ function scInboxState(u,mon,days,mail){
     if(!last[a]||new Date(r.at)>=new Date(last[a].at))last[a]=r;
     const w=rmWho(a),k=w.c?"c:"+w.c.id:"d:"+(a.split("@")[1]||a);if(!orgs[k]){orgs[k]=1;if(w.dist)dist++;}});});
   const senders=new Set(rows.filter(r=>r.dir==="in").map(r=>String(r.from_addr||"").toLowerCase())).size;
-  const waiting=Object.values(last).filter(r=>r.dir==="in").length,nOrg=Object.keys(orgs).length;
+  const waiting=Object.values(last).filter(wiIsWaiting).length,nOrg=Object.keys(orgs).length;
   const lastIn=rows.filter(r=>r.dir==="in").slice(-1)[0];
   const fmt=iso=>{const d=new Date(iso);return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});};
   const lw=lastIn?rmWho(lastIn.from_addr):null;
   const L=mail?"":"…";
   const W=scWest(days[0],days[6]);
   const tiles=[
-    {label:"Emails inbound",v:mail?mail.recv:L,sub:mail?(senders?"from "+senders+(senders===1?" person":" people"):"Nothing came in"):"mailbox loading…",title:"Emails from someone outside the company that reached the West inbox this week",bar:false},
-    {label:"Waiting on a reply",v:mail?waiting:L,sub:mail?(waiting?"they wrote last":"Nobody waiting"):"",title:"Outside people whose latest email this week came in and wasn’t answered from this mailbox",bar:false},
+    {label:"Emails inbound",v:mail?mail.recv:L,sub:mail?(senders?"from "+senders+(senders===1?" person":" people"):"Nothing came in"):"mailbox loading…",title:"Emails from someone outside the company that reached the West inbox this week"+(wiAccess()?" · tap to read and reply":""),bar:false,act:wiAccess()?"wibox":"",actV:"in"},
+    {label:"Waiting on a reply",v:mail?waiting:L,sub:mail?(waiting?"they wrote last":"Nobody waiting"):"",title:"Outside people whose latest email this week came in and wasn’t answered from this mailbox"+(wiAccess()?" · tap to read and reply":""),bar:false,act:wiAccess()?"wibox":"",actV:"wait"},
     {label:"West activity",v:W.acts.length,sub:W.acts.length?[W.calls&&pl(W.calls,"call"),W.visits&&pl(W.visits,"visit"),W.emails&&pl(W.emails,"email")].filter(Boolean).join(" · ")+" · by "+W.who:"Nothing logged out West",title:"Everything anyone logged in the CRM with a West account or contact this week",bar:false},
     {label:"West quotes",v:W.quotes.length,sub:W.quotes.length?fmtK(W.qAmt)+" · "+pl(W.qKits,"kit"):"None this week",title:"Quotes made this week for a West customer",bar:false},
     {label:"West orders",v:W.kits,tgt:"kits",sub:W.orders.length?fmtK(W.oAmt)+" · "+pl(W.orders.length,"order"):"No orders this week",title:"Invoiced or paid orders this week that ship to the West",bar:false},
@@ -3287,9 +3291,10 @@ function scDialState(u,mon,days){
     dial:true,logged:calls.length,loggedT:today,mix:"WA & OR calling test · Dialer", /* Max, 2026-11-19: "I'm not the West Rep… test this strategy of only focusing calling one territory" */
     line:pl(calls.length,"call")+" "+(mon===goalMonday()?"this week · "+today+" today":"that week")};
 }
-function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)];
-  return '<div class="sct'+(b?" s"+b:"")+(x.small?" scsm":"")+'" title="'+esc(x.title||"")+'"><span class="scl">'+esc(x.label)+'</span><b class="scv">'+esc(String(x.v))+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
-   (x.bar===false?'':'<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div>')+'<small class="scs">'+esc(x.sub||"")+'</small></div>';}
+/* a tile with x.act is a button (the West seat's Emails inbound / Waiting on a reply open the West inbox) */
+function scTileHTML(x,live){const b=x.pct==null||live===false?"":GB[goalBand(x.pct)],tag=x.act?"button":"div";
+  return '<'+tag+' class="sct'+(x.act?" scbtn":"")+(b?" s"+b:"")+(x.small?" scsm":"")+'" title="'+esc(x.title||"")+'"'+(x.act?' data-act="'+x.act+'" data-v="'+esc(x.actV||"")+'"':'')+'><span class="scl">'+esc(x.label)+(x.act?' '+chev():'')+'</span><b class="scv">'+esc(String(x.v))+(x.tgt?'<small> '+esc(x.tgt)+'</small>':'')+'</b>'+
+   (x.bar===false?'':'<div class="gtrk '+b+'"><i style="width:'+(x.pct==null?0:Math.min(100,x.pct))+'%"></i></div>')+'<small class="scs">'+esc(x.sub||"")+'</small></'+tag+'>';}
 /* Sales follow-ups on time (Hannah's KPI wall, Max 2026-11-11): of the open follow-ups that have a date (to-dos, and each open deal's
    next step), the share that isn't past due. Due today is still on time. A count as of right now: the week arrows don't move it.
    To-dos: not done, not removed, the person's own or assigned to them. Deals: open, nextActionDate set, Golden Hour sales person =
@@ -3455,6 +3460,128 @@ function scActSheet(id){
    (c?'<div><b>Company</b><span>'+esc(c.name)+' · '+esc(typeLabel(c.type))+'</span></div>':a.company?'<div><b>Company</b><span>'+esc(a.company)+'</span></div>':'')+
    (a.outcome?'<div><b>Outcome</b><span>'+esc(a.outcome)+'</span></div>':'')+'</div><div class="scprev">'+esc(a.note||"No note")+'</div>');
 }
+/* ---------- West inbox (Max, 2026-11-24: "Hannah, Jamie or I should be able to read the inbox right there in the CRM and reply by
+   clicking on 'emails inbound'"). On the open West seat's row (Home scorecard and its week page) the Emails inbound and Waiting on a
+   reply tiles open timford@'s inbound mail for that week, newest first: the same rows the tiles count (public.rep_mail, copied from
+   Outlook every evening; calendar / auto replies and bounces left out). An email opens in place with View analysis's reader
+   (raRowHTML / raMailDetailHTML: full text, the thread) plus Reply. Max, Hannah and Jamie only (scAccess(); RLS on rep_mail lets no
+   one else read it, and the west-mail function checks the caller too). Max, same day: "From my own mailbox … a flick menu with
+   outbound from Jamie, Hannah or I": a reply goes out from Max's, Hannah's or Jamie's own mailbox (the From switch in the reply box,
+   the signed-in person first) through the west-mail edge function, with the email quoted under it the way Outlook quotes. It's
+   logged as an email activity with westReply = the email's imid, so every admin sees "Replied by" and the person drops off Waiting
+   on a reply (the reply is in that person's Sent Items, never in timford@'s, so the nightly copy can't see it). */
+const WEST_MB="timford@goldenhourmedical.com";
+const WI_FROM={max:"max@goldenhourmedical.com",hannah:"hannah@goldenhourmedical.com",jamie:"jamie@goldenhourmedical.com"};
+const WI={f:"in",mon:null,focus:null,reply:{}};
+function wiAccess(){return scAccess();}
+/* emails answered from the CRM (any admin; activities sync) */
+let WIR=null;
+function wiReplied(){const acts=DB.activities||[],n=acts.length+"|"+(acts[0]?acts[0].id:"");if(WIR&&WIR.n===n)return WIR.s;
+  const s=new Set();acts.forEach(a=>{if(a&&a.westReply)s.add(a.westReply);});WIR={n:n,s:s};return s;}
+/* each outside person's latest email this week (in or out of the West mailbox); waiting = it came in and nobody answered it */
+function wiLast(rows){const last={};
+  rows.forEach(r=>{(r.dir==="out"?(r.outside||[]):[r.from_addr]).forEach(a=>{a=String(a||"").toLowerCase();if(!a)return;if(!last[a]||new Date(r.at)>=new Date(last[a].at))last[a]=r;});});
+  return last;}
+function wiIsWaiting(r){return r.dir==="in"&&!wiReplied().has(r.imid);}
+/* the week's West mail: inbound newest first, and the people waiting on a reply (their latest inbound email, one row each) */
+function wiData(mon){const all=rmWeek(mon);if(!all)return null;
+  const rows=all.filter(r=>r.rep==="tim"&&!r.kind),last=wiLast(rows);
+  const desc=(a,b)=>a.at<b.at?1:a.at>b.at?-1:0,inn=rows.filter(r=>r.dir==="in").sort(desc);
+  const wait=[...new Set(Object.values(last).filter(wiIsWaiting))].sort(desc);
+  inn.forEach(raKey);
+  return {rows:rows,inn:inn,wait:wait};}
+/* the reply as it goes out: the sender's Outlook signature when the CRM has it (dialSigHtml), else the AutoTQ lockup */
+function wiSignoff(u){return DIAL_SIGS[u]?"Best,":"Best,\n"+teamById(u).name.split(" ")[0];}
+function wiMailHtml(body,u){const sig=dialSigHtml(u);let t=String(body||"").trim();
+  if(sig){const me=teamById(u).name.split(" ")[0];if(me)t=t.replace(new RegExp("\\n\\s*"+me+"\\s*$"),"").trim();}
+  return '<div style="'+DIAL_MAIL_FONT+';line-height:1.4">'+t.split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+esc(p).replace(/\n/g,"<br>")+'</p>').join("")+
+    (sig||'<img src="'+MAIL_ASSETS+'lockup_hd.png" alt="AutoTQ" width="120" style="display:block;margin-top:6px;border:0">')+'</div>';}
+/* answered: a reply sent from the CRM (any admin, synced) or a later email out of the mailbox in the same conversation */
+function wiAnswered(r){
+  const a=(DB.activities||[]).filter(x=>x&&x.westReply&&x.westReply===r.imid).sort((x,y)=>x.date<y.date?1:-1)[0];
+  if(a)return {by:a.by,at:a.date};
+  const d=WI.mon&&wiData(WI.mon),o=d&&r.conv?d.rows.find(x=>x.dir==="out"&&x.conv===r.conv&&x.at>r.at):null;
+  return o?{at:o.at}:null;}
+function wiAnsTag(r){if(r.dir!=="in"||r.kind)return "";const x=wiAnswered(r);if(!x)return "";
+  return '<span class="pill ok" title="'+esc("Answered "+new Date(x.at).toLocaleString(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}))+'">'+(x.by?"Replied by "+esc(teamById(x.by).name.split(" ")[0]):"Answered")+'</span>';}
+function wiUpdLine(){const f=iso=>{const d=new Date(iso);return d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})+", "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"});};
+  return RM.err||("Copied from Outlook every evening"+(RM.run?" · last copy "+f(RM.run.at)+(RM.run.ok?"":" (with a problem)"):""));}
+function wiOpen(f){if(!wiAccess())return;WI.f=f==="wait"?"wait":"in";WI.mon=logState.scWeek||goalMonday();WI.focus=null;
+  raSheet('<div id="wiSheet">'+wiSheetHTML()+'</div>');}
+function wiPaint(){const el=document.getElementById("wiSheet");if(el)el.innerHTML=wiSheetHTML();}
+function wiItem(r){return {k:r._k,mail:true,r:r,t:r.at,day:localDay(r.at)};}
+function wiSheetHTML(){const mon=WI.mon||goalMonday(),days=goalDays(mon),d=wiData(mon),cur=mon===goalMonday();
+  let h='<h2>West inbox</h2><p class="t2">'+esc(WEST_MB)+' · '+(cur?"this week":"week of "+esc(goalMD(days[0])))+' · '+esc(wiUpdLine())+'</p>';
+  if(WI.focus&&RA.byK[WI.focus])return h+'<button class="btn sm" data-act="wiback" style="margin:6px 0 10px">'+svg("chevL")+' Back to the inbox</button>'+
+    '<div class="raled">'+raRowHTML(wiItem(RA.byK[WI.focus]),true,true)+'</div>';
+  if(!d)return h+'<div class="empty" style="padding:22px">Loading the inbox…</div>';
+  const list=WI.f==="wait"?d.wait:d.inn;
+  h+='<div class="seg" style="margin:8px 0 10px">'+[["in","Emails inbound",d.inn.length],["wait","Waiting on a reply",d.wait.length]].map(x=>
+    '<button class="'+(WI.f===x[0]?"on":"")+'" data-act="wiseg" data-v="'+x[0]+'">'+x[1]+' · '+x[2]+'</button>').join("")+'</div>';
+  return h+'<div class="raled">'+(list.map(r=>raRowHTML(wiItem(r),true,true)).join("")||
+    '<div class="empty" style="padding:22px">'+(WI.f==="wait"?"Nobody is waiting on a reply.":"Nothing came in "+(cur?"this week":"that week")+".")+'</div>')+'</div>';}
+/* a line in the thread: open it in place when it's in the list, else on its own (with a way back) */
+function wiJump(k){if(!RA.byK[k])return;RA.open[k]=true;
+  const el=[...document.querySelectorAll('#wiSheet .rait')].find(x=>x.dataset.rak===k);
+  if(el){raRefresh(k);const n=[...document.querySelectorAll('#wiSheet .rait')].find(x=>x.dataset.rak===k);if(n)n.scrollIntoView({block:"start"});return;}
+  WI.focus=k;wiPaint();const s=document.getElementById("sheet");if(s)s.scrollTop=0;}
+/* the buttons under an open email, and the reply box */
+function wiActsHTML(r){const w=raWho(r.dir==="in"?r.from_addr:(r.outside||[])[0]),S=WI.reply[r._k],k=esc(r._k);
+  const canReply=r.dir==="in"&&!r.kind&&!!r.imid,all=wiReplyAllTo(r).length;
+  let h=S?'':'<div class="raacts">'+(canReply?'<button class="btn coral sm" data-act="wireply" data-id="'+k+'">'+svg("arrow")+' Reply</button>'+
+    (all?'<button class="btn sm" data-act="wireply" data-id="'+k+'" data-v="all">Reply all</button>':''):'')+
+    (w.p?'<button class="btn sm" data-act="actperson" data-id="'+esc(w.p.id)+'">'+esc(w.p.name)+'’s contact card</button>':'')+
+    (r.web?'<a class="btn sm" style="text-decoration:none" href="'+esc(r.web)+'" target="_blank" rel="noopener" data-act="extlink">Open in Outlook</a>':'')+'</div>';
+  if(!S)return h;
+  const sig=dialSigHtml(S.from);
+  return h+'<div class="wicomp"><div class="wihd"><b>'+(S.all?"Reply all":"Reply")+'</b></div>'+
+   '<label class="fl">From</label><div class="seg wifrom">'+Object.keys(WI_FROM).map(u=>'<button class="'+(S.from===u?"on":"")+'" data-act="wifrom" data-id="'+k+'" data-v="'+u+'"'+(S.sending?" disabled":"")+' title="'+esc(WI_FROM[u])+'">'+esc(teamById(u).name.split(" ")[0])+'</button>').join("")+'</div>'+
+   '<small class="wifromad">'+esc(WI_FROM[S.from])+'</small>'+
+   '<label class="fl">To</label><input class="f" data-wi="to" data-k="'+k+'" value="'+esc(S.to)+'" autocomplete="off">'+
+   '<label class="fl">Cc</label><input class="f" data-wi="cc" data-k="'+k+'" value="'+esc(S.cc)+'" placeholder="Optional" autocomplete="off">'+
+   '<label class="fl">Subject</label><input class="f" data-wi="subject" data-k="'+k+'" value="'+esc(S.subject)+'" autocomplete="off">'+
+   '<label class="fl">Message</label><textarea class="f wibody" data-wi="text" data-k="'+k+'">\n'+esc(S.text)+'</textarea>'+
+   (sig?'<div class="dlsig" aria-label="Signature">'+sig+'</div>':'')+
+   (S.err?'<p class="dlmerr">Not sent: '+esc(S.err)+'</p>':'')+
+   '<div class="raacts"><button class="btn coral sm" data-act="wisend" data-id="'+k+'"'+(S.sending?" disabled":"")+'>'+(S.sending?"Sending…":"Send reply")+'</button>'+
+   '<button class="btn sm" data-act="wicancel" data-id="'+k+'"'+(S.sending?" disabled":"")+'>Cancel</button></div></div>';}
+/* Reply all: everyone else on the email except the West inbox itself and the sender (who goes in To) */
+function wiReplyAllTo(r){const me=WEST_MB,fr=String(r.from_addr||"").toLowerCase(),seen=new Set([me,fr]);
+  return (r.to_addrs||[]).concat(r.cc_addrs||[]).map(a=>String(a||"").trim().toLowerCase()).filter(a=>a.includes("@")&&!seen.has(a)&&seen.add(a));}
+function wiReplyStart(k,all){const r=RA.byK[k];if(!r)return;
+  const sub=String(r.subject||"").trim(),from=WI_FROM[USER]?USER:"max";
+  WI.reply[k]={all:!!all,from:from,to:String(r.from_addr||"").toLowerCase(),cc:all?wiReplyAllTo(r).join(", "):"",subject:/^(re|aw):/i.test(sub)?sub:"RE: "+sub,
+    text:"\n\n"+wiSignoff(from)};
+  RA.open[k]=true;raRefresh(k);
+  setTimeout(()=>{const el=[...document.querySelectorAll('[data-wi="text"]')].find(x=>x.dataset.k===k);if(el){el.focus();el.setSelectionRange(0,0);el.scrollIntoView({block:"center"});}},30);}
+/* the From switch: the sign-off follows the sender while it's still the one the box started with */
+function wiFromSet(k,u){const S=WI.reply[k];if(!S||!WI_FROM[u]||S.sending)return;
+  const t=String(S.text||""),old=wiSignoff(S.from);
+  if(t.trimEnd().endsWith(old))S.text=t.trimEnd().slice(0,-old.length)+wiSignoff(u);
+  S.from=u;raRefresh(k);}
+document.addEventListener("input",e=>{const el=e.target;if(!el||!el.dataset||!el.dataset.wi)return;const S=WI.reply[el.dataset.k];if(S)S[el.dataset.wi]=el.value;});
+async function wiSend(k){const r=RA.byK[k],S=WI.reply[k];if(!r||!S||S.sending||!wiAccess()||!WI_FROM[S.from])return;
+  const list=s=>String(s||"").split(/[,;\s]+/).map(x=>x.replace(/^.*<|>.*$/g,"").trim().toLowerCase()).filter(Boolean),ok=a=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a);
+  const to=list(S.to),cc=list(S.cc),first=teamById(S.from).name.split(" ")[0];
+  if(!to.length){toast("Who is it to?");return;}
+  const bad=to.concat(cc).find(a=>!ok(a));if(bad){toast("“"+bad+"” isn’t an email address");return;}
+  const txt=String(S.text||"").trim();
+  if(!txt||txt.replace(/^best,?\s*/i,"").replace(new RegExp("^"+first+"$","i"),"").trim()===""){toast("Write the reply first");return;}
+  S.sending=true;delete S.err;raRefresh(k);
+  const from=WI_FROM[S.from];
+  try{const res=await supa("/functions/v1/west-mail",{method:"POST",body:JSON.stringify({action:"reply",imid:r.imid,from:from,to:to,cc:cc,subject:String(S.subject||"").trim(),html:wiMailHtml(S.text,S.from)})});
+    const b=await res.json().catch(()=>({}));
+    if(!res.ok||!b.ok)throw new Error(res.status===404&&!b.error?"the reply service isn’t set up yet":(b.error||("HTTP "+res.status)));
+    if(b.from&&b.from!==from)throw new Error("it went out from "+b.from+" instead of "+from);
+    wiLogReply(r,S,to);delete WI.reply[k];save();raRefresh(k);
+    toast("Reply sent to "+(raWho(to[0]).name||raFlip(r.from_name)||to[0])+" from "+from);}
+  catch(err){S.sending=false;S.err=String((err&&err.message)||err).slice(0,200);raRefresh(k);}}
+/* the reply as a CRM email activity (counts as West activity; westReply marks the email answered for every admin) */
+function wiLogReply(r,S,to){const w=rmWho(to[0]),now=new Date().toISOString();
+  const a={id:uid(),type:"email",note:"Replied to the West inbox from "+WI_FROM[S.from]+" — "+String(S.subject||"")+"\n\n"+String(S.text||"").trim().slice(0,800),date:now,by:USER,norm:2,westReply:r.imid,westFrom:S.from};
+  if(w.p){a.pid=w.p.id;a.cid=w.p.cid||null;if(!w.p.last||w.p.last<now)w.p.last=now;}
+  else{a.name=raFlip(r.from_name)||to[0];a.company=w.co||"";if(w.c)a.cid=w.c.id;}
+  DB.activities=DB.activities||[];DB.activities.unshift(a);}
 /* ---------- Rep analysis — "View analysis" (Max, 2026-11-10: "the same see-everything-he's-doing layout inside the rep view … for
    every rep; email content is private: admins only"). view="repan", curRep = johnm | john | tim | kellan; Max, Hannah, Jamie only
    (scAccess(); RLS on rep_mail enforces it too). Laid out like _local/Tim_Ford_Dashboard_2026-11-06.html — Overview (KPIs, every
@@ -3611,31 +3738,34 @@ function raWhoLine(it){
   const r=it.r,m=RA.model,nm=a=>{const p=m&&m.people[String(a||"").toLowerCase()];return p?p.name:(raWho(a).name||a);},
     co=a=>{const p=m&&m.people[String(a||"").toLowerCase()];return p?p.org:raWho(a).org;};
   if(r.dir==="out"||r.kind==="bounce"){const o=r.outside||[];return (r.kind==="bounce"?"Didn’t reach ":"To ")+'<b>'+esc(o.slice(0,3).map(nm).join(", ")||"(no one outside)")+'</b>'+(o.length>3?' +'+(o.length-3):'')+(o[0]&&co(o[0])?' · '+esc(co(o[0])):'');}
-  return 'From <b>'+esc(nm(r.from_addr)||r.from_name||r.from_addr)+'</b>'+(co(r.from_addr)?' · '+esc(co(r.from_addr)):'');}
+  const fa=String(r.from_addr||"").toLowerCase(),fp=m&&m.people[fa];
+  return 'From <b>'+esc((fp&&fp.name)||raWho(fa).name||raFlip(r.from_name)||r.from_addr)+'</b>'+(co(r.from_addr)?' · '+esc(co(r.from_addr)):'');}
 function raBadge(it){
   if(!it.mail)return '<span class="rabadge c">'+esc(it.c.area==="Activity"?"CRM":it.c.area)+'</span>';
   const r=it.r;if(r.kind==="bounce")return '<span class="rabadge b">Bounced</span>';
   if(r.kind)return '<span class="rabadge x">'+(r.kind==="calendar"?"Calendar":"Auto-reply")+'</span>';
   return r.dir==="out"?'<span class="rabadge s">Sent</span>':'<span class="rabadge r">Received</span>';}
-function raRowHTML(it,showDay){
+/* ib = drawn inside the West inbox sheet (wiSheetHTML): category from the address book, the Replied tag, Reply on the email */
+function raRowHTML(it,showDay,ib){
   const open=!!RA.open[it.k],c=it.c,r=it.r;
   const time=(showDay?goalMD(it.day)+(it.mail||!c.allday?" ":""):"")+(it.mail?scTime(r.at):(c.allday?(showDay?"":"Day"):scTime(c.t)));
   let tags="";
   if(it.mail){const a=(r.dir==="out"||r.kind==="bounce"?(r.outside||[]):[r.from_addr])[0],p=RA.model&&RA.model.people[String(a||"").toLowerCase()];
     if(r.att)tags+='<span class="raclip" title="Has an attachment">'+svg("file")+'</span>';
-    if(p)tags+=raCatChip(p.cat);}
+    if(ib)tags+=wiAnsTag(r);
+    if(p)tags+=raCatChip(p.cat);else if(ib&&a)tags+=raCatChip(raWho(a).cat);}
   else if(c.area!=="Activity")tags+='<span class="ratag">'+esc(c.what.split(" · ")[0])+'</span>';
   const title=it.mail?(r.subject||"(no subject)"):c.what,snip=it.mail?String(r.preview||"").replace(/\s+/g," ").trim():String(c.det||"").replace(/\s+/g," ").trim();
-  return '<div class="rait" data-rak="'+esc(it.k)+'" data-sd="'+(showDay?1:0)+'"><button class="rarow" data-act="raopen" data-id="'+esc(it.k)+'" aria-expanded="'+open+'"><span class="ratm">'+esc(time)+'</span>'+raBadge(it)+
+  return '<div class="rait" data-rak="'+esc(it.k)+'" data-sd="'+(showDay?1:0)+'"'+(ib?' data-ib="1"':'')+'><button class="rarow" data-act="raopen" data-id="'+esc(it.k)+'" aria-expanded="'+open+'"><span class="ratm">'+esc(time)+'</span>'+raBadge(it)+
     '<span class="ramain"><span class="rawho">'+raWhoLine(it)+'</span><span class="rasubj">'+esc(title)+'</span>'+(open||!snip?'':'<span class="rasnip">'+esc(snip.slice(0,240))+'</span>')+'</span>'+
-    '<span class="ratags">'+tags+'</span></button>'+(open?'<div class="raopen">'+(it.mail?raMailDetailHTML(r):raCrmDetailHTML(c))+'</div>':'')+'</div>';}
+    '<span class="ratags">'+tags+'</span></button>'+(open?'<div class="raopen">'+(it.mail?raMailDetailHTML(r,ib):raCrmDetailHTML(c))+'</div>':'')+'</div>';}
 function raAddrLine(arr){return (arr||[]).map(a=>{const w=raWho(a),p=RA.model&&RA.model.people[String(a||"").toLowerCase()],nm=(p&&p.name!==a?p.name:w.name)||"";
   return esc(nm&&nm!==a?nm+" <"+a+">":a)+(w.p||w.l||w.c?' <small class="muted">· '+esc(w.org||"")+(w.p?"":w.l?" · lead":"")+'</small>':'');}).join("<br>");}
 function raSplitQuote(t){const m=/\n(?:-{2,}\s*Original Message\s*-{2,}|_{8,}\s*\n\s*From:|From: [^\n]+\n\s*Sent: |On [^\n]{6,200}wrote:\s*\n)/i.exec("\n"+t);
   if(!m||m.index<2)return [t,""];return [t.slice(0,m.index-1).trimEnd(),t.slice(m.index-1).trim()];}
-function raMailDetailHTML(r){
-  const u=r.rep,fn=raFirst(u),b=raBodyGet(r),when=new Date(r.at).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"});
-  let h='<div class="racd"><dl class="rahdr"><dt>From</dt><dd>'+(r.dir==="out"?esc(teamById(u).name+" <"+r.from_addr+">"):r.kind==="bounce"?esc(r.from_name||"Microsoft Outlook")+' <small class="muted">· delivery-failure notice</small>':raAddrLine([r.from_addr]))+'</dd>'+
+function raMailDetailHTML(r,ib){
+  const u=r.rep,fn=ib?"West inbox":raFirst(u),b=raBodyGet(r),when=new Date(r.at).toLocaleString(undefined,{weekday:"long",month:"long",day:"numeric",hour:"numeric",minute:"2-digit"});
+  let h='<div class="racd"><dl class="rahdr"><dt>From</dt><dd>'+(r.dir==="out"?esc((ib?"West inbox":teamById(u).name)+" <"+r.from_addr+">"):r.kind==="bounce"?esc(r.from_name||"Microsoft Outlook")+' <small class="muted">· delivery-failure notice</small>':raAddrLine([r.from_addr]))+'</dd>'+
     '<dt>To</dt><dd>'+(raAddrLine(r.to_addrs)||"—")+'</dd>'+((r.cc_addrs||[]).length?'<dt>Cc</dt><dd>'+raAddrLine(r.cc_addrs)+'</dd>':'')+
     '<dt>Date</dt><dd>'+esc(when)+(r.att?' · has an attachment':'')+'</dd>'+(r.kind?'<dt>Kind</dt><dd>'+(r.kind==="bounce"?"Delivery failure — "+esc((r.outside||[]).join(", "))+" didn’t get the email":r.kind==="calendar"?"Calendar invite or reply (not counted)":"Automatic reply (not counted)")+'</dd>':'')+'</dl>';
   if(b===null)h+='<div class="rabody">'+esc(r.preview||"")+'</div><p class="t2" style="margin:0">Loading the whole email…</p>';
@@ -3645,8 +3775,9 @@ function raMailDetailHTML(r){
   const th=raConvGet(r).slice().sort((a,b2)=>a.at<b2.at?-1:1);
   if(th.length>1)h+='<div class="rathr"><h5>Same conversation · '+th.length+' emails</h5>'+th.map(x=>{
     const who=x.dir==="out"?fn+" → "+((x.outside||[]).map(a=>{const p=RA.model&&RA.model.people[a];return p?p.name:(raWho(a).name||a);}).slice(0,2).join(", ")||"—"):(raFlip(x.from_name)||x.from_addr)+" → "+fn;
-    return '<button data-act="rajump" data-id="'+esc(x._k)+'"'+(x._k===r._k?' class="cur"':'')+'><span>'+esc(goalMD(localDay(x.at))+" "+scTime(x.at)+" · "+who+(x.kind?" ("+x.kind+")":"")+" · "+String(x.preview||"").replace(/\s+/g," ").slice(0,90))+'</span></button>';}).join("")+'</div>';
+    return '<button data-act="'+(ib?"wijump":"rajump")+'" data-id="'+esc(x._k)+'"'+(x._k===r._k?' class="cur"':'')+'><span>'+esc(goalMD(localDay(x.at))+" "+scTime(x.at)+" · "+who+(x.kind?" ("+x.kind+")":"")+" · "+String(x.preview||"").replace(/\s+/g," ").slice(0,90))+'</span></button>';}).join("")+'</div>';
   const a0=(r.dir==="out"||r.kind==="bounce"?(r.outside||[]):[r.from_addr])[0];
+  if(ib)return h+wiActsHTML(r)+'</div>';
   h+='<div class="raacts">'+(a0?'<button class="btn sm" data-act="raperson" data-id="'+esc(a0)+'">Everything with '+esc((RA.model&&RA.model.people[a0]||{}).name||a0)+'</button>':'')+
     (r.web?'<a class="btn sm" style="text-decoration:none" href="'+esc(r.web)+'" target="_blank" rel="noopener" data-act="extlink">Open in Outlook</a>':'')+'</div>';
   return h+'</div>';}
@@ -3656,8 +3787,8 @@ function raCrmDetailHTML(c){
     '<div class="raacts">'+(c.act?'<button class="btn sm" data-act="scact" data-id="'+esc(c.act)+'">Open the activity</button>':'')+(c.pid?'<button class="btn sm" data-act="actperson" data-id="'+esc(c.pid)+'">The contact</button>':'')+
     (c.lead?'<button class="btn sm" data-act="openlead" data-id="'+esc(c.lead)+'">The lead</button>':'')+(c.opp?'<button class="btn sm" data-act="editopp" data-id="'+esc(c.opp)+'">The deal</button>':'')+'</div></div>';}
 /* redraw every copy of one line (page and sheet) after it opens or its text arrives */
-function raRefresh(k){const m=RA.model;if(!m)return;const it=m.byK[k]||(RA.byK[k]?{k:k,mail:true,r:RA.byK[k],t:RA.byK[k].at,day:localDay(RA.byK[k].at)}:null);if(!it)return;
-  document.querySelectorAll(".rait").forEach(el=>{if(el.dataset.rak===k)el.outerHTML=raRowHTML(it,el.dataset.sd==="1");});}
+function raRefresh(k){const m=RA.model,it=(m&&m.byK[k])||(RA.byK[k]?{k:k,mail:true,r:RA.byK[k],t:RA.byK[k].at,day:localDay(RA.byK[k].at)}:null);if(!it)return;
+  document.querySelectorAll(".rait").forEach(el=>{if(el.dataset.rak===k)el.outerHTML=raRowHTML(it,el.dataset.sd==="1",el.dataset.ib==="1");});}
 /* ----- the page ----- */
 function raTabs(m){const q=raQ();
   return [["overview","Overview"],["days","Day by day"],["orgs","Organizations",m&&m.O.length],["people","Conversations",m&&m.P.length],["email","All email",m&&m.rows.length],["crm","CRM",m&&m.crm.length],["cal","Calendar"]];}
@@ -14258,6 +14389,15 @@ document.addEventListener("click",e=>{
   if(a==="scday"){logState.scDay=t.dataset.v||null;render();return;}
   if(a==="scf"){logState.scF=t.dataset.v;render();return;}
   if(a==="scmail"){scMailSheet(id);return;}
+  /* the West inbox (Emails inbound / Waiting on a reply on the open West seat) */
+  if(a==="wibox"){wiOpen(t.dataset.v);return;}
+  if(a==="wiseg"){WI.f=t.dataset.v;wiPaint();return;}
+  if(a==="wiback"){WI.focus=null;wiPaint();return;}
+  if(a==="wijump"){wiJump(id);return;}
+  if(a==="wireply"){wiReplyStart(id,t.dataset.v==="all");return;}
+  if(a==="wisend"){wiSend(id);return;}
+  if(a==="wicancel"){const S=WI.reply[id];if(S&&String(S.text||"").trim()!==wiSignoff(S.from)&&!confirm("Throw away this reply?"))return;delete WI.reply[id];raRefresh(id);return;}
+  if(a==="wifrom"){wiFromSet(id,t.dataset.v);return;}
   if(a==="scact"){scActSheet(id);return;}
   /* View analysis (any rep, Max / Hannah / Jamie) */
   if(a==="raopenrep"){if(!raAccess(id))return;closeSheet();pushNav();curRep=id;view="repan";logState.raTab="overview";logState.raQ="";logState.raDay=null;logState.raMore=false;RA.open={};render();window.scrollTo(0,0);return;}
