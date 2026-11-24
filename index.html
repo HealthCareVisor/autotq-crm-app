@@ -1252,6 +1252,7 @@ div.dlrow{cursor:default}
 .dlorg{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;gap:8px;margin:0;padding:7px 12px 5px;background:var(--surface-2);border-bottom:1px solid var(--line-2);font-size:12px;font-weight:700;color:var(--ink)}
 .dlorg span{font-weight:500;color:var(--muted)}
 .dldone summary{font-size:13px;color:var(--ink-2);cursor:pointer;margin:4px 2px 8px}
+.dldirect{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px dashed var(--line-2);border-radius:var(--r);font-size:13.5px;background:var(--surface)}
 .dlprev{margin:6px 0 4px}.dlprev>summary{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface-2)}
 .dlprev .dlrows{margin-top:6px;max-height:320px;overflow:auto}.dlprow2{display:flex;flex-direction:column;align-items:flex-start;gap:2px;cursor:default}
 .dlprow2 .dlrn{text-align:left;padding:0}.dlptags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
@@ -6947,6 +6948,7 @@ function dialSources(){ensureLeads();
 /* ---- view ---- */
 const DIAL_GOAL=150;
 function viewDialer(){
+  if(Date.now()-(DIAL.dxAt||0)>90000){DIAL.dxAt=Date.now();setTimeout(dialDirectSweep,1500);} /* emails Max sent himself that have synced since */
   const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
   let h='<div class="dltop"><div class="seg dltabs">'+[["dial","Dial"],["texts","Texts"+(dialTextUnread()?" · "+dialTextUnread():"")],["email","Email"+(drafts?" · "+drafts:"")],["log","Logged"+(st.unpushed?" · "+st.unpushed:"")]]
     .map(x=>'<button class="'+(S.tab===x[0]?"on":"")+'" data-act="dialtab" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>'+dialFunnelHTML(st)+'</div>';
@@ -7018,7 +7020,8 @@ function dialPrevCallsHTML(st){const S=dialS(),L=(st.list||[]).slice().sort((a,b
   const mails=dialMails();
   return '<details class="fold dlprev" id="dlPrev"'+(S.prevOpen?' open':'')+'><summary><span>Previous calls today · '+L.length+'</span><span class="fchev">'+chev()+'</span></summary><div class="list dlrows">'+
     L.slice(0,80).map(c=>{const m=mails.find(x=>x&&!x.removed&&x.callId===c.id&&x.status!=="skipped");
-      const mail=m?(m.status==="sent"?'<span class="pill ok">Email sent</span>':'<span class="pill warn">Email waiting</span>'):'';
+      const dm=c.directMail,mail=m?(m.status==="sent"?'<span class="pill ok">Email sent</span>':'<span class="pill warn">Email waiting</span>'):
+        dm?(dm.actId?'<span class="pill ok">Emailed directly</span>':'<span class="pill warn">Emailed directly · matching</span>'):'';
       return '<div class="dlrow dlprow2"><button class="lnk dlrn" data-act="dialopen" data-id="'+esc(c.key)+'">'+esc(c.name||"—")+'</button>'+
         '<span class="dlrs">'+esc([c.co,fmtTimeShort(c.at)].filter(Boolean).join(" · "))+'</span>'+
         '<span class="dlptags"><span class="pill '+(DIAL_OUT_TONE[c.out]||"gray")+'">Call · '+esc(dialOutLabel(c.out))+'</span>'+mail+'</span></div>';}).join("")+
@@ -7279,6 +7282,15 @@ function dialCardMailFill(e){const S=dialS(),m=dialCardMail(e),out=dialMailOut(e
 function dialCardMailInner(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(dialMailOut(e)))return "";
   dialCardMailFill(e);const m=dialCardMail(e),ok=dialEmailOk(m.to),lits=dialLitFor(e),cur=DIAL_LIT.find(l=>l.id===m.lit);
   if(cur&&!lits.includes(cur))lits.unshift(cur);
+  if(m.direct){const f=m.dfound,to=String(m.to||"").trim();
+    return '<div class="dlcmail"><p class="fl">Follow-up email</p>'+
+      '<div class="dlcmrow"><span class="t2">To</span><input class="f" data-dm="to" type="email" placeholder="their@email.com" value="'+esc(to)+'" aria-label="To"></div>'+
+      '<div class="dldirect"><span class="grow">'+(f?'<b>Found in your sent mail:</b> “'+esc(f.subject||"(no subject)")+'” · '+esc(mdStamp(f.at)+" "+fmtTimeShort(f.at))+'. It goes on '+esc(e.name)+'’s record when you save.'
+        :m.dchecking?'Looking in your sent mail…'
+        :dialEmailOk(to)?'Not in your sent mail here yet. It attaches to '+esc(e.name)+'’s record by itself a few minutes after you save.'
+        :'Add their email address so your email can be matched.')+'</span>'+
+      (f||m.dchecking||!dialEmailOk(to)?'':'<button class="btn sm" data-act="dialdirectlook">Check again</button>')+
+      '<button class="btn sm ghost" data-act="dialdirect">Write one here instead</button></div></div>';}
   return '<div class="dlcmail"><p class="fl">Follow-up email</p>'+
     '<div class="dlcmrow"><span class="t2">To</span><input class="f" data-dm="to" type="email" placeholder="their@email.com" value="'+esc(m.to||"")+'" aria-label="To"></div>'+
     '<input class="f" data-dm="subject" value="'+esc(m.subject)+'" placeholder="Subject" aria-label="Subject">'+
@@ -7287,12 +7299,13 @@ function dialCardMailInner(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(di
     lits.map(l=>'<option value="'+l.id+'"'+(m.lit===l.id?" selected":"")+'>'+esc(l.title)+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialmlitview" title="See the attachment before it goes">Preview</button>'+
     '<button class="btn sm" data-act="dialcwrite"'+(m.writing?" disabled":"")+'>'+svg("spark")+' '+(m.writing?"Writing…":"Write from my notes")+'</button>'+
+    '<button class="btn sm" data-act="dialdirect" title="You sent it from Outlook: find it in your sent mail and put it on their record">I emailed them directly</button>'+
     '<span class="grow"></span><label class="dlcmsend'+(ok?"":" off")+'"><input type="checkbox" data-dm="send"'+(m.send&&ok?" checked":"")+(ok?"":" disabled")+'> Send it when I save</label></div>'+
     (m.err?'<p class="t2 dlmerr">'+esc(m.err)+'</p>':'')+'</div>';}
 /* repaint the box only when its shape or its filled-in text changed, so typing in it is never wiped */
 function dialBoxHTML(id,inner,sig){return '<div id="'+id+'" data-sig="'+esc(sig)+'">'+inner+'</div>';}
 function dialMailSig(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(dialMailOut(e)))return "";const m=S.mail&&S.mail.key===e.key?S.mail:null;
-  return [e.key,dialMailOut(e),m?m.ver:0,m&&m.writing?1:0,m&&m.err?1:0].join("|");}
+  return [e.key,dialMailOut(e),m?m.ver:0,m&&m.writing?1:0,m&&m.err?1:0,m&&m.direct?(m.dfound?"f":m.dchecking?"c":"d"):""].join("|");}
 function dialCardMailPaint(){const el=document.getElementById("dlmail");if(!el)return;const S=dialS(),e=dialCur();
   if(e&&DIAL_MAIL_OUTS.includes(dialMailOut(e)))dialCardMailFill(e);
   const sig=dialMailSig(e);
@@ -7614,7 +7627,12 @@ function dialSave(noMail){
   if(S.out==="meeting"){const m=S.meet||{};c.meet={when:m.when||"",distCid:m.distCid&&m.distCid!=="none"?m.distCid:"",distName:m.distCid&&m.distCid!=="none"?m.distName||"":"",repPid:m.repPid||""};}
   dialCalls().unshift(c);
   /* the card's email: a typed address goes on the record; ticked = send now, unticked = a draft on the Email tab */
-  let mailNote=noMail&&DIAL_MAIL_OUTS.includes(S.out)?" · no email":"",sendId="";const mm=!noMail&&S.mail&&S.mail.key===e.key&&DIAL_MAIL_OUTS.includes(S.out)?S.mail:null;
+  /* "I emailed them directly": no draft and no send here; the email Max sent from Outlook is found in his synced sent mail and logged */
+  const direct=!noMail&&box&&box.direct&&DIAL_MAIL_OUTS.includes(S.out);
+  let mailNote=noMail&&DIAL_MAIL_OUTS.includes(S.out)?" · no email":"",sendId="";const mm=!noMail&&!direct&&S.mail&&S.mail.key===e.key&&DIAL_MAIL_OUTS.includes(S.out)?S.mail:null;
+  if(direct){const to=String(box.to||r.email||"").trim();if(dialEmailOk(to))c.email=to;
+    c.directMail={to:c.email||to,since:new Date(Date.now()-2*86400000).toISOString()};
+    if(box.dfound){dialDirectAttach(c,box.dfound);mailNote=" · your email is on their record";}else mailNote=dialEmailOk(to)?" · your email attaches once it syncs":" · no address to match your email";}
   const hadEmail=r.email,hadOk=r.textOk;
   if(box&&dialEmailOk(box.to)&&!dialEmailOk(r.email))r.email=String(box.to).trim(); // an address typed on the card goes on the record, whatever the outcome
   if(tx&&tx.ok&&!r.textOk&&DIAL_TEXT_OUTS.includes(S.out))r.textOk={at:now,by:USER};
@@ -7631,11 +7649,12 @@ function dialSave(noMail){
   const lbl=dialOutLabel(S.out);
   Object.assign(S,{out:"",note:"",cb:"",secs:0,cur:"",hold:"",meet:null,mail:null,text:null});S.skipped=(S.skipped||[]).filter(k=>k!==e.key);
   render();
-  toast(lbl+" · "+e.name+(inCrm?" · in the CRM":"")+mailNote,()=>{dialUnpushCall(c,snap);const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;r.email=hadEmail;r.textOk=hadOk;
+  toast(lbl+" · "+e.name+(inCrm?" · in the CRM":"")+mailNote,()=>{dialUnpushCall(c,snap);if(c.directMail&&c.directMail.actId){const k=(DB.activities||[]).findIndex(x=>x&&x.id===c.directMail.actId);if(k>-1)DB.activities.splice(k,1);}const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;r.email=hadEmail;r.textOk=hadOk;
     (DB.dialMail||[]).forEach(m=>{if(m.callId===c.id&&m.status!=="sent")m.removed=true;});save();render();});
   if(sendId){const cid=c.id;setTimeout(()=>{const m=dialMails().find(x=>x.id===sendId);
     if(m&&!m.removed&&m.status==="draft"&&dialCalls().some(x=>x.id===cid))dialMailSend(sendId,true);},5500);}
-  else if(!c.mailId&&!noMail){try{dialDraftAfter(c,e);}catch(x){}}
+  else if(!c.mailId&&!noMail&&!direct){try{dialDraftAfter(c,e);}catch(x){}}
+  if(direct&&!c.directMail.actId)setTimeout(dialDirectSweep,4000);
   dialCountdown();}
 /* Every call lands in the CRM by itself (Max, 2026-11-24, reversing the 11-19 rule: "Dialer activity pushes to the CRM automatically"):
    Save writes an activity on the contact / a conference-lead call / a lead touch (dated when you called), a to-do for a call-back
@@ -7927,6 +7946,32 @@ async function dialMailSend(id,quiet){
    (Max, 2026-11-24). The id comes from the email ("dm"+id), so it is logged once whichever device does it. */
 function dialMailAct(m){const lit=m.lit?((DIAL_LIT.find(l=>l.id===m.lit)||{}).title||""):"";
   return {note:"Emailed: "+String(m.subject||"").trim()+"\n\n"+String(m.body||"").trim()+(lit?"\n\nAttached: "+lit:""),subject:String(m.subject||""),mailId:m.id,to:m.to||""};}
+/* ---- "I emailed them directly" (Max, 2026-11-24: "after selecting this it will sift through my inbox (max@goldenhourmedical.com) for an
+   outbound sent email and will attach that to the contact"). Max's Sent Items reach `dial_mail` through dial_mail_sync.py every 5
+   minutes (only for people the Dialer called or emailed, which a saved call makes them). The newest email he sent the address in the last
+   two days becomes an email activity on the person (id "dx"+message id, so it's logged once), linked from the call (c.directMail.actId).
+   A call saved before the email synced is matched later: dialDirectSweep runs after a save and while the Dialer is open. */
+async function dialDirectFind(to,sinceIso){const a=String(to||"").trim().toLowerCase();if(!dialEmailOk(a)||/[*,()"\\]/.test(a))return null;
+  const r=await supa("/rest/v1/dial_mail?select=id,at,subject,preview,to_addrs&dir=eq.out&to_addrs=ilike."+encodeURIComponent("*"+a+"*")+
+    "&at=gte."+encodeURIComponent(sinceIso||new Date(Date.now()-2*86400000).toISOString())+"&order=at.desc&limit=5");
+  if(!r||!r.ok)return null;const rows=await r.json().catch(()=>[]);return (Array.isArray(rows)&&rows[0])||null;}
+function dialDirectAttach(c,row){if(!c||!row||!row.id)return null;const e=dialRecByKey(c.key);if(!e)return null;const r=e.rec,id="dx"+String(row.id).slice(-40);
+  if((DB.activities||[]).some(x=>x&&x.id===id)){c.directMail=Object.assign(c.directMail||{},{actId:id});return id;}
+  const a={id:id,type:"email",date:row.at||new Date().toISOString(),by:c.by||USER,norm:2,dialer:true,outlook:true,mailRef:row.id,
+    subject:String(row.subject||""),to:c.directMail&&c.directMail.to||c.email||"",
+    note:"Emailed from Outlook: "+String(row.subject||"(no subject)").trim()+(row.preview?"\n\n"+String(row.preview).trim():"")};
+  if(e.k==="p"){a.pid=r.id;a.cid=r.cid||null;if(!r.last||r.last<a.date)r.last=a.date;}
+  else if(e.k==="cl"){a.refId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;}
+  else{a.leadId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;if(r.refId)a.refId=r.refId;}
+  DB.activities.unshift(a);c.directMail=Object.assign(c.directMail||{},{actId:id,subject:a.subject,at:a.date});return id;}
+async function dialDirectSweep(){if(DIAL.dxBusy||!dialAccess())return;DIAL.dxBusy=true;DIAL.dxAt=Date.now();
+  try{const wk=dAdd(todayStr(),-3),L=dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&c.directMail&&!c.directMail.actId&&localDay(c.at)>=wk);
+    let n=0;for(const c of L){const row=await dialDirectFind(c.directMail.to,c.directMail.since).catch(()=>null);if(row&&dialDirectAttach(c,row))n++;}
+    if(n){save();if(view==="dialer")render();toast(n===1?"Your email is on their record":n+" of your emails are on their records");}}
+  finally{DIAL.dxBusy=false;}}
+async function dialDirectLook(e,m){m.dchecking=true;m.ver++;dialCardMailPaint();
+  const f=await dialDirectFind(m.to||(e.rec||{}).email).catch(()=>null);
+  if(!m.direct)return;m.dchecking=false;m.dfound=f;m.ver++;dialCardMailPaint();}
 function dialPushMail(m){if(!m||m.status!=="sent"||m.pushedAct)return;const e=dialRecByKey(m.key);if(!e)return;const r=e.rec,id="dm"+m.id;
   if((DB.activities||[]).some(x=>x&&x.id===id)){m.pushedAct=id;return;}
   const a=Object.assign({id:id,type:"email",date:m.sentAt||new Date().toISOString(),by:m.by||USER,norm:2,dialer:true},dialMailAct(m));
@@ -8012,6 +8057,8 @@ function dialAct(a,t){
   if(a==="dialkp"){DIAL.kp=!DIAL.kp;dialPaint();return true;}
   if(a==="dialdig"){if(DIAL.call)DIAL.call.sendDigits(t.dataset.v);return true;}
   if(a==="dialmtab"){S.mtab=t.dataset.v;if(S.mtab==="inbox")DIAL.inbox=null;render();return true;}
+  if(a==="dialdirect"){const e=dialCur();if(!e)return true;const m=dialCardMail(e);m.direct=!m.direct;m.dfound=null;m.dchecking=false;m.ver++;dialCardMailPaint();if(m.direct)dialDirectLook(e,m);return true;}
+  if(a==="dialdirectlook"){const e=dialCur();if(!e)return true;const m=dialCardMail(e);if(m.direct)dialDirectLook(e,m);return true;}
   if(a==="dialmsend"){dialMailSend(t.dataset.id);return true;}
   if(a==="dialmlitview"){const f=t.closest(".dlmfoot"),sel=f&&f.querySelector("select.dlmlit");dialLitPreview(sel?sel.value:"");return true;}
   if(a==="dialmskip"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m){m.status="skipped";save();render();toast("Skipped · "+m.toName,()=>{m.status="draft";save();render();});}return true;}
