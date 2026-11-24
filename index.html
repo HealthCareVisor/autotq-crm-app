@@ -1314,9 +1314,21 @@ div.dlrow{cursor:default}
 .dhphone{display:inline-flex;align-items:center;white-space:nowrap}
 .dhfun{width:100%;max-width:1440px;margin:0 auto;padding:16px 28px 0}
 .dhfun .dlfun{min-width:0}
+.dlkpis{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:12px;overflow:hidden}
+.dlk,.dlkwk{display:flex;flex-direction:column;justify-content:space-between;gap:2px;padding:7px 10px;border-left:1px solid var(--line);min-width:0}
+.dlkwk{border-left:0;background:var(--sunken)}
+.dlk.dlkpl{border-left:2px solid var(--line-3)}
+.dlk span,.dlkwk span{font-size:11px;line-height:1.25;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.dlk b,.dlkwk b{font-size:15px;font-weight:700;line-height:1.2;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dlkwk b{font-size:12.5px;font-weight:600}
+@media (max-width:1100px){.dlkpis{grid-template-columns:repeat(6,minmax(0,1fr))}.dlk,.dlkwk{border-top:1px solid var(--line)}
+  .dlk:nth-child(-n+6),.dlkwk{border-top:0}.dlk:nth-child(6n+1){border-left:0}}
+@media (max-width:640px){.dlkpis{grid-template-columns:repeat(4,minmax(0,1fr))}.dlk:nth-child(-n+6){border-top:1px solid var(--line)}
+  .dlk:nth-child(-n+4),.dlkwk{border-top:0}.dlk:nth-child(6n+1){border-left:1px solid var(--line)}.dlk:nth-child(4n+1){border-left:0}
+  .dlk,.dlkwk{padding:6px 8px}.dlk span,.dlkwk span{font-size:10.5px}.dlk b{font-size:14px}}
 .dhmain{width:100%;max-width:1440px;margin:0 auto;padding:14px 28px 48px;flex:1}
 .dhub .dlgrid{grid-template-columns:minmax(260px,340px) minmax(0,1fr);gap:20px}
-.dhub .dlrows{max-height:calc(100vh - 262px)}
+.dhub .dlrows{max-height:calc(100vh - 318px)}
 .dhub .dlcard{padding:26px 30px;border-radius:var(--r-xl)}
 .dhub .dlname{font-size:28px}
 .dhub .dlnum b{font-size:22px}
@@ -6957,6 +6969,22 @@ function viewDialer(){
   if(S.tab==="email")return h+viewDialEmail();
   if(S.tab==="texts")return h+viewDialTexts();
   return h+viewDialDial(st);}
+/* the scorecard's Dialer numbers in a small strip at the top of the Dialer (Max, 2026-11-24: "Show these metrics at the top of the
+   dialer (small)", with a screenshot of his row on Home): the same scDialState tiles + scPipe box, this week (goalMonday, like the
+   scorecard), for the signed-in seat. Each cell's second line is its hover title. */
+let dialKpiMemo={sig:"",html:""};
+function dialKpiHTML(){if(!USER)return "";
+  const sig=[USER,todayStr(),LEAD_META_GEN,(DB.dialCalls||[]).length,(DB.dialMail||[]).length,(DB.activities||[]).length,(DB.opps||[]).length].join("|");
+  if(dialKpiMemo.sig===sig)return dialKpiMemo.html;dialKpiMemo={sig:sig,html:dialKpiBuild()};return dialKpiMemo.html;}
+function dialKpiBuild(){
+  const mon=goalMonday(),days=goalDays(mon),st=scDialState(USER,mon,days),p=scPipe(USER,mon);
+  const amt=l=>fmtK(l.reduce((a,o)=>a+(+o.amount||0),0)),n=(l,w)=>l.length+" "+w+(l.length===1?"":"s");
+  const cell=(lbl,v,sub,cls)=>'<div class="dlk'+(cls||"")+'" title="'+esc(lbl+(sub?" · "+sub:""))+'"><span>'+esc(lbl)+'</span><b>'+esc(String(v))+'</b></div>';
+  return '<div class="dlkpis"><div class="dlkwk"><span>This week</span><b>'+goalMD(days[0])+'–'+(days[0].slice(5,7)===days[6].slice(5,7)?String(+days[6].slice(8,10)):goalMD(days[6]))+'</b></div>'+
+    st.tiles.map(x=>cell(x.label,x.v,x.sub)).join("")+
+    cell("New pipeline",amt(p.added),n(p.added,"deal")+" added this week"," dlkpl")+
+    cell("To close · 30 days",amt(p.c30),n(p.c30,"deal"))+cell("To close · 60 days",amt(p.c60),n(p.c60,"deal"))+
+    cell("Total pipeline",amt(p.open),n(p.open,"open deal")+(p.late?" · "+p.late+" past close":""))+'</div>';}
 function dialFunnelHTML(st){const pct=Math.min(100,Math.round(st.n/DIAL_GOAL*100));
   return '<div class="dlfun"><div class="dlfunbar"><span style="width:'+pct+'%"></span></div><p class="t2"><b>'+st.n+'</b> / '+DIAL_GOAL+' dials · <b>'+st.talk+
     '</b> conversation'+(st.talk===1?'':'s')+' · <b>'+st.meet+'</b> meeting'+(st.meet===1?'':'s')+' booked · <b>'+st.hot+'</b> interested</p></div>';}
@@ -7747,7 +7775,7 @@ function renderDialerHub(){
     '<div class="dhright"><span id="dlphone" class="dhphone">'+dialPhoneHTML()+'</span>'+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'">'+(SYNC.online?"":"Offline")+'</span>'+
     '<button class="av" style="background:'+me.c+'" data-act="dhmenu" title="'+esc(me.name)+'">'+initials(me.name)+'</button></div></header>'+
-    '<div class="dhfun">'+dialFunnelHTML(st)+'</div><main class="dhmain">'+body+'</main></div>';
+    '<div class="dhfun">'+dialKpiHTML()+dialFunnelHTML(st)+'</div><main class="dhmain">'+body+'</main></div>';
   try{dialAfterRender();}catch(e){}
   try{trackUsage();}catch(e){}}
 function dialHubMenu(){openSheet('<h2>AutoTQ Dialer</h2><div class="list">'+
