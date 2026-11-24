@@ -12751,7 +12751,8 @@ function formMarkShipped(id){
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+poChip(o.poNo)+' '+esc(lnItems(o))+(shipHowTxt(o)?' · <b>Ship '+esc(shipHowTxt(o))+'</b>':'')+'</p>'+
    lbl('Shipped with')+'<div id="lnCar" style="display:flex;gap:6px;flex-wrap:wrap">'+SR_CARRIERS.map(c=>'<button class="qchip'+(car===c?" on":"")+'" data-act="lnshipcar" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>'+
    '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" id="lnTrackWrap" style="min-width:200px'+(car==="Hand delivered"?';display:none':'')+'">'+lbl('Tracking #')+
-    '<input class="f" id="lnTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="'+esc(lnTrackHint(car))+'"></div>'+
+    '<input class="f" id="lnTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="'+esc(lnTrackHint(car))+'">'+
+    '<div id="lnFindWrap" style="margin-top:6px'+(car==="UPS"?'':';display:none')+'"><button class="btn sm" data-act="lnupsfind" data-id="'+o.id+'">Find on UPS</button> <span class="t2" id="lnFind" style="white-space:normal"></span></div></div>'+
    '<div>'+lbl('Ship date')+'<input class="f" id="lnDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div>'+
    '<div>'+lbl('Shipping we paid <span style="font-weight:400;color:var(--hint)">— blank if they pay</span>')+'<input class="f" id="lnCost" inputmode="decimal" value="'+(o.shipCost||"")+'" placeholder="$" style="width:120px"></div></div>'+
    '<button class="btn coral block" data-act="lnshipsave" data-id="'+o.id+'" data-v="email" style="margin-top:16px">Save &amp; email '+esc(who||"them")+' it shipped</button>'+
@@ -12763,7 +12764,24 @@ function lnShipCar(c){
   document.querySelectorAll("#lnCar .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===c));
   const w=document.getElementById("lnTrackWrap"),i=document.getElementById("lnTrack");
   if(w)w.style.display=c==="Hand delivered"?"none":"";if(i)i.placeholder=lnTrackHint(c);
+  const fw=document.getElementById("lnFindWrap");if(fw)fw.style.display=c==="UPS"?"":"none";
 }
+/* Find on UPS (Max, 2026-11-24: "pull the tracking # from UPS"): ups-bridge "find" looks up our UPS account by the PO as it's
+   written on a label's reference ("PO 0560959", then "0560959"), last 30 days; fills the tracking # and the first-scan date */
+async function lnUpsFind(id){const o=orderById(id);if(!o)return;const out=document.getElementById("lnFind");
+  const po=String(o.poNo||"").replace(/^PO\s*/i,"").trim(),refs=[...new Set([po?"PO "+po:"",po,o.poNo||""].filter(Boolean))];
+  if(!refs.length){if(out)out.textContent="This order has no PO # to look up.";return;}
+  if(out)out.textContent="Looking on UPS…";
+  try{for(const ref of refs){
+      const r=await supa("/functions/v1/ups-bridge",{method:"POST",body:JSON.stringify({action:"find",reference:ref,days:30})});
+      const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+      const p=(j.packages||[]).filter(x=>x&&x.tracking);if(!p.length)continue;
+      const el=document.getElementById("lnTrack");if(el)el.value=p[0].tracking;
+      const s=p[0].firstScan,d=document.getElementById("lnDate");if(d&&/^\d{8}$/.test(s||""))d.value=s.slice(0,4)+"-"+s.slice(4,6)+"-"+s.slice(6,8);
+      if(out)out.textContent=(p.length>1?p.length+" boxes on UPS: "+p.map(x=>x.tracking).join(", ")+" (first one filled in)":"Found on UPS")+(p[0].status?" · "+p[0].status:"");
+      return;}
+    if(out)out.textContent="Nothing on our UPS account under "+refs.map(x=>"“"+x+"”").join(" or ")+" in the last 30 days.";}
+  catch(e){if(out)out.textContent="Couldn’t reach UPS ("+String((e&&e.message)||e).slice(0,90)+").";}}
 function saveMarkShipped(id,thenEmail){
   const o=orderById(id);if(!o)return;
   const car=logState.lnCar||lnShipCarrier(o),tn=car==="Hand delivered"?"":val("lnTrack").replace(/\s+/g,"");
@@ -13908,6 +13926,7 @@ document.addEventListener("click",e=>{
   if(a==="invsec"){goView(t.dataset.v);return;}
   if(a==="srform"){formSerials(id);return;}
   if(a==="lnship"){formMarkShipped(id);return;}
+  if(a==="lnupsfind"){lnUpsFind(id);return;}
   if(a==="lnshipcar"){lnShipCar(t.dataset.v);return;}
   if(a==="lnshipsave"){saveMarkShipped(id,t.dataset.v==="email");return;}
   if(a==="osnform"){formOrderShipNotice(id);return;}
