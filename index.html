@@ -1280,6 +1280,9 @@ div.dlrow{cursor:default}
 .dlday{margin:14px 2px 8px;font-size:13px}
 .dlprow{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line-2)}.dlprow:last-child{border-bottom:0}
 .dlprow input{margin-top:3px}.dlptime{min-width:62px}
+.leadmeta{margin:0 0 8px;line-height:1.7}.leadmeta .pill{margin-right:4px}
+.dllogst{display:flex;align-items:center;gap:8px;flex:none;white-space:nowrap}.dllogok{display:inline-flex;align-items:center;gap:4px;color:var(--ok-t)}.dllogok svg{width:14px;height:14px}
+@media(max-width:640px){.dlprow{flex-wrap:wrap}.dllogst{width:100%;justify-content:flex-end}}
 .f.dlmeetwhen{width:auto;min-height:30px;padding:0 8px}
 .dlmtabs{margin-bottom:12px}
 .dlmail{display:flex;flex-direction:column;gap:8px}.dlmhead{margin:0}
@@ -1497,8 +1500,9 @@ async function pullChanges(full){
     SYNC.lastPull=maxTs;
     SYNC.online=true;saveSyncMeta();
     if(SYNC.healed){SYNC.healed=false;if(SYNC.booted){clearTimeout(SYNC.timer);SYNC.timer=setTimeout(pushDirty,700);}} // boot pushes on its own
-    if(changed){try{oppNoteRedraw();}catch(e){}}
+    if(changed){LEAD_META_GEN++;try{oppNoteRedraw();}catch(e){}}
     if(changed){try{dialTextsTick();}catch(e){}}
+    if(changed&&SYNC.booted&&dialAccess()){try{dialAutoPush();}catch(e){}}
     if(changed){normOppStages();writeCache();
       const ae=document.activeElement;
       if(!ae||!/INPUT|TEXTAREA|SELECT/.test(ae.tagName))render();else try{fbSync();}catch(e){}}
@@ -1517,6 +1521,7 @@ async function bootSync(){
   await pullChanges(true);      // full pull — server is the source of truth
   snapshotShadow();             // then baseline the shadow from merged state
   SYNC.booted=true;
+  if(dialAccess()){try{if(dialAutoPush())render();}catch(e){}} /* calls and emails the Dialer hasn't logged yet go into the CRM */
   if(dialAccess()&&DIALER_HUB)setTimeout(dialInit,1200); /* the dialer's phone: ready to call, and callbacks ring here */
   if(Object.keys(SYNC.dirty).length)pushDirty();
   setInterval(pullChanges,8000);
@@ -1622,7 +1627,8 @@ function load(){
     cacheReady=bookGet().then(s=>{cacheLoading=false;if(s){DB=JSON.parse(s);fillFromData();bootFixes();render();}})
       .catch(()=>{}).then(()=>{cacheLoading=false;});return;}
   try{const r=localStorage.getItem(KEY);if(r){DB=JSON.parse(r);fillFromData();return;}}catch(e){}DB=seed();save();}
-function save(){writeCache();queueChanges();}
+var LEAD_META_GEN=0; /* bumps on every save and pull: lead source / touches / temperature recompute (leadMeta) */
+function save(){LEAD_META_GEN++;writeCache();queueChanges();}
 function bootFixes(){applyRosterCorrections();applyManrepPersonCoverage();applyPersonAddresses();}
 function person(id){return DB.people.find(p=>p.id===id);}
 function company(id){return DB.companies.find(c=>c.id===id);}
@@ -5434,7 +5440,8 @@ function leadLogHTML(l){
   const h=leadHist(l).filter(x=>x.kind!=="campaign"),st=String(l.status||"");
   const line=t=>'<div class="lvsub clamp2" style="white-space:normal">'+t+'</div>';
   const said=!st||st==="Not contacted"||(h.length&&/^(voicemail left|contacted)$|—[^:]*\b\d{1,2}\/\d{1,2}\b/i.test(st));
-  return leadTempTag(l.temp)+(said?'':line(esc(st)))+
+  const m=leadMeta(l,true),tp=String(l.temp||"");
+  return leadHeatTag(m)+(/^(interested|shared line)/i.test(tp)?' '+leadTempTag(tp):'')+(said?'':line(esc(st)))+
    h.slice(0,2).map(x=>line('<b>'+esc(histMd(x.day))+'</b> '+esc([x.label,histWho(x.by)].filter(Boolean).join(" · "))+(x.note?' — '+esc(x.note):''))).join("")+
    (l.next?line('Next: '+esc(l.next)):'');
 }
@@ -5449,18 +5456,21 @@ function leadHistHTML(l){
     :'<p class="t2" style="margin:0 0 12px">Nothing logged yet.</p>');
 }
 /* a call logged from the lead sheet: the same record the hub's Calls tab writes (its callLog) */
-function confLeadCall(l,out,note,plus){
-  const now=new Date().toISOString(),lbl=plus?"Call":callOutLabel(out),call={at:now,by:USER,out:out,note:note};
-  if(plus)call.plus=true;
+/* opt (the Dialer's automatic log, 2026-11-24): {id, at, by, dc, noSave} — the activity's id, the time of the call, who made it, the
+   Dialer call it came from (so Take out can find the entry again), and no save (the caller saves once at the end) */
+function confLeadCall(l,out,note,plus,opt){
+  opt=opt||{};
+  const now=opt.at||new Date().toISOString(),by=opt.by||USER,lbl=plus?"Call":callOutLabel(out),call={at:now,by:by,out:out,note:note};
+  if(plus)call.plus=true;if(opt.dc)call.dc=opt.dc;
   l.calls=(l.calls||[]).concat([call]);l.lastCall=now;
   if(["talked","interested","notint"].includes(out)){l.contacted=true;l.contactedAt=now;}
-  l.status=lbl+" — "+shortName(USER)+" "+mdStamp(now)+(note?": "+note.slice(0,120):"");
+  l.status=lbl+" — "+shortName(by)+" "+mdStamp(now)+(note?": "+note.slice(0,120):"");
   if(out==="interested"&&!/hot/i.test(l.temp||""))l.temp="Warm";if(out==="notint")l.temp="Cold";if(out==="vm"&&(!l.temp||l.temp==="New"))l.temp="Voicemail";
-  if(!l.owner)l.owner=USER;
-  const rec={id:uid(),type:"call",by:USER,date:now,note:lbl+(note?" · "+note:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null,out:out,norm:2};
+  if(!l.owner)l.owner=by;
+  const rec={id:opt.id||uid(),type:"call",by:by,date:now,note:lbl+(note?" · "+note:""),refId:l.id,conf:l.conf,name:l.name,company:l.company,pid:l.refPid||null,out:out,norm:2};
   if(out==="vm")rec.vm=true;if(plus)rec.plus=true;
   DB.activities.unshift(rec);
-  save();return rec;
+  if(!opt.noSave)save();return rec;
 }
 /* the row's +1: someone you called and aren't pushing to Leads */
 function confLeadPlus(id){
@@ -5477,6 +5487,89 @@ const LEAD_CATS=[["new","New"],["qualified","Qualified"],["handed","Handed off"]
 function leadRep(l){if(l.assignee)return l.assignee;if(profile(l.by||"")==="outreach"&&l.state){const r=repForRegion(regionFromState(l.state));return r&&r!=="house"?r:null;}return null;}
 function leadCat(l){return l.cat||(l.assignee?"handed":(l.promoted?"qualified":"new"));}
 function leadCatTag(c){const cls={new:"warn",qualified:"info",handed:"ok",nurture:"gray",dead:"dang"}[c]||"gray";return '<span class="pill '+cls+'">'+(LEAD_CATS.find(x=>x[0]===c)||["","—"])[1]+'</span>';}
+/* ---- Source · touches · temperature on every lead (Max, 2026-11-24). All three are read from what is already logged, so they move
+   by themselves as touches come in; the category above stays a person's call.
+   Source: the conference (booth scan, or an attendee list where they never met us), the campaign / Apollo list, account research, a
+   Dialer list, the website, a referral, a CRM contact, or added by hand.
+   Temperature: Hot = contact led somewhere (a conversation, interest, a call back, a meeting, a visit / demo / training, a quote or a
+   deal; a "not interested" call doesn't count). Otherwise Warm = met us (a booth scan) or came to us (website, referral, CRM contact, a
+   rep's own entry); Cold = sourced from outside and never met us (Apollo, campaign lists, account research, Dialer lists, attendee
+   lists). Touches = every call, email (campaign emails included), visit or note logged with them. */
+const LEAD_ATTENDEE_LISTS={"Texas Emergency Management 2026":"pre-show attendee list","IACLEA 2026":"attendee list","NASN 2026":"attendee list"};
+const LEAD_HOT_OUTS=["talked","interested","meeting","callback","demo"];
+const LEAD_NO_CONTACT=/\b(no answer|voicemail|left (a )?(vm|message)|\bvm\b|wrong number|disconnected|not in service|busy|bounced?)\b/i;
+const LEAD_HEATS=[["hot","Hot"],["warm","Warm"],["cold","Cold"]];
+/* a call logged by hand with no outcome counts as a conversation only when its note says one happened */
+const LEAD_SPOKE=/\b(spoke|spoken|talked|talking|conversation|interested|meeting|meet|demo|quote|call (him|her|them|me) back|set (something|a time|it) up|wants|likes|decision maker|scheduled)\b/i;
+const LEAD_NOT_INT=/\b(not interested|no interest|not at this time|not a fit|no need)\b/i;
+const LEAD_META=new WeakMap();
+function confListKind(cl){const c=String(cl.conf||"").trim(),att=LEAD_ATTENDEE_LISTS[c];
+  return att&&!/(^|\|)\s*booth scan\b/i.test(cl.notes||"")?{kind:"Attendee list",why:"on the "+c+" "+att+", never met us",base:"cold"}:{kind:"Booth scan",why:"met us at "+(c||"a show"),base:"warm"};}
+function leadSource(l,conf){
+  if(conf){const k=confListKind(l);return {label:String(l.conf||"").trim()||"Conference",kind:k.kind,why:k.why,base:k.base};}
+  const s=String(l.source||"").trim(),cf=String(l.conf||"").trim(),both=s+" "+cf;
+  const cl=l.refId?leadById(l.refId):null;
+  if(cl)return leadSource(cl,true);
+  if(/apollo|^campaign: schools cold/i.test(s)||/apollo/i.test(cf))return {label:"Apollo",kind:"Campaign list",why:"Apollo list, never met us",base:"cold"};
+  const camp=/^campaign:\s*/i.test(cf)?cf.replace(/^campaign:\s*/i,""):(/^campaign:\s*/i.test(s)?s.replace(/^campaign:\s*/i,""):"");
+  if(camp){const rec=(DB.campaigns||[]).find(c=>c&&!c.removed&&String(c.name||"").trim()===camp),basis=String((rec&&rec.basis)||"");
+    const warm=/^(met us|warm)/i.test(basis)&&!/^cold/i.test(basis);
+    return {label:camp,kind:"Campaign list",why:warm?"campaign to people who met us":"campaign list, never met us",base:warm?"warm":"cold"};}
+  if(/website|web form|site form|inbound/i.test(both))return {label:"Website",kind:"Inbound",why:"reached out through the website",base:"warm"};
+  if(/hot accounts|eric craft|account research/i.test(both))return {label:"Account research",kind:"Researched list",why:"researched account, never met us",base:"cold"};
+  if(/^dialer:\s*/i.test(cf))return {label:cf.replace(/^dialer:\s*/i,""),kind:"Dialer list",why:"imported call list, never met us",base:"cold"};
+  if(/referral/i.test(both))return {label:cf||s,kind:"Referral",why:"referred to us",base:"warm"};
+  if(/^crm$/i.test(cf))return {label:"CRM contact",kind:"CRM contact",why:"already a contact in the CRM",base:"warm"};
+  if(cf&&(DB.confLeads||[]).some(x=>x&&x.conf===cf)){const k=confListKind({conf:cf,notes:""});return {label:cf,kind:k.kind,why:k.why,base:k.base};}
+  if(cf||s)return {label:cf||s.replace(/\s+\d{4}-\d{2}-\d{2}.*$/,""),kind:"Other",why:"",base:"warm"};
+  return {label:"Added by hand",kind:"Added by hand",why:"added by "+(l.by&&TEAM.some(t=>t.id===l.by)?shortName(l.by):"a teammate"),base:"warm"};}
+/* a Leads-tab lead's history, the same shape as leadHist: its own activities and touches, its contact's, and its conference lead's */
+let leadIdIdx=null,leadIdSig="";
+function leadActsByLead(id){const acts=DB.activities||[],sig=acts.length+"|"+(acts[0]?acts[0].id:"")+"|"+LEAD_META_GEN;
+  if(!leadIdIdx||leadIdSig!==sig){leadIdIdx=new Map();acts.forEach(a=>{if(a&&a.leadId&&a.type!=="quote"){if(!leadIdIdx.has(a.leadId))leadIdIdx.set(a.leadId,[]);leadIdIdx.get(a.leadId).push(a);}});leadIdSig=sig;}
+  return leadIdIdx.get(id)||[];}
+function myLeadHist(l){
+  const h=[],seen=new Set(),ids=new Set(),key=x=>x.day+"|"+(x.by||"")+"|"+x.kind,add=x=>{const k=key(x);if(seen.has(k))return;seen.add(k);h.push(x);};
+  const fromAct=a=>{const kind=a.type==="voicemail"?"call":(a.type||"note"),vm=a.vm||a.type==="voicemail";
+    return {at:a.date,day:histDay(a.date),by:a.by,kind:kind,out:vm?"vm":a.out,label:kind==="call"?(vm?"Voicemail":a.out?callOutLabel(a.out):"Call"):actLabel(a.type,a),note:histNote(a.note)};};
+  leadActsByLead(l.id).concat(leadActs(l)).forEach(a=>{if(!a||a.removed||ids.has(a.id))return;ids.add(a.id);add(fromAct(a));});
+  const cl=l.refId?leadById(l.refId):null;if(cl)leadHist(cl).forEach(add);
+  (l.touches||[]).forEach(t=>{if(t.actId&&ids.has(t.actId))return;const m=String(t.method||"note").toLowerCase();
+    add({at:t.date,day:histDay(t.date),by:t.by,kind:/call|voice/.test(m)?"call":/mail/.test(m)?"email":/meet/.test(m)?"visit":"note",out:/voice/.test(m)?"vm":"",label:titlecase(t.method||"note"),note:t.note||""});});
+  return h.sort((a,b)=>String(b.day).localeCompare(String(a.day))||String(b.at).localeCompare(String(a.at)));}
+/* source, touches and temperature for one lead, kept until the lead or the book changes */
+function leadMeta(l,conf){
+  const sig=[LEAD_META_GEN,(DB.activities||[]).length,(DB.quotes||[]).length,(DB.opps||[]).length,(DB.leads||[]).length,(l.calls||[]).length,(l.touches||[]).length,(l.emails||[]).length,l.temp||"",l.oppId||"",String(l.notes||"").length].join("|");
+  const c=LEAD_META.get(l);if(c&&c.sig===sig)return c;
+  const src=leadSource(l,conf),hist=conf?leadHist(l):myLeadHist(l);
+  const n={call:0,email:0,other:0};hist.forEach(x=>{if(x.kind==="call")n.call++;else if(x.kind==="email"||x.kind==="campaign")n.email++;else n.other++;});
+  /* newest first: the latest conversation decides — one that ended "not interested" takes the lead back down */
+  let hot="",cool="";
+  for(const x of hist){
+    if(x.kind==="call"&&(x.out==="notint"||(!x.out&&LEAD_NOT_INT.test(x.note||"")))){cool="Not interested "+histMd(x.day);break;}
+    if(x.kind==="call"&&LEAD_HOT_OUTS.includes(x.out)){hot=(x.label||"Talked")+" "+histMd(x.day);break;}
+    if(["visit","meeting","demo","training"].includes(x.kind)){hot=titlecase(x.kind==="meeting"?"visit":x.kind)+" "+histMd(x.day);break;}
+    if(x.kind==="call"&&!x.out&&LEAD_SPOKE.test(x.note||"")&&!LEAD_NO_CONTACT.test(x.note||"")){hot="Spoke "+histMd(x.day);break;}}
+  const twin=conf?confLeadInLeads(l):(l.refId?leadById(l.refId):null),ids=[l.id].concat(twin?[twin.id]:[]),pid=l.refPid||(twin&&twin.refPid)||"";
+  const mark=String((conf?l.temp:(twin&&twin.temp))||"");if(!hot&&!cool&&/^(hot|interested)/i.test(mark))hot=mark+" (marked)";
+  if(!hot&&!cool){const q=(DB.quotes||[]).find(q=>q&&q.no&&!q.removed&&(ids.includes(q.leadId)||(pid&&q.pid===pid)));if(q)hot="Quote "+q.no;}
+  if(!hot&&!cool){const oid=l.oppId||(twin&&twin.oppId)||"";const o=(oid&&oppById(oid))||(pid?(DB.opps||[]).find(o=>o&&!o.removed&&(o.contacts||[]).some(x=>x&&x.pid===pid)):null);if(o)hot="Deal: "+(o.name||"opportunity");}
+  const heat=hot?"hot":src.base;
+  const m={sig:sig,src:src,heat:heat,why:hot||(cool?cool+" · "+src.why:src.why),n:hist.length,calls:n.call,emails:n.email,other:n.other};
+  LEAD_META.set(l,m);return m;}
+function leadHeatTag(m){const t=(LEAD_HEATS.find(x=>x[0]===m.heat)||["","—"])[1];
+  return '<span class="pill '+({hot:"dang",warm:"warn",cold:"info"}[m.heat]||"gray")+'" title="'+esc(t+(m.why?": "+m.why:""))+'">'+t+'</span>';}
+function leadTouchTxt(m){return [m.calls?m.calls+(m.calls===1?" call":" calls"):"",m.emails?m.emails+(m.emails===1?" email":" emails"):"",m.other?m.other+" other":""].filter(Boolean).join(" · ");}
+function leadTchBucket(n){return n===0?"0":n<=2?"1-2":"3+";}
+const LEAD_TCH=[["0","None yet"],["1-2","1 to 2"],["3+","3 or more"]];
+/* the three filters, per list ("leads" = the Leads tab, "conf" = a conference list): src · heat · tch */
+const leadMF={leads:{src:"",heat:"",tch:""},conf:{src:"",heat:"",tch:""}};
+function leadMetaOk(m,k){const f=leadMF[k];return (!f.src||(k==="conf"?m.src.kind:m.src.label)===f.src)&&(!f.heat||m.heat===f.heat)&&(!f.tch||leadTchBucket(m.n)===f.tch);}
+function leadMetaGroups(k,pool,conf){const f=leadMF[k],ms=pool.map(l=>leadMeta(l,conf)),cnt=fn=>ms.filter(fn).length,x=' data-k="'+k+'"';
+  const srcs=[...new Set(ms.map(m=>k==="conf"?m.src.kind:m.src.label))].sort((a,b)=>cnt(m=>(k==="conf"?m.src.kind:m.src.label)===b)-cnt(m=>(k==="conf"?m.src.kind:m.src.label)===a)||a.localeCompare(b));
+  return [srcs.length<2?null:fltGroup("Source","leadsrcf",[["","All",ms.length]].concat(srcs.map(s=>[s,s,cnt(m=>(k==="conf"?m.src.kind:m.src.label)===s)])),f.src,"",{extra:x,sumOf:(v,o)=>v&&o?o[1]:""}),
+    fltGroup("Temperature","leadheatf",[["","All",ms.length]].concat(LEAD_HEATS.map(h=>[h[0],h[1],cnt(m=>m.heat===h[0])])),f.heat,"",{extra:x,sumOf:(v,o)=>v&&o?o[1]:""}),
+    fltGroup("Touches","leadtchf",[["","All",ms.length]].concat(LEAD_TCH.map(t=>[t[0],t[1],cnt(m=>leadTchBucket(m.n)===t[0])])),f.tch,"",{extra:x,sumOf:(v,o)=>v&&o?(v==="0"?"No touches":o[1]+" touches"):""})];}
 function leadHand(l,rep){
   if(l.assignee===rep){l.assignee=null;if(l.cat==="handed")l.cat="qualified";return;}
   l.assignee=rep;l.cat="handed";l.handedAt=new Date().toISOString();l.handedBy=USER;
@@ -5501,7 +5594,7 @@ function leadVal(l,key){
   if(key==="title")return (l.title||"").toLowerCase();
   if(key==="state")return l.state||"~";
   if(key==="region")return leadRegion(l)||"~";
-  if(key==="temp")return ["Hot","Warm","Interested","Interested (no budget)","Voicemail","Shared line","New"].indexOf(l.temp);
+  if(key==="temp")return ["hot","warm","cold"].indexOf(leadMeta(l,true).heat);
   if(key==="status")return (l.status||"").toLowerCase();
   return "";
 }
@@ -5544,26 +5637,27 @@ function confLeadsBody(conf){
   });
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(l=>[l.name,l.company,l.title,l.status,l.notes,l.email,l.city,l.state].join(" ").toLowerCase().includes(q));
-  const lf=colFlt.leads||{};
+  const lf=colFlt.leads||{},metaBase=pool;
   pool=pool.filter(l=>Object.keys(lf).every(k=>fltMatch(leadFltVal(l,k),lf[k])));
+  pool=pool.filter(l=>leadMetaOk(leadMeta(l,true),"conf"));
   const s=sortState.leads;
   pool=pool.slice().sort((a,b)=>cmpv(leadVal(a,s.key),leadVal(b,s.key))*s.dir);
   const inLeads=segd.filter(l=>confLeadInLeads(l)).length;
   let h=confRegSeg(catd);
   h+='<div class="kpis">'+
-   '<div class="kpi"><b>Leads</b><span>'+cnt.all+'</span><small>'+esc(conf)+'</small></div>'+
+   '<div class="kpi"><b>Leads</b><span>'+cnt.all+'</span><small>'+esc(conf)+(()=>{const k=[...new Set(segd.map(l=>confListKind(l).kind))];return k.length===1?' · '+esc(k[0].toLowerCase()+'s'):'';})()+'</small></div>'+
    '<div class="kpi"><b>To call</b><span>'+cnt.tocall+'</span></div>'+
    '<div class="kpi"><b>Contacted</b><span>'+cnt.contacted+'</span><small>'+(cnt.all?Math.round(cnt.contacted/cnt.all*100):0)+'% worked</small></div>'+
    '<div class="kpi"><b>Pushed</b><span>'+inLeads+'</span><small>in Leads</small></div></div>';
   /* one filter button (2026-10-21): conference · category · status */
-  FLT_RESET.conf=()=>{confSegF="";confRegF=null;leadFilter="tocall";};
+  FLT_RESET.conf=()=>{confSegF="";confRegF=null;leadFilter="tocall";Object.assign(leadMF.conf,{src:"",heat:"",tch:""});};
   h+='<div class="lvhead">'+filterBar("conf",[
      fltGroup("Category","confseg",[["","All",scoped.length]].concat(CONF_SEGS.map(c=>[c[0],c[1],scoped.filter(l=>confLeadSeg(l)===c[0]).length]).filter(o=>o[2])),confSegF,"",{sumOf:(v,o)=>v&&o?o[1]:"All categories"}),
-     fltGroup("Status","leadfilter",[["tocall","To call",cnt.tocall],["contacted","Contacted",cnt.contacted],["hot","Interest",cnt.hot],["aside","Set aside",cnt.aside],["all","All",cnt.all]],leadFilter,"tocall")])+
+     fltGroup("Status","leadfilter",[["tocall","To call",cnt.tocall],["contacted","Contacted",cnt.contacted],["hot","Interest",cnt.hot],["aside","Set aside",cnt.aside],["all","All",cnt.all]],leadFilter,"tocall")].concat(leadMetaGroups("conf",metaBase,true)))+
    '<div class="lvsearch"><input id="lvsearch" placeholder="Search name, company, email…" value="'+esc(listQ)+'" autocomplete="off"></div></div>';
   if(!pool.length)return h+'<div class="empty">Nothing in this tab.</div>';
   function th(k,l){return thSort("leads",k,l);}
-  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+th("temp","Call log")+'<th>Contact</th><th>Calls</th></tr></thead><tbody>'+
+  h+='<div class="tablewrap"><table class="lv"><thead><tr>'+th("name","Lead")+th("company","Company")+th("temp","Call log")+'<th>Contact</th><th>Touches</th></tr></thead><tbody>'+
    pool.map(l=>{const ml=confLeadInLeads(l);
     return '<tr data-act="leadopen" data-id="'+esc(l.id)+'">'+
     '<td style="white-space:normal;min-width:150px;max-width:220px"><div class="lvname">'+esc(l.name)+(leadWorked(l)?' <span class="pill ok" style="padding:2px 5px" title="Contacted" aria-label="Contacted">'+svg("check")+'</span>':'')+'</div><div class="lvsub">'+esc(l.title||"")+'</div></td>'+
@@ -5574,7 +5668,7 @@ function confLeadsBody(conf){
     '<td style="white-space:nowrap">'+
       (ml?'<button class="btn sm ghost" data-act="openlead" data-id="'+esc(ml.id)+'" title="Open it in Leads">'+svg("check")+' In Leads</button>'
          :'<button class="btn sm" data-act="cfplus" data-id="'+esc(l.id)+'" title="Count a call without pushing to Leads">+1 call</button>')+
-      (()=>{const n=leadHist(l).filter(x=>x.kind==="call").length;return n?'<div class="lvsub">'+n+(n===1?' call':' calls')+'</div>':'';})()+
+      (()=>{const m=leadMeta(l,true);return m.n?'<div class="lvsub" title="'+esc(leadTouchTxt(m))+'">'+m.n+(m.n===1?' touch':' touches')+'</div>':'';})()+
     '</td></tr>';}).join("")+
    '</tbody></table></div>';
   return h;
@@ -5603,15 +5697,19 @@ function leadFltVal(l,key){
   if(key==="company")return [l.company,l.city,l.state].filter(Boolean).join(" ");
   if(key==="state")return l.state||"";
   if(key==="region")return leadRegion(l);
-  if(key==="temp")return [l.temp||"New",l.status,l.next].filter(Boolean).join(" ");
+  if(key==="temp")return [(LEAD_HEATS.find(x=>x[0]===leadMeta(l,true).heat)||["",""])[1],l.temp||"New",l.status,l.next].filter(Boolean).join(" ");
   if(key==="status")return (l.status||"")+" "+(l.next||"");
   return "";
 }
+/* the line under a lead's name on its sheet: temperature (with why) · where they came from · touches */
+function leadMetaLine(l,conf){const m=leadMeta(l,conf);
+  const why=m.why?m.why.charAt(0).toUpperCase()+m.why.slice(1):"",src=[m.src.label,m.src.kind!==m.src.label?m.src.kind:""].filter(Boolean).join(", ");
+  return '<p class="t2 leadmeta">'+leadHeatTag(m)+' '+esc([why,src,m.n?m.n+(m.n===1?" touch":" touches")+" ("+leadTouchTxt(m)+")":"No touches yet"].filter(Boolean).join(" · "))+'</p>';}
 function formLead(id){
   const l=leadById(id);if(!l)return;logState.leadId=id;
   const temps=["New","Voicemail","Interested","Warm","Hot"];
   openSheet('<div class="row" style="align-items:flex-start;gap:10px"><div class="grow"><h2 style="margin-right:0">'+esc(l.name)+'</h2><p style="color:var(--muted);font-size:14px;margin:0 0 4px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+
-   (l.city||l.state?' · '+esc([l.city,l.state].filter(Boolean).join(", ")):'')+' · '+esc(l.conf)+'</p></div>'+
+   (l.city||l.state?' · '+esc([l.city,l.state].filter(Boolean).join(", ")):'')+' · '+esc(l.conf)+'</p>'+leadMetaLine(l,true)+'</div>'+
    '<button class="btn sm" data-act="editconflead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
    '<div class="qa" style="margin:12px 0 4px">'+
     (l.phone?'<a class="btn block coral" style="text-decoration:none;text-align:center" href="tel:'+esc(l.phone.replace(/[^\d+]/g,""))+'">'+svg("phone")+' Call</a>':'')+
@@ -5679,12 +5777,12 @@ function leadLastTouch(l){return (l.touches&&l.touches.length)?l.touches[l.touch
 function mlVal(l,k){const t=leadLastTouch(l);
   if(k==="name")return (l.name||"").toLowerCase();
   if(k==="company")return (l.company||"~").toLowerCase();
-  if(k==="conf")return l.conf||"~";
+  if(k==="conf")return leadMeta(l,false).src.label.toLowerCase();
   if(k==="state")return l.state||"~";
   if(k==="region")return l.state?regionFromState(l.state):"~";
   if(k==="last")return t?t.date:"";
   if(k==="method")return t?t.method:"~";
-  if(k==="touches")return (l.touches||[]).length;
+  if(k==="touches")return leadMeta(l,false).n;
   if(k==="cat")return LEAD_CATS.findIndex(x=>x[0]===leadCat(l));
   if(k==="rep")return l.assignee?teamById(l.assignee).name:"~";
   return "";}
@@ -5699,17 +5797,18 @@ function viewLeads(){
   ensureLeads();
   const all=DB.leads.filter(l=>!l.removed);
   if(!logState.leadsFInit){logState.leadsFInit=true;leadsF=profile()==="sales"?"mine":"";}
+  if(leadsF==="untouched")leadsF=""; /* "No touch yet" moved to the Touches filter (2026-11-24) */
   let pool=all.filter(l=>{
     if(!leadsF)return true;
     if(leadsF==="mine")return leadRep(l)===USER;
     if(leadsF.indexOf("rep:")===0)return leadRep(l)===leadsF.slice(4);
-    if(leadsF==="untouched")return !(l.touches&&l.touches.length);
     if(leadsF.indexOf("cat:")===0)return leadCat(l)===leadsF.slice(4)&&(profile()!=="sales"||leadRep(l)===USER); /* a rep's category tabs sort their own leads */
     return true;});
   const q=listQ.trim().toLowerCase();
   if(q)pool=pool.filter(l=>((l.name||"")+" "+(l.company||"")+" "+(l.email||"")+" "+(l.title||"")).toLowerCase().includes(q));
-  const mf=colFlt.myleads||{};
+  const mf=colFlt.myleads||{},metaBase=pool;
   pool=pool.filter(l=>Object.keys(mf).every(k=>fltMatch(mlVal(l,k),mf[k])));
+  pool=pool.filter(l=>leadMetaOk(leadMeta(l,false),"leads"));
   const s=sortState.myleads;
   pool.sort((a,b)=>cmpv(mlVal(a,s.key),mlVal(b,s.key))*s.dir);
   let h="";
@@ -5717,28 +5816,28 @@ function viewLeads(){
   /* one filter button (2026-10-21): show · sales person — both write leadsF */
   const isRep=String(leadsF||"").indexOf("rep:")===0;
   const showOpts=(GH_REPS.includes(USER)?[["mine","For me",all.filter(l=>leadRep(l)===USER).length]]:[]).concat([["","All",all.length]],
-    LEAD_CATS.map(c=>["cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]&&(!sales||leadRep(l)===USER)).length]),[["untouched","No touch yet",all.filter(l=>!(l.touches&&l.touches.length)).length]]);
+    LEAD_CATS.map(c=>["cat:"+c[0],c[1],all.filter(l=>leadCat(l)===c[0]&&(!sales||leadRep(l)===USER)).length]));
   const lfDef=sales?"mine":"";
-  FLT_RESET.leads=()=>{leadsF=lfDef;};
+  FLT_RESET.leads=()=>{leadsF=lfDef;Object.assign(leadMF.leads,{src:"",heat:"",tch:""});};
   h+='<div class="lvhead">'+filterBar("leads",[
      fltGroup(sales?"Show":"Show · category","leadsfilter",showOpts,isRep?null:leadsF,lfDef,{sumOf:(v,o)=>o?o[1]:""}),
-     sales?null:fltGroup("Sales person","leadsfilter",GH_REPS.filter(id=>isSeller(id)).map(id=>["rep:"+id,shortName(id),all.filter(l=>leadRep(l)===id).length]),isRep?leadsF:"","",{sumOf:(v,o)=>o?o[1]:""})])+
+     sales?null:fltGroup("Sales person","leadsfilter",GH_REPS.filter(id=>isSeller(id)).map(id=>["rep:"+id,shortName(id),all.filter(l=>leadRep(l)===id).length]),isRep?leadsF:"","",{sumOf:(v,o)=>o?o[1]:""})].concat(leadMetaGroups("leads",metaBase,false)))+
      '<div class="lvsearch"><input id="lvsearch" placeholder="Search leads…" value="'+esc(listQ)+'" autocomplete="off"></div>'+
      '<button class="btn sm coral" data-act="newlead">'+svg("plus")+' New lead</button></div>';
   if(sales){const pl=listsPushedTo(USER);if(pl.length)h+='<div class="sectlabel" style="margin-top:4px">Call lists from outreach <span class="cnt">'+pl.filter(l=>l.items.some(x=>!x.done)).length+' open</span></div><div class="list">'+pl.map(pushedListCard).join("")+'</div><div class="sectlabel">Leads</div>';}
   if(!pool.length)return h+'<div class="empty">'+(leadsF==="mine"?'Nothing for you yet. Kellan&#39;s leads in your territory and anything handed to you land here.':'No leads here.')+'</div>';
   const th=(k,l)=>thSort("myleads",k,l);
   h+='<div class="tablewrap"><table class="lv" data-tbl="myleads"><thead><tr>'+th("name","Lead")+th("company","Company")+th("conf","Source")+th("state","State")+th("cat","Category")+(sales?'':'<th>Sales person</th>')+th("last","Last contact")+th("touches","Touches")+'</tr></thead><tbody>'+
-   pool.map(l=>{const t=leadLastTouch(l);
+   pool.map(l=>{const t=leadLastTouch(l),m=leadMeta(l,false);
     return '<tr data-act="openlead" data-id="'+esc(l.id)+'">'+
-    '<td><div class="lvname">'+esc(l.name)+(l.kind?' <span class="pill '+(l.kind==="distributor"?"coral":"info")+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+(l.kind==="distributor"?"Dist":"End-user")+'</span>':'')+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||(l.dstStage||""))+'</div></td>'+
+    '<td><div class="lvname">'+esc(l.name)+' '+leadHeatTag(m)+(l.kind?' <span class="pill '+(l.kind==="distributor"?"coral":"info")+'" style="font-size:10px;padding:1px 7px;vertical-align:middle">'+(l.kind==="distributor"?"Dist":"End-user")+'</span>':'')+(l.promoted?' <span class="pill ok" style="font-size:10px;padding:1px 7px;vertical-align:middle">CRM</span>':'')+'</div><div class="lvsub">'+esc(l.title||(l.dstStage||""))+'</div></td>'+
     '<td>'+esc(l.company||"—")+(l.buysThrough?'<div class="lvsub">buys via '+esc(l.buysThrough.name)+'</div>':'')+'</td>'+
-    '<td><span class="pill gray">'+esc((l.conf||"—").replace(/ 20\d\d$/,""))+'</span></td>'+
+    '<td>'+esc(m.src.label)+(m.src.kind&&m.src.kind!==m.src.label?'<div class="lvsub">'+esc(m.src.kind)+'</div>':'')+'</td>'+
     '<td>'+(l.state?stateChip(l.state):'<span class="muted">—</span>')+'</td>'+
     (sales?'<td>'+leadCatSelHTML(l)+(l.handedBy&&l.handedBy!==USER?'<div class="lvsub">from '+esc(shortName(l.handedBy))+(l.handedAt?' · '+esc(String(l.handedAt).slice(0,10)):'')+'</div>':'')+'</td>'
           :'<td>'+leadCatSelHTML(l)+'</td><td>'+leadHandSelHTML(l)+'</td>')+
     '<td>'+(t?esc(t.date)+(t.note?'<div class="lvsub clamp2" style="max-width:260px" title="'+esc(t.note)+'">'+esc(titlecase(t.method))+' · '+esc(t.note)+'</div>':''):'<span class="muted">never</span>')+'</td>'+
-    '<td class="num">'+((l.touches||[]).length)+'</td></tr>';}).join("")+
+    '<td class="num" title="'+esc(leadTouchTxt(m))+'">'+m.n+(m.n?'<div class="lvsub">'+esc(leadTouchTxt(m))+'</div>':'')+'</td></tr>';}).join("")+
   '</tbody></table></div>';
   return h;
 }
@@ -5865,7 +5964,7 @@ function formLeadRec(id){
   const l=myLeadById(id);if(!l)return;
   const touches=(l.touches||[]).slice().reverse();
   openSheet('<div class="row" style="align-items:flex-start;gap:10px"><div class="grow"><h2 style="margin-right:0">'+esc(l.name)+'</h2>'+
-   '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p></div>'+
+   '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">'+esc([l.title,l.company].filter(Boolean).join(" · "))+(l.state?' · '+esc(l.state):'')+(l.conf?' · '+esc(l.conf):'')+'</p>'+leadMetaLine(l,false)+'</div>'+
    '<button class="btn sm" data-act="editlead" data-id="'+esc(l.id)+'" style="margin-top:2px">'+svg("edit")+' Edit</button></div>'+
    (profile()==="sales"?(l.handedBy&&l.handedBy!==USER?'<p class="t2" style="margin:6px 0 0">Handed to you by '+esc(shortName(l.handedBy))+(l.handedAt?' on '+esc(String(l.handedAt).slice(0,10)):'')+'</p>':'')+'<label class="fl">Category</label>'+leadChipsHTML(l)
     :'<label class="fl">Category</label>'+leadChipsHTML(l)+'<label class="fl">Hand to</label>'+leadHandChipsHTML(l))+
@@ -6745,9 +6844,10 @@ function dialTabCounts(){const n={demo:0,dist:0,enduser:0,cold:0},seen=new Set()
   dialEveryone().filter(dialInArea).forEach(e=>{if(!ok(e)||dialIsDemo(e))return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
   return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
-/* ---- the Dialer's own call log (Max, 2026-11-19: "Activity doesn't auto log into CRM until I push it"): every Save lands in the
-   synced `dialCalls` collection (only the dialer seat pulls it); Push to CRM turns a call into the usual activity / conference-lead
-   call / lead touch, a to-do for a call-back and a deal for a booked meeting. The queue, retries and history read both. */
+/* ---- the Dialer's own call log: every Save lands in the synced `dialCalls` collection (only the dialer seat pulls it) and, since
+   2026-11-24 (Max reversed the 11-19 "doesn't auto log until I push it"), goes straight into the CRM as the usual activity /
+   conference-lead call / lead touch, a to-do for a call-back and a deal for a booked meeting (dialPushCall). The queue, retries and
+   history read both. */
 function dialCalls(){DB.dialCalls=DB.dialCalls||[];return DB.dialCalls;}
 function dialCallsFor(key){return dialCalls().filter(c=>c&&!c.removed&&c.key===key).sort((a,b)=>String(b.at).localeCompare(String(a.at)));}
 const DIAL_RETRY=[1,2,4],DIAL_PARK=30; /* days to the next try after 1, 2, 3 misses in a row (no answer / voicemail); 4+ → parked 30 days */
@@ -6813,7 +6913,7 @@ function dialHist(e,n){ /* every kind of logged touch (trainings, demos and quot
   return acts.sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,n||4);}
 function dialStats(){const T=todayStr(),mine=dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&localDay(c.at)===T);
   return {n:mine.length,talk:mine.filter(c=>DIAL_CONNECT.includes(c.out)).length,hot:mine.filter(c=>c.out==="interested"||c.out==="meeting").length,
-    meet:mine.filter(c=>c.out==="meeting").length,list:mine,unpushed:dialCalls().filter(c=>c&&!c.removed&&!c.pushed&&c.by===USER).length};}
+    meet:mine.filter(c=>c.out==="meeting").length,list:mine,unpushed:dialNotLogged().length};}
 /* the person's own clock (the demo tab calls the whole country): their state's main time zone (Tennessee's 423 / 865 = Eastern);
    no state on them or their account → Pacific, as before */
 const DIAL_TZ=[["Eastern","America/New_York","CT DE DC FL GA IN KY ME MD MA MI NH NJ NY NC OH PA RI SC VT VA WV"],
@@ -6835,9 +6935,10 @@ function dialSources(){ensureLeads();
 const DIAL_GOAL=150;
 function viewDialer(){
   const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
-  let h='<div class="dltop"><div class="seg dltabs">'+[["dial","Dial"],["texts","Texts"+(dialTextUnread()?" · "+dialTextUnread():"")],["email","Email"+(drafts?" · "+drafts:"")],["push","Push to CRM"+(st.unpushed?" · "+st.unpushed:"")]]
+  let h='<div class="dltop"><div class="seg dltabs">'+[["dial","Dial"],["texts","Texts"+(dialTextUnread()?" · "+dialTextUnread():"")],["email","Email"+(drafts?" · "+drafts:"")],["log","Logged"+(st.unpushed?" · "+st.unpushed:"")]]
     .map(x=>'<button class="'+(S.tab===x[0]?"on":"")+'" data-act="dialtab" data-v="'+x[0]+'">'+esc(x[1])+'</button>').join("")+'</div>'+dialFunnelHTML(st)+'</div>';
-  if(S.tab==="push")return h+viewDialPush();
+  if(S.tab==="push")S.tab="log";
+  if(S.tab==="log")return h+viewDialLog();
   if(S.tab==="email")return h+viewDialEmail();
   if(S.tab==="texts")return h+viewDialTexts();
   return h+viewDialDial(st);}
@@ -6922,24 +7023,25 @@ function viewDialDial(st){
       '<div class="dlrow"><span class="dlrn">'+esc(c.name||"—")+'</span><span class="dlrs">'+esc(dialOutLabel(c.out)+" · "+fmtTimeShort(c.at)+(c.pushed?" · in the CRM":""))+'</span></div>').join("")+'</div></details>':'')+
     '</aside><section class="dlmain">'+(e?dialCardHTML(e):'<div class="card empty">Nobody to call right now.</div>')+'</section></div>';
   return h;}
-/* Push to CRM: conversations come ticked; no-answers and voicemails stay in the Dialer unless ticked */
-function dialPushTicked(c){const sel=dialS().pushSel||{};return sel[c.id]!=null?sel[c.id]:(DIAL_CONNECT.includes(c.out)||c.out==="dnc"||c.out==="wrong");}
-function dialUnpushed(){return dialCalls().filter(c=>c&&!c.removed&&!c.pushed&&c.by===USER);}
-function viewDialPush(){
-  const list=dialUnpushed();
-  if(!list.length)return '<div class="card empty">Everything you dialed is in the CRM.</div>';
-  const n=list.filter(dialPushTicked).length,byDay={};
-  list.forEach(c=>{const d=localDay(c.at);(byDay[d]=byDay[d]||[]).push(c);});
-  let h='<div class="dlpushbar"><button class="btn coral" data-act="dialpushsel"'+(n?"":" disabled")+'>Push '+n+' to the CRM</button>'+
-    '<button class="btn sm" data-act="dialpushall">Tick all</button><button class="btn sm" data-act="dialpushnone">Untick all</button></div>';
+/* Logged (was "Push to CRM" until 2026-11-24): this week's calls, each already in the CRM. Take out = the call stays in the Dialer's
+   own log but leaves the CRM (and stays out); Put back logs it again. A call whose person was deleted says so. */
+function dialNotLogged(){const wk=dAdd(todayStr(),-6);return dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&!c.skip&&(!c.pushed||c.pushNote)&&localDay(c.at)>=wk);}
+function viewDialLog(){
+  const wk=dAdd(todayStr(),-6),list=dialCalls().filter(c=>c&&!c.removed&&c.by===USER&&localDay(c.at)>=wk).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  if(!list.length)return '<div class="card empty">No calls this week.</div>';
+  const byDay={};list.forEach(c=>{const d=localDay(c.at);(byDay[d]=byDay[d]||[]).push(c);});
+  let h="";
   Object.keys(byDay).sort().reverse().forEach(d=>{
-    h+='<p class="sech dlday">'+esc(dialDayTxt(d))+' · '+byDay[d].length+'</p><div class="list">'+byDay[d].map(c=>
-      '<div class="dlprow"><input type="checkbox" class="dlpchk" data-cid="'+esc(c.id)+'"'+(dialPushTicked(c)?" checked":"")+' aria-label="Push '+esc(c.name)+'">'+
-      '<span class="t2 dlptime">'+esc(fmtTimeShort(c.at))+'</span><span class="grow"><b>'+esc(c.name)+'</b>'+(c.co?' · '+esc(c.co):'')+
+    h+='<p class="sech dlday">'+esc(dialDayTxt(d))+' · '+byDay[d].length+'</p><div class="list">'+byDay[d].map(c=>{
+      const st=c.skip?'<span class="t2">Kept out of the CRM</span> <button class="btn sm" data-act="diallogback" data-id="'+esc(c.id)+'">Put back</button>'
+        :c.pushNote?'<span class="t2">Not logged: '+esc(c.pushNote)+'</span>'
+        :c.pushed?'<span class="t2 dllogok">'+svg("check")+' In the CRM</span> <button class="btn sm ghost" data-act="diallogout" data-id="'+esc(c.id)+'">Take out</button>'
+        :'<span class="t2">Logging…</span>';
+      return '<div class="dlprow"><span class="t2 dlptime">'+esc(fmtTimeShort(c.at))+'</span><span class="grow"><b>'+esc(c.name)+'</b>'+(c.co?' · '+esc(c.co):'')+
       (c.note?'<br><span class="t2">'+esc(c.note.slice(0,160))+'</span>':'')+
       (c.meet&&(c.meet.distName||c.meet.when)?'<br><span class="t2">Meeting '+esc([c.meet.when?dialDayTxt(c.meet.when.slice(0,10))+" "+fmtTimeShort(c.meet.when):"",c.meet.distName?"through "+c.meet.distName:""].filter(Boolean).join(" · "))+'</span>':'')+'</span>'+
       '<span class="pill '+(DIAL_CONNECT.includes(c.out)?"ok":"gray")+'">'+esc(dialOutLabel(c.out))+(c.cb?' · '+esc(mdStamp(c.cb)):'')+'</span>'+
-      '<button class="btn sm" data-act="dialpushone" data-id="'+esc(c.id)+'">Push</button></div>').join("")+'</div>';});
+      '<span class="dllogst">'+st+'</span></div>';}).join("")+'</div>';});
   return h;}
 function fmtTimeShort(iso){const d=new Date(iso);return isNaN(d)?"":d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});}
 function dialPhoneHTML(){
@@ -7485,35 +7587,43 @@ function dialSave(noMail){
   const was={dnc:r.dnc,bad:r.badPhone};
   if(S.out==="dnc"){r.dnc=true;r.dncAt=now;r.dncBy=USER;}
   if(S.out==="wrong")r.badPhone=e.d;
+  const snap=dialSnap(e),inCrm=dialPushCall(c); /* straight into the CRM — no Push step (Max, 2026-11-24) */
   save();
   const lbl=dialOutLabel(S.out);
   Object.assign(S,{out:"",note:"",cb:"",secs:0,cur:"",hold:"",meet:null,mail:null,text:null});S.skipped=(S.skipped||[]).filter(k=>k!==e.key);
   render();
-  toast(lbl+" · "+e.name+mailNote,()=>{const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;r.email=hadEmail;r.textOk=hadOk;
+  toast(lbl+" · "+e.name+(inCrm?" · in the CRM":"")+mailNote,()=>{dialUnpushCall(c,snap);const i=dialCalls().indexOf(c);if(i>-1)dialCalls().splice(i,1);r.dnc=was.dnc;r.badPhone=was.bad;r.email=hadEmail;r.textOk=hadOk;
     (DB.dialMail||[]).forEach(m=>{if(m.callId===c.id&&m.status!=="sent")m.removed=true;});save();render();});
   if(sendId){const cid=c.id;setTimeout(()=>{const m=dialMails().find(x=>x.id===sendId);
     if(m&&!m.removed&&m.status==="draft"&&dialCalls().some(x=>x.id===cid))dialMailSend(sendId,true);},5500);}
   else if(!c.mailId&&!noMail){try{dialDraftAfter(c,e);}catch(x){}}
   dialCountdown();}
-/* Push to CRM: what Save used to write — an activity on the contact / a conference-lead call / a lead touch (dated when you called),
-   a to-do for a call-back, and a deal for a booked meeting with its closing distributor */
+/* Every call lands in the CRM by itself (Max, 2026-11-24, reversing the 11-19 rule: "Dialer activity pushes to the CRM automatically"):
+   Save writes an activity on the contact / a conference-lead call / a lead touch (dated when you called), a to-do for a call-back
+   and a deal for a booked meeting with its closing distributor. Ids come from the call ("dc"+call id, "dt"…, "do"…), so two devices
+   logging the same call write the same records and nothing doubles. Undo on the toast takes all of it back; the Logged tab can take
+   one out later (c.skip keeps it out) or put it back. */
 function dialPushCall(c){
-  if(!c||c.pushed)return false;
-  const now=new Date().toISOString(),e=dialRecByKey(c.key);
+  if(!c||c.pushed||c.removed||c.skip)return false;
+  const now=new Date().toISOString(),e=dialRecByKey(c.key),aid="dc"+c.id;
   if(!e){c.pushed=now;c.pushNote="record gone";return false;}
-  const r=e.rec,lbl=dialOutLabel(c.out),out=c.out==="dnc"?"notint":(c.out==="meeting"?"talked":c.out),note=lbl+(c.note?" · "+c.note:"");
-  let rec=null;
-  if(e.k==="p"){rec={id:uid(),type:"call",pid:r.id,cid:r.cid||null,note:note,out:out,date:c.at,by:c.by||USER,norm:2};DB.activities.unshift(rec);if(!r.last||r.last<c.at)r.last=c.at;}
-  else if(e.k==="cl"){const keep=r.lastCall;rec=confLeadCall(r,out,c.note||"");rec.date=c.at;const lc=(r.calls||[])[(r.calls||[]).length-1];if(lc)lc.at=c.at;
+  if((DB.activities||[]).some(a=>a&&a.id===aid)){c.pushed=now;c.actId=aid;return false;} /* another device already logged it */
+  const r=e.rec,by=c.by||USER,lbl=dialOutLabel(c.out),out=c.out==="dnc"?"notint":(c.out==="meeting"?"talked":c.out),cn=String(c.note||"").trim(),
+    note=cn&&cn.toLowerCase().indexOf(lbl.toLowerCase())===0?cn:lbl+(cn?" · "+cn:""); /* "Left voicemail regarding…" isn't said twice */
+  let rec=null;delete c.pushNote;
+  if(e.k==="p"){rec={id:aid,type:"call",pid:r.id,cid:r.cid||null,note:note,out:out,date:c.at,by:by,norm:2};DB.activities.unshift(rec);if(!r.last||r.last<c.at)r.last=c.at;}
+  else if(e.k==="cl"){const keep=r.lastCall;
+    rec=confLeadCall(r,out,(c.out!==out?lbl+(c.note?" · ":""):"")+(c.note||""),false,{id:aid,at:c.at,by:by,dc:c.id,noSave:true});
     r.lastCall=keep&&keep>c.at?keep:c.at;}
-  else{const t={date:localDay(c.at),method:c.out==="vm"?"voicemail":"call",note:note,by:c.by||USER};r.touches=r.touches||[];touchAct(r,t);r.touches.push(t);
-    rec=(DB.activities||[]).find(a=>a.id===t.actId)||null;if(rec)rec.date=c.at;
-    if(DIAL_CONNECT.includes(c.out)&&c.out!=="notint"&&(!r.cat||r.cat==="new")){r.cat="qualified";r.catBy=USER;r.catAt=now;}}
-  if(rec){rec.out=out;if(c.out==="vm")rec.vm=true;rec.dialer=true;rec.phone=c.phone;if(c.secs)rec.secs=c.secs;if(e.k==="lead")rec.leadId=r.id;}
-  if(c.cb){const t={id:uid(),owner:USER,title:"Call back "+c.name+(c.co?" ("+c.co+")":"")+(c.note?" — "+c.note.slice(0,60):""),type:"call",due:c.cb,done:false,
+  else{const t={date:localDay(c.at),method:c.out==="vm"?"voicemail":"call",note:note,by:by};
+    rec={id:aid,by:by,norm:2,date:c.at};DB.activities.unshift(rec);t.actId=aid;r.touches=r.touches||[];touchAct(r,t);r.touches.push(t);
+    if(DIAL_CONNECT.includes(c.out)&&c.out!=="notint"&&(!r.cat||r.cat==="new")){r.cat="qualified";r.catBy=by;r.catAt=now;}}
+  if(rec){rec.out=out;if(c.out==="vm")rec.vm=true;rec.dialer=true;rec.dialCall=c.id;rec.phone=c.phone;if(c.secs)rec.secs=c.secs;if(e.k==="lead")rec.leadId=r.id;}
+  if(c.cb){const t={id:"dt"+c.id,owner:by,title:"Call back "+c.name+(c.co?" ("+c.co+")":"")+(c.note?" — "+c.note.slice(0,60):""),type:"call",due:c.cb,done:false,
       createdAt:now,pid:e.k==="p"?r.id:null,dialer:true};
-    if(e.k==="lead")t.leadId=r.id;if(e.k==="cl")t.refId=r.id;if(rec){t.actId=rec.id;rec.fuTask=t.id;}DB.tasks.unshift(t);c.taskId=t.id;}
-  if(c.out==="meeting"){const o=dialMeetingOpp(c,e);if(o)c.oppId=o.id;}
+    if(e.k==="lead")t.leadId=r.id;if(e.k==="cl")t.refId=r.id;if(rec){t.actId=rec.id;rec.fuTask=t.id;}
+    if(!(DB.tasks||[]).some(x=>x&&x.id===t.id))DB.tasks.unshift(t);c.taskId=t.id;}
+  if(c.out==="meeting"){const o=(DB.opps||[]).find(x=>x&&x.id==="do"+c.id)||dialMeetingOpp(c,e);if(o)c.oppId=o.id;}
   if(rec){const pushedT=new Set();(DB.activities||[]).forEach(a=>(a.textIds||[]).forEach(i=>pushedT.add(i)));
     const nums=[r.phone,r.mobile].map(dialDigits).filter(Boolean).map(d=>"+1"+d);
     const tx=dialTextsAll().filter(t=>nums.includes(t.num)&&!pushedT.has(t.id)&&String(t.at)<=now).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
@@ -7524,27 +7634,58 @@ function dialPushCall(c){
 function dialMeetingOpp(c,e){ensureOpps();const r=e.rec,m=c.meet||{},now=new Date().toISOString();
   const co=e.k==="p"&&r.cid?company(r.cid):null,dist=m.distCid?company(m.distCid):null;
   const st=String((co&&co.state)||e.state||"WA").toUpperCase().slice(0,2);
-  const o={id:uid(),owner:USER,source:"dialer",fromCall:c.id,createdAt:now,name:(c.co||c.name)+" — meeting",
+  const o={id:"do"+c.id,owner:c.by||USER,source:"dialer",fromCall:c.id,createdAt:now,name:(c.co||c.name)+" — meeting",
     accountId:co?co.id:null,accountName:co?co.name:(c.co||c.name||""),stage:"Qualification",probability:OPP_PROB["Qualification"],amount:0,units:0,
     dealType:"End User Order",state:st,distributorId:dist?dist.id:null,distributorName:dist?dist.name:"",distRepPid:m.repPid||null,
     contacts:[].concat(e.k==="p"?[{pid:r.id,role:"Buyer"}]:[],m.repPid&&person(m.repPid)?[{pid:m.repPid,role:"Distributor rep"}]:[]),
     nextAction:"Teams meeting with "+c.name,nextActionDate:(m.when||"").slice(0,10)||dAdd(todayStr(),3),closeDate:"",note:"",rep:"",touchesExtra:0,
-    lastContact:localDay(c.at),direct:false,ghRep:USER};
+    lastContact:localDay(c.at),direct:false,ghRep:c.by||USER};
   oppAddNote(o,"Meeting booked from the Dialer"+(c.note?": "+c.note:"."));
   DB.opps.unshift(o);return o;}
+/* what a log changes on the person's record, kept for the toast's Undo (seconds later, nothing else has touched it) */
+function dialSnap(e){const r=e.rec;
+  return e.k==="p"?{last:r.last}:e.k==="cl"?{lastCall:r.lastCall,contacted:r.contacted,contactedAt:r.contactedAt,status:r.status,temp:r.temp,owner:r.owner}:{cat:r.cat,catBy:r.catBy,catAt:r.catAt};}
+/* take a call back out of the CRM: its activity, the conference-lead call or lead touch, the call-back to-do (if not done) and the
+   meeting deal (only while it is still as the Dialer made it). Emails that went out stay logged — they were sent. */
+function dialUnpushCall(c,snap){
+  if(!c||!c.pushed)return "";
+  const e=dialRecByKey(c.key),r=e&&e.rec,acts=DB.activities||[];let kept="";
+  if(c.actId){const i=acts.findIndex(a=>a&&a.id===c.actId);if(i>-1)acts.splice(i,1);}
+  if(r&&e.k==="cl"){r.calls=(r.calls||[]).filter(x=>!(x&&(x.dc===c.id||(!x.dc&&x.at===c.at&&(x.by||"")===(c.by||"")))));
+    r.lastCall=(r.calls||[]).reduce((m,x)=>x&&x.at>m?x.at:m,"")||undefined;if(!r.lastCall)delete r.lastCall;}
+  if(r&&e.k==="lead"&&c.actId)r.touches=(r.touches||[]).filter(t=>t&&t.actId!==c.actId);
+  if(c.taskId){const i=(DB.tasks||[]).findIndex(t=>t&&t.id===c.taskId&&!t.done);if(i>-1)DB.tasks.splice(i,1);}
+  if(c.oppId){const i=(DB.opps||[]).findIndex(o=>o&&o.id===c.oppId);const o=i>-1?DB.opps[i]:null;
+    if(o&&o.fromCall===c.id&&o.stage==="Qualification"&&!(+o.amount)&&!oppQuotes(o).length)DB.opps.splice(i,1);else if(o)kept=" (the deal stays: it has moved on)";}
+  if(r&&snap)Object.keys(snap).forEach(k=>{if(snap[k]===undefined)delete r[k];else r[k]=snap[k];});
+  delete c.pushed;delete c.actId;delete c.taskId;delete c.oppId;delete c.pushNote;
+  return kept;}
+/* everything of mine the Dialer hasn't logged yet goes in on its own: calls saved before this build (or on a device still running
+   it) and sent emails. Runs after the boot pull and after any pull that brings new rows — never on a stale copy. Dialer emails
+   logged before 2026-11-24 with just the subject get the message too. */
+function dialAutoPush(){
+  if(!dialAccess()||!SYNC.booted||!SYNC.online)return 0;
+  let n=0,touched=false;
+  dialCalls().forEach(c=>{if(c&&!c.removed&&!c.pushed&&!c.skip&&c.by===USER&&dialPushCall(c))n++;});
+  dialMails().forEach(m=>{if(!m||m.removed||m.status!=="sent"||m.by!==USER)return;
+    if(m.pushedAct){const a=(DB.activities||[]).find(x=>x&&x.id===m.pushedAct);if(a&&a.mailId!==m.id){Object.assign(a,dialMailAct(m));touched=true;}return;}
+    const c=m.callId?dialCalls().find(x=>x.id===m.callId):null;if(c&&(c.removed||c.skip||!c.pushed))return;
+    dialPushMail(m);if(m.pushedAct)n++;});
+  if(n||touched)save();return n;}
 /* ================= AutoTQ Dialer page (Max, 2026-11-19: "Build this thing out beautifully, make it on a new domain like the CRM is…
    a separate URL only I have access to"). The CRM page served at /dialer/ (or ?hub=dialer): same sign-in and data, its own full-screen
-   shell — brand bar with Dial · Email · Push to CRM, the phone, the day's funnel — and only the dialer seat (DIAL_USERS) gets in. */
+   shell — brand bar with Dial · Texts · Email · Logged, the phone, the day's funnel — and only the dialer seat (DIAL_USERS) gets in. */
 function renderDialerHub(){
   view="dialer";document.title="AutoTQ Dialer";
   const me=teamById(USER),scr=document.getElementById("screen");
   if(!dialAccess()){scr.innerHTML='<div class="dhdeny"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><h1>This page is just for Max.</h1>'+
     '<a class="btn coral" href="../">Open the CRM</a></div>';return;}
   const S=dialS(),st=dialStats(),drafts=dialDraftsPending().length;S.tab=S.tab||"dial";
-  const body=S.tab==="push"?viewDialPush():S.tab==="email"?viewDialEmail():S.tab==="texts"?viewDialTexts():viewDialDial(st);
+  if(S.tab==="push")S.tab="log";
+  const body=S.tab==="log"?viewDialLog():S.tab==="email"?viewDialEmail():S.tab==="texts"?viewDialTexts():viewDialDial(st);
   const tab=(k,l,n)=>'<button class="'+(S.tab===k?"on":"")+'" data-act="dialtab" data-v="'+k+'">'+esc(l)+(n?'<span class="dhn">'+n+'</span>':'')+'</button>';
   scr.innerHTML='<div class="dhub"><header class="dhbar"><a class="dhbrand" href="../" title="Back to the CRM"><img src="'+assetUrl("lockup_hd.png")+'" alt="AutoTQ"><span>Dialer</span></a>'+
-    '<nav class="dhtabs">'+tab("dial","Dial",0)+tab("texts","Texts",dialTextUnread())+tab("email","Email",drafts)+tab("push","Push to CRM",st.unpushed)+'</nav>'+
+    '<nav class="dhtabs">'+tab("dial","Dial",0)+tab("texts","Texts",dialTextUnread())+tab("email","Email",drafts)+tab("log","Logged",st.unpushed)+'</nav>'+
     '<div class="dhright"><span id="dlphone" class="dhphone">'+dialPhoneHTML()+'</span>'+
     '<span id="syncdot" class="sync" data-state="'+(SYNC.online?"ok":"off")+'">'+(SYNC.online?"":"Offline")+'</span>'+
     '<button class="av" style="background:'+me.c+'" data-act="dhmenu" title="'+esc(me.name)+'">'+initials(me.name)+'</button></div></header>'+
@@ -7739,15 +7880,19 @@ async function dialMailSend(id,quiet){
     const b=await r.json().catch(()=>({}));if(!r.ok||!b.ok)throw new Error(b.error||("HTTP "+r.status));
     if(b.from&&b.from!==from)throw new Error("it went out from "+b.from+" instead of "+from);
     m.status="sent";m.sentAt=new Date().toISOString();m.from=from;delete m.sending;
-    const c=dialCalls().find(x=>x.id===m.callId);if(c&&c.pushed)dialPushMail(m); // the call is already in the CRM — the email follows it
+    const c=dialCalls().find(x=>x.id===m.callId);if(!c||(c.pushed&&!c.skip&&!c.removed))dialPushMail(m); // the email lands in the CRM with its call
     save();if(quiet)dialMailPaint();else{render();toast("Sent to "+m.toName);}}
   catch(err){delete m.sending;m.sendErr=String((err&&err.message)||err).slice(0,160);save();if(quiet)dialMailPaint();else render();toast("Not sent: "+m.sendErr+(quiet?" (it's on the Email tab)":""));}}
-/* a sent follow-up as a CRM email activity, the way the rest of the CRM logs emails */
-function dialPushMail(m){if(!m||m.status!=="sent"||m.pushedAct)return;const e=dialRecByKey(m.key);if(!e)return;const r=e.rec;
-  const a={id:uid(),type:"email",note:"Emailed: "+m.subject+(m.lit?" · attached "+((DIAL_LIT.find(l=>l.id===m.lit)||{}).title||""):""),date:m.sentAt||new Date().toISOString(),by:m.by||USER,norm:2,dialer:true};
+/* a sent follow-up as a CRM email activity, the way the rest of the CRM logs emails — with the subject and the whole message
+   (Max, 2026-11-24). The id comes from the email ("dm"+id), so it is logged once whichever device does it. */
+function dialMailAct(m){const lit=m.lit?((DIAL_LIT.find(l=>l.id===m.lit)||{}).title||""):"";
+  return {note:"Emailed: "+String(m.subject||"").trim()+"\n\n"+String(m.body||"").trim()+(lit?"\n\nAttached: "+lit:""),subject:String(m.subject||""),mailId:m.id,to:m.to||""};}
+function dialPushMail(m){if(!m||m.status!=="sent"||m.pushedAct)return;const e=dialRecByKey(m.key);if(!e)return;const r=e.rec,id="dm"+m.id;
+  if((DB.activities||[]).some(x=>x&&x.id===id)){m.pushedAct=id;return;}
+  const a=Object.assign({id:id,type:"email",date:m.sentAt||new Date().toISOString(),by:m.by||USER,norm:2,dialer:true},dialMailAct(m));
   if(e.k==="p"){a.pid=r.id;a.cid=r.cid||null;if(!r.last||r.last<a.date)r.last=a.date;}
   else if(e.k==="cl"){a.refId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;}
-  else{a.leadId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;}
+  else{a.leadId=r.id;a.name=r.name;a.company=r.company||"";a.conf=r.conf||"";a.pid=r.refPid||null;if(r.refId)a.refId=r.refId;}
   DB.activities.unshift(a);m.pushedAct=a.id;}
 function dialInboxHTML(){
   const R=DIAL.inbox;if(!R||Date.now()-R.at>120000){dialInboxLoad();}
@@ -7834,9 +7979,9 @@ function dialAct(a,t){
   if(a==="dialmdist"){const m=S.meet||(S.meet={});m.distCid=t.dataset.v;m.distName=t.dataset.v==="none"?"":((company(t.dataset.v)||{}).name||"");m.repPid="";dialPaint();return true;}
   if(a==="dialmrep"){const m=S.meet||(S.meet={});m.repPid=m.repPid===t.dataset.v?"":t.dataset.v;dialPaint();return true;}
   if(a==="dialinvite"){const e=dialCur();if(e)window.open(dialInviteUrl(e),"_blank","noopener");return true;}
-  if(a==="dialpushone"){const c=dialCalls().find(x=>x.id===t.dataset.id);if(c&&dialPushCall(c)){save();render();toast("In the CRM · "+c.name);}return true;}
-  if(a==="dialpushsel"){let n=0;dialUnpushed().filter(dialPushTicked).forEach(c=>{if(dialPushCall(c))n++;});S.pushSel={};save();render();toast(n+" pushed to the CRM");return true;}
-  if(a==="dialpushall"||a==="dialpushnone"){S.pushSel={};dialUnpushed().forEach(c=>{S.pushSel[c.id]=a==="dialpushall";});render();return true;}
+  if(a==="diallogout"){const c=dialCalls().find(x=>x.id===t.dataset.id);if(!c)return true;const kept=dialUnpushCall(c);c.skip=new Date().toISOString();save();render();
+    toast("Taken out of the CRM · "+c.name+kept,()=>{delete c.skip;dialPushCall(c);save();render();});return true;}
+  if(a==="diallogback"){const c=dialCalls().find(x=>x.id===t.dataset.id);if(!c)return true;delete c.skip;if(dialPushCall(c)){save();render();toast("In the CRM · "+c.name);}else{save();render();toast(c.pushNote?"Not logged: "+c.pushNote:"Already in the CRM");}return true;}
   if(a==="dialout"){S.out=S.out===t.dataset.v?"":t.dataset.v;if(S.out!=="callback"&&S.out!=="interested")S.cb="";if(S.out!=="meeting")S.meet=null;dialPaint();
     const n=document.getElementById("dialNote");if(n)n.focus();return true;}
   if(a==="dialcb"){S.cb=t.dataset.v;dialPaint();return true;}
@@ -7864,8 +8009,7 @@ document.addEventListener("input",e=>{const el=e.target;if(el&&el.id==="dialNote
     if(f==="to"){document.querySelectorAll('[data-dm="to"]').forEach(x=>{if(x!==el)x.value=el.value;});
       const ok=dialEmailOk(el.value),cb=document.querySelector('[data-dm="send"]');if(cb){cb.disabled=!ok;cb.checked=ok&&m.send;cb.parentNode.classList.toggle("off",!ok);}}}}
   if(el&&el.dataset&&el.dataset.mf&&el.dataset.mid){const m=dialMails().find(x=>x.id===el.dataset.mid);if(m){m[el.dataset.mf]=el.value;clearTimeout(DIAL.mailSave);DIAL.mailSave=setTimeout(save,700);}}});
-document.addEventListener("change",e=>{const el=e.target;if(!el||(!el.id&&!(el.dataset&&(el.dataset.mf||el.dataset.dm||el.dataset.dt))&&!(el.classList&&el.classList.contains("dlpchk"))))return;
-  if(el.classList&&el.classList.contains("dlpchk")){const S=dialS();S.pushSel=S.pushSel||{};S.pushSel[el.dataset.cid]=el.checked;render();return;}
+document.addEventListener("change",e=>{const el=e.target;if(!el||(!el.id&&!(el.dataset&&(el.dataset.mf||el.dataset.dm||el.dataset.dt))))return;
   if(el.dataset&&el.dataset.dt==="ok"){const x=dialS().text;if(x){x.ok=el.checked;const b=document.getElementById("dltsendbtn");if(b)b.disabled=!((x.can||el.checked)&&String(x.body).trim());}return;}
   if(el.dataset&&(el.dataset.dm==="lit"||el.dataset.dm==="send")){const m=dialS().mail;if(m){if(el.dataset.dm==="lit"){m.lit=el.value;m.edited=true;}else m.send=el.checked;}return;}
   if(el.dataset&&el.dataset.mf==="lit"&&el.dataset.mid){const m=dialMails().find(x=>x.id===el.dataset.mid);if(m){m.lit=el.value;save();}return;}
@@ -14339,6 +14483,7 @@ document.addEventListener("click",e=>{
   if(a==="pickOppCon"){const p=person(t.dataset.id);if(p){logState.oppConPid=p.id;const i=document.getElementById("oConQ");if(i)i.value=personLabel(p);sugRender("oConQ",[]);}return;}
   if(a==="leadsfilter"){leadsF=t.dataset.v;listQ="";render();return;}
   if(a==="confseg"){confSegF=t.dataset.v;render();return;}
+  if(a==="leadsrcf"||a==="leadheatf"||a==="leadtchf"){const f=leadMF[t.dataset.k==="conf"?"conf":"leads"];f[{leadsrcf:"src",leadheatf:"heat",leadtchf:"tch"}[a]]=t.dataset.v;render();return;}
   if(a==="confregion"){confRegF=t.dataset.v;render();return;}
   if(a==="cfplus"){confLeadPlus(id);return;}
   if(a==="extlink")return; /* tel: / mailto: inside a clickable row — let the link work, don't open the row */
