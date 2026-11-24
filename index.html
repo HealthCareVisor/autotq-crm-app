@@ -1252,6 +1252,9 @@ div.dlrow{cursor:default}
 .dlorg{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;gap:8px;margin:0;padding:7px 12px 5px;background:var(--surface-2);border-bottom:1px solid var(--line-2);font-size:12px;font-weight:700;color:var(--ink)}
 .dlorg span{font-weight:500;color:var(--muted)}
 .dldone summary{font-size:13px;color:var(--ink-2);cursor:pointer;margin:4px 2px 8px}
+.dlprev{margin:6px 0 4px}.dlprev>summary{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--surface-2)}
+.dlprev .dlrows{margin-top:6px;max-height:320px;overflow:auto}.dlprow2{display:flex;flex-direction:column;align-items:flex-start;gap:2px;cursor:default}
+.dlprow2 .dlrn{text-align:left;padding:0}.dlptags{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
 .dlcard{padding:20px 22px}
 .dlwho{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}
 .dlname{font:inherit;font-size:22px;font-weight:700;letter-spacing:-.015em;color:var(--ink);background:none;border:0;padding:0;cursor:pointer;text-align:left}
@@ -1711,7 +1714,7 @@ function closeSheet(){
   if(logState.srStale){logState.srStale=false;render();}} /* serials saved while the sheet was open */
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
-document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;if(e.target&&e.target.id==="shipDone")logState.shipDoneOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.fold==="invln")logState.invLnOpen=e.target.open;},true);
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;if(e.target&&e.target.id==="shipDone")logState.shipDoneOpen=e.target.open;if(e.target&&e.target.id==="dlPrev")dialS().prevOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.fold==="invln")logState.invLnOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
@@ -7007,6 +7010,19 @@ function dialNoNumberHTML(t){const l=dialNoNumber(t);if(!l.length)return "";let 
     h+='<button class="dlrow" data-act="dialopen" data-id="'+esc(x.key)+'"><span class="dlrn">'+esc(x.name)+'</span><span class="dlrs">'+
       esc([x.title,x.rec.email?"email only":"no email either"].filter(Boolean).join(" · "))+'</span></button>';});
   return '<details class="fold dldone"><summary>No number yet · '+l.length+'</summary><div class="list dlrows">'+h+'</div></details>';}
+/* today's calls in a dropdown at the top of the queue (Max, 2026-11-24: "a drop down above [the list] that shows previous calls…
+   [email sent] [call (call status)]"): newest first, each with its outcome and whether its follow-up email went (or is waiting);
+   the name opens the person. Folded on landing; opening it holds while you dial (logState.dial.prevOpen). */
+const DIAL_OUT_TONE={interested:"ok",meeting:"ok",talked:"info",callback:"info",vm:"gray",noanswer:"gray",notint:"dang",wrong:"dang",dnc:"dang"};
+function dialPrevCallsHTML(st){const S=dialS(),L=(st.list||[]).slice().sort((a,b)=>String(b.at).localeCompare(String(a.at)));if(!L.length)return "";
+  const mails=dialMails();
+  return '<details class="fold dlprev" id="dlPrev"'+(S.prevOpen?' open':'')+'><summary><span>Previous calls today · '+L.length+'</span><span class="fchev">'+chev()+'</span></summary><div class="list dlrows">'+
+    L.slice(0,80).map(c=>{const m=mails.find(x=>x&&!x.removed&&x.callId===c.id&&x.status!=="skipped");
+      const mail=m?(m.status==="sent"?'<span class="pill ok">Email sent</span>':'<span class="pill warn">Email waiting</span>'):'';
+      return '<div class="dlrow dlprow2"><button class="lnk dlrn" data-act="dialopen" data-id="'+esc(c.key)+'">'+esc(c.name||"—")+'</button>'+
+        '<span class="dlrs">'+esc([c.co,fmtTimeShort(c.at)].filter(Boolean).join(" · "))+'</span>'+
+        '<span class="dlptags"><span class="pill '+(DIAL_OUT_TONE[c.out]||"gray")+'">Call · '+esc(dialOutLabel(c.out))+'</span>'+mail+'</span></div>';}).join("")+
+    (L.length>80?'<p class="dlqn">+ '+(L.length-80)+' more</p>':'')+'</div></details>';}
 function viewDialDial(st){
   const S=dialS(),qAll=dialQueue(),tabQ=S.src.indexOf("t:")===0;
   const q=dialQueueView(qAll),e=dialCur(q);
@@ -7022,6 +7038,7 @@ function viewDialDial(st){
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+(tabOn?dialMapHTML(qAll,e):'')+
+    dialPrevCallsHTML(st)+
     '<p class="dlqn">'+q.length+' to call'+(demoOn?' · demo units on the West Coast':tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
     (q.length&&dialByOrg(S.src)?dialOrgRowsHTML(q,e,S):q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
@@ -7029,8 +7046,6 @@ function viewDialDial(st){
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
     (dialByOrg(S.src)?dialNoNumberHTML(demoOn?"demo":S.src.slice(2)):'')+
-    (st.list.length?'<details class="fold dldone"><summary>Called today · '+st.list.length+'</summary><div class="list">'+st.list.slice(0,60).map(c=>
-      '<div class="dlrow"><span class="dlrn">'+esc(c.name||"—")+'</span><span class="dlrs">'+esc(dialOutLabel(c.out)+" · "+fmtTimeShort(c.at)+(c.pushed?" · in the CRM":""))+'</span></div>').join("")+'</div></details>':'')+
     '</aside><section class="dlmain">'+(e?dialCardHTML(e):'<div class="card empty">Nobody to call right now.</div>')+'</section></div>';
   return h;}
 /* Logged (was "Push to CRM" until 2026-11-24): this week's calls, each already in the CRM. Take out = the call stays in the Dialer's
