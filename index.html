@@ -1698,7 +1698,7 @@ function closeSheet(){
   if(logState.srStale){logState.srStale=false;render();}} /* serials saved while the sheet was open */
 document.getElementById("scrim").addEventListener("click",e=>{if(e.target.id==="scrim")closeSheet();});
 /* keyboard: Esc closes the open sheet; "/" jumps to global search (when not typing) */
-document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.fold==="invln")logState.invLnOpen=e.target.open;},true);
+document.addEventListener("toggle",e=>{if(e.target&&e.target.id==="homeQuotes")logState.homeQuotesOpen=e.target.open;if(e.target&&e.target.id==="shipDone")logState.shipDoneOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.fold==="invln")logState.invLnOpen=e.target.open;},true);
 document.addEventListener("keydown",e=>{
   if(palKey(e))return;
   if((e.ctrlKey||e.metaKey)&&!e.altKey&&String(e.key).toLowerCase()==="k"){if(USER&&authed()){e.preventDefault();const pp=document.getElementById("pal");if(pp&&pp.classList.contains("open"))palClose();else palOpen();}return;}
@@ -12593,8 +12593,9 @@ function viewShipTab(){
       '<button class="btn sm ghost" data-act="spform" data-id="" title="Email the queue sheet to the HP printer">Send queue to printer</button></span>':'')+'</div>';
   h+=L.length?'<div class="card" style="padding:0;overflow:hidden">'+L.map((o,i)=>shipRowHTML(o,i)).join("")+'</div>'
     :'<div class="card" style="padding:22px;text-align:center;color:var(--hint)">Nothing waiting to go out. ✓</div>';
-  if(done.length)h+='<h2 class="sech" style="margin-top:22px">Shipped · last 30 days · '+done.length+'</h2>'+
-    '<div class="card" style="padding:0;overflow:hidden">'+done.map((o,i)=>shipDoneRowHTML(o,i)).join("")+'</div>';
+  /* folded until tapped (Max, 2026-11-24: "expandable… automatically doesn't show them when landing on the page"); stays open while you work */
+  if(done.length)h+='<details class="fold" id="shipDone" style="margin-top:22px"'+(logState.shipDoneOpen?' open':'')+'><summary><span class="sech" style="margin:0">Shipped · last 30 days · '+done.length+'</span><span class="fchev">'+chev()+'</span></summary>'+
+    '<div class="card" style="padding:0;overflow:hidden;margin-top:8px">'+done.map((o,i)=>shipDoneRowHTML(o,i)).join("")+'</div></details>';
   return h;
 }
 function lnMarkShipped(id,on){
@@ -12753,6 +12754,10 @@ function formUpsShip(oid){
   S.boxes.forEach(b=>{if(b.auto)b.weight=upsBoxEst(b.items);});
   openSheet('<h2>Ship with UPS — '+esc(shortAcct(o.account)||"Order")+'</h2>'+
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+shipGroup(o).map(x=>poChip(x.poNo)).join(" ")+' '+esc(lnItems(gItems))+'</p>'+
+   /* already shipped outside the CRM (Max, 2026-11-24: "make sure that I can just put UPS tracking in if I already shipped the order") */
+   '<div class="card upsdone" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:6px 0 10px">'+
+    '<span class="grow" style="font-size:13.5px"><b>Already shipped it?</b> Skip the label and add the tracking #.</span>'+
+    '<button class="btn sm" data-act="lnship" data-id="'+o.id+'">Add tracking #</button></div>'+
    (upsIsFedex(o)?'<div class="card" style="padding:10px 12px;margin:6px 0;border-left:4px solid var(--warn-t,#a15c00);font-size:13px">The PO says <b>'+esc(o.shipVia)+'</b> — that one goes through FedEx Ship Manager, not UPS.</div>':'')+
    (shipHowTxt(o)?'<p style="font-size:13px;margin:4px 0 0"><b>PO says:</b> ship '+esc(shipHowTxt(o))+'</p>':'')+
    '<h3 class="sech" style="margin:14px 0 2px">Ship to</h3>'+
