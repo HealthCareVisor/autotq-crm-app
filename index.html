@@ -7763,12 +7763,15 @@ const DIAL_LIT=[
  {id:"brochure",title:"AutoTQ brochure (tri-fold)",path:"hub/pdf/lit-new-story-brochure.pdf",any:true},
  {id:"sell",title:"Distributor sell sheet",path:"hub/pdf/lit-new-sell-sheet.pdf",dist:true,any:true},
  {id:"ballard",title:"Distributor one-pager · Ballard Industrial",path:"hub/pdf/lit-onepager-ballard.pdf",dist:true,m:/ballard/i}
+ /* the IEEE Pulse article (Max, 2026-11-24: "add this as a research paper to the dialer"): Hannah Herbst & Devin Willis, "Under Pressure:
+    AutoTQ is Designed for Intuitive, Rapid Hemorrhage Control", IEEE Pulse 16(6), DOI 10.1109/MPULS.2025.3640853; offered to everyone */
+ {id:"ieee",title:"Research paper · IEEE Pulse (Under Pressure)",path:"hub/pdf/lit-ieee-under-pressure.pdf",any:true,both:true},
 ];
 /* the pieces that fit this person: their market's first, then the general ones (distributor contacts get distributor pieces) */
 function dialLitFor(e){e=e||{rec:{}};const r=e.rec||{},c=r.cid?company(r.cid):null;
   const isDist=(c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor";
   const hay=[e.co,e.title,c&&c.industry,c&&c.name,r.conf,r.source].filter(Boolean).join(" ");
-  const pool=DIAL_LIT.filter(l=>!!l.dist===!!isDist);
+  const pool=DIAL_LIT.filter(l=>l.both||!!l.dist===!!isDist); /* both = offered to end users and distributors alike */
   return pool.filter(l=>l.m&&l.m.test(hay)).concat(pool.filter(l=>l.any)).slice(0,6);}
 function dialMails(){DB.dialMail=DB.dialMail||[];return DB.dialMail;}
 function dialDraftsPending(){return dialMails().filter(m=>m&&!m.removed&&m.by===USER&&(m.status==="draft"||m.status==="drafting"));}
