@@ -1281,6 +1281,10 @@ div.dlrow{cursor:default}
 .dlmail{display:flex;flex-direction:column;gap:8px}.dlmhead{margin:0}
 .f.dlmbody{min-height:170px;line-height:1.5}
 .dlmfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.f.dlmlit{width:auto;max-width:320px}
+/* the signature as it goes out: an email-white card under the message box, a little smaller than life */
+.dlsig{background:#fff;border:1px solid var(--line-2);border-radius:var(--r);padding:10px 14px;zoom:.82}.dlsig>div{margin-top:0!important}
+.dlsig a{pointer-events:none}
+.sheet.dlpvsheet{max-width:980px}.dlpvf{display:block;width:100%;height:74vh;border:1px solid var(--line-2);border-radius:var(--r);background:#fff}
 .dlmerr{color:var(--dang-t)}
 .dlinrow summary{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;cursor:pointer;list-style:none;border-bottom:1px solid var(--line-2)}
 .dlinbody{padding:10px 14px 14px 84px;font-size:13.5px;line-height:1.5;color:var(--ink-2);white-space:normal}
@@ -1328,6 +1332,7 @@ div.dlrow{cursor:default}
 .dlwho .t2{white-space:normal;overflow:visible;text-overflow:clip}
 #dialNote{margin-top:12px;min-height:96px}
 .dlfoot{display:flex;align-items:center;gap:8px;margin-top:12px}
+#dlmail:empty~.dlfoot .dlnomail{display:none} /* "Save, no email" only while the email box is open */
 .dlflash{animation:dlflash .6s}
 @keyframes dlflash{0%,100%{background:transparent}30%{background:var(--warn-b)}}
 .dialbar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px 10px 16px;box-shadow:var(--sh-pop);width:min(620px,calc(100vw - 32px));font-size:14px}
@@ -6518,7 +6523,7 @@ function dialPool(src){
   if(src.indexOf("list:")===0){const L=(DB.lists||[]).find(x=>x.id===src.slice(5));
     return L?(L.items||[]).map(it=>it.pid&&person(it.pid)?dialEntry("p",person(it.pid)):null).filter(Boolean):[];}
   if(src.indexOf("imp:")===0){const conf=src.slice(4);return DB.leads.filter(l=>!l.removed&&l.conf===conf).map(l=>dialEntry("lead",l));}
-  if(src==="demo")return dialDemoEntries();
+  if(src==="demo")return dialDemoWC();
   if(src.indexOf("t:")===0){const t=src.slice(2),cust=dialCustomerCids(),sold=dialSold();
     return dialEveryone().filter(dialInArea).filter(e=>{if(dialIsDemo(e))return false;e.tab=dialTabE(e,sold);if(e.tab!==t)return false;e.grp=dialGroup(e,cust);return true;});}
   if(src==="confwest")return (DB.confLeads||[]).filter(l=>!l.removed&&WEST_ST.has(String(l.state||"").trim().toUpperCase().slice(0,2))).map(l=>dialEntry("cl",l));
@@ -6576,6 +6581,15 @@ function dialDemoEntries(){const m=dialDemoMap(),sold=dialSold(),cust=dialCustom
   return [...m.keys()].map(id=>{const e=dialEntry("p",byId.get(id));e.tab=dialTabE(e,sold);e.grp=dialGroup(e,cust);e.demo=m.get(id)||"";return e;});}
 function dialDemoNums(){return dialMemo("demonums",dialDemoKey(),()=>new Set(dialDemoEntries().map(e=>e.d).filter(Boolean)),15000);}
 function dialIsDemo(e){return (e.k==="p"&&dialDemoMap().has(e.id))||(!!e.d&&dialDemoNums().has(e.d));}
+/* the Demo units tab is the West Coast only (Max, 2026-11-24: "get rid of the people with demo units that aren't on the west coast"):
+   a home or coverage state in WA OR CA AK HI, plus anyone the Washington & Oregon tabs would hold (a WA / OR area code with no state),
+   so a holder who moved up from those tabs never drops out of the Dialer. Holders elsewhere stay on the Demo Map, just not here. */
+const DIAL_WC=new Set(["WA","OR","CA","AK","HI"]),DIAL_WC_NAMES={WASHINGTON:"WA",OREGON:"OR",CALIFORNIA:"CA",ALASKA:"AK",HAWAII:"HI"};
+function dialWestCoast(e){if(dialInArea(e))return true;
+  const sts=(e.k==="p"?personStates(e.rec).concat(e.rec.state?[e.rec.state]:[]):[e.rec.state]).map(x=>{const s=String(x==null?"":x).trim().toUpperCase();return DIAL_WC_NAMES[s]||s;});
+  return sts.some(s=>DIAL_WC.has(s));}
+function dialDemoWC(){return dialDemoEntries().filter(dialWestCoast);}
+function dialHasDemo(e){return !!e&&e.k==="p"&&dialDemoMap().has(e.id);}
 function dialGroup(e,cust){const r=e.rec;
   if(e.k==="cl")return "conference";
   if(e.k==="lead"){if(r.waGroup)return r.waGroup;if(r.kind==="distributor")return "channel";
@@ -6595,7 +6609,7 @@ function dialTabE(e,sold){if(e.k==="cl"&&String(e.rec.segment||"")==="Set Aside"
 /* people per tab (one per number, Do not call and wrong numbers left out) — the counts on the tabs */
 function dialTabCounts(){const n={demo:0,dist:0,enduser:0,cold:0},seen=new Set();
   const sold=dialSold(),ok=e=>e.d&&!seen.has(e.d)&&!e.rec.dnc&&e.rec.badPhone!==e.d;
-  dialDemoEntries().forEach(e=>{if(!ok(e))return;seen.add(e.d);n.demo++;});
+  dialDemoWC().forEach(e=>{if(!ok(e))return;seen.add(e.d);n.demo++;});
   dialEveryone().filter(dialInArea).forEach(e=>{if(!ok(e)||dialIsDemo(e))return;seen.add(e.d);const t=dialTabE(e,sold);if(t)n[t]++;});
   return n;}
 function dialCallKeys(a){const ks=[];if(a.pid)ks.push("p:"+a.pid);if(a.refId)ks.push("cl:"+a.refId);if(a.leadId)ks.push("lead:"+a.leadId);return ks;}
@@ -6733,7 +6747,7 @@ function dialByOrg(src){return src==="demo"||src==="t:dist"||src==="t:cold";}
 function dialOrgKey(e){return String(e.co||"~").trim().toLowerCase();}
 /* the same tab's people with no phone number on file (Washington / Oregon by home or coverage state), by organization */
 function dialNoNumber(t){const S=dialS(),sold=dialSold(),out=[],demo=dialDemoMap(),org=(a,b)=>dialOrgKey(a).localeCompare(dialOrgKey(b))||a.name.localeCompare(b.name);
-  if(t==="demo")return dialDemoEntries().filter(e=>!e.d).sort(org);
+  if(t==="demo")return dialDemoWC().filter(e=>!e.d).sort(org);
   DB.people.forEach(p=>{if(!p||p.removed||demo.has(p.id))return;const e=dialEntry("p",p);if(e.d)return;
     const area=dialAreaStates(personStates(p).concat(p.state?[p.state]:[]),"");if(!area.length||(S.st&&!area.includes(S.st)))return;
     if(dialTabE(e,sold)===t)out.push(e);});
@@ -6765,7 +6779,7 @@ function viewDialDial(st){
     srcs.map(x=>'<option value="'+esc(x[0])+'"'+(S.src===x[0]?" selected":"")+'>'+esc(x[1])+'</option>').join("")+'</select>'+
     '<button class="btn sm" data-act="dialimp" title="Import an Apollo export or any CSV / Excel list with phone numbers">'+svg("dl")+' Import</button>'+
     '<input type="file" id="dialFile" accept=".csv,.xlsx" hidden></div>'+(tabOn?dialMapHTML(qAll,e):'')+
-    '<p class="dlqn">'+q.length+' to call'+(demoOn?' · demo units across the US':tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
+    '<p class="dlqn">'+q.length+' to call'+(demoOn?' · demo units on the West Coast':tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
     (q.length&&dialByOrg(S.src)?dialOrgRowsHTML(q,e,S):q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
       '<span class="dlrs">'+esc([x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
@@ -6979,6 +6993,7 @@ function dialCardHTML(e){
     '<textarea class="f" id="dialNote" placeholder="Notes — Enter saves, Shift+Enter for a new line">'+esc(S.note||"")+'</textarea>'+
     dialBoxHTML("dlmail",dialCardMailInner(e),dialMailSig(e))+dialBoxHTML("dltext",dialCardTextInner(e),dialTextSig(e))+
     '<div class="dlfoot"><button class="btn sm" data-act="dialskip">Skip for now</button><span class="grow"></span>'+
+    '<button class="btn dlnomail" data-act="dialsavenm" title="Save the call and notes, skip the email">Save, no email</button>'+
     '<button class="btn coral" data-act="dialsave">Save &amp; next</button></div></div>';}
 /* ---- email on the card (Max, 2026-11-19: "Email should be accessible on the notes page" → the email box on the card): picking an
    outcome that gets a follow-up opens To / Subject / message / attachment under the notes, filled from the casual template;
@@ -6995,28 +7010,32 @@ function dialMailLineHTML(e){const to=String(e.rec.email||"").trim(),fl=dialMail
   const m=dialCardMail(e);
   return '<p class="t2 dlmline">'+svg("mail")+' <input class="f dlmto" data-dm="to" type="email" placeholder="Add their email" value="'+esc(m.to||"")+'" aria-label="Their email"></p>';}
 /* the template for the outcome on the card, unless you've typed in the box (or Claude wrote it) */
-function dialCardMailFill(e){const S=dialS(),m=dialCardMail(e);
-  if(m.edited||!DIAL_MAIL_OUTS.includes(S.out))return;
-  const lits=dialLitFor(e),t=dialTemplate({toName:e.name,co:e.co,out:S.out},{meet:S.meet||null,cb:S.cb||(S.out==="callback"?dAdd(todayStr(),1):S.out==="interested"?dAdd(todayStr(),2):"")},e,lits);
+/* the outcome the card's email follows: the one picked, or on a demo holder's card before anything is picked the voicemail email
+   (Max, 2026-11-24: "draft an email like this in the dialer for all the folks I'm calling that have our demo units") */
+function dialMailOut(e){const S=dialS();return S.out||(dialHasDemo(e)?"vm":"");}
+function dialCardMailFill(e){const S=dialS(),m=dialCardMail(e),out=dialMailOut(e);
+  if(m.edited||!DIAL_MAIL_OUTS.includes(out))return;
+  const lits=dialLitFor(e),t=dialTemplate({toName:e.name,co:e.co,out:out},{meet:S.meet||null,cb:S.cb||(S.out==="callback"?dAdd(todayStr(),1):S.out==="interested"?dAdd(todayStr(),2):"")},e,lits);
   if(t.subject!==m.subject||t.body!==m.body||t.lit!==m.lit){m.subject=t.subject;m.body=t.body;m.lit=t.lit;m.ver++;}}
-function dialCardMailInner(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(S.out))return "";
+function dialCardMailInner(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(dialMailOut(e)))return "";
   dialCardMailFill(e);const m=dialCardMail(e),ok=dialEmailOk(m.to),lits=dialLitFor(e),cur=DIAL_LIT.find(l=>l.id===m.lit);
   if(cur&&!lits.includes(cur))lits.unshift(cur);
   return '<div class="dlcmail"><p class="fl">Follow-up email</p>'+
     '<div class="dlcmrow"><span class="t2">To</span><input class="f" data-dm="to" type="email" placeholder="their@email.com" value="'+esc(m.to||"")+'" aria-label="To"></div>'+
     '<input class="f" data-dm="subject" value="'+esc(m.subject)+'" placeholder="Subject" aria-label="Subject">'+
-    '<textarea class="f dlcmbody" data-dm="body" aria-label="Email">'+esc(m.body)+'</textarea>'+
+    '<textarea class="f dlcmbody" data-dm="body" aria-label="Email">'+esc(m.body)+'</textarea>'+dialSigPreviewHTML()+
     '<div class="dlmfoot"><select class="f dlmlit" data-dm="lit" aria-label="Attachment"><option value="">No attachment</option>'+
     lits.map(l=>'<option value="'+l.id+'"'+(m.lit===l.id?" selected":"")+'>'+esc(l.title)+'</option>').join("")+'</select>'+
+    '<button class="btn sm" data-act="dialmlitview" title="See the attachment before it goes">Preview</button>'+
     '<button class="btn sm" data-act="dialcwrite"'+(m.writing?" disabled":"")+'>'+svg("spark")+' '+(m.writing?"Writing…":"Write from my notes")+'</button>'+
     '<span class="grow"></span><label class="dlcmsend'+(ok?"":" off")+'"><input type="checkbox" data-dm="send"'+(m.send&&ok?" checked":"")+(ok?"":" disabled")+'> Send it when I save</label></div>'+
     (m.err?'<p class="t2 dlmerr">'+esc(m.err)+'</p>':'')+'</div>';}
 /* repaint the box only when its shape or its filled-in text changed, so typing in it is never wiped */
 function dialBoxHTML(id,inner,sig){return '<div id="'+id+'" data-sig="'+esc(sig)+'">'+inner+'</div>';}
-function dialMailSig(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(S.out))return "";const m=S.mail&&S.mail.key===e.key?S.mail:null;
-  return [e.key,S.out,m?m.ver:0,m&&m.writing?1:0,m&&m.err?1:0].join("|");}
+function dialMailSig(e){const S=dialS();if(!e||!DIAL_MAIL_OUTS.includes(dialMailOut(e)))return "";const m=S.mail&&S.mail.key===e.key?S.mail:null;
+  return [e.key,dialMailOut(e),m?m.ver:0,m&&m.writing?1:0,m&&m.err?1:0].join("|");}
 function dialCardMailPaint(){const el=document.getElementById("dlmail");if(!el)return;const S=dialS(),e=dialCur();
-  if(e&&DIAL_MAIL_OUTS.includes(S.out))dialCardMailFill(e);
+  if(e&&DIAL_MAIL_OUTS.includes(dialMailOut(e)))dialCardMailFill(e);
   const sig=dialMailSig(e);
   if(el.dataset.sig===sig)return;el.dataset.sig=sig;el.innerHTML=e?dialCardMailInner(e):"";}
 /* the request the dialer function writes a follow-up from (Email tab drafts and the card) */
@@ -7025,9 +7044,9 @@ function dialDraftBody(e,o){const lits=dialLitFor(e||{rec:{},co:o.co});
   return {name:o.name,title:(e&&e.title)||"",company:o.co,outcome:o.out,note:o.note||"",proof:e?dialProof(e):"",
     distributor:(o.meet&&o.meet.distName)||"",meetingWhen:o.meet&&o.meet.when?dialDayTxt(o.meet.when.slice(0,10),todayStr())+" "+fmtTimeShort(o.meet.when):"",
     callbackDay:o.cb?dialDayTxt(o.cb,todayStr()):"",history:hist,literature:lits.map(l=>({id:l.id,title:l.title})),sender:(teamById(USER)||{}).name||"Max Herbst"};}
-async function dialCardWrite(){const S=dialS(),e=dialCur();if(!e||!DIAL_MAIL_OUTS.includes(S.out))return;const m=dialCardMail(e);if(m.writing)return;
+async function dialCardWrite(){const S=dialS(),e=dialCur();if(!e||!DIAL_MAIL_OUTS.includes(dialMailOut(e)))return;const m=dialCardMail(e);if(m.writing)return;
   const meet=S.meet?{when:S.meet.when||"",distName:S.meet.distCid&&S.meet.distCid!=="none"?S.meet.distName||"":""}:null;
-  const body=dialDraftBody(e,{name:e.name,co:e.co,out:S.out,note:String(S.note||"").trim(),meet:meet,cb:S.cb});
+  const body=dialDraftBody(e,{name:e.name,co:e.co,out:dialMailOut(e),note:String(S.note||"").trim(),meet:meet,cb:S.cb});
   m.writing=true;delete m.err;m.ver++;dialCardMailPaint();
   try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(b.error||("HTTP "+r.status));
@@ -7303,22 +7322,24 @@ function dialCountdown(){
   const d=document.getElementById("dlcd");if(d)d.innerHTML=dialCdHTML();}
 function dialStopCd(){if(DIAL.cd){clearInterval(DIAL.cd);DIAL.cd=null;}DIAL.cdLeft=0;DIAL.cdKey="";const d=document.getElementById("dlcd");if(d)d.innerHTML="";}
 /* ---- saving a call ---- */
-function dialSave(){
+/* noMail (Max, 2026-11-24: "an option to save notes and then just move on from sending email"): "Save, no email" saves the call and
+   its notes and moves on — no email is sent, no draft waits on the Email tab, and none is written for it afterwards */
+function dialSave(noMail){
   const S=dialS(),e=dialCur();if(!e)return;
   if(DIAL.call&&DIAL.callKey===e.key){toast("Hang up first");return;}
   if(!S.out){toast("Pick how the call went");const o=document.getElementById("dlouts");if(o){o.classList.remove("dlflash");void o.offsetWidth;o.classList.add("dlflash");}return;}
   const tx=S.text&&S.text.key===e.key?S.text:null;
   if(tx&&tx.edited&&String(tx.body||"").trim()&&dialTextShown(e)){toast("Send or clear the text first");return;}
   const box=S.mail&&S.mail.key===e.key?S.mail:null;
-  if(box&&box.writing){toast("Still writing the email…");return;}
-  if(box&&DIAL_MAIL_OUTS.includes(S.out)&&String(box.to||"").trim()&&!dialEmailOk(box.to)){toast("That email address doesn't look right. Fix it or clear it.");return;}
+  if(box&&box.writing&&!noMail){toast("Still writing the email…");return;}
+  if(box&&!noMail&&DIAL_MAIL_OUTS.includes(S.out)&&String(box.to||"").trim()&&!dialEmailOk(box.to)){toast("That email address doesn't look right. Fix it or clear it.");return;}
   const note=String(S.note||"").trim(),now=new Date().toISOString(),r=e.rec;
   const c={id:uid(),key:e.key,name:e.name,co:e.co,title:e.title,email:r.email||"",phone:e.d,out:S.out,note:note,secs:S.secs||0,at:now,by:USER,src:S.src};
   if(S.out==="callback"||S.out==="interested")c.cb=S.cb||(S.out==="callback"?dAdd(todayStr(),1):dAdd(todayStr(),2));
   if(S.out==="meeting"){const m=S.meet||{};c.meet={when:m.when||"",distCid:m.distCid&&m.distCid!=="none"?m.distCid:"",distName:m.distCid&&m.distCid!=="none"?m.distName||"":"",repPid:m.repPid||""};}
   dialCalls().unshift(c);
   /* the card's email: a typed address goes on the record; ticked = send now, unticked = a draft on the Email tab */
-  let mailNote="",sendId="";const mm=S.mail&&S.mail.key===e.key&&DIAL_MAIL_OUTS.includes(S.out)?S.mail:null;
+  let mailNote=noMail&&DIAL_MAIL_OUTS.includes(S.out)?" · no email":"",sendId="";const mm=!noMail&&S.mail&&S.mail.key===e.key&&DIAL_MAIL_OUTS.includes(S.out)?S.mail:null;
   const hadEmail=r.email,hadOk=r.textOk;
   if(box&&dialEmailOk(box.to)&&!dialEmailOk(r.email))r.email=String(box.to).trim(); // an address typed on the card goes on the record, whatever the outcome
   if(tx&&tx.ok&&!r.textOk&&DIAL_TEXT_OUTS.includes(S.out))r.textOk={at:now,by:USER};
@@ -7338,7 +7359,7 @@ function dialSave(){
     (DB.dialMail||[]).forEach(m=>{if(m.callId===c.id&&m.status!=="sent")m.removed=true;});save();render();});
   if(sendId){const cid=c.id;setTimeout(()=>{const m=dialMails().find(x=>x.id===sendId);
     if(m&&!m.removed&&m.status==="draft"&&dialCalls().some(x=>x.id===cid))dialMailSend(sendId,true);},5500);}
-  else if(!c.mailId){try{dialDraftAfter(c,e);}catch(x){}}
+  else if(!c.mailId&&!noMail){try{dialDraftAfter(c,e);}catch(x){}}
   dialCountdown();}
 /* Push to CRM: what Save used to write — an activity on the contact / a conference-lead call / a lead touch (dated when you called),
    a to-do for a call-back, and a deal for a booked meeting with its closing distributor */
@@ -7448,8 +7469,12 @@ function dialDraftAfter(c,e){
   dialMails().unshift(m);save();dialWrite(m,e);}
 function dialTemplate(m,c,e,lits){
   /* casual, the way Max texts a work contact (Max, 2026-11-19: "use the language I taught you for follow ups. Make them sound casual") */
-  const first=dialFirstName(m.toName)||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig="\n\n"+(((teamById(USER)||{}).name||"Max").split(" ")[0]);
+  /* a seat with an email signature signs off "Best," and the signature carries the name; otherwise the first name closes it */
+  const me=(((teamById(USER)||{}).name)||"Max").split(" ")[0],first=dialFirstName(m.toName)||"there",co=m.co||"your team",proof=e?dialProof(e):"",sig=DIAL_SIGS[USER]?"\n\nBest,":"\n\n"+me;
   const what="We built AutoTQ, an automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.";
+  /* a demo holder's voicemail: Max's own words, as he wrote them (2026-11-24); the Thanksgiving line drops after the holiday weekend */
+  if(m.out==="vm"&&dialHasDemo(e))return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail.\n\nI know that you have one of our Demo units and have had it for some time. Wanted to hear a little bit about your experience when showing it to customers."+
+    (todayStr()<="2026-11-29"?" Enjoy your thanksgiving.":"")+(DIAL_SIGS[USER]?"\n\nBest,":"\n\nBest,\n"+me)};
   if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail. Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+(proof?" "+proof:"")+"\n\nWorth a quick look?"+sig};
   const lit=(lits[0]||{}).id||"";
   if(m.out==="meeting"){const w=c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr())+" at "+fmtTimeShort(c.meet.when):"our time";
@@ -7458,6 +7483,7 @@ function dialTemplate(m,c,e,lits){
   return {subject:"good talking today",lit:lit,body:"Hi "+first+",\n\nGood talking with you today.\n\n"+what+(proof?" "+proof:"")+"\n\nSent over a quick overview. Want me to sketch out where they'd go at "+co+"?"+sig};}
 async function dialWrite(m,e){
   e=e||dialRecByKey(m.key);const c=dialCalls().find(x=>x.id===m.callId)||{},lits=dialLitFor(e||{rec:{},co:m.co});
+  if(m.out==="vm"&&dialHasDemo(e)){const t=dialTemplate(m,c,e,lits);Object.assign(m,{subject:t.subject,body:t.body,lit:t.lit,ai:false,status:"draft"});delete m.err;save();dialMailPaint();return;}
   const body=dialDraftBody(e,{name:m.toName,co:m.co,out:m.out,note:c.note,meet:c.meet,cb:c.cb,at:c.at});
   m.status="drafting";dialMailPaint();
   try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
@@ -7485,16 +7511,45 @@ function dialDraftCardHTML(m){
   if(cur&&!lits.includes(cur))lits.unshift(cur);
   return '<div class="card dlmail"><p class="dlmhead"><b>'+esc(m.toName)+'</b> <span class="t2">'+esc(m.to+(m.co?" · "+m.co:"")+" · "+dialOutLabel(m.out)+" "+fmtTimeShort(m.at))+'</span></p>'+
     '<input class="f" data-mf="subject" data-mid="'+esc(m.id)+'" value="'+esc(m.subject)+'" aria-label="Subject">'+
-    '<textarea class="f dlmbody" data-mf="body" data-mid="'+esc(m.id)+'" aria-label="Email">'+esc(m.body)+'</textarea>'+
+    '<textarea class="f dlmbody" data-mf="body" data-mid="'+esc(m.id)+'" aria-label="Email">'+esc(m.body)+'</textarea>'+dialSigPreviewHTML()+
     '<div class="dlmfoot"><select class="f dlmlit" data-mf="lit" data-mid="'+esc(m.id)+'" aria-label="Attachment"><option value="">No attachment</option>'+
-    lits.map(l=>'<option value="'+l.id+'"'+(m.lit===l.id?" selected":"")+'>'+esc(l.title)+'</option>').join("")+'</select><span class="grow"></span>'+
+    lits.map(l=>'<option value="'+l.id+'"'+(m.lit===l.id?" selected":"")+'>'+esc(l.title)+'</option>').join("")+'</select>'+
+    '<button class="btn sm" data-act="dialmlitview" title="See the attachment before it goes">Preview</button><span class="grow"></span>'+
     (m.sendErr?'<span class="t2 dlmerr">'+esc(m.sendErr)+'</span>':'')+
     '<button class="btn sm" data-act="dialmskip" data-id="'+esc(m.id)+'">Skip</button><button class="btn sm" data-act="dialmredo" data-id="'+esc(m.id)+'">Rewrite</button>'+
     '<button class="btn coral" data-act="dialmsend" data-id="'+esc(m.id)+'"'+(m.sending?" disabled":"")+'>'+(m.sending?"Sending…":"Approve &amp; send")+'</button></div></div>';}
-function dialMailHtml(body){
-  return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#16181B">'+
-    String(body||"").trim().split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+esc(p).replace(/\n/g,"<br>")+'</p>').join("")+
-    '<img src="'+MAIL_ASSETS+'lockup_hd.png" alt="AutoTQ" width="120" style="display:block;margin-top:6px;border:0"></div>';}
+/* the seat's own Outlook signature (Max, 2026-11-24: "add my signature that you see on all my emails and ensure it looks correct"),
+   copied from his sent mail: text only, name bold, Aptos Serif 12pt, then the confidentiality notice. A seat without one keeps the logo. */
+const DIAL_SIGS={max:{name:"Max Herbst",title:"Head of Operations",site:"TheAutoTQ.com",url:"https://theautotq.com",phone:"(561) 609-5411",
+  email:"max@goldenhourmedical.com",addr:"6590 W Rogers Circle, Suite 5 · Boca Raton, FL 33487"}};
+const DIAL_CONF="CONFIDENTIALITY NOTICE: This email and any attachments may contain confidential or proprietary information belonging to Golden Hour Medical, Inc. and are intended solely for the individual(s) addressed. If you received this message in error, please notify the sender and delete it. Any unauthorized review, use, disclosure, copying, or distribution is prohibited.";
+const DIAL_MAIL_FONT="font-family:Aptos,Calibri,Helvetica,Arial,sans-serif;font-size:12pt;color:#000000";
+function dialSigHtml(u){const s=DIAL_SIGS[u||USER];if(!s)return "";
+  const f=' style="font-family:\'Aptos Serif\',Aptos,Georgia,\'Times New Roman\',serif;font-size:12pt;color:#000000"',a=' style="color:#0563C1;text-decoration:underline"';
+  return '<div style="margin-top:14px"><div'+f+'><b>'+esc(s.name)+'</b></div>'+
+    '<div'+f+'>'+esc(s.title)+' | <a href="'+esc(s.url)+'"'+a+'>'+esc(s.site)+'</a></div>'+
+    '<div'+f+'>'+esc(s.phone)+' · <a href="mailto:'+esc(s.email)+'"'+a+'>'+esc(s.email)+'</a></div>'+
+    '<div'+f+'>'+esc(s.addr)+'</div><div'+f+'><br></div>'+
+    '<div style="'+DIAL_MAIL_FONT+'">'+esc(DIAL_CONF)+'</div></div>';}
+function dialMailHtml(body){const sig=dialSigHtml();let t=String(body||"").trim();
+  if(sig){const me=(((teamById(USER)||{}).name)||"").split(" ")[0];
+    if(me)t=t.replace(new RegExp("\\n\\s*"+me+"\\s*$"),"").trim();} /* the signature carries the name: a lone first name closing the body goes */
+  return '<div style="'+DIAL_MAIL_FONT+';line-height:1.4">'+
+    t.split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+esc(p).replace(/\n/g,"<br>")+'</p>').join("")+
+    (sig||'<img src="'+MAIL_ASSETS+'lockup_hd.png" alt="AutoTQ" width="120" style="display:block;margin-top:6px;border:0">')+'</div>';}
+/* the signature under the message box, drawn exactly as it goes out */
+function dialSigPreviewHTML(){const s=dialSigHtml();return s?'<div class="dlsig" aria-label="Your signature">'+s+'</div>':'';}
+/* see the piece before it goes (Max, 2026-11-24: "preview the literature that is attached here prior to sending it over"): the same
+   file the send attaches (private `marketing` bucket), shown in a sheet */
+async function dialLitPreview(id){const lit=DIAL_LIT.find(l=>l.id===id);if(!lit){toast("Pick an attachment first");return;}
+  raSheet('<h2>'+esc(lit.title)+'</h2><div id="dlpv"><p class="t2">Loading…</p></div>');document.getElementById("sheet").classList.add("dlpvsheet");
+  try{const r=await supa("/storage/v1/object/authenticated/marketing/"+lit.path.split("/").map(encodeURIComponent).join("/"));
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    const url=URL.createObjectURL(new Blob([await r.blob()],{type:"application/pdf"}));
+    const box=document.getElementById("dlpv");if(!box){URL.revokeObjectURL(url);return;}
+    box.innerHTML='<iframe class="dlpvf" src="'+url+'#view=FitH" title="'+esc(lit.title)+'"></iframe>'+
+      '<p class="t2" style="margin-top:6px"><a href="'+url+'" target="_blank" rel="noopener">Open in a new tab</a></p>';}
+  catch(err){const box=document.getElementById("dlpv");if(box)box.innerHTML='<p class="t2">Couldn’t load '+esc(lit.title)+' ('+esc(String((err&&err.message)||err).slice(0,80))+').</p>';}}
 function dialB64(buf){const a=new Uint8Array(buf);let s="";for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s);}
 async function dialMailSend(id,quiet){
   const m=dialMails().find(x=>x.id===id);if(!m||m.status==="sent"||m.sending)return;
@@ -7596,6 +7651,7 @@ function dialAct(a,t){
   if(a==="dialdig"){if(DIAL.call)DIAL.call.sendDigits(t.dataset.v);return true;}
   if(a==="dialmtab"){S.mtab=t.dataset.v;if(S.mtab==="inbox")DIAL.inbox=null;render();return true;}
   if(a==="dialmsend"){dialMailSend(t.dataset.id);return true;}
+  if(a==="dialmlitview"){const f=t.closest(".dlmfoot"),sel=f&&f.querySelector("select.dlmlit");dialLitPreview(sel?sel.value:"");return true;}
   if(a==="dialmskip"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m){m.status="skipped";save();render();toast("Skipped · "+m.toName,()=>{m.status="draft";save();render();});}return true;}
   if(a==="dialmredo"){const m=dialMails().find(x=>x.id===t.dataset.id);if(m)dialWrite(m);return true;}
   if(a==="dhmenu"){dialHubMenu();return true;}
@@ -7610,6 +7666,7 @@ function dialAct(a,t){
     const n=document.getElementById("dialNote");if(n)n.focus();return true;}
   if(a==="dialcb"){S.cb=t.dataset.v;dialPaint();return true;}
   if(a==="dialsave"){dialSave();return true;}
+  if(a==="dialsavenm"){dialSave(true);return true;}
   if(a==="dialskip"){dialStopCd();const e=dialCur();if(e){S.skipped=(S.skipped||[]).filter(k=>k!==e.key).concat([e.key]);Object.assign(S,{cur:"",out:"",note:"",cb:"",secs:0,hold:"",meet:null,mail:null,text:null});}render();return true;}
   if(a==="dialpause"){dialStopCd();return true;}
   if(a==="dialinit"){DIAL.state="off";dialInit();return true;}
