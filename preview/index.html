@@ -1327,6 +1327,10 @@ div.dlrow{cursor:default}
 .dlctl.on{background:var(--ok-b);border-radius:var(--r);padding:6px 8px}
 .dlstat{font-weight:600;color:var(--ok-t);margin-right:6px;font-variant-numeric:tabular-nums}
 .btn.dlcall{min-height:44px;padding:0 20px;font-size:15px}
+.dlshow{display:inline-flex;align-items:center;gap:8px;margin-left:6px}
+.seg.dlshowseg{margin:0;display:inline-flex}.seg.dlshowseg button{flex:none;min-height:30px;padding:0 11px;font-size:12.5px}
+.dlfail{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#FBF1DD;color:var(--ink-2);border-radius:var(--r);padding:8px 10px;margin-bottom:10px;font-size:13.5px}
+.dlfail>svg{flex:none;width:16px;height:16px;color:#C98A1B}
 .btn.dlhang{background:var(--dang-t);border-color:var(--dang-t);color:#fff;font-weight:600}
 .btn.on{background:var(--coral-t);border-color:rgba(216,90,48,.45);color:var(--coral-tt)}
 .dlkp{display:grid;grid-template-columns:repeat(3,56px);gap:6px;margin:0 0 12px}
@@ -6730,7 +6734,13 @@ const DIAL_OUTS=[["noanswer","No answer"],["vm","Left voicemail"],["talked","Tal
   ["notint","Not interested"],["wrong","Wrong number"],["dnc","Do not call"]];
 const DIAL_NOT_US=new Set("242 246 264 268 284 345 441 473 649 658 664 721 758 767 784 809 829 849 868 869 876 900".split(" "));
 const DIAL={dev:null,state:"off",reg:false,err:"",call:null,callKey:"",accepted:false,acceptedAt:0,startedAt:0,muted:false,kp:false,
-  tick:null,cd:null,cdLeft:0,cdKey:"",incoming:null,inKey:"",callerId:"",sdkP:null};
+  tick:null,cd:null,cdLeft:0,cdKey:"",incoming:null,inKey:"",callerId:"",sdkP:null,cellId:"",show:"",callShow:"",fail:null};
+/* "Calls show" (Max, 2026-11-24: "swap to my personal cell when calling if the WA phone # doesn't work"): the token offers the seat's
+   Twilio-verified cell (cellId, secret TWILIO_CELL_<SEAT>); the choice is remembered per device; a call sends Show=cell, never a number */
+try{DIAL.show=localStorage.getItem("autotq_dial_show")==="cell"?"cell":"";}catch(e){}
+function dialCellOn(){return DIAL.show==="cell"&&!!DIAL.cellId;}
+function dialShowNum(){return dialCellOn()?DIAL.cellId:DIAL.callerId;}
+function dialSetShow(v){DIAL.show=v==="cell"?"cell":"";try{localStorage.setItem("autotq_dial_show",DIAL.show);}catch(e){}}
 /* 10-digit US number or "" — the same rule as the edge function's e164() */
 function dialDigits(raw){
   const s=String(raw||"").trim().replace(/\s*(?:ext\.?|x|#)\s*\d+\s*$/i,"");
@@ -7052,7 +7062,7 @@ function viewDialPush(){
 function fmtTimeShort(iso){const d=new Date(iso);return isNaN(d)?"":d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});}
 function dialPhoneHTML(){
   const s=DIAL.state;
-  if(s==="ready")return '<span class="dldot ok"></span>Phone ready'+(DIAL.callerId?' · calls show '+esc(dialFmt(dialDigits(DIAL.callerId))):'')+(DIAL.reg?'':' · <span class="t2">callbacks not ringing here yet</span>');
+  if(s==="ready")return '<span class="dldot ok"></span>Phone ready'+(dialShowNum()?' · calls show '+(dialCellOn()?'your cell ':'')+esc(dialFmt(dialDigits(dialShowNum()))):'')+(DIAL.reg?'':' · <span class="t2">callbacks not ringing here yet</span>');
   if(s==="loading")return '<span class="dldot"></span>Connecting the phone…';
   if(s==="unset")return '<span class="dldot warn"></span>Phone not set up yet — Call opens your computer’s phone app';
   if(s==="error")return '<span class="dldot bad"></span>'+esc(DIAL.err||"Phone error")+' <button class="lnk" data-act="dialinit">Try again</button>';
@@ -7415,15 +7425,23 @@ function dialCtlHTML(e){
   if(DIAL.incoming)return '<div class="dlctl"><span class="t2">A call is coming in — answer it in the bar at the bottom</span></div>';
   if(DIAL.call&&DIAL.callKey===e.key){
     return '<div class="dlctl on"><span class="dlstat">'+(DIAL.accepted?'Connected <b id="dlTimer">'+dialClock()+'</b>':'Ringing…')+'</span>'+
+      (DIAL.callShow==="cell"?'<span class="t2">showing your cell</span>':'')+
       '<button class="btn sm'+(DIAL.muted?" on":"")+'" data-act="dialmute">'+(DIAL.muted?"Unmute":"Mute")+'</button>'+
       '<button class="btn sm" data-act="dialkp">Keypad</button>'+
       (e.ext&&DIAL.accepted?'<button class="btn sm" data-act="dialdig" data-v="'+esc(e.ext)+'">Dial ext '+esc(e.ext)+'</button>':'')+
       '<span class="grow"></span><button class="btn dlhang" data-act="dialhang">'+svg("phone")+' Hang up</button></div>'+
       (DIAL.kp?'<div class="dlkp">'+"123456789*0#".split("").map(d=>'<button class="btn" data-act="dialdig" data-v="'+d+'">'+d+'</button>').join("")+'</div>':'');}
   if(DIAL.call)return '<div class="dlctl"><span class="t2">On another call — hang that one up first</span></div>';
-  const ready=DIAL.state==="ready";
-  return '<div class="dlctl"><button class="btn coral dlcall" data-act="dialcall">'+svg("phone")+' Call '+esc(dialFmt(e.d))+'</button>'+
-    (ready?'':'<span class="t2">opens your computer’s phone app</span>')+
+  const ready=DIAL.state==="ready",cellOn=dialCellOn(),f=DIAL.fail&&DIAL.fail.key===e.key?DIAL.fail:null;
+  const show=ready&&DIAL.cellId?'<span class="dlshow"><span class="t2">Calls show</span><span class="seg dlshowseg">'+
+    '<button class="'+(cellOn?"":"on")+'" data-act="dialshow" data-v="" title="The Dialer number">'+esc(dialFmt(dialDigits(DIAL.callerId))||"Dialer number")+'</button>'+
+    '<button class="'+(cellOn?"on":"")+'" data-act="dialshow" data-v="cell" title="'+esc(dialFmt(dialDigits(DIAL.cellId)))+'">My cell</button></span></span>':'';
+  const retry=f&&f.show!=="cell"&&DIAL.cellId;
+  const failed=!f?'':'<div class="dlfail">'+svg("alert")+'<span class="grow">That call didn’t go through'+(f.show==="cell"?' showing your cell':'')+'.'+
+    (retry?'':' If it keeps failing, dial '+esc(dialFmt(e.d))+' on your own phone, then pick how it went.')+'</span>'+
+    (retry?'<button class="btn sm coral" data-act="dialcallcell">'+svg("phone")+' Call again showing my cell</button>':'')+'</div>';
+  return failed+'<div class="dlctl"><button class="btn coral dlcall" data-act="dialcall">'+svg("phone")+' Call '+esc(dialFmt(e.d))+'</button>'+
+    (ready?'':'<span class="t2">opens your computer’s phone app</span>')+show+
     (dialS().secs?'<span class="t2">Last call '+dialClock(dialS().secs)+'</span>':'')+'</div>';}
 function dialClock(secs){if(secs==null)secs=DIAL.accepted?Math.round((Date.now()-DIAL.acceptedAt)/1000):0;
   return Math.floor(secs/60)+":"+String(secs%60).padStart(2,"0");}
@@ -7493,7 +7511,7 @@ async function dialToken(){
   try{const r=await supa("/functions/v1/dialer?action=token",{method:"POST",body:"{}"});
     const b=await r.json().catch(()=>({}));
     if(!r.ok){DIAL.err=b.error||("Phone service answered "+r.status);DIAL.state=(r.status===503||r.status===404)?"unset":"error";return null;}
-    DIAL.callerId=b.callerId||"";return b;}
+    DIAL.callerId=b.callerId||"";DIAL.cellId=b.cellId||"";return b;}
   catch(e){DIAL.err="Couldn't reach the phone service";DIAL.state="error";return null;}}
 function dialLoadSdk(){
   if(window.Twilio&&window.Twilio.Device)return Promise.resolve();
@@ -7522,11 +7540,15 @@ async function dialCall(){
   S.cur=e.key;S.secs=0;
   if(DIAL.state!=="ready"){location.href="tel:+1"+e.d;return;}
   try{
-    const call=await DIAL.dev.connect({params:{To:"+1"+e.d}});
-    Object.assign(DIAL,{call:call,callKey:e.key,accepted:false,acceptedAt:0,startedAt:Date.now(),muted:false,kp:false});
+    const cell=dialCellOn(),params={To:"+1"+e.d};if(cell)params.Show="cell";
+    DIAL.fail=null;
+    const call=await DIAL.dev.connect({params:params});
+    Object.assign(DIAL,{call:call,callKey:e.key,accepted:false,acceptedAt:0,startedAt:Date.now(),muted:false,kp:false,callShow:cell?"cell":""});
+    S.from={key:e.key,num:dialShowNum()};
     call.on("accept",()=>{DIAL.accepted=true;DIAL.acceptedAt=Date.now();dialPaint();});
     ["disconnect","cancel","reject"].forEach(ev=>call.on(ev,()=>dialEnded(call)));
-    call.on("error",err=>{toast("Call problem: "+((err&&err.message)||"unknown"));dialEnded(call);});
+    call.on("error",err=>{if(!DIAL.accepted)DIAL.fail={key:e.key,show:cell?"cell":""};
+      toast(DIAL.accepted?"Call problem: "+((err&&err.message)||"unknown"):"The call didn't go through"+(cell||!DIAL.cellId?"":" · try it showing your cell"));dialEnded(call);});
     dialTick(true);dialPaint();
   }catch(err){toast("Couldn't start the call: "+((err&&err.message)||err));}}
 function dialEnded(call){
@@ -7577,6 +7599,8 @@ function dialSave(noMail){
   if(box&&!noMail&&DIAL_MAIL_OUTS.includes(S.out)&&String(box.to||"").trim()&&!dialEmailOk(box.to)){toast("That email address doesn't look right. Fix it or clear it.");return;}
   const note=String(S.note||"").trim(),now=new Date().toISOString(),r=e.rec;
   const c={id:uid(),key:e.key,name:e.name,co:e.co,title:e.title,email:r.email||"",phone:e.d,out:S.out,note:note,secs:S.secs||0,at:now,by:USER,src:S.src};
+  if(S.from&&S.from.key===e.key&&S.from.num)c.from=S.from.num;
+  if(DIAL.fail&&DIAL.fail.key===e.key)DIAL.fail=null;
   if(S.out==="callback"||S.out==="interested")c.cb=S.cb||(S.out==="callback"?dAdd(todayStr(),1):dAdd(todayStr(),2));
   if(S.out==="meeting"){const m=S.meet||{};c.meet={when:m.when||"",distCid:m.distCid&&m.distCid!=="none"?m.distCid:"",distName:m.distCid&&m.distCid!=="none"?m.distName||"":"",repPid:m.repPid||""};}
   dialCalls().unshift(c);
@@ -7617,7 +7641,7 @@ function dialPushCall(c){
   else{const t={date:localDay(c.at),method:c.out==="vm"?"voicemail":"call",note:note,by:c.by||USER};r.touches=r.touches||[];touchAct(r,t);r.touches.push(t);
     rec=(DB.activities||[]).find(a=>a.id===t.actId)||null;if(rec)rec.date=c.at;
     if(DIAL_CONNECT.includes(c.out)&&c.out!=="notint"&&(!r.cat||r.cat==="new")){r.cat="qualified";r.catBy=USER;r.catAt=now;}}
-  if(rec){rec.out=out;if(c.out==="vm")rec.vm=true;rec.dialer=true;rec.phone=c.phone;if(c.secs)rec.secs=c.secs;if(e.k==="lead")rec.leadId=r.id;}
+  if(rec){rec.out=out;if(c.out==="vm")rec.vm=true;rec.dialer=true;rec.phone=c.phone;if(c.secs)rec.secs=c.secs;if(c.from)rec.callFrom=c.from;if(e.k==="lead")rec.leadId=r.id;}
   if(c.cb){const t={id:uid(),owner:USER,title:"Call back "+c.name+(c.co?" ("+c.co+")":"")+(c.note?" — "+c.note.slice(0,60):""),type:"call",due:c.cb,done:false,
       createdAt:now,pid:e.k==="p"?r.id:null,dialer:true};
     if(e.k==="lead")t.leadId=r.id;if(e.k==="cl")t.refId=r.id;if(rec){t.actId=rec.id;rec.fuTask=t.id;}DB.tasks.unshift(t);c.taskId=t.id;}
@@ -7928,6 +7952,8 @@ function dialAct(a,t){
   if(a==="dialtthread"){S.tnum=t.dataset.v;S.treply="";render();return true;}
   if(a==="dialtcard"){if(dialBusy()&&t.dataset.v!==S.cur){toast("Finish the card you're on first");return true;}dialStopCd();Object.assign(S,{tab:"dial",cur:t.dataset.v,hold:t.dataset.v,out:"",note:"",cb:"",secs:0,meet:null,mail:null,text:null});render();window.scrollTo(0,0);return true;}
   if(a==="dialcall"){dialCall();return true;}
+  if(a==="dialshow"){dialSetShow(t.dataset.v);dialPaint();toast(dialCellOn()?"Calls now show your cell":"Calls now show the Dialer number");return true;}
+  if(a==="dialcallcell"){dialSetShow("cell");dialPaint();dialCall();return true;}
   if(a==="dialhang"){if(DIAL.call)DIAL.call.disconnect();return true;}
   if(a==="dialmute"){if(DIAL.call){DIAL.muted=!DIAL.muted;DIAL.call.mute(DIAL.muted);dialPaint();}return true;}
   if(a==="dialkp"){DIAL.kp=!DIAL.kp;dialPaint();return true;}
@@ -12877,7 +12903,8 @@ function formMarkShipped(id){
    '<p style="color:var(--muted);font-size:13.5px;margin:0 0 6px">'+poChip(o.poNo)+' '+esc(lnItems(o))+(shipHowTxt(o)?' · <b>Ship '+esc(shipHowTxt(o))+'</b>':'')+'</p>'+
    lbl('Shipped with')+'<div id="lnCar" style="display:flex;gap:6px;flex-wrap:wrap">'+SR_CARRIERS.map(c=>'<button class="qchip'+(car===c?" on":"")+'" data-act="lnshipcar" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>'+
    '<div style="display:flex;gap:10px;flex-wrap:wrap"><div class="grow" id="lnTrackWrap" style="min-width:200px'+(car==="Hand delivered"?';display:none':'')+'">'+lbl('Tracking #')+
-    '<input class="f" id="lnTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="'+esc(lnTrackHint(car))+'"></div>'+
+    '<input class="f" id="lnTrack" autocomplete="off" value="'+esc(o.shipTracking||"")+'" placeholder="'+esc(lnTrackHint(car))+'">'+
+    '<div id="lnFindWrap" style="margin-top:6px'+(car==="UPS"?'':';display:none')+'"><button class="btn sm" data-act="lnupsfind" data-id="'+o.id+'">Find on UPS</button> <span class="t2" id="lnFind" style="white-space:normal"></span></div></div>'+
    '<div>'+lbl('Ship date')+'<input class="f" id="lnDate" type="date" value="'+esc(o.shipDate||todayStr())+'"></div>'+
    '<div>'+lbl('Shipping we paid <span style="font-weight:400;color:var(--hint)">— blank if they pay</span>')+'<input class="f" id="lnCost" inputmode="decimal" value="'+(o.shipCost||"")+'" placeholder="$" style="width:120px"></div></div>'+
    '<button class="btn coral block" data-act="lnshipsave" data-id="'+o.id+'" data-v="email" style="margin-top:16px">Save &amp; email '+esc(who||"them")+' it shipped</button>'+
@@ -12889,7 +12916,24 @@ function lnShipCar(c){
   document.querySelectorAll("#lnCar .qchip").forEach(x=>x.classList.toggle("on",x.dataset.v===c));
   const w=document.getElementById("lnTrackWrap"),i=document.getElementById("lnTrack");
   if(w)w.style.display=c==="Hand delivered"?"none":"";if(i)i.placeholder=lnTrackHint(c);
+  const fw=document.getElementById("lnFindWrap");if(fw)fw.style.display=c==="UPS"?"":"none";
 }
+/* Find on UPS (Max, 2026-11-24: "pull the tracking # from UPS"): ups-bridge "find" looks up our UPS account by the PO as it's
+   written on a label's reference ("PO 0560959", then "0560959"), last 30 days; fills the tracking # and the first-scan date */
+async function lnUpsFind(id){const o=orderById(id);if(!o)return;const out=document.getElementById("lnFind");
+  const po=String(o.poNo||"").replace(/^PO\s*/i,"").trim(),refs=[...new Set([po?"PO "+po:"",po,o.poNo||""].filter(Boolean))];
+  if(!refs.length){if(out)out.textContent="This order has no PO # to look up.";return;}
+  if(out)out.textContent="Looking on UPS…";
+  try{for(const ref of refs){
+      const r=await supa("/functions/v1/ups-bridge",{method:"POST",body:JSON.stringify({action:"find",reference:ref,days:30})});
+      const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+      const p=(j.packages||[]).filter(x=>x&&x.tracking);if(!p.length)continue;
+      const el=document.getElementById("lnTrack");if(el)el.value=p[0].tracking;
+      const s=p[0].firstScan,d=document.getElementById("lnDate");if(d&&/^\d{8}$/.test(s||""))d.value=s.slice(0,4)+"-"+s.slice(4,6)+"-"+s.slice(6,8);
+      if(out)out.textContent=(p.length>1?p.length+" boxes on UPS: "+p.map(x=>x.tracking).join(", ")+" (first one filled in)":"Found on UPS")+(p[0].status?" · "+p[0].status:"");
+      return;}
+    if(out)out.textContent="Nothing on our UPS account under "+refs.map(x=>"“"+x+"”").join(" or ")+" in the last 30 days.";}
+  catch(e){if(out)out.textContent="Couldn’t reach UPS ("+String((e&&e.message)||e).slice(0,90)+").";}}
 function saveMarkShipped(id,thenEmail){
   const o=orderById(id);if(!o)return;
   const car=logState.lnCar||lnShipCarrier(o),tn=car==="Hand delivered"?"":val("lnTrack").replace(/\s+/g,"");
@@ -14898,6 +14942,7 @@ document.addEventListener("click",e=>{
   if(a==="invsec"){goView(t.dataset.v);return;}
   if(a==="srform"){formSerials(id);return;}
   if(a==="lnship"){formMarkShipped(id);return;}
+  if(a==="lnupsfind"){lnUpsFind(id);return;}
   if(a==="lnshipcar"){lnShipCar(t.dataset.v);return;}
   if(a==="lnshipsave"){saveMarkShipped(id,t.dataset.v==="email");return;}
   if(a==="osnform"){formOrderShipNotice(id);return;}
