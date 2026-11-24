@@ -7773,7 +7773,9 @@ document.addEventListener("keydown",e=>{
 /* retired from the Dialer 2026-11-24 (Max: "remove outdated literature from dialer"): the AutoTQ product overview (old Canva deck), the Manufacturing and FAU deployment briefs (stat tiles that aren't verified: "1:1", "100% of shifts trained"). Then (Max: "only have stuff inside of dialer that is the one-pager, brochure or industry specific literature") the First-Time Users study went too and the tri-fold brochure came in as the general piece. Per-industry one-pagers with verified stats only are being built to replace them. A draft that still names a retired piece goes without it. */
 const DIAL_LIT=[
  {id:"schools",title:"One-pager · Schools & campuses",path:"hub/pdf/lit-onepager-schools.pdf",m:/school|district|academy|education|\besd\b|student|nurse/i},
- {id:"campus",title:"Campus public safety one-pager",path:"hub/pdf/lit-campus-mci.pdf",m:/universit|college|campus|iaclea/i},
+ /* universities (Max, 2026-11-24: "save that for universities on the dialer"): the campus one-pager behind an FAU cover (FAU logo + the
+    DB-01 campus map) = New_Pieces/AutoTQ_Campus_FAU_Plan.pdf, built by source/build_fau_campus.py; was lit-campus-mci.pdf */
+ {id:"campus",title:"Campus one-pager · FAU cover",path:"hub/pdf/lit-campus-fau-plan.pdf",m:/universit|college|campus|iaclea/i},
  {id:"police",title:"One-pager · Police & public safety",path:"hub/pdf/lit-onepager-police.pdf",m:/police|sheriff|law enforcement|public safety|tribal|marshal|security/i},
  {id:"le",title:"Law enforcement deployment brief",path:"hub/pdf/lit-le-db.pdf",m:/police|sheriff|law enforcement/i},
  {id:"arena",title:"Arena flyer",path:"hub/pdf/lit-arena-flyer.pdf",m:/arena|stadium|sport|hockey|kraken|venue|rink|athletic/i},
