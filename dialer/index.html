@@ -7352,7 +7352,7 @@ async function dialCardWrite(){const S=dialS(),e=dialCur();if(!e||!DIAL_MAIL_OUT
   m.writing=true;delete m.err;m.ver++;dialCardMailPaint();
   try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(b.error||("HTTP "+r.status));
-    m.subject=String(b.subject||m.subject);m.body=String(b.body||m.body);if(b.literature_id!=null)m.lit=String(b.literature_id||"");m.ai=true;m.edited=true;}
+    m.subject=String(b.subject||m.subject);m.body=String(b.body||m.body);if(b.literature_id!=null)m.lit=dialLitPick(e,dialLitFor(e),b.literature_id);m.ai=true;m.edited=true;}
   catch(err){m.err="Couldn't write it just now ("+String((err&&err.message)||err).slice(0,80)+"). The template is still there to edit.";}
   m.writing=false;m.ver++;dialCardMailPaint();}
 /* ---- texts (Max, 2026-11-19: "I also get texting through the dialer… where I can text" — only people he talked to). Sent and
@@ -7799,15 +7799,30 @@ document.addEventListener("keydown",e=>{
    stands in if the function can't be reached. Nothing sends until Approve: send-invoice "notify" from the seat's own mailbox, with the
    chosen Marketing-library PDF attached (private bucket `marketing`). Pushed calls take their sent emails into the CRM. */
 /* retired from the Dialer 2026-11-24 (Max: "remove outdated literature from dialer"): the AutoTQ product overview (old Canva deck), the Manufacturing and FAU deployment briefs (stat tiles that aren't verified: "1:1", "100% of shifts trained"). Then (Max: "only have stuff inside of dialer that is the one-pager, brochure or industry specific literature") the First-Time Users study went too and the tri-fold brochure came in as the general piece. Per-industry one-pagers with verified stats only are being built to replace them. A draft that still names a retired piece goes without it. */
+/* 2026-11-24 (Max, on Walsh Construction getting the manufacturing brief: "the system should know to provide a construction one-pager.
+   All one-pagers should be updated per industry. Don't use stats on them unless you absolutely know for a fact they're correct."):
+   one one-pager per industry (AutoTQ_Literature_Refresh_2026-11/source/build_industry_onepagers.py — only primary-sourced numbers,
+   customers named only from the approved copy), listed most specific first: campus, police, K-12, healthcare/EMS/fire, arenas,
+   maritime, construction, public works, manufacturing; then the verified secondary pieces; Workplace EHS + the brochure fit anyone.
+   The company (name, account industry) is matched before the title, and the title before the list/source, so "Walsh Construction"
+   → construction whatever the person's title says. Schools no longer match a bare "district" (water, fire and port districts aren't
+   schools); a "Security" title alone no longer means police. Checked on the 2026-11-24 live dump (6,636 dialer contacts).
+   Campus = the FAU-cover piece below (its page 2 is the campus one-pager); the plain campus one-pager stays on the hub only. */
 const DIAL_LIT=[
- {id:"schools",title:"One-pager · Schools & campuses",path:"hub/pdf/lit-onepager-schools.pdf",m:/school|district|academy|education|\besd\b|student|nurse/i},
  /* universities (Max, 2026-11-24: "save that for universities on the dialer"): the campus one-pager behind an FAU cover (FAU logo + the
     DB-01 campus map) = New_Pieces/AutoTQ_Campus_FAU_Plan.pdf, built by source/build_fau_campus.py; was lit-campus-mci.pdf */
  {id:"campus",title:"Campus one-pager · FAU cover",path:"hub/pdf/lit-campus-fau-plan.pdf",m:/universit|college|campus|iaclea/i},
- {id:"police",title:"One-pager · Police & public safety",path:"hub/pdf/lit-onepager-police.pdf",m:/police|sheriff|law enforcement|public safety|tribal|marshal|security/i},
+ {id:"police",title:"One-pager · Police & public safety",path:"hub/pdf/lit-onepager-police.pdf",m:/police|sheriff|law enforcement|public safety|tribal|\bnation\b|\bfbi\b|\bdps\b|homeland security|security (services|officers?)|corrections|probation|\bjail\b|detention/i},
+ {id:"schools",title:"One-pager · Schools (K–12)",path:"hub/pdf/lit-onepager-schools.pdf",m:/school|\bisd\b|\busd\b|\besd\b|academy|education|student|\bnasn\b|\bk-?12\b|elementary/i},
+ {id:"health",title:"One-pager · Healthcare, EMS & fire",path:"hub/pdf/lit-onepager-healthcare.pdf",m:/hospital|health|medical|clinic|\bems\b|\bfire\b|rescue|ambulance|paramedic|nurs(e|ing)/i},
+ {id:"arenas",title:"One-pager · Arenas & sports venues",path:"hub/pdf/lit-onepager-arenas.pdf",m:/arena|stadium|\bsports?\b|hockey|kraken|athletic|venue|\brinks?\b|seahawks|mariners|sounders|ballpark|coliseum/i},
+ {id:"maritime",title:"One-pager · Maritime & seafood",path:"hub/pdf/lit-onepager-maritime.pdf",m:/maritime|marine|seafood|\bfish(ing|eries|ermen)?\b|vessel|shipyard|\bships?\b|\bboats?\b|port of|harbou?r|wharf|\bdocks?\b|ferr(y|ies)\b|\btugs?\b/i},
+ {id:"construction",title:"One-pager · Construction",path:"hub/pdf/lit-onepager-construction.pdf",m:/construct|contractor|contracting|\bbuilders?\b|electrical|mechanical|concrete|paving|crane|roofing|excavat|plumbing|sellen|walsh|flatiron|kiewit|skanska|mortenson|hoffman|andersen|balfour beatty|kraemer/i},
+ {id:"publicworks",title:"One-pager · Public works, utilities & government",path:"hub/pdf/lit-onepager-public-works.pdf",m:/public works|county|city of|\btown of\b|municipal|government|utilit|\bpud\b|\benergy\b|general electric|power administration|pacificorp|avista|water|sewer|transit|transport|\bdot\b|highway|\broads?\b|state of|department of|\bdept\b|water and power|division of emergency|office of emergency|\boem\b/i},
+ {id:"manufacturing",title:"One-pager · Manufacturing & industrial",path:"hub/pdf/lit-onepager-manufacturing.pdf",m:/manufactur|aerospace|\baero|steel|metal|\bplants?\b|fabricat|industrial|foundry|\bmills?\b|recycl|chemical|semiconductor|plastics|composite|\bfoods?\b|bakery|bakeries|processing|machin|packag|lumber|fluke|boeing|paccar|hexcel|georgia-pacific|cliffs|toyota/i},
  {id:"le",title:"Law enforcement deployment brief",path:"hub/pdf/lit-le-db.pdf",m:/police|sheriff|law enforcement/i},
- {id:"arena",title:"Arena flyer",path:"hub/pdf/lit-arena-flyer.pdf",m:/arena|stadium|sport|hockey|kraken|venue|rink|athletic/i},
- {id:"panthers",title:"Florida Panthers deployment brief",path:"hub/pdf/lit-panthers-db.pdf",m:/arena|stadium|sport|hockey|kraken|venue|rink/i},
+ {id:"panthers",title:"Florida Panthers deployment brief",path:"hub/pdf/lit-panthers-db.pdf",m:/arena|stadium|\bsports?\b|hockey|kraken|venue|\brinks?\b/i},
+ {id:"arena",title:"Arena flyer (hockey)",path:"hub/pdf/lit-arena-flyer.pdf",m:/hockey|kraken|\brinks?\b|ice arena|ice cent(er|re)|skating/i},
  {id:"ehs",title:"One-pager · Workplace EHS",path:"hub/pdf/lit-onepager-ehs.pdf",any:true},
  {id:"brochure",title:"AutoTQ brochure (tri-fold)",path:"hub/pdf/lit-new-story-brochure.pdf",any:true},
  {id:"sell",title:"Distributor sell sheet",path:"hub/pdf/lit-new-sell-sheet.pdf",dist:true,any:true},
@@ -7816,12 +7831,21 @@ const DIAL_LIT=[
     AutoTQ is Designed for Intuitive, Rapid Hemorrhage Control", IEEE Pulse 16(6), DOI 10.1109/MPULS.2025.3640853; offered to everyone */
  {id:"ieee",title:"Research paper · IEEE Pulse (Under Pressure)",path:"hub/pdf/lit-ieee-under-pressure.pdf",any:true,both:true},
 ];
-/* the pieces that fit this person: their market's first, then the general ones (distributor contacts get distributor pieces) */
+/* the pieces that fit this person: what their company matches first, then their title, then the list or source they came from
+   (a vendor met at an emergency-management show isn't government), then the general ones (distributor contacts get distributor pieces) */
 function dialLitFor(e){e=e||{rec:{}};const r=e.rec||{},c=r.cid?company(r.cid):null;
   const isDist=(c&&(c.type==="distributor"||c.type==="manrep"))||r.kind==="distributor";
-  const hay=[e.co,e.title,c&&c.industry,c&&c.name,r.conf,r.source].filter(Boolean).join(" ");
-  const pool=DIAL_LIT.filter(l=>l.both||!!l.dist===!!isDist); /* both = offered to end users and distributors alike */
-  return pool.filter(l=>l.m&&l.m.test(hay)).concat(pool.filter(l=>l.any)).slice(0,6);}
+  /* "Environmental Health & Safety" / "Occupational Safety and Health" are safety words, not healthcare */
+  const ehs=x=>String(x||"").replace(/\b(environment(al)?,?\s*|occupational\s*)?(health,?\s*(and|&)?\s*safety|safety,?\s*(and|&)?\s*health)\b/gi," ");
+  const tiers=[[e.co,c&&c.name,c&&c.industry],[e.title],[r.conf,r.source]].map(t=>ehs(t.filter(Boolean).join(" ")));
+  const pool=DIAL_LIT.filter(l=>l.both||!!l.dist===!!isDist),out=[]; /* both = offered to end users and distributors alike */
+  tiers.forEach(h=>{if(h.trim())pool.forEach(l=>{if(l.m&&l.m.test(h)&&!out.includes(l))out.push(l);});});
+  pool.forEach(l=>{if(l.any&&!out.includes(l))out.push(l);});
+  return out.slice(0,6);}
+/* the one to attach: a campus gets the campus one-pager, anyone else the first piece made for their industry, else the general one.
+   The writer (Claude) only decides whether something goes at all; which piece is this rule. */
+function dialLitBest(e,lits){return (e&&dialIsCampus(e)&&lits.find(l=>l.id==="campus"))||lits.find(l=>!l.any)||lits[0]||null;}
+function dialLitPick(e,lits,aiId){return aiId?((dialLitBest(e,lits)||{}).id||String(aiId)):"";}
 function dialMails(){DB.dialMail=DB.dialMail||[];return DB.dialMail;}
 function dialDraftsPending(){return dialMails().filter(m=>m&&!m.removed&&m.by===USER&&(m.status==="draft"||m.status==="drafting"));}
 function dialMyMailbox(){return Object.keys(TEAM_EMAILS).find(e=>TEAM_EMAILS[e]===USER)||"";}
@@ -7842,7 +7866,7 @@ function dialTemplate(m,c,e,lits){
   /* how we met them, and a campus gets FAU + the schools page instead of the general proof (Max, 2026-11-24) */
   const met=e?dialHowMet(e):null,campus=e&&dialIsCampus(e),pf=campus?"\n\n"+DIAL_CAMPUS_LINE:(proof?" "+proof:"");
   if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail."+(met?" "+met.vm:"")+" Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+pf+"\n\nWorth a quick look?"+sig};
-  const lit=((campus&&lits.find(l=>l.id==="campus"||l.id==="fau"))||lits[0]||{}).id||""; /* a campus gets the campus one-pager first */
+  const lit=(dialLitBest(e,lits)||{}).id||""; /* a campus gets the campus one-pager, everyone else their industry's */
   if(m.out==="meeting"){const w=c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr())+" at "+fmtTimeShort(c.meet.when):"our time";
     return {subject:"see you "+(c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today, looking forward to "+w+". I'll show you how it works and where it'd go at "+co+(c.meet&&c.meet.distName?" — "+c.meet.distName+" can get it to you locally":"")+".\n\nSent over a quick overview in case it's handy before then."+sig};}
   if(m.out==="callback")return {subject:"talk "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+(campus?pf:"")+sig};
@@ -7890,7 +7914,7 @@ async function dialWrite(m,e){
   m.status="drafting";dialMailPaint();
   try{const r=await supa("/functions/v1/dialer?action=draft",{method:"POST",body:JSON.stringify(body)});const b=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(b.error||("HTTP "+r.status));
-    m.subject=String(b.subject||"");m.body=String(b.body||"");m.lit=String(b.literature_id||"");m.ai=true;delete m.err;}
+    m.subject=String(b.subject||"");m.body=String(b.body||"");m.lit=dialLitPick(e,lits,b.literature_id);m.ai=true;delete m.err;}
   catch(err){const t=dialTemplate(m,c,e,lits);m.subject=t.subject;m.body=t.body;m.lit=t.lit;m.ai=false;m.err=String((err&&err.message)||err).slice(0,140);}
   m.status="draft";save();dialMailPaint();}
 /* keep a half-typed call note: only redraw the email list when it is on screen, otherwise just the tab's count */
