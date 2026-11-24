@@ -1268,6 +1268,7 @@ div.dlrow{cursor:default}
 .dlfacts .pill{vertical-align:1px}
 .dlfpills{margin-top:4px}
 .dlkind{margin-right:4px;vertical-align:1px}
+.pill.dlsrc{margin-right:4px;vertical-align:1px;text-transform:uppercase;letter-spacing:.03em;background:var(--surface-2);color:var(--ink);border:1px solid var(--line-2)} /* where we got them */
 @media (max-width:1100px){.dlctx{grid-template-columns:1fr}}
 .dltop{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
 .dlfun{flex:1;min-width:260px}.dlfun .t2{margin:4px 0 0}
@@ -6757,7 +6758,7 @@ function dialOrgRowsHTML(q,e,S){let h="",org=null;const cnt={};q.forEach(x=>{if(
     if(k!==org){org=k;h+='<p class="dlorg">'+(x.due?'Call-backs due':esc(x.co||"No organization")+'<span>'+cnt[k]+'</span>')+'</p>';}
     h+='<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
-      '<span class="dlrs">'+esc([x.due?x.co:"",x.title,S.src==="demo"?x.state:"",x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>';});
+      '<span class="dlrs">'+esc([dialSrcTag(x),x.due?x.co:"",x.title,S.src==="demo"?x.state:"",x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>';});
   return h;}
 function dialNoNumberHTML(t){const l=dialNoNumber(t);if(!l.length)return "";let org=null,h="";
   l.forEach(x=>{const k=dialOrgKey(x);if(k!==org){org=k;h+='<p class="dlorg">'+esc(x.co||"No organization")+'<span>'+l.filter(y=>dialOrgKey(y)===k).length+'</span></p>';}
@@ -6782,7 +6783,7 @@ function viewDialDial(st){
     '<p class="dlqn">'+q.length+' to call'+(demoOn?' · demo units on the West Coast':tabOn?' · '+esc(tabLbl)+' in '+(S.st?dialStateName(S.st):'Washington & Oregon'):S.src==="seattle"?' in the Seattle area':S.src==="wa"?' in Washington & Oregon':'')+'</p><div class="list dlrows">'+
     (q.length&&dialByOrg(S.src)?dialOrgRowsHTML(q,e,S):q.length?q.slice(0,80).map(x=>'<button class="dlrow'+(e&&x.key===e.key?" on":"")+'" data-act="dialpick" data-id="'+esc(x.key)+'">'+
       '<span class="dlrn">'+esc(x.name)+(x.due?' <span class="pill coral">Call back</span>':(x.next&&x.next.why.indexOf("try")===0?' <span class="pill gray">'+esc(x.next.why)+'</span>':''))+'</span>'+
-      '<span class="dlrs">'+esc([x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):(S.src==="confwest"?x.src:""),x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
+      '<span class="dlrs">'+esc([dialSrcTag(x),x.co,(S.src==="wa"||S.src==="t:enduser")&&x.grp?dialGroupLabel(x.grp):"",x.last?"last "+mdStamp(x.last):"never called"].filter(Boolean).join(" · "))+'</span></button>').join("")+
       (q.length>80?'<p class="dlqn">+ '+(q.length-80)+' more</p>':'')
      :'<div class="empty">Nobody left to call here today.<br>Import a list or pick another one above.</div>')+'</div>'+
     (dialByOrg(S.src)?dialNoNumberHTML(demoOn?"demo":S.src.slice(2)):'')+
@@ -6978,9 +6979,9 @@ function dialCardHTML(e){
   const S=dialS(),tm=dialLocalTime(e),dm=e.k==="p"?dialDemoMap().get(e.id):undefined,pf=dialProofHit(e);
   const kind=dialKind(e),title=/^(contact|other|n\/?a|-|—)$/i.test(String(e.title||"").trim())||dialNn(e.title)===dialNn(kind)?"":e.title;
   return '<div class="card dlcard"><div class="dlwho"><div class="grow"><button class="dlname" data-act="dialopen" data-id="'+esc(e.key)+'">'+esc(e.name)+'</button>'+
-    '<p class="t2"><span class="pill gray dlkind">'+esc(kind)+'</span> '+esc([title,e.co].filter(Boolean).join(" · ")||"No company on file")+'</p>'+
+    '<p class="t2"><span class="pill gray dlkind">'+esc(kind)+'</span>'+dialSrcPill(e)+' '+esc([title,e.co].filter(Boolean).join(" · ")||"No company on file")+'</p>'+
     dialMailLineHTML(e)+
-    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab==="cold"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp==="conference"||e.grp==="inbound"||(e.grp==="customers"&&dm==null)?dialGroupLabel(e.grp):""),dm!=null?dialDemoSince(dm||dialDemoDay(e)):e.src].filter(Boolean).join(" · "))+'</p></div>'+
+    '<p class="t2">'+esc([[e.city,e.state].filter(Boolean).join(", "),e.tab==="cold"?(DIAL_TABS.find(x=>x[0]===e.tab)||["",""])[1]:(e.grp==="conference"||e.grp==="inbound"||(e.grp==="customers"&&dm==null)?dialGroupLabel(e.grp):""),dm!=null?dialDemoSince(dm||dialDemoDay(e)):""].filter(Boolean).join(" · "))+'</p></div>'+
     '<div class="dlnum"><b>'+esc(dialFmt(e.d))+'</b>'+(e.ext?' <span class="t2">ext '+esc(e.ext)+'</span>':'')+
     (dialPersonal(e)?'<span class="pill gray" title="Found on USPhoneBook — a personal cell. Check it against the Do Not Call list before you dial.">Personal cell · check DNC</span>':'')+
     '<span class="t2'+(tm.late?' dllate':'')+'">'+esc(tm.t)+' '+tm.z+(tm.late?' · after hours':'')+'</span></div></div>'+
@@ -7041,7 +7042,9 @@ function dialCardMailPaint(){const el=document.getElementById("dlmail");if(!el)r
 /* the request the dialer function writes a follow-up from (Email tab drafts and the card) */
 function dialDraftBody(e,o){const lits=dialLitFor(e||{rec:{},co:o.co});
   const hist=e?dialHist(e).filter(h=>h.at!==o.at).slice(0,3).map(h=>h.t+" "+mdStamp(h.at)+(h.note?" — "+String(h.note).slice(0,80):"")):[];
-  return {name:o.name,title:(e&&e.title)||"",company:o.co,outcome:o.out,note:o.note||"",proof:e?dialProof(e):"",
+  /* how we met and the campus line reach the writer through the fields it already reads: the first "earlier touch" and the proof */
+  const met=e?dialHowMet(e):null;if(met)hist.unshift("How we met: "+met.talked);
+  return {name:o.name,title:(e&&e.title)||"",company:o.co,outcome:o.out,note:o.note||"",proof:e?(dialIsCampus(e)?DIAL_CAMPUS_LINE:dialProof(e)):"",
     distributor:(o.meet&&o.meet.distName)||"",meetingWhen:o.meet&&o.meet.when?dialDayTxt(o.meet.when.slice(0,10),todayStr())+" "+fmtTimeShort(o.meet.when):"",
     callbackDay:o.cb?dialDayTxt(o.cb,todayStr()):"",history:hist,literature:lits.map(l=>({id:l.id,title:l.title})),sender:(teamById(USER)||{}).name||"Max Herbst"};}
 async function dialCardWrite(){const S=dialS(),e=dialCur();if(!e||!DIAL_MAIL_OUTS.includes(dialMailOut(e)))return;const m=dialCardMail(e);if(m.writing)return;
@@ -7475,12 +7478,50 @@ function dialTemplate(m,c,e,lits){
   /* a demo holder's voicemail: Max's own words, as he wrote them (2026-11-24); the Thanksgiving line drops after the holiday weekend */
   if(m.out==="vm"&&dialHasDemo(e))return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail.\n\nI know that you have one of our Demo units and have had it for some time. Wanted to hear a little bit about your experience when showing it to customers."+
     (todayStr()<="2026-11-29"?" Enjoy your thanksgiving.":"")+(DIAL_SIGS[USER]?"\n\nBest,":"\n\nBest,\n"+me)};
-  if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail. Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+(proof?" "+proof:"")+"\n\nWorth a quick look?"+sig};
-  const lit=(lits[0]||{}).id||"";
+  /* how we met them, and a campus gets FAU + the schools page instead of the general proof (Max, 2026-11-24) */
+  const met=e?dialHowMet(e):null,campus=e&&dialIsCampus(e),pf=campus?"\n\n"+DIAL_CAMPUS_LINE:(proof?" "+proof:"");
+  if(m.out==="vm")return {subject:"just tried you",lit:"",body:"Hi "+first+",\n\nJust left you a voicemail."+(met?" "+met.vm:"")+" Quick version: if someone at "+co+" got badly hurt and started bleeding, would the person next to them know what to do?\n\n"+what+pf+"\n\nWorth a quick look?"+sig};
+  const lit=((campus&&lits.find(l=>l.id==="campus"||l.id==="fau"))||lits[0]||{}).id||""; /* a campus gets the campus one-pager first */
   if(m.out==="meeting"){const w=c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr())+" at "+fmtTimeShort(c.meet.when):"our time";
     return {subject:"see you "+(c.meet&&c.meet.when?dialDayTxt(c.meet.when.slice(0,10),todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for the time today, looking forward to "+w+". I'll show you how it works and where it'd go at "+co+(c.meet&&c.meet.distName?" — "+c.meet.distName+" can get it to you locally":"")+".\n\nSent over a quick overview in case it's handy before then."+sig};}
-  if(m.out==="callback")return {subject:"talk "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+sig};
-  return {subject:"good talking today",lit:lit,body:"Hi "+first+",\n\nGood talking with you today.\n\n"+what+(proof?" "+proof:"")+"\n\nSent over a quick overview. Want me to sketch out where they'd go at "+co+"?"+sig};}
+  if(m.out==="callback")return {subject:"talk "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon"),lit:lit,body:"Hi "+first+",\n\nThanks for picking up. I'll give you a call back "+(c.cb?dialDayTxt(c.cb,todayStr()):"soon")+". Sent over a one-pager in the meantime.\n\n"+what+(campus?pf:"")+sig};
+  return {subject:"good talking today",lit:lit,body:"Hi "+first+",\n\nGood talking with you today."+(met?" "+met.talked:"")+"\n\n"+what+pf+"\n\nSent over a quick overview. Want me to sketch out where they'd go at "+co+"?"+sig};}
+/* how we met them, only from what the CRM can show (Max, 2026-11-24: "draft email in a way that applies how we met them if possible"):
+   a website inquiry; a badge scan at our booth (the shows where we scanned badges — attendee lists like IACLEA, NASN or the Texas EM
+   pre-show list never count); an in-person visit, meeting, training or demo logged with them in the last year. Nothing → no line. */
+const DIAL_BOOTH={"NSC 2026":"NSC","EMS World 2026":"EMS World","ASSP 2026":"ASSP"};
+function dialHowMet(e){const r=e.rec||{};
+  const web=e.grp==="inbound"||(e.k!=="p"&&/website|web form|site form/i.test((r.conf||"")+" "+(r.source||"")));
+  if(web)return {vm:"I know you reached out to us through our website and wanted to follow up.",talked:"Thanks again for reaching out through our website."};
+  let show=e.k!=="p"?DIAL_BOOTH[String(r.conf||"").trim()]:"";
+  if(!show&&e.k==="p")(DB.confLeads||[]).some(l=>{if(l&&!l.removed&&l.refPid===r.id&&DIAL_BOOTH[String(l.conf||"").trim()]){show=DIAL_BOOTH[String(l.conf).trim()];return true;}return false;});
+  if(show){const t="Thanks again for stopping by the AutoTQ booth at "+show+".";return {vm:t,talked:t};}
+  if(e.k==="p"){const yr=dAdd(todayStr(),-365);
+    const a=(DB.activities||[]).filter(a=>a&&!a.removed&&a.pid===r.id&&["visit","meeting","training","demo"].includes(a.type)&&localDay(a.date)>=yr&&localDay(a.date)<=todayStr())
+      .sort((x,y)=>String(y.date).localeCompare(String(x.date)))[0];
+    if(a){const d=localDay(a.date),T=todayStr(),mo=new Date(+d.slice(0,4),+d.slice(5,7)-1,1).toLocaleDateString("en-US",{month:"long"}),
+        when=d.slice(0,7)===T.slice(0,7)?"earlier this month":d.slice(0,4)===T.slice(0,4)?"back in "+mo:"last "+mo;
+      const t="Glad we got to connect "+when+".";return {vm:t,talked:t};}}
+  return null;}
+/* where we got them, as a tag on the card and the row (Max, 2026-11-24: "for each lead I need to know where we got them from say
+   [APOLLO] or [ASSP 2026]"). The school campaign lists are Apollo pulls; a contact with no source came with the original CRM book
+   (the Zoho export, rep rosters and order buyers). */
+function dialSrcTag(e){const r=e.rec||{},s=String(r.source||"").trim(),conf=String(r.conf||"").trim(),both=s+" "+conf;
+  if(/apollo|^campaign: schools cold/i.test(s)||/apollo/i.test(conf))return "Apollo";
+  if(/website|web form/i.test(both)||e.grp==="inbound")return "Website";
+  if(/hot accounts|eric craft/i.test(both))return "Account research";
+  if(e.k==="cl")return conf||"Conference";
+  if(e.k==="lead"){if(/^crm$/i.test(conf))return "CRM contact";if(conf)return conf.replace(/^dialer:\s*/i,"");return s?s.replace(/\s+\d{4}-\d{2}-\d{2}.*$/,""):"Lead";}
+  const P=[[/^business card/i,"Business card"],[/^demo census/i,"Demo census"],[/^distributor list/i,"Distributor list"],[/^email signature/i,"Email signature"],[/^company email/i,"Email sweep"]];
+  for(const [re,t] of P)if(re.test(s))return t;
+  if(s)return s.replace(/\s*\(.*$/,"").replace(/\s+\d{4}-\d{2}-\d{2}.*$/,"");
+  const cl=(DB.confLeads||[]).find(l=>l&&l.refPid===r.id&&l.conf)||(DB.leads||[]).find(l=>l&&!l.removed&&l.refPid===r.id&&l.conf&&!/^crm$/i.test(l.conf));
+  return cl?String(cl.conf).replace(/^dialer:\s*/i,""):"Original CRM";}
+function dialSrcPill(e){return '<span class="pill dlsrc" title="Where we got them">'+esc(dialSrcTag(e))+'</span>';}
+/* a university or college (Max: "if you see university discuss FAU implementation and direct them to school landing page") */
+const DIAL_CAMPUS_LINE="Florida Atlantic University put AutoTQ beside every AED on campus and in each of its police vehicles. Here's how campuses are setting it up: theautotq.com/schools";
+function dialIsCampus(e){const r=e.rec||{},c=r.cid?company(r.cid):null;if(c&&(c.type==="distributor"||c.type==="manrep"))return false;
+  return /\buniversit|\bcollege\b|\bcampus\b|\biaclea\b/i.test([e.co,e.title,c&&c.name,c&&c.industry,r.conf].filter(Boolean).join(" "));}
 async function dialWrite(m,e){
   e=e||dialRecByKey(m.key);const c=dialCalls().find(x=>x.id===m.callId)||{},lits=dialLitFor(e||{rec:{},co:m.co});
   if(m.out==="vm"&&dialHasDemo(e)){const t=dialTemplate(m,c,e,lits);Object.assign(m,{subject:t.subject,body:t.body,lit:t.lit,ai:false,status:"draft"});delete m.err;save();dialMailPaint();return;}
@@ -7530,12 +7571,15 @@ function dialSigHtml(u){const s=DIAL_SIGS[u||USER];if(!s)return "";
     '<div'+f+'>'+esc(s.title)+' | <a href="'+esc(s.url)+'"'+a+'>'+esc(s.site)+'</a></div>'+
     '<div'+f+'>'+esc(s.phone)+' · <a href="mailto:'+esc(s.email)+'"'+a+'>'+esc(s.email)+'</a></div>'+
     '<div'+f+'>'+esc(s.addr)+'</div><div'+f+'><br></div>'+
-    '<div style="'+DIAL_MAIL_FONT+'">'+esc(DIAL_CONF)+'</div></div>';}
+    '<div style="font-family:Helvetica,Arial,sans-serif;font-size:8pt;color:#666666">'+esc(DIAL_CONF)+'</div></div>';}
+/* theautotq.com in a message becomes a link (tagged so the site can tell a Dialer email brought them) */
+function dialLinkify(h){return h.replace(/\b(?:https?:\/\/)?(?:www\.)?theautotq\.com((?:\/[A-Za-z0-9\-]+)*\/?)/g,(m,path)=>
+  '<a href="https://theautotq.com'+(path||"/")+'?utm_source=dialer&amp;utm_medium=email" style="color:#0563C1;text-decoration:underline">'+m+'</a>');}
 function dialMailHtml(body){const sig=dialSigHtml();let t=String(body||"").trim();
   if(sig){const me=(((teamById(USER)||{}).name)||"").split(" ")[0];
     if(me)t=t.replace(new RegExp("\\n\\s*"+me+"\\s*$"),"").trim();} /* the signature carries the name: a lone first name closing the body goes */
   return '<div style="'+DIAL_MAIL_FONT+';line-height:1.4">'+
-    t.split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+esc(p).replace(/\n/g,"<br>")+'</p>').join("")+
+    t.split(/\n{2,}/).map(p=>'<p style="margin:0 0 12px">'+dialLinkify(esc(p)).replace(/\n/g,"<br>")+'</p>').join("")+
     (sig||'<img src="'+MAIL_ASSETS+'lockup_hd.png" alt="AutoTQ" width="120" style="display:block;margin-top:6px;border:0">')+'</div>';}
 /* the signature under the message box, drawn exactly as it goes out */
 function dialSigPreviewHTML(){const s=dialSigHtml();return s?'<div class="dlsig" aria-label="Your signature">'+s+'</div>':'';}
