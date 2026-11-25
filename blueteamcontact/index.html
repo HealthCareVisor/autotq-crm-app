@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en" class="locked">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0E1D3A">
+<title>AutoTQ for the Fastenal team</title>
+<link rel="preload" href="inter.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:Inter;src:url(inter.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{--navy:#0E1D3A;--b1:#0B3A82;--b2:#1A5CB3;--ice:#B9C9E4;--red:#D12020;--red-d:#A8161A;--ink:#16181B;--line:rgba(255,255,255,.22)}
+*{box-sizing:border-box;margin:0}
+html.locked body{visibility:hidden}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--navy);color:#fff;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{display:block;max-width:100%;height:auto}
+u{text-decoration:underline;text-decoration-thickness:.07em;text-underline-offset:.14em}
+
+/* hero: the Fastenal card, as a page */
+.hero{position:relative;background:var(--navy);overflow:hidden}
+.hero .photo{position:relative;height:clamp(240px,62vw,430px)}
+.hero .photo img{width:100%;height:100%;object-fit:cover;object-position:30% 45%}
+.hero .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,29,58,0) 55%,var(--navy) 100%)}
+.hero .copy{position:relative;padding:4px 24px 36px;max-width:560px}
+.flogo{width:168px;margin-bottom:22px}
+h1{font-size:clamp(30px,8.4vw,46px);line-height:1.06;font-weight:800;letter-spacing:-.022em}
+.meet{font-size:clamp(28px,7.6vw,40px);line-height:1.1;font-weight:800;letter-spacing:-.02em;margin-top:14px}
+.what{font-size:16px;line-height:1.5;color:var(--ice);margin-top:16px;max-width:30em}
+.sku{margin-top:28px}
+.sku span{display:block;font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ice)}
+.sku strong{display:block;font-size:34px;font-weight:800;letter-spacing:.01em;margin-top:4px;font-variant-numeric:tabular-nums;color:#E4E9F2}
+.jump{display:inline-flex;align-items:center;gap:10px;margin-top:26px;color:#fff;font-weight:700;font-size:15.5px;text-decoration:none;border-bottom:2px solid rgba(255,255,255,.5);padding-bottom:3px}
+.jump svg{width:14px;height:14px}
+
+@media (min-width:900px){
+  .hero{display:grid;grid-template-columns:1.18fr 1fr;min-height:min(84vh,680px)}
+  .hero .photo{height:auto}
+  .hero .photo img{position:absolute;inset:0}
+  .hero .photo::after{background:linear-gradient(90deg,rgba(14,29,58,0) 58%,var(--navy) 100%)}
+  .hero .copy{align-self:center;padding:56px 56px 56px 28px}
+  .flogo{width:200px;margin-bottom:34px}
+  .jump{display:none}
+}
+
+/* the form: the coffee card's blue */
+.panel{background:linear-gradient(160deg,var(--b2) 0%,var(--b1) 62%,#0A3170 100%);padding:44px 24px 52px}
+.wrap{max-width:600px;margin:0 auto}
+.lockup{width:132px;margin-bottom:28px}
+h2{font-size:clamp(27px,7vw,36px);line-height:1.1;font-weight:800;letter-spacing:-.02em}
+.lead{font-size:16.5px;line-height:1.55;color:#E3EAF6;margin-top:14px}
+form{margin-top:30px;display:grid;gap:18px}
+.row2{display:grid;gap:18px}
+@media (min-width:560px){.row2{grid-template-columns:1fr 1fr}}
+label,.lbl{display:block;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ice);margin-bottom:8px}
+label i{font-style:normal;letter-spacing:.02em;text-transform:none;font-weight:500;opacity:.8}
+input,select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:2px solid #fff;border-radius:0;padding:12px 14px;min-height:50px;appearance:none;-webkit-appearance:none}
+select{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2316181B' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 16px center;padding-right:40px}
+textarea{min-height:92px;resize:vertical;line-height:1.45}
+input:focus,select:focus,textarea:focus{outline:3px solid rgba(255,255,255,.55);outline-offset:2px}
+input[aria-invalid=true],select[aria-invalid=true]{border-color:#FFB3B3;box-shadow:inset 0 0 0 2px var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:inherit;font-size:15px;font-weight:600;color:#fff;background:transparent;border:2px solid rgba(255,255,255,.6);border-radius:0;padding:10px 14px;min-height:46px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.chip svg{width:14px;height:14px;display:none}
+.chip[aria-pressed=true]{background:#fff;color:var(--b1);border-color:#fff}
+.chip[aria-pressed=true] svg{display:block}
+.chip:focus-visible{outline:3px solid rgba(255,255,255,.55);outline-offset:2px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.me{margin-top:18px;font-size:15px;color:#E3EAF6}
+.me button{font:inherit;font-weight:600;color:#fff;background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:.18em;cursor:pointer;margin-left:6px}
+.more{border-top:1.5px solid var(--line);border-bottom:1.5px solid var(--line)}
+.more summary{list-style:none;cursor:pointer;padding:15px 0;font-size:15.5px;font-weight:600;display:flex;align-items:center;gap:10px}
+.more summary::-webkit-details-marker{display:none}
+.more summary::before{content:"+";display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid rgba(255,255,255,.6);font-weight:700;font-size:15px;line-height:1}
+.more[open] summary::before{content:"\2212"}
+.more summary i{font-style:normal;font-weight:500;color:var(--ice)}
+.more summary:focus-visible{outline:3px solid rgba(255,255,255,.55);outline-offset:2px}
+.moreb{display:grid;gap:18px;padding:4px 0 22px}
+.send{font:inherit;font-size:17px;font-weight:700;color:#fff;background:var(--red);border:0;border-radius:0;min-height:56px;cursor:pointer;margin-top:6px;letter-spacing:.005em}
+.send:hover{background:var(--red-d)}
+.send:disabled{opacity:.7;cursor:progress}
+.err{font-size:15px;color:#FFD5D5;font-weight:600;min-height:1px}
+
+/* after sending: their contact, like the coffee card */
+.dhead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.contact{margin-top:28px;border:1.5px solid var(--line);padding:22px 22px 24px}
+.map{flex:0 0 auto;width:132px;margin-top:2px}
+.map svg{width:100%;height:auto;display:block}
+.map span{display:block;text-align:right;font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ice);margin-top:5px}
+.who{display:flex;align-items:center;gap:16px}
+.who img{width:76px;height:76px;border-radius:50%;border:3px solid rgba(255,255,255,.85);object-fit:cover}
+.who b{display:block;font-size:20px;font-weight:700}
+.who small{display:block;font-size:14px;color:#DCE5F3;line-height:1.4;margin-top:2px}
+.lines{margin-top:22px;display:grid;gap:8px}
+.lines div{display:grid;grid-template-columns:64px 1fr;align-items:baseline}
+.lines span{font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ice)}
+.lines a{color:#fff;font-size:16.5px;font-weight:600;text-decoration:none;word-break:break-all}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+.acts a,.acts button{font:inherit;font-size:15.5px;font-weight:700;text-align:center;text-decoration:none;min-height:50px;display:flex;align-items:center;justify-content:center;border-radius:0;cursor:pointer}
+.acts .call{background:#fff;color:var(--b1);border:0}
+.acts .save{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.6)}
+@media (max-width:420px){.map{width:104px}.who img{width:64px;height:64px}}
+
+footer{background:var(--navy);padding:34px 24px 44px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;justify-content:space-between}
+footer img{width:118px}
+footer p{font-size:13px;line-height:1.55;color:var(--ice)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="photo"><img src="hero.jpg" alt="An AutoTQ inflator strapped on an arm, its three printed steps reading Power, Tighten above bleed, Inflate" width="1800" height="1200" fetchpriority="high"></div>
+  <div class="copy">
+    <img class="flogo" src="fastenal_white.png" alt="Fastenal" width="694" height="142">
+    <h1>Now, <u>anyone</u> can stop bleeding with confidence.</h1>
+    <p class="meet"><u>Meet AutoTQ.</u></p>
+    <p class="what">An automatic tourniquet that tells you what to do, step by step, and applies pressure at the push of a button.</p>
+    <div class="sku"><span>Fastenal SKU</span><strong>927403964</strong></div>
+    <a class="jump" href="#talk">Ask for more info <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1v11M2 7l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+  </div>
+</header>
+
+<main class="panel" id="talk">
+  <div class="wrap">
+    <img class="lockup" src="lockup_white.png" alt="AutoTQ" width="1000" height="256">
+
+    <section id="ask">
+      <h2>Fastenal team, want to know more?</h2>
+      <p class="lead">Add your name and state, and the AutoTQ contact for your territory will reach out with whatever helps: a demo, training, pricing or literature.</p>
+      <p class="me" id="me" hidden></p>
+
+      <form id="f" novalidate>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="120" placeholder="you@fastenal.com">
+        </div>
+        <div class="row2">
+          <div>
+            <label for="name">Name</label>
+            <input id="name" name="name" autocomplete="name" required maxlength="80">
+          </div>
+          <div>
+            <label for="state">State</label>
+            <select id="state" name="state" required>
+              <option value="">Choose</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <span class="lbl" id="wantsL">What would help?</span>
+          <div class="chips" role="group" aria-labelledby="wantsL">
+            <button type="button" class="chip" aria-pressed="false" data-v="A demo for my branch"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5l3.2 3L12 3.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>A demo for my branch</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="Training for my team"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5l3.2 3L12 3.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Training for my team</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="Help with a customer"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5l3.2 3L12 3.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Help with a customer</button>
+            <button type="button" class="chip" aria-pressed="false" data-v="Pricing and literature"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5l3.2 3L12 3.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>Pricing and literature</button>
+          </div>
+        </div>
+        <details class="more" id="more">
+          <summary>Add your branch, mobile or a customer <i>(optional)</i></summary>
+          <div class="moreb">
+            <div class="row2">
+              <div>
+                <label for="branch">Branch <i>(city or code)</i></label>
+                <input id="branch" name="branch" autocomplete="address-level2" maxlength="80">
+              </div>
+              <div>
+                <label for="phone">Mobile</label>
+                <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30">
+              </div>
+            </div>
+            <div>
+              <label for="role">Your role</label>
+              <select id="role" name="role">
+                <option value="">Choose</option>
+                <option>Branch / general manager</option>
+                <option>Outside sales</option>
+                <option>Onsite</option>
+                <option>National or key accounts</option>
+                <option>District or regional</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label for="note">A customer or site you have in mind</label>
+              <textarea id="note" name="note" maxlength="1200"></textarea>
+            </div>
+          </div>
+        </details>
+        <div class="hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+        <p class="err" id="err" role="alert"></p>
+        <button class="send" id="send" type="submit">Send me more info</button>
+      </form>
+    </section>
+
+    <section class="done" id="done" hidden aria-live="polite">
+      <div class="dhead"><h2 id="doneH"></h2><div class="map" id="map"></div></div>
+      <p class="lead" id="doneP"></p>
+      <div class="contact">
+        <div class="who"><img id="cFace" alt="" width="192" height="192"><div><b id="cName"></b><small id="cTitle"></small></div></div>
+        <div class="lines">
+          <div><span>Call</span><a id="cTel"></a></div>
+          <div><span>Email</span><a id="cMail"></a></div>
+        </div>
+        <div class="acts"><a class="call" id="cCall">Call</a><button type="button" class="save" id="cSave">Save contact</button></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="lockup_white.png" alt="AutoTQ" width="1000" height="256">
+    <p>AutoTQ Kit &middot; Fastenal SKU 927403964 &middot; AutoTQ part 1000-0005-TQ<br>Golden Hour Medical, Inc. &middot; Boca Raton, FL</p>
+  </div>
+</footer>
+
+<script src="us_geo.js"></script>
+<script>
+(function(){
+"use strict";
+/* the portal link carries ?k=<key>; only its SHA-256 lives here, so the page source doesn't give the key away.
+   The link may also carry the rep's details for prefill: ?email= &name= &state= &branch= &phone= (and &src= to say where it was posted). */
+var KEY_HASH="9f9bb9641827a4bce79c00b67e658e7ef5f793be42ec6f477e4821b6a4e789f2";
+var FN="https://nrbjtqczntrwqoheurpt.supabase.co/functions/v1/blueteam-lead";
+var AWAY="https://theautotq.com/";
+var t0=Date.now(), key="", src="link";
+var ME_KEY="autotq_bt_me", K_KEY="autotq_bt_k";
+function store(){try{return window.localStorage;}catch(e){return null;}}
+
+/* territories: the same split as the CRM (East / Central / West) */
+var EAST="ME VT NH MA RI CT NY NJ PA DE MD DC WV VA OH KY TN NC SC GA AL MS FL MI".split(" ");
+var CENTRAL="ND SD NE KS OK TX MN IA MO AR LA WI IL IN".split(" ");
+var REPS={
+  East:{name:"John Morrison",first:"John",title:"AutoTQ Sales Manager",terr:"East",tel:"+14405743254",phone:"+1 (440) 574-3254",email:"johnmorrison@goldenhourmedical.com",face:"face_johnm.jpg"},
+  Central:{name:"John Cornejo",first:"John",title:"AutoTQ Sales Manager",terr:"Central",tel:"+13177160514",phone:"+1 (317) 716-0514",email:"john@goldenhourmedical.com",face:"face_john.jpg"},
+  West:{name:"Max Herbst",first:"Max",title:"Operations Manager",terr:"West",tel:"+15613258758",phone:"+1 (561) 325-8758",email:"salessupport@goldenhourmedical.com",face:"face_max.jpg"}
+};
+function territory(st){return EAST.indexOf(st)>=0?"East":CENTRAL.indexOf(st)>=0?"Central":"West";}
+
+var STATES=[["AL","Alabama"],["AK","Alaska"],["AZ","Arizona"],["AR","Arkansas"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DE","Delaware"],["DC","District of Columbia"],["FL","Florida"],["GA","Georgia"],["HI","Hawaii"],["ID","Idaho"],["IL","Illinois"],["IN","Indiana"],["IA","Iowa"],["KS","Kansas"],["KY","Kentucky"],["LA","Louisiana"],["ME","Maine"],["MD","Maryland"],["MA","Massachusetts"],["MI","Michigan"],["MN","Minnesota"],["MS","Mississippi"],["MO","Missouri"],["MT","Montana"],["NE","Nebraska"],["NV","Nevada"],["NH","New Hampshire"],["NJ","New Jersey"],["NM","New Mexico"],["NY","New York"],["NC","North Carolina"],["ND","North Dakota"],["OH","Ohio"],["OK","Oklahoma"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["SD","South Dakota"],["TN","Tennessee"],["TX","Texas"],["UT","Utah"],["VT","Vermont"],["VA","Virginia"],["WA","Washington"],["WV","West Virginia"],["WI","Wisconsin"],["WY","Wyoming"],["INTL","Outside the US"]];
+
+function sha256(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2);}).join("");});}
+
+var $=function(id){return document.getElementById(id);};
+var sel=$("state");
+STATES.forEach(function(s){var o=document.createElement("option");o.value=s[0];o.textContent=s[1];sel.appendChild(o);});
+function stateCode(v){v=String(v||"").trim().toLowerCase();if(!v)return "";for(var i=0;i<STATES.length;i++){if(STATES[i][0].toLowerCase()===v||STATES[i][1].toLowerCase()===v)return STATES[i][0];}return "";}
+
+function unlock(){
+  var P=new URLSearchParams(location.search), S=store();
+  var k=(P.get("k")||(S&&S.getItem(K_KEY))||"").trim();
+  if(!k||!window.crypto||!crypto.subtle){location.replace(AWAY);return;}
+  sha256(k).then(function(h){
+    if(h!==KEY_HASH){location.replace(AWAY);return;}
+    key=k; if(S)S.setItem(K_KEY,k); /* the same browser keeps working from a bookmark */
+    src=(P.get("src")||"link").replace(/[^\w .-]/g,"").slice(0,40)||"link";
+    prefill(P);
+    /* the rep's own details leave the address bar, so a forwarded or bookmarked link never carries them; the key stays */
+    var keep=new URLSearchParams(); keep.set("k",k); if(P.get("src"))keep.set("src",src);
+    history.replaceState(null,"",location.pathname+"?"+keep.toString()+location.hash);
+    document.documentElement.classList.remove("locked");
+  },function(){location.replace(AWAY);});
+}
+
+/* prefill: what the portal link carries first, then what this browser remembers from a past visit; the browser's own autofill covers the rest */
+function prefill(P){
+  var S=store(), me={}; try{me=JSON.parse((S&&S.getItem(ME_KEY))||"{}")||{};}catch(e){me={};}
+  function put(id,v){var el=$(id);v=String(v||"").trim();if(el&&v&&!el.value)el.value=v.slice(0,el.maxLength>0?el.maxLength:200);}
+  put("email",P.get("email")); put("name",P.get("name")); put("branch",P.get("branch")); put("phone",P.get("phone"));
+  var st=stateCode(P.get("state")); if(st)sel.value=st;
+  put("email",me.email); put("name",me.name); put("branch",me.branch); put("phone",me.phone);
+  if(!sel.value&&me.state)sel.value=stateCode(me.state);
+  if(me.role&&!$("role").value)$("role").value=me.role;
+  if($("branch").value||$("phone").value||$("role").value)$("more").open=true;
+  if(me.email){
+    var first=String(me.name||"").split(/\s+/)[0];
+    $("me").innerHTML="Welcome back"+(first?", "+first.replace(/[<>&"]/g,""):"")+".<button type=\"button\" id=\"notMe\">Not you?</button>";
+    $("me").hidden=false;
+    $("notMe").onclick=function(){if(S)S.removeItem(ME_KEY);["email","name","branch","phone","note"].forEach(function(id){$(id).value="";});sel.value="";$("role").value="";$("me").hidden=true;$("email").focus();};
+  }
+  var empty=["email","name"].filter(function(id){return !$(id).value;})[0];
+  if(!empty&&!sel.value)empty="state";
+  if(empty&&location.hash==="#talk")$(empty).focus();
+}
+Array.prototype.forEach.call(document.querySelectorAll(".chip"),function(b){b.addEventListener("click",function(){b.setAttribute("aria-pressed",b.getAttribute("aria-pressed")==="true"?"false":"true");});});
+
+function drawMap(terr){
+  var G=window.US_GEO; if(!G){$("map").innerHTML="";return;}
+  var p=[];
+  Object.keys(G.states).forEach(function(st){
+    var on=territory(st)===terr;
+    p.push('<path d="'+G.states[st].d+'" fill="'+(on?"#EEF3FB":"rgba(255,255,255,.16)")+'" stroke="'+(on?"#9FB4D6":"rgba(11,58,130,.9)")+'" stroke-width="2.2"/>');
+  });
+  $("map").innerHTML='<svg viewBox="'+G.vb.join(" ")+'" aria-hidden="true">'+p.join("")+'</svg><span>'+terr+' territory</span>';
+}
+
+function showContact(rep,first,sent){
+  $("doneH").textContent=sent?("Thanks"+(first?", "+first:"")+"."):"That didn't send.";
+  $("doneP").textContent=sent
+    ? rep.name+" covers the "+rep.terr+" and will reach out soon with more on AutoTQ. Want to talk sooner? Call or email anytime."
+    : "Please reach "+rep.name+", your AutoTQ contact for the "+rep.terr+", directly:";
+  $("cFace").src=rep.face; $("cFace").alt=rep.name;
+  $("cName").textContent=rep.name; $("cTitle").innerHTML=rep.title+"<br>"+rep.terr+" Territory";
+  $("cTel").textContent=rep.phone; $("cTel").href="tel:"+rep.tel; $("cCall").href="tel:"+rep.tel; $("cCall").textContent="Call "+rep.first;
+  $("cMail").textContent=rep.email; $("cMail").href="mailto:"+rep.email+"?subject="+encodeURIComponent("AutoTQ for my Fastenal branch");
+  $("cSave").onclick=function(){
+    var n=rep.name.split(" ");
+    var v=["BEGIN:VCARD","VERSION:3.0","N:"+n.slice(1).join(" ")+";"+n[0]+";;;","FN:"+rep.name,"ORG:AutoTQ (Golden Hour Medical)","TITLE:"+rep.title+", "+rep.terr+" Territory","TEL;TYPE=CELL:"+rep.tel,"EMAIL;TYPE=WORK:"+rep.email,"URL:https://theautotq.com","END:VCARD"].join("\r\n");
+    var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([v],{type:"text/vcard"})); a.download=rep.name+" - AutoTQ.vcf"; document.body.appendChild(a); a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
+  };
+  drawMap(rep.terr);
+  $("ask").hidden=true; $("done").hidden=false;
+  $("talk").scrollIntoView({behavior:"auto",block:"start"});
+}
+
+function bad(el,msg){el.setAttribute("aria-invalid","true");$("err").textContent=msg;el.focus();return false;}
+$("f").addEventListener("input",function(e){if(e.target.getAttribute)e.target.removeAttribute("aria-invalid");$("err").textContent="";});
+$("f").addEventListener("submit",function(e){
+  e.preventDefault();
+  var name=$("name").value.trim(), email=$("email").value.trim(), st=sel.value;
+  if(name.length<2)return bad($("name"),"Please add your name.");
+  if(!/^[^\s@<>"',;]+@[^\s@<>"',;]+\.[a-z]{2,}$/i.test(email))return bad($("email"),"Please check your email address.");
+  if(!st)return bad(sel,"Please choose your state.");
+  var wants=Array.prototype.filter.call(document.querySelectorAll(".chip"),function(b){return b.getAttribute("aria-pressed")==="true";}).map(function(b){return b.dataset.v;});
+  var body={k:key,src:src,name:name,email:email,phone:$("phone").value.trim(),branch:$("branch").value.trim(),state:st,role:$("role").value,wants:wants,note:$("note").value.trim(),website:$("website").value,ms:Date.now()-t0};
+  var rep=REPS[territory(st)], first=name.split(/\s+/)[0];
+  var S=store(); if(S)try{S.setItem(ME_KEY,JSON.stringify({name:name,email:email,phone:body.phone,branch:body.branch,state:st,role:body.role}));}catch(e){}
+  $("send").disabled=true; $("send").textContent="Sending…";
+  var ctl=window.AbortController?new AbortController():null, timer=setTimeout(function(){if(ctl)ctl.abort();},20000);
+  fetch(FN,{method:"POST",headers:{"content-type":"text/plain;charset=UTF-8"},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined})
+    .then(function(r){return r.json().then(function(j){return {ok:r.ok&&j&&j.ok,j:j};});})
+    .then(function(x){clearTimeout(timer);showContact(rep,first,!!x.ok);})
+    .catch(function(){clearTimeout(timer);showContact(rep,first,false);});
+});
+
+unlock();
+})();
+</script>
+</body>
+</html>
